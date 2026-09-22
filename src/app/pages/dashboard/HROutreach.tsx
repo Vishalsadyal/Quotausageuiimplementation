@@ -3,6 +3,7 @@
 import { useState, useCallback, useEffect, useRef, useMemo } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { HR_OUTREACH_EXTENSION_STORE_URL } from "src/lib/extension-providers";
+import { useAuth } from "../../context/AuthContext";
 import {
   Search,
   Mail,
@@ -251,6 +252,7 @@ function saveHistory(history: OutreachRecord[]) {
 // ─── Main Component ────────────────────────────────────────────────────────────
 
 export default function HROutreach() {
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<Tab>("collect");
 
   // Extension state
@@ -606,20 +608,15 @@ export default function HROutreach() {
 
   // Pre-fill sender details from user profile
   useEffect(() => {
-    if (senderName || senderEmail) return; // already set via localStorage
-    fetch("/api/auth/me", { credentials: "include" })
-      .then(r => r.json())
-      .then(u => {
-        if (u.name && !senderName) { setSenderName(u.name); localStorage.setItem("cp_sender_name", u.name); }
-        if (u.email && !senderEmail) { setSenderEmail(u.email); localStorage.setItem("cp_sender_email", u.email); }
-        if (u.phone && !senderPhone) { setSenderPhone(u.phone); localStorage.setItem("cp_sender_phone", u.phone); }
-        if (u.linkedinUrl && !senderLinkedin) { setSenderLinkedin(u.linkedinUrl); localStorage.setItem("cp_sender_linkedin", u.linkedinUrl); }
-        if (u.portfolioUrl && !senderPortfolio) { setSenderPortfolio(u.portfolioUrl); localStorage.setItem("cp_sender_portfolio", u.portfolioUrl); }
-        if (u.currentCity && !location) { setLocation(u.currentCity); localStorage.setItem("cp_location", u.currentCity); }
-        if (!role) setRole("Software Engineer");
-      })
-      .catch(() => {});
-  }, []);
+    if (!user) return;
+    if (user.name && !senderName) { setSenderName(user.name); localStorage.setItem("cp_sender_name", user.name); }
+    if (user.email && !senderEmail) { setSenderEmail(user.email); localStorage.setItem("cp_sender_email", user.email); }
+    if (user.phone && !senderPhone) { setSenderPhone(user.phone); localStorage.setItem("cp_sender_phone", user.phone); }
+    if (user.linkedinUrl && !senderLinkedin) { setSenderLinkedin(user.linkedinUrl); localStorage.setItem("cp_sender_linkedin", user.linkedinUrl); }
+    if (user.portfolioUrl && !senderPortfolio) { setSenderPortfolio(user.portfolioUrl); localStorage.setItem("cp_sender_portfolio", user.portfolioUrl); }
+    if (user.currentCity && !location) { setLocation(user.currentCity); localStorage.setItem("cp_location", user.currentCity); }
+    if (!role) setRole("Software Engineer");
+  }, [user, senderName, senderEmail, senderPhone, senderLinkedin, senderPortfolio, location, role]);
 
   // Load contacts from server (per-user), fall back to localStorage
   useEffect(() => {

@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LinkedIn WhatsApp Job Outreach Pro</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="popup-container">
+    <!-- Header -->
+    <header class="popup-header">
+      <div class="header-brand">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="#25D366"><path d="M12.04 2c-5.46 0-9.91 4.45-9.91 9.91 0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38c1.45.79 3.08 1.21 4.74 1.21 5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.816 9.816 0 0 0 12.04 2z"/></svg>
+        <div>
+          <h1>WhatsApp Job Outreach</h1>
+          <span class="subtext">LinkedIn Hiring Lead Extractor</span>
+        </div>
+      </div>
+      <span class="badge" id="leads-count-badge">0 Leads</span>
+    </header>
+
+    <!-- Nav Tabs -->
+    <nav class="popup-nav">
+      <button class="nav-btn active" id="tab-btn-search">🔍 Search</button>
+      <button class="nav-btn" id="tab-btn-leads">📋 Leads Queue</button>
+      <button class="nav-btn" id="tab-btn-settings">⚙️ Settings</button>
+    </nav>
+
+    <!-- Content: Quick Search -->
+    <div class="tab-pane active" id="pane-search">
+      <div class="form-group">
+        <label>Search LinkedIn Hiring Posts:</label>
+        <div style="display:flex; gap:6px; margin-top:4px;">
+          <input type="text" id="pop-search-input" class="form-input" placeholder="e.g. WordPress developer hiring whatsapp" />
+          <button class="btn btn-primary" id="btn-pop-exec-search" style="padding: 6px 12px; white-space: nowrap;">
+            <span>Search</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="chips-container" style="display:flex; flex-wrap:wrap; gap:5px; margin-bottom:12px;">
+        <span class="pop-chip" data-q="WordPress developer hiring whatsapp">🌐 WordPress</span>
+        <span class="pop-chip" data-q="React developer hiring whatsapp">⚛️ React Dev</span>
+        <span class="pop-chip" data-q="Web developer hiring whatsapp">💻 Web Dev</span>
+        <span class="pop-chip" data-q="Frontend developer hiring whatsapp">🎨 Frontend</span>
+        <span class="pop-chip" data-q="Electrical fresher hiring whatsapp">⚡ Electrical</span>
+        <span class="pop-chip" data-q="Field engineer hiring whatsapp">🔌 Field Eng</span>
+      </div>
+
+      <div class="quick-stats">
+        <div class="stat-card">
+          <span class="stat-value" id="stat-total">0</span>
+          <span class="stat-label">Total Leads</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-value text-emerald" id="stat-sent">0</span>
+          <span class="stat-label">Sent</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-value text-sky" id="stat-pending">0</span>
+          <span class="stat-label">Pending</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-value text-amber" id="stat-dupes">0</span>
+          <span class="stat-label">Dupes</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Content: Leads Queue -->
+    <div class="tab-pane" id="pane-leads" style="display:none;">
+      <div class="popup-subnav">
+        <button class="pop-filter-btn active" data-filter="all">All</button>
+        <button class="pop-filter-btn" data-filter="pending">⏳ Pending</button>
+        <button class="pop-filter-btn" data-filter="sent">✅ Sent</button>
+      </div>
+
+      <div class="actions-row" style="margin-top:8px;">
+        <button class="btn btn-secondary" id="btn-export" style="flex:1;">
+          <span>📥 Export CSV</span>
+        </button>
+      </div>
+
+      <div class="leads-scroll-area" id="popup-leads-list">
+        <div class="empty-state">
+          No leads extracted yet.<br>
+          Open LinkedIn hiring search and start scanning!
+        </div>
+      </div>
+    </div>
+
+    <!-- Content: Settings -->
+    <div class="tab-pane" id="pane-settings" style="display:none;">
+      <div class="form-group">
+        <label>Target Job Titles / Keywords:</label>
+        <input type="text" id="pop-keywords" class="form-input" placeholder="wordpress, react, developer, fresher..." />
+      </div>
+
+      <div class="form-group">
+        <label>WhatsApp Outreach Template:</label>
+        <textarea id="pop-template" class="form-textarea" rows="4"></textarea>
+      </div>
+
+      <div class="form-group options-group">
+        <label class="checkbox-row">
+          <input type="checkbox" id="pop-remove-sent" />
+          <span><b>Auto-Remove post from feed after message sent</b></span>
+        </label>
+        <label class="checkbox-row">
+          <input type="checkbox" id="pop-match-all" />
+          <span>Match All Hiring Posts with Phone (Broad Reach)</span>
+        </label>
+        <label class="checkbox-row">
+          <input type="checkbox" id="pop-auto-send" />
+          <span>Auto-Click Send on WhatsApp Web</span>
+        </label>
+        <label class="checkbox-row">
+          <input type="checkbox" id="pop-auto-close" />
+          <span>Auto-Close WhatsApp tab after sending</span>
+        </label>
+        <label class="checkbox-row">
+          <input type="checkbox" id="pop-filter-seekers" />
+          <span>Filter out Job Seekers / #OpenToWork</span>
+        </label>
+      </div>
+
+      <button class="btn btn-primary w-full" id="btn-save-pop-settings">
+        <span>💾 Save Configuration</span>
+      </button>
+    </div>
+
+    <!-- Footer -->
+    <footer class="popup-footer">
+      <span>Personal LinkedIn Job Outreach Pro</span>
+      <a href="https://parveen-portfolio-xi.vercel.app/" target="_blank">Portfolio</a>
+    </footer>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

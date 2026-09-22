@@ -89,11 +89,11 @@ export async function PATCH(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { id, ...updateData } = body;
+    const { id, name, subject, templateId, scheduledAt, recipientList, status } = body;
 
-    if (!id) {
+    if (!id || typeof id !== 'string') {
       return NextResponse.json(
-        { error: 'Campaign ID is required' },
+        { error: 'Valid campaign ID is required' },
         { status: 400 }
       );
     }
@@ -109,6 +109,22 @@ export async function PATCH(req: NextRequest) {
         { status: 404 }
       );
     }
+
+    const updateData: {
+      name?: string;
+      subject?: string;
+      templateId?: string | null;
+      scheduledAt?: Date | null;
+      recipientList?: any;
+      status?: any;
+    } = {};
+
+    if (typeof name === 'string') updateData.name = name.trim();
+    if (typeof subject === 'string') updateData.subject = subject.trim();
+    if (templateId !== undefined) updateData.templateId = templateId || null;
+    if (scheduledAt !== undefined) updateData.scheduledAt = scheduledAt ? new Date(scheduledAt) : null;
+    if (recipientList !== undefined) updateData.recipientList = recipientList;
+    if (status !== undefined) updateData.status = status;
 
     const campaign = await prisma.marketingCampaign.update({
       where: { id },

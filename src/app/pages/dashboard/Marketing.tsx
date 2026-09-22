@@ -149,7 +149,7 @@ export default function Marketing() {
     } else {
       setWACampaigns(loadWACampaigns());
     }
-  }, [channel, location.pathname]);
+  }, [channel]);
 
   // Extension detection & message listener
   useEffect(() => {

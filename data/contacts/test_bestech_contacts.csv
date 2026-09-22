@@ -1,0 +1,121 @@
+name,category,address,lat,lon,phone,email,website,phone_source,email_source,osm_type,osm_id
+Block B Market,shop:supermarket,,28.417077,77.0466108,,,,,,node,266729534
+Gardian Pharmacy,amenity:pharmacy,,28.4169284,77.0467817,,,,,,node,266729557
+Block D Market,shop:supermarket,,28.4173675,77.0510414,,,,,,node,266729875
+State Bank of India,amenity:bank,,28.3916847,77.0486793,,,,,,node,477905030
+ICICI Bank,amenity:bank,,28.3895183,77.0503769,,,https://www.icicibank.com,,,node,477905077
+Gobind Hospital,amenity:hospital,,28.3905221,77.0491169,,,,,,node,477905079
+Union Bank of India,amenity:bank,,28.3935986,77.0467381,,,https://www.unionbankofindia.co.in/,,,node,477905082
+Sai Heart and Trauma Center,amenity:hospital,,28.3978752,77.0455899,,,,,,node,477905091
+Central Bank of India,amenity:bank,,28.3949963,77.0462656,,,https://www.centralbankofindia.co.in,,,node,1363223153
+HDFC Bank,amenity:bank,,28.417248,77.050616,,,,,,node,1389062000
+Genius,amenity:pharmacy,,28.4169016,77.0467808,,,,,,node,1668936675
+Shoppers Stop,shop:clothes,"649, 649-6th Floor, Tower A Spaze iTechPark, Gurgaon, 122018",28.4129054,77.0421678,,,https://www.magentoindia.in/,,,node,1668936684
+IndusInd Bank,amenity:bank,Golf Course Extension Road,28.40141,77.0486745,,,,,,node,4101264093
+HDFC Bank,amenity:bank,Golf Course Extension Road,28.4020622,77.050289,,,https://www.hdfcbank.com,,,node,4101294192
+Apollo Pharmacy,amenity:pharmacy,,28.4172278,77.0467067,,,,,,node,4446365689
+oppo,amenity:coworking_space,,28.4064803,77.0444033,,,,,,node,5257158322
+kunaic mandi mart,shop:supermarket,,28.4125265,77.0548353,,,,,,node,5877700285
+Indian Moment,shop:travel_agency,,28.4124288,77.0588806,,,,,,node,6138435085
+HDFC Bank,amenity:bank,Sohna Road,28.4195525,77.0385972,,,,,,node,6205074486
+Stryker Global Tech Center,office:company,"8th Floor, Vatika Business Park, Sohna Road, Gurugram, 122001",28.4059549,77.044758,,,,,,node,6215682700
+JMart,shop:convenience,,28.396487,77.0272011,,,,,,node,6223496988
+Nook,amenity:restaurant,"Gurugram, 122018",28.4063064,77.0448369,,,,,,node,6472488318
+Starbucks,amenity:cafe,"Vatika Business Park, Sohna Road, Gurugram, 122018",28.4061488,77.0451428,,,,,,node,6472488319
+McKinsey & Company,office:consulting,Sohna Road,28.4062298,77.0451391,,,https://www.mckinsey.com/knowledge-network/gurugram,,,node,6535129812
+Park Hospital Blood Bank,amenity:blood_bank,"Gurugram, Haryana, 122001",28.4200514,77.0482242,01244900037; 0124490038,raj1963_kanwar@yahoo.com; parkmedicenters@gmail.com,https://www.parkhospital.in/,osm,osm,node,6895185776
+Divine Look Clinic Centre,amenity:clinic,"Haryana, 122018",28.4118439,77.0485043,,,http://www.divinelook.in/,,,node,6991770316
+Park Hospital Gurgaon,amenity:hospital,"Haryana, 122001",28.4201363,77.0487258,7503141435,gurgaon@parkhospital.in,https://parkhospital.in/,osm,osm,node,6993926819
+Sona Devi Memorial Hospital and Trauma Centre,amenity:hospital,"Haryana, 122001",28.3966869,77.0464955,,,,,,node,6997845822
+Sai Dharamraj Hospital,amenity:hospital,"Haryana, 122101",28.3970019,77.045605,,,,,,node,6997926204
+Ekta Hospital,amenity:hospital,"Haryana, 122001",28.3981002,77.0453744,,,,,,node,6998006318
+"Sanjeevani Hospital, Gurgaon",amenity:hospital,"Haryana, 122001",28.3969405,77.046572,,,,,,node,6998051836
+Kamal Hospital and Maternity Centre,amenity:hospital,"Haryana, 122101",28.3887198,77.0501634,,,,,,node,7008444605
+Dr. Naresh Pandita,amenity:doctors,"Haryana, 122015",28.416015,77.048701,,,,,,node,7622826268
+Skin Clinic,amenity:clinic,"Haryana, 122018",28.4124174,77.0486222,,,,,,node,7622826301
+Best Urologist Atcomplete Family Clinic,amenity:clinic,"Haryana, 122018",28.4174052,77.0462792,,,,,,node,7622826309
+Wellness Eye Centre,amenity:clinic,"Haryana, 122003",28.4171183,77.0465259,,,,,,node,7622826311
+Vishesh Dental,amenity:dentist,"Haryana, 122018",28.4195288,77.0488361,,,,,,node,7622826312
+Dr. Anuj Sharma,amenity:doctors,"Haryana, 122015",28.416007,77.048314,,,,,,node,7622826342
+Dr. Aruna Kalra,amenity:doctors,"Haryana, 122002",28.4168587,77.0468088,,,,,,node,7622826351
+Bones Clinic - Orthopaedics,amenity:clinic,"Haryana, 122018",28.418045,77.052434,,,,,,node,7622826354
+Neelkanth Health Care,amenity:clinic,"Haryana, 122018",28.419095,77.048334,,,,,,node,7622826363
+Live organic,shop:supermarket,"Shop No. 10, Vatika City Market, Sohna Road, Sector 49, Gurugram, Haryana 122018, Gurugram, 122018",28.402352,77.0458649,,,,,,node,7943402409
+Carmesi Corporate,office:company,"436, VIPUL TRADE CENTRE, Sohna Rd, Sector 48, Gurugram, 122011",28.4062167,77.0417559,,,https://mycarmesi.com/,,,node,8248215216
+QLITE Electronics Controls Limited,shop:lighting,,28.412649,77.044126,+91 124 426 4701;+91 124 426 4708,indiasales@qliteglobal.com,https://www.qliteglobal.com/,osm,osm,node,8709409258
+Bikaner Sweets,shop:bakery,"Gurgaon, Haryana, 122101",28.3947063,77.030445,,,,,,node,10313750604
+Bihari Market,shop:greengrocer,"Gurgaon, Haryana, 122101",28.3944154,77.0333805,,,,,,node,10541975312
+Vintage,shop:alcohol,"Gurgaon, Haryana, 122101",28.394218,77.031475,,,,,,node,10541975314
+Apollo Pharmacy,amenity:pharmacy,"Gurgaon, Haryana, 122101",28.3947277,77.0315357,,,,,,node,10541975316
+Fresh Choice Super Market,shop:department_store,"Gurgaon, Haryana, 122101",28.3947217,77.0320672,,,,,,node,10541975319
+Balaji Electronics,shop:electrical,"Sector 69, Gurgaon, 122101",28.3946713,77.0326862,,,,,,node,10542124499
+Hairdresser Saloon,shop:hairdresser,,28.3949074,77.033165,,,,,,node,10542124500
+Meat Shop,shop:butcher,,28.3946684,77.032832,,,,,,node,10542124501
+Sagar Ratna,amenity:restaurant,"Gurgaon, 122101",28.391689,77.0302286,,,,,,node,10542162110
+Cromā,shop:electronics,"Gurgaon, 122101",28.3913587,77.0303266,,,,,,node,10542162113
+Chaayos Cafe,amenity:cafe,"Gurgaon, 122101",28.3910366,77.0302333,,,,,,node,10542162116
+Nirula's Ice Cream,amenity:restaurant,"Gurgaon, 122101",28.3910386,77.030112,,,,,,node,10542162118
+Moti Mahal Delux,amenity:restaurant,"Gurgaon, 122101",28.3912705,77.0299511,,,,,,node,10542162119
+Harish Bakery,shop:bakery,"Gurgaon, 122101",28.3937614,77.0314061,,,,,,node,10542180814
+Fabindia,shop:clothes,,28.4199399,77.0383472,,,,,,node,10593463963
+Costa,amenity:cafe,,28.4197953,77.0382615,,,,,,node,10593508500
+Home Town,shop:interior_decoration,,28.4192679,77.0386382,,,,,,node,10593535629
+Thaï Garam,amenity:restaurant,,28.4185419,77.0385735,,,,,,node,10593537363
+Studio pepperfry,shop:interior_decoration,,28.4197374,77.0385153,,,,,,node,10593541924
+Axis Bank,amenity:bank,,28.4196716,77.0381956,,,,,,node,10593541925
+Lifeline Mediclinic,amenity:clinic,"Shop No. 20, First Floor, F Block Market, South City 2, Gurugram, 122018",28.4178591,77.0560521,,,,,,node,10725545986
+Daily Needs Grocery Shop,shop:department_store,"Gurgaon, 122101",28.3939305,77.0319554,,,,,,node,10951929516
+La Pino’z Pizza,amenity:restaurant,"Gurgaon, 122101",28.394382,77.0321824,,,,,,node,10951936905
+Well Health Pharmacy,shop:chemist,"Gurgaon, 122101",28.3944743,77.0317211,,,,,,node,10951960285
+Health Plus Pharmacy,shop:chemist,"Gurgaon, 122101",28.3944749,77.0317447,,,,,,node,10951960286
+Chashmadekho.com,shop:optician,"Gurgaon, 122101",28.3944699,77.0314324,,,,,,node,10951960287
+Vivo,shop:mobile_phone,"Gurgaon, 122101",28.3944734,77.0317756,,,,,,node,10951960288
+Geetanjali Studio,shop:hairdresser,"Gurgaon, 122101",28.3950174,77.0314318,,,,,,node,10951960289
+Golden Farmers Fresh Atta Chakki,shop:department_store,"Gurgaon, 122101",28.3944743,77.0316691,,,,,,node,10951960290
+Axis Bank,amenity:bank,"Gurgaon, 122101",28.3951881,77.0314328,,,,,,node,10951960291
+Netra The Eye Boutique,shop:optician,"Gurgaon, 122101",28.3949888,77.0314279,,,,,,node,10951960292
+Nearby Pharmacy,shop:chemist,"Gurgaon, 122101",28.3944425,77.0329655,,,,,,node,10951960294
+Dava India Generic Pharmacy,shop:chemist,"Gurgaon, 122101",28.3943815,77.032363,,,,,,node,10951960296
+Gopala Dairy Bakery Sweets,shop:bakery,"Gurgaon, 122101",28.3953395,77.0314267,,,,,,node,10951960299
+New U,shop:cosmetics,"Gurgaon, 122101",28.3950687,77.0314323,,,,,,node,10951960300
+Cut & Style,shop:hairdresser,"Gurgaon, 122101",28.3949401,77.0314312,,,,,,node,10951960302
+The Gurgaon Saloon,shop:hairdresser,"Gurgaon, 122101",28.3943818,77.0323967,,,,,,node,10951960303
+State Bank of India,amenity:bank,"Gurgaon, 122101",28.3950557,77.0314336,,,,,,node,10951960304
+IndusInd Bank,amenity:bank,"Gurgaon, 122101",28.3951406,77.0314348,,,,,,node,10951988905
+Tata 1mg,shop:chemist,"Gurgaon, 122101",28.3950889,77.0314342,,,,,,node,10951988906
+Focus Unisex Saloon,shop:hairdresser,"Gurgaon, 122101",28.3943815,77.0323142,,,,,,node,10951988907
+Cafe Sixty 9,amenity:cafe,"Gurgaon, 122101",28.3944744,77.0318037,,,,,,node,10951988908
+Healthkart,shop:chemist,"Gurgaon, 122101",28.394473,77.031605,,,,,,node,10951988909
+Green Chick Chop,shop:butcher,"Gurgaon, 122101",28.394721,77.0315641,,,,,,node,10952751926
+Rich Stitch Boutique,shop:tailor,"Gurgaon, 122101",28.3947209,77.0318254,,,,,,node,10952751927
+Tulip Supermart,shop:department_store,"Gurgaon, 122101",28.3947163,77.031707,,,,,,node,10952751928
+Hariom Atta Chakki,shop:department_store,"Gurgaon, 122101",28.3947147,77.0317701,,,,,,node,10952751929
+We R Yoys,shop:toys,"Gurgaon, 122101",28.3947198,77.0318891,,,,,,node,10952751930
+Sanjivini Pharmacy,shop:chemist,"Gurgaon, 122101",28.3947211,77.0316273,,,,,,node,10952751931
+Burrppp!,amenity:restaurant,"Gurgaon, 122101",28.3947212,77.0322261,,,,,,node,10952751932
+Kwality The Meat Store,shop:butcher,"Gurgaon, 122101",28.3947209,77.0316066,,,,,,node,10952751933
+Unique Collection,shop:houseware,"Gurgaon, 122101",28.3947165,77.0316847,,,,,,node,10952751934
+D’Cafe,amenity:cafe,"Gurgaon, 122101",28.3947196,77.0316524,,,,,,node,10952751935
+Saxena’s Namkeen,shop:bakery,"Gurgaon, 122101",28.3947187,77.0317307,,,,,,node,10952751936
+Sethi Properties,office:property_management,"Gurgaon, 122101",28.3947206,77.0315741,,,,,,node,10952751937
+Genpact,office:company,"Sohna Road, Gurgaon, 122101",28.3999335,77.0400473,,,,,,node,10968955322
+Jura,shop:alcohol,"Sohna Road, Gurgaon, 122101",28.40096,77.0444453,,,,,,node,10968993631
+Boston Scientific,office:company,"Sohna Road, Gurgaon, 122101",28.4043435,77.0432278,,,,,,node,10968993632
+PayU,office:company,"Sohna Road, Gurgaon, 122001",28.4041966,77.0431735,,,,,,node,10968993643
+SBI Bank,amenity:bank,,28.412674,77.0554298,,,,,,node,11273947397
+IDFC bank,amenity:bank,,28.413235,77.0552296,,,,,,node,11273948156
+Kotak mahendra bank,amenity:bank,,28.4134421,77.0552506,,,,,,node,11273953827
+Shri Ram Dhaba,amenity:restaurant,"Sohna Road, Sector 48, Gurugram, 122001",28.4115593,77.0416411,0124-4278885,,https://www.shriramdhaba.com,osm,,node,11834470061
+"Imagine Store, Apple Reseller",shop:electronics,"Gurgaon, 122001",28.391262,77.0303582,,,,,,node,11968395017
+Discovery Wine Shop,shop:alcohol,,28.3973218,77.0313636,,,,,,node,11968430506
+Starbucks,shop:coffee,,28.4053023,77.0589947,,,,,,node,12092232686
+Vintage,shop:alcohol,,28.4048847,77.0534967,,,,,,node,12562746242
+The Sixth Element School | SPR Campus,office:educational_institution,"The Sixth Element School, SPR Road, Sector 72, Gurugram, 122101",28.4016113,77.0361229,9716811986,,https://sixthelement.edu.in,osm,,node,13369623063
+The Sixth Element School | Tata Primanti Campus,office:educational_institution,"The Sixth Element School | Tata Primanti Campus, Sector 72, Tata Primanti Housing, Gurgaon, 122101",28.4063765,77.0366137,9716811986,,https://sixthelement.edu.in,osm,,node,13369737987
+Phoenix Tech Consulting,office:it,,28.4069323,77.0422915,,,,,,node,13452367201
+SD Adarsh Vidyalaya,amenity:school,,28.4223049,77.0399589,,,,,,way,42807043
+Government Girls Senior Secondary School,amenity:school,"Near Alpine Convent School, Gurugram, 122102",28.3886177,77.0529941,,,,,,way,273905316
+Spaze Corporate Park,shop:mall,"Gurgaon, Haryana, 122101",28.3951028,77.0318702,,,,,,way,274212236
+Saphhire Mall,shop:mall,,28.4117752,77.0487327,,,,,,way,351610100
+Vega School,amenity:school,"Sohna Road, Sector 48",28.4106495,77.0381725,,,,,,way,664639541
+DPS International,amenity:school,"Sector 50, Gurugram, 122001",28.4090957,77.0627356,+91 8377000164,admissions@dpsiedge.edu.in,https://dpsiedge.edu.in,osm,osm,way,1172655042

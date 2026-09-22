@@ -1,3 +1,8 @@
+/**
+ * AutoApply CV Suite - Unified Popup Controller
+ * Manages LinkedIn Apply, Indeed Copilot, WhatsApp Outreach, Auto Commenter, HR Finder & Settings.
+ */
+
 function sendMessage(message) {
   return new Promise((resolve) => {
     try {
@@ -17,646 +22,446 @@ function sendMessage(message) {
 
 const JOBS_SEARCH_URL = "https://www.linkedin.com/jobs/search/?f_AL=true";
 const PROD_BASE_URL = "https://autoapplycv.in";
-const DEV_BASE_URL = "http://localhost:3000";
-const REMOTE_BASE_CANDIDATES = [
-  "https://autoapplycv.in",
-  "https://www.autoapplycv.in",
-  "https://autoapplycv.vercel.app",
-  "http://localhost:3000",
-  "http://localhost:3001",
-];
-let accountConnected = false;
 let portalBaseUrl = PROD_BASE_URL;
-let popupCollapsed = false;
 
-function normalizeText(value) {
-  return String(value || "").toLowerCase().replace(/\s+/g, " ").trim();
-}
+// ── Tab Switching Logic ──
+function setupTabs() {
+  const tabs = document.querySelectorAll(".nav-tab");
+  tabs.forEach((tab) => {
+    tab.addEventListener("click", () => {
+      const targetId = tab.getAttribute("data-tab");
+      tabs.forEach((t) => t.classList.remove("active"));
+      tab.classList.add("active");
 
-function stripLogPrefix(raw) {
-  const text = String(raw || "").trim();
-  if (text.startsWith("You:")) return text.slice(4).trim();
-  if (text.startsWith("Copilot:")) return text.slice(8).trim();
-  if (text.startsWith("[debug]")) return text.slice(7).trim();
-  return text;
-}
-
-function setStatus(text, kind = "info") {
-  const el = document.getElementById("status");
-  el.textContent = String(text || "");
-  el.dataset.kind = kind;
-}
-
-function buildPortalUrl(path) {
-  const safePath = String(path || "/").startsWith("/") ? String(path || "/") : `/${String(path || "")}`;
-  return `${portalBaseUrl.replace(/\/+$/, "")}${safePath}`;
-}
-
-async function resolvePortalBaseUrl() {
-  try {
-    const tabs = await chrome.tabs.query({ url: [
-      "https://autoapplycv.in/*",
-      "https://www.autoapplycv.in/*",
-      "https://autoapplycv.vercel.app/*",
-      "http://localhost:3000/*",
-      "http://127.0.0.1:3000/*",
-      "http://localhost:3001/*",
-      "http://127.0.0.1:3001/*",
-    ] });
-    const origins = new Set(
-      (Array.isArray(tabs) ? tabs : [])
-        .map((tab) => {
-          try {
-            return new URL(String(tab?.url || "")).origin;
-          } catch {
-            return "";
-          }
-        })
-        .filter(Boolean),
-    );
-    for (const origin of REMOTE_BASE_CANDIDATES) {
-      if (origins.has(origin)) {
-        portalBaseUrl = origin;
-        return;
-      }
-    }
-    // Keep production domain as default so popup actions stay on live dashboard.
-    // Localhost is still supported by bridge/import logic when explicitly opened.
-  } catch {
-    // ignore and use prod default
-  }
-  portalBaseUrl = PROD_BASE_URL;
-}
-
-function isAccountConnected(settings) {
-  if (!settings || typeof settings !== "object") return false;
-  const email = String(settings.contactEmail || "").trim();
-  const fullName = String(settings.fullName || settings.firstName || "").trim();
-  const screeningAnswers = settings.screeningAnswers && typeof settings.screeningAnswers === "object"
-    ? settings.screeningAnswers
-    : {};
-  const hasAnswers = Object.keys(screeningAnswers).length > 0;
-  return Boolean(email && (fullName || hasAnswers));
-}
-
-async function detectSignedInUserFromTabs() {
-  const patterns = [
-    "https://autoapplycv.in/*",
-    "https://www.autoapplycv.in/*",
-    "https://autoapplycv.vercel.app/*",
-    "http://localhost:3000/*",
-    "http://127.0.0.1:3000/*",
-    "http://localhost:3001/*",
-    "http://127.0.0.1:3001/*",
-  ];
-  let tabs = [];
-  try {
-    tabs = await chrome.tabs.query({ url: patterns });
-  } catch {
-    return null;
-  }
-  for (const tab of tabs) {
-    if (!tab?.id) continue;
-    try {
-      const result = await chrome.scripting.executeScript({
-        target: { tabId: tab.id },
-        func: async () => {
-          try {
-            const res = await fetch("/api/auth/me", { credentials: "include", cache: "no-store" });
-            let data = null;
-            try {
-              data = await res.json();
-            } catch {
-              data = null;
-            }
-            const user = data?.data?.user || data?.user || null;
-            return {
-              ok: Boolean(res.ok && data?.success && user?.email),
-              email: String(user?.email || ""),
-              name: String(user?.name || ""),
-              origin: window.location.origin,
-            };
-          } catch (error) {
-            return { ok: false, error: String(error?.message || error) };
-          }
-        },
+      document.querySelectorAll(".tab-pane").forEach((pane) => {
+        pane.classList.remove("active");
       });
-      const payload = result?.[0]?.result;
-      if (payload?.ok) return payload;
-    } catch {
-      // continue scanning tabs
-    }
-  }
-  return null;
-}
 
-async function detectSignedInUserOnOrigin(origin) {
-  const base = String(origin || "").trim().replace(/\/+$/, "");
-  if (!base) return { ok: false, checked: false };
-  try {
-    const res = await fetch(`${base}/api/auth/me`, {
-      method: "GET",
-      credentials: "include",
-      cache: "no-store",
+      const targetPane = document.getElementById(targetId);
+      if (targetPane) {
+        targetPane.classList.add("active");
+      }
+
+      // Refresh specific tab data
+      if (targetId === "tab-whatsapp") loadWhatsAppStatus();
+      if (targetId === "tab-commenter") loadCommenterStatus();
+      if (targetId === "tab-emailoutreach" || targetId === "tab-hroutreach") loadEmailOutreachStatus();
+      if (targetId === "tab-indeed") updateIndeedState();
     });
-    const data = await res.json().catch(() => null);
-    const user = data?.data?.user || data?.user || null;
-    if (!res.ok || !data?.success || !user?.email) return { ok: false, checked: true };
-    return {
-      ok: true,
-      checked: true,
-      email: String(user.email || ""),
-      name: String(user.name || ""),
-      origin: base,
-    };
-  } catch {
-    return { ok: false, checked: false };
-  }
+  });
 }
 
-function renderAccountState(settings, sessionUser, sessionCheckRan) {
-  const card = document.getElementById("accountCard");
-  const title = document.getElementById("accountTitle");
-  const badge = document.getElementById("accountBadge");
-  const text = document.getElementById("accountText");
-  const action = document.getElementById("accountAction");
-  const actionText = document.getElementById("accountActionText");
-  const runArea = document.getElementById("runArea");
-  const body = document.body;
+// ── Module 1: LinkedIn Auto Apply ──
+async function updateLinkedInState() {
+  const res = await sendMessage({ type: "CP_GET_BOOTSTRAP" });
+  if (!res.ok) return;
 
-  const connectedFromSettings = isAccountConnected(settings || {});
-  const connectedFromSession = Boolean(sessionUser?.ok && sessionUser?.email);
+  const { state = {}, settings = {}, dailyCap = {}, portalQuota = {} } = res;
 
-  if (sessionCheckRan) {
-    accountConnected = connectedFromSession;
-  } else {
-    accountConnected = connectedFromSettings;
-  }
-  if (body) {
-    body.classList.toggle("cp-connected", accountConnected);
-    body.classList.toggle("cp-disconnected", !accountConnected);
-  }
-  const contactEmail = String(sessionUser?.email || settings?.contactEmail || "").trim();
-  if (accountConnected) {
-    card.classList.remove("disconnected");
-    card.classList.add("connected");
-    badge.classList.remove("disconnected");
-    badge.classList.add("connected");
-    badge.textContent = "Connected";
-    title.textContent = "Account connected";
-    if (connectedFromSession) {
-      text.textContent = contactEmail
-        ? `Signed in on ${sessionUser.origin} as ${contactEmail}. You can run auto-apply now.`
-        : "Website session detected. You can run auto-apply now.";
-    } else {
-      text.textContent = contactEmail
-        ? `Signed in as ${contactEmail}. You can run auto-apply now.`
-        : "Your account is connected. You can run auto-apply now.";
-    }
-    if (actionText) actionText.textContent = "Open AutoApply CV Dashboard";
-    action.dataset.action = "dashboard";
-    action.classList.add("btn-primary");
-    if (runArea) runArea.style.display = "block";
-  } else {
-    card.classList.remove("connected");
-    card.classList.add("disconnected");
-    badge.classList.remove("connected");
-    badge.classList.add("disconnected");
-    badge.textContent = "Disconnected";
-    title.textContent = "Sign in required";
-    text.textContent = "Sign in to AutoApply CV to continue.";
-    if (actionText) actionText.textContent = "Sign in to AutoApply CV";
-    action.dataset.action = "login";
-    action.classList.add("btn-primary");
-    if (runArea) runArea.style.display = "none";
-  }
-
-  for (const id of ["start", "pause", "stop"]) {
-    const btn = document.getElementById(id);
-    if (btn) btn.disabled = !accountConnected;
-  }
-  const liveModeToggle = document.getElementById("liveModeToggle");
-  if (liveModeToggle) liveModeToggle.disabled = !accountConnected;
-}
-
-function updateStatusBadge(state) {
+  // Status Badge
   const badge = document.getElementById("statusBadge");
-  const running = Boolean(state?.running);
-  const paused = Boolean(state?.paused);
-  badge.textContent = running ? "Running" : paused ? "Paused" : "Idle";
-  badge.className = `status-badge ${running ? "running" : paused ? "paused" : "idle"}`;
-}
-
-function deriveNowCard(state) {
-  const logs = Array.isArray(state?.logs) ? state.logs : [];
-  const latestAny = logs.length ? logs[logs.length - 1] : null;
-  const latestNonDebug = [...logs].reverse().find((entry) => !String(entry?.message || "").startsWith("[debug]")) || latestAny;
-  const message = stripLogPrefix(latestNonDebug?.message || "");
-  const norm = normalizeText(message);
-
-  let title = "Idle and ready to start.";
-  if (state?.paused) {
-    title = "Run is paused.";
-  } else if (state?.running) {
-    if (norm.includes("preparing run")) {
-      title = "Preparing search and filters.";
-    } else if (norm.includes("found") && norm.includes("job cards")) {
-      title = "Scanning job cards.";
-    } else if (norm.includes("opening:")) {
-      title = "Opening selected job.";
-    } else if (norm.includes("modal step")) {
-      title = "Filling Easy Apply form.";
-    } else if (norm.includes("application submitted")) {
-      title = "Application submitted.";
-    } else if (norm.includes("submit blocked") || norm.includes("submit did not complete")) {
-      title = "Submit blocked. Running fallbacks.";
-    } else if (norm.includes("skipped")) {
-      title = "Skipping current job and continuing.";
-    } else {
-      title = "Automation running.";
-    }
-  }
-
-  const detail = message || (state?.running ? "Working on next action..." : "Press Start to begin.");
-  return { title, detail };
-}
-
-function getFeedVisual(entry) {
-  const raw = String(entry?.message || "");
-  const level = String(entry?.level || "info").toLowerCase();
-  const isUser = level === "user" || raw.startsWith("You:");
-  const isDebug = raw.startsWith("[debug]");
-  const sender = isUser ? "You" : "Copilot";
-  const kind = level === "error"
-    ? "Error"
-    : level === "warn"
-      ? "Warning"
-      : isDebug
-        ? "Debug"
-        : isUser
-          ? "Command"
-          : "Update";
-  const className = isUser ? "user" : level === "error" ? "error" : level === "warn" ? "warn" : "";
-  return {
-    sender,
-    kind,
-    className,
-    text: stripLogPrefix(raw),
-    time: String(entry?.ts || "").slice(11, 19)
-  };
-}
-
-function renderFeed(logs) {
-  const feed = document.getElementById("feed");
-  feed.innerHTML = "";
-  const items = Array.isArray(logs) ? logs.slice(-12) : [];
-  if (!items.length) {
-    const empty = document.createElement("li");
-    empty.className = "feed-item";
-    const msg = document.createElement("p");
-    msg.className = "feed-msg";
-    msg.textContent = "No events yet. Start a run to see live steps.";
-    empty.appendChild(msg);
-    feed.appendChild(empty);
-    return;
-  }
-
-  for (const entry of items) {
-    const visual = getFeedVisual(entry);
-    const li = document.createElement("li");
-    li.className = `feed-item ${visual.className}`.trim();
-
-    const head = document.createElement("div");
-    head.className = "feed-head";
-
-    const sender = document.createElement("span");
-    sender.className = "feed-sender";
-    sender.textContent = visual.sender;
-
-    const kind = document.createElement("span");
-    kind.className = "feed-kind";
-    kind.textContent = visual.kind;
-
-    const time = document.createElement("span");
-    time.className = "feed-time";
-    time.textContent = visual.time;
-
-    head.append(sender, kind, time);
-
-    const msg = document.createElement("p");
-    msg.className = "feed-msg";
-    msg.textContent = visual.text || "(empty log)";
-
-    li.append(head, msg);
-    feed.appendChild(li);
-  }
-  feed.scrollTop = feed.scrollHeight;
-}
-
-function modeLine(settings) {
-  const s = settings || {};
-  if (s.dryRun) return "Mode: Dry Run (no submit).";
-  if (s.autoSubmit) return "Mode: Auto Submit (will click Submit).";
-  return "Mode: Manual Submit (fills forms; submit manually).";
-}
-
-function applyModeControls(settings) {
-  const s = settings || {};
-  const toggle = document.getElementById("liveModeToggle");
-  const badge = document.getElementById("modeBadge");
-  const isLive = Boolean(!s.dryRun && s.autoSubmit);
-  const label = isLive ? "Live Auto Submit" : s.dryRun ? "Dry Run" : "Manual Submit";
-  if (toggle) toggle.checked = isLive;
-  if (badge) {
-    badge.textContent = label;
-    badge.className = `mode-badge ${isLive ? "live" : s.dryRun ? "" : "manual"}`.trim();
-  }
-}
-
-function setStats(state, settings, portalQuota) {
-  const appliedEl = document.getElementById("applied");
-  if (appliedEl) appliedEl.textContent = String(state?.applied || 0);
-  const skippedEl = document.getElementById("skipped");
-  if (skippedEl) skippedEl.textContent = String(state?.skipped || 0);
-  const failedEl = document.getElementById("failed");
-  if (failedEl) failedEl.textContent = String(state?.failed || 0);
-  updateStatusBadge(state || {});
-  const now = deriveNowCard(state || {});
-  const nowTitleEl = document.getElementById("nowTitle");
-  if (nowTitleEl) nowTitleEl.textContent = now.title;
-  const nowDetailEl = document.getElementById("nowDetail");
-  if (nowDetailEl) nowDetailEl.textContent = `${modeLine(settings)} ${now.detail}`;
-  applyModeControls(settings);
-
-  // Render Quota & Balance
-  const q = portalQuota?.data && typeof portalQuota.data === "object" ? portalQuota.data : {};
-  const hiresCountEl = document.getElementById("popupHiresCount");
-  const quotaDetailEl = document.getElementById("popupQuotaDetail");
-  const topupLinkEl = document.getElementById("popupTopupLink");
-
-  const hireBalance = Number(q.hireBalance ?? NaN);
-  const spendable = Number(q.spendable ?? NaN);
-  const quotaUsed = Number(q.quotaUsed ?? NaN);
-  const quotaTotal = Number(q.quotaTotal ?? NaN);
-
-  if (hiresCountEl) {
-    if (Number.isFinite(hireBalance)) {
-      hiresCountEl.textContent = String(hireBalance);
-    } else if (Number.isFinite(spendable)) {
-      hiresCountEl.textContent = String(spendable);
-    } else {
-      hiresCountEl.textContent = "0";
-    }
-  }
-
-  if (quotaDetailEl) {
-    const freeUsedStr = Number.isFinite(quotaUsed) && Number.isFinite(quotaTotal)
-      ? `${quotaUsed}/${quotaTotal} Free Used`
-      : "Free Quota Active";
-    const spendableStr = Number.isFinite(spendable) ? `Spendable: ${spendable}` : "";
-    quotaDetailEl.textContent = `${freeUsedStr}${spendableStr ? ` • ${spendableStr}` : ""}`;
-  }
-
-  if (topupLinkEl) {
-    topupLinkEl.href = buildPortalUrl("/dashboard/pricing");
-  }
-}
-
-function applyPopupCollapsed(collapsed, persist = true) {
-  popupCollapsed = Boolean(collapsed);
-  const body = document.body;
-  const toggle = document.getElementById("popupToggle");
-  if (body) body.classList.toggle("cp-collapsed", popupCollapsed);
-  if (toggle) {
-    toggle.setAttribute("aria-expanded", String(!popupCollapsed));
-    toggle.title = popupCollapsed ? "Show popup content" : "Hide popup content";
-  }
-  if (persist) {
-    try {
-      chrome.storage.local.set({ cpPopupCollapsed: popupCollapsed });
-    } catch {
-      // ignore storage failures
-    }
-  }
-}
-
-function togglePopupCollapsed() {
-  applyPopupCollapsed(!popupCollapsed, true);
-}
-
-async function loadCollapsedPreference() {
-  try {
-    const stored = await chrome.storage.local.get(["cpPopupCollapsed"]);
-    applyPopupCollapsed(Boolean(stored?.cpPopupCollapsed), false);
-  } catch {
-    applyPopupCollapsed(false, false);
-  }
-}
-
-function bindPopupToggle() {
-  const toggle = document.getElementById("popupToggle");
-  if (!toggle) return;
-  toggle.addEventListener("click", () => togglePopupCollapsed());
-  toggle.addEventListener("keydown", (event) => {
-    if (event.key !== "Enter" && event.key !== " ") return;
-    event.preventDefault();
-    togglePopupCollapsed();
-  });
-}
-
-async function refresh() {
-  await resolvePortalBaseUrl();
-  const [boot, loadedSettings, selectedOriginSession] = await Promise.all([
-    sendMessage({ type: "CP_GET_BOOTSTRAP" }),
-    sendMessage({ type: "CP_LOAD_SETTINGS" }),
-    detectSignedInUserOnOrigin(portalBaseUrl),
-  ]);
-  let sessionUser;
-  let sessionCheckRan = Boolean(selectedOriginSession?.checked);
-  if (selectedOriginSession?.ok) {
-    sessionUser = selectedOriginSession;
-  } else if (selectedOriginSession?.checked) {
-    sessionUser = null;
+  if (state.running) {
+    badge.className = "status-badge running";
+    badge.textContent = "Running";
+  } else if (state.paused) {
+    badge.className = "status-badge paused";
+    badge.textContent = "Paused";
   } else {
-    sessionUser = await detectSignedInUserFromTabs();
-    sessionCheckRan = sessionUser !== null;
+    badge.className = "status-badge idle";
+    badge.textContent = "Ready";
   }
-  if (!boot.ok) {
-    setStatus("Extension service unavailable.", "error");
-    return;
+
+  // Live Counts
+  document.getElementById("applied").textContent = state.applied || 0;
+  document.getElementById("skipped").textContent = state.skipped || 0;
+  document.getElementById("failed").textContent = state.failed || 0;
+
+  // Now Running Details
+  const nowTitle = document.getElementById("nowTitle");
+  const nowDetail = document.getElementById("nowDetail");
+  if (state.running) {
+    nowTitle.textContent = "Easy Apply Bot Active";
+    nowDetail.textContent = "Scanning jobs & autofilling application forms...";
+  } else {
+    nowTitle.textContent = "Ready on LinkedIn";
+    nowDetail.textContent = "Open LinkedIn Jobs to start autonomous job application.";
   }
-  renderAccountState(loadedSettings?.settings || {}, sessionUser, sessionCheckRan);
-  if (!accountConnected) {
-    setStatus("Sign in to AutoApply CV to enable run controls.", "warn");
-    return;
+
+  // Mode Switch
+  const toggle = document.getElementById("liveModeToggle");
+  const modeBadge = document.getElementById("modeBadge");
+  if (toggle && modeBadge) {
+    const isLive = Boolean(settings.autoSubmit && !settings.dryRun);
+    toggle.checked = isLive;
+    modeBadge.textContent = isLive ? "Live Submit" : "Dry Run";
+    modeBadge.style.background = isLive ? "#d1fae5" : "#fef3c7";
+    modeBadge.style.color = isLive ? "#065f46" : "#92400e";
   }
-  setStats(boot.state || {}, loadedSettings?.settings || {}, boot.portalQuota || null);
-  setStatus(boot.state?.running ? "Run active." : boot.state?.paused ? "Run paused." : "Ready.");
+
+  // Quota
+  const spendable = Number(portalQuota?.data?.spendable ?? portalQuota?.data?.hireBalance ?? 0);
+  document.getElementById("popupHiresCount").textContent = spendable;
+  document.getElementById("popupQuotaDetail").textContent = `Daily Free: ${dailyCap.used || 0}/${dailyCap.cap || 3} &bull; Spendable: ${spendable}`;
+
+  // Account Card
+  const accountCard = document.getElementById("accountCard");
+  const accountBadge = document.getElementById("accountBadge");
+  const accountText = document.getElementById("accountText");
+  const isConnected = Boolean(settings.contactEmail || settings.fullName);
+  if (isConnected) {
+    accountCard.className = "account-card connected";
+    accountBadge.className = "account-badge connected";
+    accountBadge.textContent = "Connected";
+    accountText.textContent = `Connected as ${settings.fullName || settings.contactEmail}`;
+  } else {
+    accountCard.className = "account-card disconnected";
+    accountBadge.className = "account-badge disconnected";
+    accountBadge.textContent = "Disconnected";
+    accountText.textContent = "Sign in to connect your profile and sync quota.";
+  }
 }
 
-function isLinkedInUrl(url) {
-  try {
-    const u = new URL(String(url || ""));
-    return u.hostname === "www.linkedin.com" || u.hostname.endsWith(".linkedin.com");
-  } catch {
-    return false;
-  }
-}
-
-function isLinkedInJobsUrl(url) {
-  try {
-    const u = new URL(String(url || ""));
-    return isLinkedInUrl(url) && u.pathname.startsWith("/jobs/");
-  } catch {
-    return false;
-  }
-}
-
-function waitForTabComplete(tabId, timeoutMs = 20000) {
-  return new Promise((resolve) => {
-    let done = false;
-    const timer = setTimeout(() => {
-      if (done) return;
-      done = true;
-      cleanup();
-      resolve(false);
-    }, timeoutMs);
-
-    const onUpdated = (id, info) => {
-      if (done) return;
-      if (id !== tabId) return;
-      if (info.status === "complete") {
-        done = true;
-        cleanup();
-        resolve(true);
-      }
-    };
-
-    function cleanup() {
-      clearTimeout(timer);
-      try {
-        chrome.tabs.onUpdated.removeListener(onUpdated);
-      } catch {
-        // ignore
-      }
-    }
-
-    try {
-      chrome.tabs.onUpdated.addListener(onUpdated);
-    } catch {
-      clearTimeout(timer);
-      resolve(false);
-    }
+function setupLinkedInControls() {
+  document.getElementById("start")?.addEventListener("click", async () => {
+    await sendMessage({ type: "CP_START" });
+    await updateLinkedInState();
   });
-}
 
-async function focusOrOpenLinkedInJobs() {
-  const [active] = await chrome.tabs.query({ active: true, currentWindow: true });
+  document.getElementById("pause")?.addEventListener("click", async () => {
+    await sendMessage({ type: "CP_PAUSE" });
+    await updateLinkedInState();
+  });
 
-  // Prefer reusing the active tab if it's already on LinkedIn.
-  if (active?.id && isLinkedInUrl(active.url)) {
-    if (!isLinkedInJobsUrl(active.url)) {
-      await chrome.tabs.update(active.id, { url: JOBS_SEARCH_URL, active: true });
-      await waitForTabComplete(active.id);
-    }
-    return active.id;
-  }
+  document.getElementById("stop")?.addEventListener("click", async () => {
+    await sendMessage({ type: "CP_STOP" });
+    await updateLinkedInState();
+  });
 
-  // Otherwise, activate an existing LinkedIn Jobs tab if present.
-  const tabs = await chrome.tabs.query({ url: "https://www.linkedin.com/*" });
-  const jobsTab = tabs.find((t) => t?.id && isLinkedInJobsUrl(t.url)) || null;
-  if (jobsTab?.id) {
-    await chrome.tabs.update(jobsTab.id, { active: true });
-    return jobsTab.id;
-  }
+  document.getElementById("liveModeToggle")?.addEventListener("change", async (e) => {
+    const isLive = e.target.checked;
+    await sendMessage({
+      type: "CP_SAVE_SETTINGS",
+      settings: { autoSubmit: isLive, dryRun: !isLive }
+    });
+    await updateLinkedInState();
+  });
 
-  // Fallback: create a new Jobs tab.
-  const created = await chrome.tabs.create({ url: JOBS_SEARCH_URL, active: true });
-  if (created?.id) await waitForTabComplete(created.id);
-  return created?.id || null;
-}
-
-document.getElementById("start").addEventListener("click", async () => {
-  if (!accountConnected) {
-    setStatus("Sign in to AutoApply CV first.", "warn");
-    return;
-  }
-  await focusOrOpenLinkedInJobs();
-  const started = await sendMessage({ type: "CP_START", forceRestart: false });
-  if (!started.ok) {
-    setStatus(started.error || "Failed to start run", "error");
-    return;
-  }
-  await refresh();
-  setStatus("Run started.");
-});
-
-document.getElementById("liveModeToggle").addEventListener("change", async (event) => {
-  if (!accountConnected) {
-    setStatus("Sign in to AutoApply CV first.", "warn");
-    event.target.checked = false;
-    return;
-  }
-  const enableLive = Boolean(event?.target?.checked);
-  const settingsPatch = enableLive
-    ? { autoSubmit: true, dryRun: false, liveModeAcknowledged: true }
-    : { autoSubmit: false, dryRun: true };
-  const saved = await sendMessage({ type: "CP_SAVE_SETTINGS", settings: settingsPatch });
-  if (!saved?.ok) {
-    setStatus(saved?.error || "Failed to update mode", "error");
-    await refresh();
-    return;
-  }
-  await refresh();
-  setStatus(enableLive ? "Live auto-submit enabled." : "Dry-run enabled.");
-});
-
-document.getElementById("pause").addEventListener("click", async () => {
-  if (!accountConnected) {
-    setStatus("Sign in to AutoApply CV first.", "warn");
-    return;
-  }
-  await sendMessage({ type: "CP_PAUSE" });
-  await refresh();
-  setStatus("Run paused.");
-});
-
-document.getElementById("stop").addEventListener("click", async () => {
-  if (!accountConnected) {
-    setStatus("Sign in to AutoApply CV first.", "warn");
-    return;
-  }
-  await sendMessage({ type: "CP_STOP" });
-  await refresh();
-  setStatus("Run stopped.");
-});
-
-document.getElementById("accountAction").addEventListener("click", async () => {
-  const action = document.getElementById("accountAction").dataset.action || "login";
-  const url = action === "dashboard" ? buildPortalUrl("/dashboard") : buildPortalUrl("/login");
-  await chrome.tabs.create({ url });
-  setStatus(action === "dashboard" ? "Opened dashboard." : "Opened login.");
-});
-
-const clearLogsBtn = document.getElementById("popupClearLogs");
-if (clearLogsBtn) {
-  clearLogsBtn.addEventListener("click", async () => {
+  document.getElementById("popupClearLogs")?.addEventListener("click", async () => {
     await sendMessage({ type: "CP_CLEAR_LOGS" });
-    await refresh();
-    setStatus("Logs and counters cleared.");
+    await updateLinkedInState();
+  });
+
+  document.getElementById("accountAction")?.addEventListener("click", () => {
+    chrome.tabs.create({ url: `${portalBaseUrl}/auth/login` });
   });
 }
 
-async function init() {
-  bindPopupToggle();
-  await loadCollapsedPreference();
-  await refresh();
-  const content = document.querySelector(".popup-content");
-  if (content) content.style.opacity = "1";
+// ── Module 2: Indeed Copilot ──
+async function updateIndeedState() {
+  const res = await sendMessage({ type: "CP_GET_BOOTSTRAP" });
+  if (!res.ok) return;
+
+  const { state = {}, settings = {}, dailyCap = {}, portalQuota = {} } = res;
+
+  // Live Counts
+  const appliedEl = document.getElementById("indeedApplied");
+  const skippedEl = document.getElementById("indeedSkipped");
+  const failedEl = document.getElementById("indeedFailed");
+  if (appliedEl) appliedEl.textContent = state.applied || 0;
+  if (skippedEl) skippedEl.textContent = state.skipped || 0;
+  if (failedEl) failedEl.textContent = state.failed || 0;
+
+  // Now Running Details
+  const nowTitle = document.getElementById("indeedNowTitle");
+  const nowDetail = document.getElementById("indeedNowDetail");
+  if (nowTitle && nowDetail) {
+    if (state.running) {
+      nowTitle.textContent = "Indeed Copilot Active";
+      nowDetail.textContent = "Scanning Indeed jobs & autofilling applications...";
+    } else if (state.paused) {
+      nowTitle.textContent = "Indeed Copilot Paused";
+      nowDetail.textContent = "Application flow paused. Press Start to resume.";
+    } else {
+      nowTitle.textContent = "Ready on Indeed";
+      nowDetail.textContent = "Open Indeed Jobs to start autonomous job application.";
+    }
+  }
+
+  // Mode Switch
+  const toggle = document.getElementById("indeedLiveModeToggle");
+  const modeBadge = document.getElementById("indeedModeBadge");
+  if (toggle && modeBadge) {
+    const isLive = Boolean(settings.autoSubmit && !settings.dryRun);
+    toggle.checked = isLive;
+    modeBadge.textContent = isLive ? "Live Submit" : "Dry Run";
+    modeBadge.style.background = isLive ? "#d1fae5" : "#fef3c7";
+    modeBadge.style.color = isLive ? "#065f46" : "#92400e";
+  }
+
+  // Quota
+  const spendable = Number(portalQuota?.data?.spendable ?? portalQuota?.data?.hireBalance ?? 0);
+  const hiresEl = document.getElementById("indeedPopupHiresCount");
+  const quotaDetailEl = document.getElementById("indeedPopupQuotaDetail");
+  if (hiresEl) hiresEl.textContent = spendable;
+  if (quotaDetailEl) {
+    quotaDetailEl.innerHTML = `Daily Free: ${dailyCap.used || 0}/${dailyCap.cap || 3} &bull; Spendable: ${spendable}`;
+  }
+
+  // Account Card
+  const accountCard = document.getElementById("indeedAccountCard");
+  const accountBadge = document.getElementById("indeedAccountBadge");
+  const accountText = document.getElementById("indeedAccountText");
+  const isConnected = Boolean(settings.contactEmail || settings.fullName);
+  if (accountCard && accountBadge && accountText) {
+    if (isConnected) {
+      accountCard.className = "account-card connected";
+      accountBadge.className = "account-badge connected";
+      accountBadge.textContent = "Connected";
+      accountText.textContent = `Connected as ${settings.fullName || settings.contactEmail}`;
+    } else {
+      accountCard.className = "account-card disconnected";
+      accountBadge.className = "account-badge disconnected";
+      accountBadge.textContent = "Disconnected";
+      accountText.textContent = "Sign in to connect your profile and sync quota.";
+    }
+  }
 }
 
-init().catch(() => {
-  setStatus("Unavailable", "error");
-  const content = document.querySelector(".popup-content");
-  if (content) content.style.opacity = "1";
+function setupIndeedControls() {
+  document.getElementById("indeedStart")?.addEventListener("click", async () => {
+    await sendMessage({ type: "CP_START" });
+    await updateIndeedState();
+  });
+
+  document.getElementById("indeedPause")?.addEventListener("click", async () => {
+    await sendMessage({ type: "CP_PAUSE" });
+    await updateIndeedState();
+  });
+
+  document.getElementById("indeedStop")?.addEventListener("click", async () => {
+    await sendMessage({ type: "CP_STOP" });
+    await updateIndeedState();
+  });
+
+  document.getElementById("indeedLiveModeToggle")?.addEventListener("change", async (e) => {
+    const isLive = e.target.checked;
+    await sendMessage({
+      type: "CP_SAVE_SETTINGS",
+      settings: { autoSubmit: isLive, dryRun: !isLive }
+    });
+    await updateIndeedState();
+  });
+
+  document.getElementById("indeedClearLogs")?.addEventListener("click", async () => {
+    await sendMessage({ type: "CP_CLEAR_LOGS" });
+    await updateIndeedState();
+  });
+
+  document.getElementById("indeedAccountAction")?.addEventListener("click", () => {
+    chrome.tabs.create({ url: `${portalBaseUrl}/auth/login` });
+  });
+}
+
+// ── Module 3: WhatsApp Outreach ──
+async function loadWhatsAppStatus() {
+  const res = await sendMessage({ type: "WA_GET_STATUS" });
+  if (res) {
+    document.getElementById("waTotalLeads").textContent = res.totalLeads || 0;
+    document.getElementById("waContactedCount").textContent = res.contactedCount || 0;
+    const templateInput = document.getElementById("waTemplateInput");
+    if (templateInput && res.settings?.messageTemplate) {
+      templateInput.value = res.settings.messageTemplate;
+    }
+    const autoSendToggle = document.getElementById("waAutoSendToggle");
+    if (autoSendToggle && res.settings) {
+      autoSendToggle.checked = res.settings.autoSendWhatsApp !== false;
+    }
+    const autoCloseToggle = document.getElementById("waAutoCloseToggle");
+    if (autoCloseToggle && res.settings) {
+      autoCloseToggle.checked = res.settings.autoCloseTab !== false;
+    }
+    const showContactedToggle = document.getElementById("waShowContactedToggle");
+    if (showContactedToggle && res.settings) {
+      showContactedToggle.checked = Boolean(res.settings.showAlreadyContacted);
+    }
+  }
+}
+
+function setupWhatsAppControls() {
+  document.getElementById("waAutoSendAllBtn")?.addEventListener("click", async () => {
+    const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
+    const currentTab = tabs[0];
+    if (currentTab && currentTab.url && currentTab.url.includes("linkedin.com")) {
+      chrome.tabs.sendMessage(currentTab.id, { type: "TRIGGER_AUTO_SEND_ALL" }, (res) => {
+        if (chrome.runtime.lastError) {
+          chrome.tabs.create({ url: "https://www.linkedin.com/feed/#autoapply-module=whatsapp" });
+        }
+      });
+    } else {
+      chrome.tabs.create({ url: "https://www.linkedin.com/feed/#autoapply-module=whatsapp" });
+    }
+  });
+
+  document.getElementById("waSaveBtn")?.addEventListener("click", async () => {
+    const template = document.getElementById("waTemplateInput").value;
+    const autoSend = document.getElementById("waAutoSendToggle").checked;
+    const autoClose = document.getElementById("waAutoCloseToggle")?.checked ?? true;
+    const showContacted = document.getElementById("waShowContactedToggle")?.checked || false;
+    await sendMessage({
+      type: "WA_SAVE_SETTINGS",
+      payload: {
+        settings: {
+          messageTemplate: template,
+          autoSendWhatsApp: autoSend,
+          autoCloseTab: autoClose,
+          showAlreadyContacted: showContacted
+        }
+      }
+    });
+    alert("WhatsApp outreach settings saved!");
+  });
+}
+
+// ── Module 4: Auto Commenter ──
+async function loadCommenterStatus() {
+  const res = await sendMessage({ type: "AC_GET_STATUS" });
+  if (res) {
+    document.getElementById("acSessionCount").textContent = res.state?.sessionCount || 0;
+    document.getElementById("acTotalCount").textContent = res.totalCount || 0;
+    const commentInput = document.getElementById("acCommentInput");
+    if (commentInput && res.settings?.commentText) {
+      commentInput.value = res.settings.commentText;
+    }
+  }
+}
+
+function setupCommenterControls() {
+  document.getElementById("acStartBtn")?.addEventListener("click", async () => {
+    const commentText = document.getElementById("acCommentInput").value;
+    const skipSeekers = document.getElementById("acSkipSeekersToggle").checked;
+    await sendMessage({
+      type: "START_COMMENTING",
+      payload: {
+        settings: {
+          commentText,
+          skipJobSeekers: skipSeekers
+        }
+      }
+    });
+    await loadCommenterStatus();
+  });
+
+  document.getElementById("acStopBtn")?.addEventListener("click", async () => {
+    await sendMessage({ type: "STOP_COMMENTING" });
+    await loadCommenterStatus();
+  });
+}
+
+// ── Module 5: Email Outreach Pro ──
+async function loadEmailOutreachStatus() {
+  const res = await sendMessage({ type: "EMAIL_GET_STATUS" });
+  if (res) {
+    const totalLeadsEl = document.getElementById("emailTotalLeads");
+    const contactedCountEl = document.getElementById("emailContactedCount");
+    if (totalLeadsEl) totalLeadsEl.textContent = res.totalLeads || 0;
+    if (contactedCountEl) contactedCountEl.textContent = res.contactedCount || 0;
+
+    const subjInput = document.getElementById("emailSubjectInput");
+    if (subjInput && res.settings?.subjectTemplate) {
+      subjInput.value = res.settings.subjectTemplate;
+    }
+
+    const templateInput = document.getElementById("emailTemplateInput");
+    if (templateInput && res.settings?.messageTemplate) {
+      templateInput.value = res.settings.messageTemplate;
+    }
+
+    const clientSelect = document.getElementById("emailClientSelect");
+    if (clientSelect && res.settings?.emailClient) {
+      clientSelect.value = res.settings.emailClient;
+    }
+
+    const autoSendToggle = document.getElementById("emailAutoSendToggle");
+    if (autoSendToggle && res.settings) {
+      autoSendToggle.checked = res.settings.autoSendEmail !== false;
+    }
+
+    const autoCloseToggle = document.getElementById("emailAutoCloseToggle");
+    if (autoCloseToggle && res.settings) {
+      autoCloseToggle.checked = res.settings.autoCloseTab !== false;
+    }
+
+    const showContactedToggle = document.getElementById("emailShowContactedToggle");
+    if (showContactedToggle && res.settings) {
+      showContactedToggle.checked = Boolean(res.settings.showAlreadyContacted);
+    }
+  }
+}
+
+function setupEmailOutreachControls() {
+  document.getElementById("emailAutoSendAllBtn")?.addEventListener("click", async () => {
+    const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
+    const currentTab = tabs[0];
+    if (currentTab && currentTab.url && currentTab.url.includes("linkedin.com")) {
+      chrome.tabs.sendMessage(currentTab.id, { type: "TRIGGER_EMAIL_AUTO_SEND_ALL" }, (res) => {
+        if (chrome.runtime.lastError) {
+          chrome.tabs.create({ url: "https://www.linkedin.com/feed/#autoapply-module=email" });
+        }
+      });
+    } else {
+      chrome.tabs.create({ url: "https://www.linkedin.com/feed/#autoapply-module=email" });
+    }
+  });
+
+  document.getElementById("emailSaveBtn")?.addEventListener("click", async () => {
+    const subject = document.getElementById("emailSubjectInput")?.value || "";
+    const template = document.getElementById("emailTemplateInput")?.value || "";
+    const client = document.getElementById("emailClientSelect")?.value || "gmail_web";
+    const autoSend = document.getElementById("emailAutoSendToggle")?.checked !== false;
+    const autoClose = document.getElementById("emailAutoCloseToggle")?.checked !== false;
+    const showContacted = document.getElementById("emailShowContactedToggle")?.checked || false;
+
+    const res = await sendMessage({ type: "EMAIL_GET_STATUS" });
+    const currentSettings = res?.settings || {};
+
+    await sendMessage({
+      type: "EMAIL_SAVE_SETTINGS",
+      payload: {
+        settings: {
+          ...currentSettings,
+          subjectTemplate: subject,
+          messageTemplate: template,
+          emailClient: client,
+          autoSendEmail: autoSend,
+          autoCloseTab: autoClose,
+          showAlreadyContacted: showContacted
+        }
+      }
+    });
+    alert("Email Outreach settings saved!");
+  });
+}
+
+// ── Module 6: Settings & Options Page Link ──
+function setupSettingsControls() {
+  document.getElementById("openOptionsPageBtn")?.addEventListener("click", () => {
+    chrome.runtime.openOptionsPage();
+  });
+}
+
+// ── Initialize Suite ──
+document.addEventListener("DOMContentLoaded", async () => {
+  setupTabs();
+  setupLinkedInControls();
+  setupIndeedControls();
+  setupWhatsAppControls();
+  setupCommenterControls();
+  setupEmailOutreachControls();
+  setupSettingsControls();
+
+  await Promise.all([updateLinkedInState(), updateIndeedState()]);
+  setInterval(() => {
+    updateLinkedInState();
+    updateIndeedState();
+  }, 3000);
 });

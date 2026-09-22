@@ -70,6 +70,15 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    function escapeHtml(str: string): string {
+      return str
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
     const htmlBody = `<!DOCTYPE html>
 <html>
 <head><meta charset="utf-8" /></head>
@@ -81,7 +90,7 @@ export async function POST(req: NextRequest) {
           <td style="padding:0 0 24px;">
             ${body
               .split("\n")
-              .map((line) => `<p style="margin:0 0 12px;">${line || "&nbsp;"}</p>`)
+              .map((line) => `<p style="margin:0 0 12px;">${escapeHtml(line) || "&nbsp;"}</p>`)
               .join("")}
           </td>
         </tr>

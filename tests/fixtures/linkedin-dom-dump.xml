@@ -1,0 +1,3536 @@
+<div class="mLyJkfqZxDoqToZDgvCJLUqrzoxqXPvqto
+          
+          ">
+        
+      <!---->
+      
+  
+            <button id="ember31" class="artdeco-button artdeco-button--1 artdeco-button--fluid artdeco-button--tertiary ember-view scaffold-layout__list-jump-button" type="button"><!---->
+<span class="artdeco-button__text">
+    Jump to active job details
+</span></button>
+
+            <button id="ember32" class="artdeco-button artdeco-button--1 artdeco-button--fluid artdeco-button--tertiary ember-view scaffold-layout__list-jump-button" type="button"><!---->
+<span class="artdeco-button__text">
+    Jump to active search result
+</span></button>
+
+<!---->      
+
+      <!---->
+    
+<!---->        <div data-results-list-top-scroll-sentinel=""></div>
+<!---->          <ul class="JgiMvjzgNGKIzdnYSpxSmyLRSBIQkbZFTvHo">
+  
+              
+        <li id="ember130" class="ember-view   BVEFAHDhnBycIVEGPifUldaWzhrsTeWYJw occludable-update p0 relative scaffold-layout__list-item" data-occludable-job-id="4452227898">
+            
+                  
+    <div>
+      
+    <div data-job-id="4452227898" class="display-flex job-card-container relative job-card-list
+        job-card-container--clickable
+        job-card-list--is-dismissed pb2
+        job-card-list--underline-title-on-hover jobs-search-results-list__list-item--active jobs-search-two-pane__job-card-container--viewport-tracking-0" aria-current="page">
+
+      <div>
+        <div id="ember131" class="job-card-list__entity-lockup  artdeco-entity-lockup artdeco-entity-lockup--size-4 ember-view">
+            <div id="ember132" class="job-card-list__logo  artdeco-entity-lockup__image artdeco-entity-lockup__image--type-square ember-view" type="square">
+              
+    <div class="ivm-image-view-model    job-card-list__logo-ivm">
+        
+    <div class="ivm-view-attr__img-wrapper
+        
+        ">
+<!---->
+<!---->          <img width="56" src="https://media.licdn.com/dms/image/v2/D560BAQHJRBYpxXyThQ/company-logo_100_100/B56Z1NLMNgIIAQ-/0/1775116277170/synthires_logo?e=1788998400&amp;v=beta&amp;t=336N0JABxCiyKKn_hZQOgmj_TS71y6cmu3HQ3P-k__k" loading="lazy" height="56" alt="Synthires logo" id="ember133" class="ivm-view-attr__img--centered EntityPhoto-square-4   evi-image lazy-image ember-view">
+    </div>
+  
+          </div>
+  
+            
+</div>
+
+          <div id="ember134" class="flex-grow-1 artdeco-entity-lockup__content ember-view">
+            <div id="ember135" class="full-width artdeco-entity-lockup__title ember-view">
+                  <a data-control-id="5KuqPn7D1yWoCmB4urlvUw==" tabindex="-1" href="/jobs/view/4452227898/?eBP=BUDGET_EXHAUSTED_JOB&amp;refId=Q8jrjWo96mjIueABbZuxMA%3D%3D&amp;trackingId=5KuqPn7D1yWoCmB4urlvUw%3D%3D&amp;trk=flagship3_search_srp_jobs" id="ember136" class="disabled ember-view job-card-container__link
+                      FIvOPWFOchYLcwKPkyAOjaDhcaNyXgJHnmggHU
+                      job-card-list__title--link" aria-label="Frontend Engineer (Remote | $65–$120/hr) disabled" dir="ltr">
+                      <span aria-hidden="true"><strong><!---->Frontend Engineer (Remote | $65–$120/hr)<!----></strong></span><span class="visually-hidden"><!---->Frontend Engineer (Remote | $65–$120/hr)<!----></span>
+                  </a>
+            
+</div>
+            <div id="ember137" class="artdeco-entity-lockup__subtitle ember-view">
+                <span class="wPmhNTwCcHAPFGlVtakfuKBOLoDRfVE " dir="ltr">
+                  <!---->Synthires<!---->
+                </span>
+
+            </div>
+
+            <div id="ember138" class="artdeco-entity-lockup__caption ember-view">
+                  <div class="job-card-container__footer-item--highlighted display-block t-12 pt1
+                      ">
+                    We won’t show you this job again.
+                  </div>
+            </div>
+
+<!---->
+<!---->          <div class="cp-card-outcome-tag cp-tag-applied"><span>✅</span><span>APPLIED</span></div></div>
+
+        
+</div>
+
+<!---->          <span class="visually-hidden" aria-live="polite">
+              Success, the job Frontend Engineer (Remote | $65–$120/hr) was dismissed.
+              We won’t show you this job again.
+          </span>
+      </div>
+      <div class="job-card-list__actions-container">
+          
+        
+      <div>
+          <button aria-label="Frontend Engineer (Remote | $65–$120/hr) job is dismissed, undo" id="ember566" class="job-card-container__action job-card-container__action-small artdeco-button artdeco-button--muted artdeco-button--2 artdeco-button--tertiary ember-view" type="button"><!---->
+<span class="artdeco-button__text">
+    
+            <svg role="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" data-supported-dps="16x16" data-test-icon="undo-small" data-rtl="true">
+<!---->    
+    <use href="#undo-small" width="16" height="16"></use>
+</svg>
+
+            <span class="job-card-container__action-text"></span>
+          
+</span></button>
+      </div>
+  
+      <!---->  
+      </div>
+    </div>
+  
+    </div>
+  
+                              
+        </li>
+  
+              
+        <li id="ember141" class="ember-view   BVEFAHDhnBycIVEGPifUldaWzhrsTeWYJw occludable-update p0 relative scaffold-layout__list-item" data-occludable-job-id="4449782234">
+            
+                  
+    <div>
+      
+    <div data-job-id="4449782234" class="display-flex job-card-container relative job-card-list
+        job-card-container--clickable
+        
+        job-card-list--underline-title-on-hover  jobs-search-two-pane__job-card-container--viewport-tracking-1">
+
+      <div>
+        <div id="ember142" class="job-card-list__entity-lockup  artdeco-entity-lockup artdeco-entity-lockup--size-4 ember-view">
+            <div id="ember143" class="job-card-list__logo  artdeco-entity-lockup__image artdeco-entity-lockup__image--type-square ember-view" type="square">
+              
+    <div class="ivm-image-view-model    job-card-list__logo-ivm">
+        
+    <div class="ivm-view-attr__img-wrapper
+        
+        ">
+<!---->
+<!---->          <img width="56" src="https://media.licdn.com/dms/image/v2/D560BAQF8giUcfIDJQA/company-logo_100_100/B56Zlx.qmrHkAU-/0/1758553877477/nians_logo?e=1788998400&amp;v=beta&amp;t=GnoyNtmFLjBeX-HY2MUjP_xip_TL3o9Z33n4TjBA6K8" loading="lazy" height="56" alt="Nians logo" id="ember144" class="ivm-view-attr__img--centered EntityPhoto-square-4   evi-image lazy-image ember-view">
+    </div>
+  
+          </div>
+  
+            
+</div>
+
+          <div id="ember145" class="flex-grow-1 artdeco-entity-lockup__content ember-view">
+            <div id="ember146" class="full-width artdeco-entity-lockup__title ember-view">
+                  <a data-control-id="xYRda0PEnck2TMUdP9Uspg==" tabindex="0" href="/jobs/view/4449782234/?eBP=BUDGET_EXHAUSTED_JOB&amp;refId=Q8jrjWo96mjIueABbZuxMA%3D%3D&amp;trackingId=xYRda0PEnck2TMUdP9Uspg%3D%3D&amp;trk=flagship3_search_srp_jobs" id="ember147" class="disabled ember-view job-card-container__link
+                      FIvOPWFOchYLcwKPkyAOjaDhcaNyXgJHnmggHU
+                      job-card-list__title--link" aria-label="Web Designer" dir="ltr">
+                      <span aria-hidden="true"><strong><!---->Web Designer<!----></strong></span><span class="visually-hidden"><!---->Web Designer<!----></span>
+                  </a>
+            
+</div>
+            <div id="ember148" class="artdeco-entity-lockup__subtitle ember-view">
+                <span class="wPmhNTwCcHAPFGlVtakfuKBOLoDRfVE " dir="ltr">
+                  <!---->Nians<!---->
+                </span>
+
+            </div>
+
+            <div id="ember149" class="artdeco-entity-lockup__caption ember-view">
+                  <ul class="job-card-container__metadata-wrapper">
+                      <li class="FlsmTaDBQXKINVtecGHjKJlMDqpHvrqUJyspRIP ">
+                        <span dir="ltr">
+                          <!---->India (Remote)<!---->
+                        </span>
+                      </li>
+<!---->                  </ul>
+            </div>
+
+<!---->
+<!---->          </div>
+
+        
+</div>
+
+            
+          
+    <div class="job-card-list__insight">
+        
+            <div class="display-flex align-items-center t-black--light t-12">
+                <div class="mv1">
+                  
+    <div class="ivm-image-view-model   ">
+        
+    <div class="ivm-view-attr__img-wrapper
+        
+        ">
+<!---->
+        <svg role="img" aria-hidden="false" aria-label="Actively reviewing applicants" class="ivm-view-attr__icon ivm-view-attr__icon--signal-positive  job-card-container__job-insight-image" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" data-supported-dps="24x24" data-test-icon="responsive-medium">
+<!---->    
+    <use href="#responsive-medium" width="24" height="24"></use>
+</svg>
+
+    </div>
+  
+          </div>
+  
+                </div>
+                <div class="job-card-container__job-insight-text" dir="ltr">
+                  <!---->Actively reviewing applicants<!---->
+                </div>
+            </div>
+          
+    </div>
+  
+      
+            <ul class="job-card-list__footer-wrapper job-card-container__footer-wrapper flex-shrink-zero display-flex t-sans t-12 t-black--light t-normal t-roman mt1">
+                    <li class="job-card-container__footer-item job-card-container__footer-job-state t-bold">
+                      Applied
+                    </li>
+<!---->            </ul>
+          <span class="visually-hidden" aria-live="polite">
+<!---->          </span>
+      </div>
+      <div class="job-card-list__actions-container">
+          
+        
+      <div>
+          <button aria-label="Dismiss Web Designer job" id="ember150" class="job-card-container__action job-card-container__action-small artdeco-button artdeco-button--muted artdeco-button--2 artdeco-button--tertiary ember-view" type="button"><!---->
+<span class="artdeco-button__text">
+    
+            <svg role="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" data-supported-dps="16x16" data-test-icon="close-small">
+<!---->    
+    <use href="#close-small" width="16" height="16"></use>
+</svg>
+
+            <span class="job-card-container__action-text"></span>
+          
+</span></button>
+      </div>
+  
+      <!---->  
+      </div>
+    </div>
+  
+    </div>
+  
+                              
+        </li>
+  
+              
+        <li id="ember151" class="ember-view   BVEFAHDhnBycIVEGPifUldaWzhrsTeWYJw occludable-update p0 relative scaffold-layout__list-item" data-occludable-job-id="4452595294">
+            
+                  
+    <div>
+      
+    <div data-job-id="4452595294" class="display-flex job-card-container relative job-card-list
+        job-card-container--clickable
+        job-card-list--is-dismissed pb2
+        job-card-list--underline-title-on-hover  jobs-search-two-pane__job-card-container--viewport-tracking-2">
+
+      <div>
+        <div id="ember152" class="job-card-list__entity-lockup  artdeco-entity-lockup artdeco-entity-lockup--size-4 ember-view">
+            <div id="ember153" class="job-card-list__logo  artdeco-entity-lockup__image artdeco-entity-lockup__image--type-square ember-view" type="square">
+              
+    <div class="ivm-image-view-model    job-card-list__logo-ivm">
+        
+    <div class="ivm-view-attr__img-wrapper
+        
+        ">
+<!---->
+<!---->          <img width="56" src="https://media.licdn.com/dms/image/v2/D4D0BAQHUxd8kYUsTaQ/company-logo_100_100/company-logo_100_100/0/1725018611800/smartworkingsolutions_logo?e=1788998400&amp;v=beta&amp;t=OHRstRetegg1VSoyDOukbwLFm4aRJ8by_8E5SmfssvE" loading="lazy" height="56" alt="Smart Working logo" id="ember154" class="ivm-view-attr__img--centered EntityPhoto-square-4   evi-image lazy-image ember-view">
+    </div>
+  
+          </div>
+  
+            
+</div>
+
+          <div id="ember155" class="flex-grow-1 artdeco-entity-lockup__content ember-view">
+            <div id="ember156" class="full-width artdeco-entity-lockup__title ember-view">
+                  <a data-control-id="6LvwIYwsaacE0KOm2jddWw==" tabindex="-1" href="/jobs/view/4452595294/?eBP=NOT_ELIGIBLE_FOR_CHARGING&amp;refId=Q8jrjWo96mjIueABbZuxMA%3D%3D&amp;trackingId=6LvwIYwsaacE0KOm2jddWw%3D%3D&amp;trk=flagship3_search_srp_jobs" id="ember157" class="disabled ember-view job-card-container__link
+                      FIvOPWFOchYLcwKPkyAOjaDhcaNyXgJHnmggHU
+                      job-card-list__title--link" aria-label="Full-Stack Web Engineer (Remote, Full-Time) [AS312] with verification disabled" dir="ltr">
+                      <span aria-hidden="true"><strong><!---->Full-Stack Web Engineer (Remote, Full-Time) [AS312]<!----></strong><span class="white-space-pre"> </span><!----><!----><span class="tvm__text tvm__text--low-emphasis"><svg role="none" aria-hidden="true" class="text-view-model__verified-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" data-supported-dps="16x16" data-test-icon="verified-small">
+<!---->    
+    <use href="#verified-small" width="16" height="16"></use>
+</svg>
+</span></span><span class="visually-hidden"><!---->Full-Stack Web Engineer (Remote, Full-Time) [AS312] with verification<!----></span>
+                  </a>
+            
+</div>
+            <div id="ember158" class="artdeco-entity-lockup__subtitle ember-view">
+                <span class="wPmhNTwCcHAPFGlVtakfuKBOLoDRfVE " dir="ltr">
+                  <!---->Smart Working<!---->
+                </span>
+
+            </div>
+
+            <div id="ember159" class="artdeco-entity-lockup__caption ember-view">
+                  <div class="job-card-container__footer-item--highlighted display-block t-12 pt1
+                      ">
+                    We won’t show you this job again.
+                  </div>
+            </div>
+
+<!---->
+<!---->          <div class="cp-card-outcome-tag cp-tag-skipped"><span>⏭️</span><span>SKIPPED: Keyword Mismatch</span></div></div>
+
+        
+</div>
+
+<!---->          <span class="visually-hidden" aria-live="polite">
+              Success, the job Full-Stack Web Engineer (Remote, Full-Time) [AS312] was dismissed.
+              We won’t show you this job again.
+          </span>
+      </div>
+      <div class="job-card-list__actions-container">
+          
+        
+      <div>
+          <button aria-label="Full-Stack Web Engineer (Remote, Full-Time) [AS312] job is dismissed, undo" id="ember584" class="job-card-container__action job-card-container__action-small artdeco-button artdeco-button--muted artdeco-button--2 artdeco-button--tertiary ember-view" type="button"><!---->
+<span class="artdeco-button__text">
+    
+            <svg role="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" data-supported-dps="16x16" data-test-icon="undo-small" data-rtl="true">
+<!---->    
+    <use href="#undo-small" width="16" height="16"></use>
+</svg>
+
+            <span class="job-card-container__action-text"></span>
+          
+</span></button>
+      </div>
+  
+      <!---->  
+      </div>
+    </div>
+  
+    </div>
+  
+                              
+        </li>
+  
+              
+        <li id="ember162" class="ember-view   BVEFAHDhnBycIVEGPifUldaWzhrsTeWYJw occludable-update p0 relative scaffold-layout__list-item" data-occludable-job-id="4453842351">
+            
+                  
+    <div>
+      
+    <div data-job-id="4453842351" class="display-flex job-card-container relative job-card-list
+        job-card-container--clickable
+        
+        job-card-list--underline-title-on-hover  jobs-search-two-pane__job-card-container--viewport-tracking-3">
+
+      <div>
+        <div id="ember163" class="job-card-list__entity-lockup  artdeco-entity-lockup artdeco-entity-lockup--size-4 ember-view">
+            <div id="ember164" class="job-card-list__logo  artdeco-entity-lockup__image artdeco-entity-lockup__image--type-square ember-view" type="square">
+              
+    <div class="ivm-image-view-model    job-card-list__logo-ivm">
+        
+    <div class="ivm-view-attr__img-wrapper
+        
+        ">
+<!---->
+<!---->          <img width="56" src="https://media.licdn.com/dms/image/v2/D4D0BAQHm5WLU1Qg7Tw/company-logo_100_100/company-logo_100_100/0/1691233136714?e=1788998400&amp;v=beta&amp;t=BMeVwH3Hi9Mvj9RfLBXdYLPqKq-4gYZtu4zm9HcLfrc" loading="lazy" height="56" alt="Spark Labs logo" id="ember165" class="ivm-view-attr__img--centered EntityPhoto-square-4   evi-image lazy-image ember-view">
+    </div>
+  
+          </div>
+  
+            
+</div>
+
+          <div id="ember166" class="flex-grow-1 artdeco-entity-lockup__content ember-view">
+            <div id="ember167" class="full-width artdeco-entity-lockup__title ember-view">
+                  <a data-control-id="HxnPyacNXdfomngRjvUssQ==" tabindex="0" href="/jobs/view/4453842351/?eBP=CwEAAAGgL0WQLdfaN2I-C_HIalLWtqoj_aqw4M1g85RA1OJaNxK0M7Ch2jTmqiY-OjBwrot9wW_nuV7SoIGpbZqFe2e90fzJX9WVtEvFaeffT8B-5Bc9EF9IelKDC2mfkoV6s-t6RqVceKSBe6ox40nQ7nR2ibWy7Cq-4p5PaO_SOqssqKpY7vNxLvZCsNG2eK4FTrieT63fAaOwLe4wmqdpym8X6LLFcgnVBae-6KUyyhNDPHKtY8Xpk8oaNXe74gJdpXRiTBMZ8wRIfk2azPBiY5J8JcgpX1vU5O6VV_J-_gb2fTRc7V2xe2W1BV-aauHeJ3NxgbxCoUwFiiZImpiYmqG6RUKIG1rfUYaZlD5h3pIcD39dYp9k1UyTePUU2QKz5nxrgwuMZBRNpuQUOpULlmiQPfujJBz0oyN3_nq8B85owhGVAEUeT063Cvel69xpObkZX10SYsV7JJGAZ9Nx4GjBVeO3vtJKaUA8okpfFNdKoz2vxpk9DgQkOtZe8yA&amp;refId=Q8jrjWo96mjIueABbZuxMA%3D%3D&amp;trackingId=HxnPyacNXdfomngRjvUssQ%3D%3D&amp;trk=flagship3_search_srp_jobs" id="ember168" class="disabled ember-view job-card-container__link
+                      FIvOPWFOchYLcwKPkyAOjaDhcaNyXgJHnmggHU
+                      job-card-list__title--link" aria-label="Full Stack Software Engineer (Contract) (Vue 2 and AWS Lambda required)" dir="ltr">
+                      <span aria-hidden="true"><strong><!---->Full Stack Software Engineer (Contract) (Vue 2 and AWS Lambda required)<!----></strong></span><span class="visually-hidden"><!---->Full Stack Software Engineer (Contract) (Vue 2 and AWS Lambda required)<!----></span>
+                  </a>
+            
+</div>
+            <div id="ember169" class="artdeco-entity-lockup__subtitle ember-view">
+                <span class="wPmhNTwCcHAPFGlVtakfuKBOLoDRfVE " dir="ltr">
+                  <!---->Spark Labs<!---->
+                </span>
+
+            </div>
+
+            <div id="ember170" class="artdeco-entity-lockup__caption ember-view">
+                  <ul class="job-card-container__metadata-wrapper">
+                      <li class="FlsmTaDBQXKINVtecGHjKJlMDqpHvrqUJyspRIP ">
+                        <span dir="ltr">
+                          <!---->India (Remote)<!---->
+                        </span>
+                      </li>
+<!---->                  </ul>
+            </div>
+
+<!---->
+<!---->          </div>
+
+        
+</div>
+
+            
+          
+    <div class="job-card-list__insight">
+        
+            <div class="display-flex align-items-center t-black--light t-12">
+                <div class="mv1">
+                  
+    <div class="ivm-image-view-model   ">
+        
+    <div class="ivm-view-attr__img-wrapper
+        
+        ">
+<!---->
+        <svg role="img" aria-hidden="false" aria-label="Actively reviewing applicants" class="ivm-view-attr__icon ivm-view-attr__icon--signal-positive  job-card-container__job-insight-image" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" data-supported-dps="24x24" data-test-icon="responsive-medium">
+<!---->    
+    <use href="#responsive-medium" width="24" height="24"></use>
+</svg>
+
+    </div>
+  
+          </div>
+  
+                </div>
+                <div class="job-card-container__job-insight-text" dir="ltr">
+                  <!---->Actively reviewing applicants<!---->
+                </div>
+            </div>
+          
+    </div>
+  
+      
+            <ul class="job-card-list__footer-wrapper job-card-container__footer-wrapper flex-shrink-zero display-flex t-sans t-12 t-black--light t-normal t-roman mt1">
+<!---->                      <li class="job-card-container__footer-item inline-flex align-items-center">
+                        <span dir="ltr">
+                          <!---->Promoted<!---->
+                        </span>
+                      </li>
+                    <!---->                      <li class="bigpMDfnsZpduAndXDKlilOlNenTJAZHUayvfg
+                          job-card-container__footer-item inline-flex align-items-center">
+                        <svg role="none" aria-hidden="true" class="job-card-list__icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" data-supported-dps="16x16" data-test-icon="linkedin-bug-color-small">
+<!---->    <svg display="var(--hue-web-svg-display-light)">
+      <image href="https://static.licdn.com/aero-v1/sc/h/cukxdu7s8ldmqz13xdao5xe75" x="0" y="0" width="16" height="16"></image>
+    </svg>
+    <svg display="var(--hue-web-svg-display-dark)">
+      <image href="https://static.licdn.com/aero-v1/sc/h/7qvn5nkkh1mlaqd5xm0radtjv" x="0" y="0" width="16" height="16"></image>
+    </svg>
+</svg>
+
+                        <span dir="ltr">
+                          <!---->Easy Apply<!---->
+                        </span>
+                      </li>
+            </ul>
+          <span class="visually-hidden" aria-live="polite">
+<!---->          </span>
+      </div>
+      <div class="job-card-list__actions-container">
+          
+        
+      <div>
+          <button aria-label="Dismiss Full Stack Software Engineer (Contract) (Vue 2 and AWS Lambda required) job" id="ember171" class="job-card-container__action job-card-container__action-small artdeco-button artdeco-button--muted artdeco-button--2 artdeco-button--tertiary ember-view" type="button"><!---->
+<span class="artdeco-button__text">
+    
+            <svg role="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" data-supported-dps="16x16" data-test-icon="close-small">
+<!---->    
+    <use href="#close-small" width="16" height="16"></use>
+</svg>
+
+            <span class="job-card-container__action-text"></span>
+          
+</span></button>
+      </div>
+  
+      <!---->  
+      </div>
+    </div>
+  
+    </div>
+  
+                              
+        </li>
+  
+              
+        <li id="ember172" class="ember-view   BVEFAHDhnBycIVEGPifUldaWzhrsTeWYJw occludable-update p0 relative scaffold-layout__list-item" data-occludable-job-id="4456091293">
+            
+                  
+    <div>
+      
+    <div data-job-id="4456091293" class="display-flex job-card-container relative job-card-list
+        job-card-container--clickable
+        
+        job-card-list--underline-title-on-hover  jobs-search-two-pane__job-card-container--viewport-tracking-4">
+
+      <div>
+        <div id="ember173" class="job-card-list__entity-lockup  artdeco-entity-lockup artdeco-entity-lockup--size-4 ember-view">
+            <div id="ember174" class="job-card-list__logo  artdeco-entity-lockup__image artdeco-entity-lockup__image--type-square ember-view" type="square">
+              
+    <div class="ivm-image-view-model    job-card-list__logo-ivm">
+        
+    <div class="ivm-view-attr__img-wrapper
+        
+        ">
+<!---->
+<!---->          <img width="56" src="https://media.licdn.com/dms/image/v2/D4E0BAQHdx4NngvFyPA/company-logo_100_100/B4EZ5GHh6CHEAU-/0/1779292839822/jobgether_logo?e=1788998400&amp;v=beta&amp;t=wiyYbQCQVJojH5dJ-79wUqww3kGLgd6bBjZu0ghf4yo" loading="lazy" height="56" alt="Jobgether logo" id="ember175" class="ivm-view-attr__img--centered EntityPhoto-square-4   evi-image lazy-image ember-view">
+    </div>
+  
+          </div>
+  
+            
+</div>
+
+          <div id="ember176" class="flex-grow-1 artdeco-entity-lockup__content ember-view">
+            <div id="ember177" class="full-width artdeco-entity-lockup__title ember-view">
+                  <a data-control-id="4L7g5dOvWqNxjVDRFAcCew==" tabindex="0" href="/jobs/view/4456091293/?eBP=NOT_ELIGIBLE_FOR_CHARGING&amp;refId=Q8jrjWo96mjIueABbZuxMA%3D%3D&amp;trackingId=4L7g5dOvWqNxjVDRFAcCew%3D%3D&amp;trk=flagship3_search_srp_jobs" id="ember178" class="disabled ember-view job-card-container__link
+                      FIvOPWFOchYLcwKPkyAOjaDhcaNyXgJHnmggHU
+                      job-card-list__title--link" aria-label="Senior Engineer (Full Stack)" dir="ltr">
+                      <span aria-hidden="true"><strong><!---->Senior Engineer (Full Stack)<!----></strong></span><span class="visually-hidden"><!---->Senior Engineer (Full Stack)<!----></span>
+                  </a>
+            
+</div>
+            <div id="ember179" class="artdeco-entity-lockup__subtitle ember-view">
+                <span class="wPmhNTwCcHAPFGlVtakfuKBOLoDRfVE " dir="ltr">
+                  <!---->Jobgether<!---->
+                </span>
+
+            </div>
+
+            <div id="ember180" class="artdeco-entity-lockup__caption ember-view">
+                  <ul class="job-card-container__metadata-wrapper">
+                      <li class="FlsmTaDBQXKINVtecGHjKJlMDqpHvrqUJyspRIP ">
+                        <span dir="ltr">
+                          <!---->India (Remote)<!---->
+                        </span>
+                      </li>
+<!---->                  </ul>
+            </div>
+
+<!---->
+<!---->          </div>
+
+        
+</div>
+
+            
+<!---->      
+            <ul class="job-card-list__footer-wrapper job-card-container__footer-wrapper flex-shrink-zero display-flex t-sans t-12 t-black--light t-normal t-roman mt1">
+<!---->                          <li class="job-card-container__footer-item
+                              ">
+                            <time datetime="2026-08-21">
+                              2 days ago
+<!---->                            </time>
+                          </li>
+                      <li class="bigpMDfnsZpduAndXDKlilOlNenTJAZHUayvfg
+                          job-card-container__footer-item inline-flex align-items-center">
+                        <svg role="none" aria-hidden="true" class="job-card-list__icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" data-supported-dps="16x16" data-test-icon="linkedin-bug-color-small">
+<!---->    <svg display="var(--hue-web-svg-display-light)">
+      <image href="https://static.licdn.com/aero-v1/sc/h/cukxdu7s8ldmqz13xdao5xe75" x="0" y="0" width="16" height="16"></image>
+    </svg>
+    <svg display="var(--hue-web-svg-display-dark)">
+      <image href="https://static.licdn.com/aero-v1/sc/h/7qvn5nkkh1mlaqd5xm0radtjv" x="0" y="0" width="16" height="16"></image>
+    </svg>
+</svg>
+
+                        <span dir="ltr">
+                          <!---->Easy Apply<!---->
+                        </span>
+                      </li>
+            </ul>
+          <span class="visually-hidden" aria-live="polite">
+<!---->          </span>
+      </div>
+      <div class="job-card-list__actions-container">
+          
+        
+      <div>
+          <button aria-label="Dismiss Senior Engineer (Full Stack) job" id="ember181" class="job-card-container__action job-card-container__action-small artdeco-button artdeco-button--muted artdeco-button--2 artdeco-button--tertiary ember-view" type="button"><!---->
+<span class="artdeco-button__text">
+    
+            <svg role="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" data-supported-dps="16x16" data-test-icon="close-small">
+<!---->    
+    <use href="#close-small" width="16" height="16"></use>
+</svg>
+
+            <span class="job-card-container__action-text"></span>
+          
+</span></button>
+      </div>
+  
+      <!---->  
+      </div>
+    </div>
+  
+    </div>
+  
+                              
+        </li>
+  
+              
+        <li id="ember182" class="ember-view   BVEFAHDhnBycIVEGPifUldaWzhrsTeWYJw occludable-update p0 relative scaffold-layout__list-item" data-occludable-job-id="4455092725">
+            
+                  
+    <div>
+      
+    <div data-job-id="4455092725" class="display-flex job-card-container relative job-card-list
+        job-card-container--clickable
+        
+        job-card-list--underline-title-on-hover  jobs-search-two-pane__job-card-container--viewport-tracking-5">
+
+      <div>
+        <div id="ember183" class="job-card-list__entity-lockup  artdeco-entity-lockup artdeco-entity-lockup--size-4 ember-view">
+            <div id="ember184" class="job-card-list__logo  artdeco-entity-lockup__image artdeco-entity-lockup__image--type-square ember-view" type="square">
+              
+    <div class="ivm-image-view-model    job-card-list__logo-ivm">
+        
+    <div class="ivm-view-attr__img-wrapper
+        
+        ">
+<!---->
+<!---->          <img width="56" src="https://media.licdn.com/dms/image/v2/D4D0BAQE1TntFZREFkA/company-logo_100_100/B4DZ.TT8X4IIAI-/0/1784882906874/nexorapps_logo?e=1788998400&amp;v=beta&amp;t=jxs0jMZ10RLOiW9aWWWVGmsohLASn3Y-lWiBpadtQhY" loading="lazy" height="56" alt="Nexora Labs logo" id="ember185" class="ivm-view-attr__img--centered EntityPhoto-square-4   evi-image lazy-image ember-view">
+    </div>
+  
+          </div>
+  
+            
+</div>
+
+          <div id="ember186" class="flex-grow-1 artdeco-entity-lockup__content ember-view">
+            <div id="ember187" class="full-width artdeco-entity-lockup__title ember-view">
+                  <a data-control-id="yne3zpmGFJtJ0jjm8MUVTA==" tabindex="0" href="/jobs/view/4455092725/?eBP=CwEAAAGgL0WQLcfUb9Q4XSA6uTwIQH23FXk9fbC3S7LXug2whKHJwsdxYhRRcUG7K6QmDBZ-HZnAy3PJ1MnUen1n7-jrV3_9FRJuGHkcMwMQPDkbovNktI9gn6R4FvZ8ahs7KM2Efwd6ANPfO2BZPE55OSG-mo4iPaI9amvc6FwoXKar0p8ABHyEuuV6hbSeys0y6ERkfTCp3JhcJIkTm-559UkAKZXvnzf-UrAHcnDvSBynXS5o0mM_5FIxhU-L9e4qg1pcCEQLhWP-ijYQAIXwo3jNWxghzweUsn7nuUNR1EBAz5IIcik8ZtVkes3G_eI2ICQoOKjNHF2tDI_zvV0bPK7r1JXNYLR8fjB8lET-S639UVuzeEqxGN-jOn8e6CVIEry0sBxhfLroggzEUdhX89AgjjNpOr1lPkXoXGw2vUhAbvckSKEvLCw4TQHDHWcFsIcRrum7rRLEaujK4oQO3G6Mz5DpgizjgZ1xDdV0pHq4XPiRT4pDwzdEpepcw2D2Bg4Xt01HNsrMhDTxDteGDF4HKBQ&amp;refId=Q8jrjWo96mjIueABbZuxMA%3D%3D&amp;trackingId=yne3zpmGFJtJ0jjm8MUVTA%3D%3D&amp;trk=flagship3_search_srp_jobs" id="ember188" class="disabled ember-view job-card-container__link
+                      FIvOPWFOchYLcwKPkyAOjaDhcaNyXgJHnmggHU
+                      job-card-list__title--link" aria-label="Creative Designer &amp; Video Editor" dir="ltr">
+                      <span aria-hidden="true"><strong><!---->Creative Designer &amp; Video Editor<!----></strong></span><span class="visually-hidden"><!---->Creative Designer &amp; Video Editor<!----></span>
+                  </a>
+            
+</div>
+            <div id="ember189" class="artdeco-entity-lockup__subtitle ember-view">
+                <span class="wPmhNTwCcHAPFGlVtakfuKBOLoDRfVE " dir="ltr">
+                  <!---->Nexora Labs<!---->
+                </span>
+
+            </div>
+
+            <div id="ember190" class="artdeco-entity-lockup__caption ember-view">
+                  <ul class="job-card-container__metadata-wrapper">
+                      <li class="FlsmTaDBQXKINVtecGHjKJlMDqpHvrqUJyspRIP ">
+                        <span dir="ltr">
+                          <!---->Bengaluru, Karnataka, India (Remote)<!---->
+                        </span>
+                      </li>
+<!---->                  </ul>
+            </div>
+
+<!---->
+<!---->          </div>
+
+        
+</div>
+
+            
+<!---->      
+            <ul class="job-card-list__footer-wrapper job-card-container__footer-wrapper flex-shrink-zero display-flex t-sans t-12 t-black--light t-normal t-roman mt1">
+<!---->                      <li class="job-card-container__footer-item inline-flex align-items-center">
+                        <span dir="ltr">
+                          <!---->Promoted<!---->
+                        </span>
+                      </li>
+                    <!---->                      <li class="bigpMDfnsZpduAndXDKlilOlNenTJAZHUayvfg
+                          job-card-container__footer-item inline-flex align-items-center">
+                        <svg role="none" aria-hidden="true" class="job-card-list__icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" data-supported-dps="16x16" data-test-icon="linkedin-bug-color-small">
+<!---->    <svg display="var(--hue-web-svg-display-light)">
+      <image href="https://static.licdn.com/aero-v1/sc/h/cukxdu7s8ldmqz13xdao5xe75" x="0" y="0" width="16" height="16"></image>
+    </svg>
+    <svg display="var(--hue-web-svg-display-dark)">
+      <image href="https://static.licdn.com/aero-v1/sc/h/7qvn5nkkh1mlaqd5xm0radtjv" x="0" y="0" width="16" height="16"></image>
+    </svg>
+</svg>
+
+                        <span dir="ltr">
+                          <!---->Easy Apply<!---->
+                        </span>
+                      </li>
+            </ul>
+          <span class="visually-hidden" aria-live="polite">
+<!---->          </span>
+      </div>
+      <div class="job-card-list__actions-container">
+          
+        
+      <div>
+          <button aria-label="Dismiss Creative Designer &amp; Video Editor job" id="ember191" class="job-card-container__action job-card-container__action-small artdeco-button artdeco-button--muted artdeco-button--2 artdeco-button--tertiary ember-view" type="button"><!---->
+<span class="artdeco-button__text">
+    
+            <svg role="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" data-supported-dps="16x16" data-test-icon="close-small">
+<!---->    
+    <use href="#close-small" width="16" height="16"></use>
+</svg>
+
+            <span class="job-card-container__action-text"></span>
+          
+</span></button>
+      </div>
+  
+      <!---->  
+      </div>
+    </div>
+  
+    </div>
+  
+                              
+        </li>
+  
+              
+        <li id="ember192" class="ember-view   BVEFAHDhnBycIVEGPifUldaWzhrsTeWYJw occludable-update p0 relative scaffold-layout__list-item" data-occludable-job-id="4456808253">
+            
+                  
+    <div>
+      
+    <div data-job-id="4456808253" class="display-flex job-card-container relative job-card-list
+        job-card-container--clickable
+        
+        job-card-list--underline-title-on-hover  jobs-search-two-pane__job-card-container--viewport-tracking-6">
+
+      <div>
+        <div id="ember193" class="job-card-list__entity-lockup  artdeco-entity-lockup artdeco-entity-lockup--size-4 ember-view">
+            <div id="ember194" class="job-card-list__logo  artdeco-entity-lockup__image artdeco-entity-lockup__image--type-square ember-view" type="square">
+              
+    <div class="ivm-image-view-model    job-card-list__logo-ivm">
+        
+    <div class="ivm-view-attr__img-wrapper
+        
+        ">
+<!---->
+<!---->          <img width="56" src="https://media.licdn.com/dms/image/v2/D560BAQEdFezujOhF9Q/company-logo_100_100/company-logo_100_100/0/1697033054187?e=1788998400&amp;v=beta&amp;t=LPoOwhz9J75kVLKVFaq958fpHreKY2e_--K2_VvNF9s" loading="lazy" height="56" alt="Zetheta Algorithms Private Limited logo" id="ember195" class="ivm-view-attr__img--centered EntityPhoto-square-4   evi-image lazy-image ember-view">
+    </div>
+  
+          </div>
+  
+            
+</div>
+
+          <div id="ember196" class="flex-grow-1 artdeco-entity-lockup__content ember-view">
+            <div id="ember197" class="full-width artdeco-entity-lockup__title ember-view">
+                  <a data-control-id="Nw34pH4ICyy5FUY2LmUC0A==" tabindex="0" href="/jobs/view/4456808253/?eBP=CwEAAAGgL0WQLQ_dHuWIo69zydtBxbWollo1nenwdwvPYcEC8KVVBEJmdKy03K2igRD0duYUhClXdzMXXBgXSyTufTaMvusKj9q4ztEzvvx73nV04X6FcfwUU2EjyFa3_aYewR9iuQYRI_tRwK1gGYgH4UQd5ldx9-TOeOO9AsPT6KlwyW6eu21coFSCOAWGbv0MBDSHd5lY60ubwquecfsTjpNOwP9DiTeETWdzFbvukSV8e4yFr2m5AFzoZcNFkd_own6qM_t1THk0yIO4vktz6-Xyajcbmg9SN_Jr3DZBDcxibM-bEhjFPTQ8CjU4-W3iP1pq6_JL3KTm8lXFIkL2OALQqprWhB8oo30EpMnvBgqxu-8ldH8l0xKwT92XJiB_ICh91V4IYGiR6pVLOuhdO_DNmVEM_GJDH-OHd8X76P3MAniHt3WzYrzZB7S-dWzFGhxpfHEA8gT80nhxEJgFurlhkEdDGU5ytw&amp;refId=Q8jrjWo96mjIueABbZuxMA%3D%3D&amp;trackingId=Nw34pH4ICyy5FUY2LmUC0A%3D%3D&amp;trk=flagship3_search_srp_jobs" id="ember198" class="disabled ember-view job-card-container__link
+                      FIvOPWFOchYLcwKPkyAOjaDhcaNyXgJHnmggHU
+                      job-card-list__title--link" aria-label="Full Stack Engineer with verification" dir="ltr">
+                      <span aria-hidden="true"><strong><!---->Full Stack Engineer<!----></strong><span class="white-space-pre"> </span><!----><!----><span class="tvm__text tvm__text--low-emphasis"><svg role="none" aria-hidden="true" class="text-view-model__verified-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" data-supported-dps="16x16" data-test-icon="verified-small">
+<!---->    
+    <use href="#verified-small" width="16" height="16"></use>
+</svg>
+</span></span><span class="visually-hidden"><!---->Full Stack Engineer with verification<!----></span>
+                  </a>
+            
+</div>
+            <div id="ember199" class="artdeco-entity-lockup__subtitle ember-view">
+                <span class="wPmhNTwCcHAPFGlVtakfuKBOLoDRfVE " dir="ltr">
+                  <!---->Zetheta Algorithms Private Limited<!---->
+                </span>
+
+            </div>
+
+            <div id="ember200" class="artdeco-entity-lockup__caption ember-view">
+                  <ul class="job-card-container__metadata-wrapper">
+                      <li class="FlsmTaDBQXKINVtecGHjKJlMDqpHvrqUJyspRIP ">
+                        <span dir="ltr">
+                          <!---->India (Remote)<!---->
+                        </span>
+                      </li>
+<!---->                  </ul>
+            </div>
+
+<!---->
+<!---->          </div>
+
+        
+</div>
+
+            
+          
+    <div class="job-card-list__insight">
+        
+            <div class="display-flex align-items-center t-black--light t-12">
+                <div class="mv1">
+                  
+    <div class="ivm-image-view-model   ">
+        
+    <div class="ivm-view-attr__img-wrapper
+        
+        ">
+<!---->
+        <svg role="img" aria-hidden="false" aria-label="Company review time is typically 1 week" class="ivm-view-attr__icon ivm-view-attr__icon--signal-positive  job-card-container__job-insight-image" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" data-supported-dps="24x24" data-test-icon="responsive-medium">
+<!---->    
+    <use href="#responsive-medium" width="24" height="24"></use>
+</svg>
+
+    </div>
+  
+          </div>
+  
+                </div>
+                <div class="job-card-container__job-insight-text" dir="ltr">
+                  <!---->Company review time is typically 1 week<!---->
+                </div>
+            </div>
+          
+    </div>
+  
+      
+            <ul class="job-card-list__footer-wrapper job-card-container__footer-wrapper flex-shrink-zero display-flex t-sans t-12 t-black--light t-normal t-roman mt1">
+<!---->                      <li class="job-card-container__footer-item inline-flex align-items-center">
+                        <span dir="ltr">
+                          <!---->Promoted<!---->
+                        </span>
+                      </li>
+                    <!---->                      <li class="bigpMDfnsZpduAndXDKlilOlNenTJAZHUayvfg
+                          job-card-container__footer-item inline-flex align-items-center">
+                        <svg role="none" aria-hidden="true" class="job-card-list__icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" data-supported-dps="16x16" data-test-icon="linkedin-bug-color-small">
+<!---->    <svg display="var(--hue-web-svg-display-light)">
+      <image href="https://static.licdn.com/aero-v1/sc/h/cukxdu7s8ldmqz13xdao5xe75" x="0" y="0" width="16" height="16"></image>
+    </svg>
+    <svg display="var(--hue-web-svg-display-dark)">
+      <image href="https://static.licdn.com/aero-v1/sc/h/7qvn5nkkh1mlaqd5xm0radtjv" x="0" y="0" width="16" height="16"></image>
+    </svg>
+</svg>
+
+                        <span dir="ltr">
+                          <!---->Easy Apply<!---->
+                        </span>
+                      </li>
+            </ul>
+          <span class="visually-hidden" aria-live="polite">
+<!---->          </span>
+      </div>
+      <div class="job-card-list__actions-container">
+          
+        
+      <div>
+          <button aria-label="Dismiss Full Stack Engineer job" id="ember201" class="job-card-container__action job-card-container__action-small artdeco-button artdeco-button--muted artdeco-button--2 artdeco-button--tertiary ember-view" type="button"><!---->
+<span class="artdeco-button__text">
+    
+            <svg role="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" data-supported-dps="16x16" data-test-icon="close-small">
+<!---->    
+    <use href="#close-small" width="16" height="16"></use>
+</svg>
+
+            <span class="job-card-container__action-text"></span>
+          
+</span></button>
+      </div>
+  
+      <!---->  
+      </div>
+    </div>
+  
+    </div>
+  
+                              
+        </li>
+  
+              
+        <li id="ember202" class="ember-view   BVEFAHDhnBycIVEGPifUldaWzhrsTeWYJw occludable-update p0 relative scaffold-layout__list-item" data-occludable-job-id="4454664193">
+            
+                  
+    <div>
+      
+    <div data-job-id="4454664193" class="display-flex job-card-container relative job-card-list
+        job-card-container--clickable
+        
+        job-card-list--underline-title-on-hover  jobs-search-two-pane__job-card-container--viewport-tracking-7">
+
+      <div>
+        <div id="ember507" class="job-card-list__entity-lockup  artdeco-entity-lockup artdeco-entity-lockup--size-4 ember-view">
+            <div id="ember508" class="job-card-list__logo  artdeco-entity-lockup__image artdeco-entity-lockup__image--type-square ember-view" type="square">
+              
+    <div class="ivm-image-view-model    job-card-list__logo-ivm">
+        
+    <div class="ivm-view-attr__img-wrapper
+        
+        ">
+<!---->
+<!---->          <img width="56" src="https://media.licdn.com/dms/image/v2/D4D0BAQE16mVVJFncgw/company-logo_100_100/company-logo_100_100/0/1695398528446?e=1788998400&amp;v=beta&amp;t=WbZXUcIssVR4setOL42_LmEWME_tKLY5wDr5Anlz3ks" loading="lazy" height="56" alt="Zafify logo" id="ember509" class="ivm-view-attr__img--centered EntityPhoto-square-4   evi-image lazy-image ember-view">
+    </div>
+  
+          </div>
+  
+            
+</div>
+
+          <div id="ember510" class="flex-grow-1 artdeco-entity-lockup__content ember-view">
+            <div id="ember511" class="full-width artdeco-entity-lockup__title ember-view">
+                  <a data-control-id="ou0SuSKi34rxqdxpGEE2GQ==" tabindex="0" href="/jobs/view/4454664193/?eBP=BUDGET_EXHAUSTED_JOB&amp;refId=Q8jrjWo96mjIueABbZuxMA%3D%3D&amp;trackingId=ou0SuSKi34rxqdxpGEE2GQ%3D%3D&amp;trk=flagship3_search_srp_jobs" id="ember512" class="disabled ember-view job-card-container__link
+                      FIvOPWFOchYLcwKPkyAOjaDhcaNyXgJHnmggHU
+                      job-card-list__title--link" aria-label="Digital Marketing Specialist" dir="ltr">
+                      <span aria-hidden="true"><strong><!---->Digital Marketing Specialist<!----></strong></span><span class="visually-hidden"><!---->Digital Marketing Specialist<!----></span>
+                  </a>
+            
+</div>
+            <div id="ember513" class="artdeco-entity-lockup__subtitle ember-view">
+                <span class="wPmhNTwCcHAPFGlVtakfuKBOLoDRfVE " dir="ltr">
+                  <!---->Zafify<!---->
+                </span>
+
+            </div>
+
+            <div id="ember514" class="artdeco-entity-lockup__caption ember-view">
+                  <ul class="job-card-container__metadata-wrapper">
+                      <li class="FlsmTaDBQXKINVtecGHjKJlMDqpHvrqUJyspRIP ">
+                        <span dir="ltr">
+                          <!---->India (Remote)<!---->
+                        </span>
+                      </li>
+<!---->                  </ul>
+            </div>
+
+                <div id="ember515" class="mt1 t-sans t-12 t-black--light t-normal t-roman artdeco-entity-lockup__metadata ember-view">
+                  <ul class="job-card-container__metadata-wrapper">
+                    <li class="FlsmTaDBQXKINVtecGHjKJlMDqpHvrqUJyspRIP">
+                      <span dir="ltr">
+                        <!---->Up to 10K INR/month<!---->
+                      </span>
+                    </li>
+                  </ul>
+                </div>
+
+<!---->          </div>
+
+        
+</div>
+
+            
+<!---->      
+            <ul class="job-card-list__footer-wrapper job-card-container__footer-wrapper flex-shrink-zero display-flex t-sans t-12 t-black--light t-normal t-roman mt1">
+                    <li class="job-card-container__footer-item job-card-container__footer-job-state t-bold">
+                      Viewed
+                    </li>
+                                        <li class="job-card-container__footer-item inline-flex align-items-center">
+                        <span dir="ltr">
+                          <!---->Promoted<!---->
+                        </span>
+                      </li>
+                    <!---->                      <li class="bigpMDfnsZpduAndXDKlilOlNenTJAZHUayvfg
+                          job-card-container__footer-item inline-flex align-items-center">
+                        <svg role="none" aria-hidden="true" class="job-card-list__icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" data-supported-dps="16x16" data-test-icon="linkedin-bug-color-small">
+<!---->    <svg display="var(--hue-web-svg-display-light)">
+      <image href="https://static.licdn.com/aero-v1/sc/h/cukxdu7s8ldmqz13xdao5xe75" x="0" y="0" width="16" height="16"></image>
+    </svg>
+    <svg display="var(--hue-web-svg-display-dark)">
+      <image href="https://static.licdn.com/aero-v1/sc/h/7qvn5nkkh1mlaqd5xm0radtjv" x="0" y="0" width="16" height="16"></image>
+    </svg>
+</svg>
+
+                        <span dir="ltr">
+                          <!---->Easy Apply<!---->
+                        </span>
+                      </li>
+            </ul>
+          <span class="visually-hidden" aria-live="polite">
+<!---->          </span>
+      </div>
+      <div class="job-card-list__actions-container">
+          
+        
+      <div>
+          <button aria-label="Dismiss Digital Marketing Specialist job" id="ember516" class="job-card-container__action job-card-container__action-small artdeco-button artdeco-button--muted artdeco-button--2 artdeco-button--tertiary ember-view" type="button"><!---->
+<span class="artdeco-button__text">
+    
+            <svg role="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" data-supported-dps="16x16" data-test-icon="close-small">
+<!---->    
+    <use href="#close-small" width="16" height="16"></use>
+</svg>
+
+            <span class="job-card-container__action-text"></span>
+          
+</span></button>
+      </div>
+  
+      <!---->  
+      </div>
+    </div>
+  
+    </div>
+  
+                              
+        </li>
+  
+              
+        <li id="ember203" class="ember-view   BVEFAHDhnBycIVEGPifUldaWzhrsTeWYJw occludable-update p0 relative scaffold-layout__list-item" data-occludable-job-id="4456075828">
+            
+                  
+    <div>
+      
+    <div data-job-id="4456075828" class="display-flex job-card-container relative job-card-list
+        job-card-container--clickable
+        
+        job-card-list--underline-title-on-hover  jobs-search-two-pane__job-card-container--viewport-tracking-8">
+
+      <div>
+        <div id="ember470" class="job-card-list__entity-lockup  artdeco-entity-lockup artdeco-entity-lockup--size-4 ember-view">
+            <div id="ember471" class="job-card-list__logo  artdeco-entity-lockup__image artdeco-entity-lockup__image--type-square ember-view" type="square">
+              
+    <div class="ivm-image-view-model    job-card-list__logo-ivm">
+        
+    <div class="ivm-view-attr__img-wrapper
+        
+        ">
+<!---->
+<!---->          <img width="56" src="https://media.licdn.com/dms/image/v2/D4D0BAQG2HVg9mOuHYQ/company-logo_100_100/B4DZ_Sqn17K4AI-/0/1785945816659/remotesmith_logo?e=1788998400&amp;v=beta&amp;t=d7J8K7riXw_MDkZscFyDsctspzdQa4bANadBY3LYWw8" loading="lazy" height="56" alt="Remote Smith logo" id="ember472" class="ivm-view-attr__img--centered EntityPhoto-square-4   evi-image lazy-image ember-view">
+    </div>
+  
+          </div>
+  
+            
+</div>
+
+          <div id="ember473" class="flex-grow-1 artdeco-entity-lockup__content ember-view">
+            <div id="ember474" class="full-width artdeco-entity-lockup__title ember-view">
+                  <a data-control-id="W9iIzp423sqsFYSV026s9g==" tabindex="0" href="/jobs/view/4456075828/?eBP=CwEAAAGgL0WQLYdplXVPQCYNcuiwoo1IQC9oRNejWqV6_MIJ-BVbvjMq2avE7XCOC8hFaocjPTxKsouGkjwEJLurxpY0Do0-2J-e3EhmYHavlBIzCCYuMmUA9vCRYIbiw9qSafAXDyZv9fr_VUNFe9eKUbdCBbzd3B_hdMbN9KHZA4M4R5Tcj9f27Yg_nztG3tNAYOcc9RwhFsXrXrDam9HANKoMYi5_ygh7nHfuJRT30_Ce1Ej06ejvtgd1BoCT_WVha8SsUM2fcRN1PrpwvRMRMLD6UUj86JJerLL52Eml7VqLmBTHTORHAVzGLiWU-pykska-MDwfUmMcmZlyQk7G-NlK3p_j7ikYRD4YV0Jo0n4Tccf4WpJJIFrxgCgBXtDzf3i9se5dnR4jD2SA_Vieh5YUwmeRE_Bgj-K0eCRyy_1_LJGUbrw-s0I7zzca4fhepr9BJ_MBfzkV7XfToKJcE0e4F2B5d5zfkKQDrGjCcm777cwxpDIWEPyYy_aPsY0&amp;refId=Q8jrjWo96mjIueABbZuxMA%3D%3D&amp;trackingId=W9iIzp423sqsFYSV026s9g%3D%3D&amp;trk=flagship3_search_srp_jobs" id="ember475" class="disabled ember-view job-card-container__link
+                      FIvOPWFOchYLcwKPkyAOjaDhcaNyXgJHnmggHU
+                      job-card-list__title--link" aria-label="Frontend Developer" dir="ltr">
+                      <span aria-hidden="true"><strong><!---->Frontend Developer<!----></strong></span><span class="visually-hidden"><!---->Frontend Developer<!----></span>
+                  </a>
+            
+</div>
+            <div id="ember476" class="artdeco-entity-lockup__subtitle ember-view">
+                <span class="wPmhNTwCcHAPFGlVtakfuKBOLoDRfVE " dir="ltr">
+                  <!---->Remote Smith<!---->
+                </span>
+
+            </div>
+
+            <div id="ember477" class="artdeco-entity-lockup__caption ember-view">
+                  <ul class="job-card-container__metadata-wrapper">
+                      <li class="FlsmTaDBQXKINVtecGHjKJlMDqpHvrqUJyspRIP ">
+                        <span dir="ltr">
+                          <!---->Delhi, India (Remote)<!---->
+                        </span>
+                      </li>
+<!---->                  </ul>
+            </div>
+
+<!---->
+<!---->          </div>
+
+        
+</div>
+
+            
+<!---->      
+            <ul class="job-card-list__footer-wrapper job-card-container__footer-wrapper flex-shrink-zero display-flex t-sans t-12 t-black--light t-normal t-roman mt1">
+<!---->                      <li class="job-card-container__footer-item inline-flex align-items-center">
+                        <span dir="ltr">
+                          <!---->Promoted<!---->
+                        </span>
+                      </li>
+                    <!---->                      <li class="bigpMDfnsZpduAndXDKlilOlNenTJAZHUayvfg
+                          job-card-container__footer-item inline-flex align-items-center">
+                        <svg role="none" aria-hidden="true" class="job-card-list__icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" data-supported-dps="16x16" data-test-icon="linkedin-bug-color-small">
+<!---->    <svg display="var(--hue-web-svg-display-light)">
+      <image href="https://static.licdn.com/aero-v1/sc/h/cukxdu7s8ldmqz13xdao5xe75" x="0" y="0" width="16" height="16"></image>
+    </svg>
+    <svg display="var(--hue-web-svg-display-dark)">
+      <image href="https://static.licdn.com/aero-v1/sc/h/7qvn5nkkh1mlaqd5xm0radtjv" x="0" y="0" width="16" height="16"></image>
+    </svg>
+</svg>
+
+                        <span dir="ltr">
+                          <!---->Easy Apply<!---->
+                        </span>
+                      </li>
+            </ul>
+          <span class="visually-hidden" aria-live="polite">
+<!---->          </span>
+      </div>
+      <div class="job-card-list__actions-container">
+          
+        
+      <div>
+          <button aria-label="Dismiss Frontend Developer job" id="ember478" class="job-card-container__action job-card-container__action-small artdeco-button artdeco-button--muted artdeco-button--2 artdeco-button--tertiary ember-view" type="button"><!---->
+<span class="artdeco-button__text">
+    
+            <svg role="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" data-supported-dps="16x16" data-test-icon="close-small">
+<!---->    
+    <use href="#close-small" width="16" height="16"></use>
+</svg>
+
+            <span class="job-card-container__action-text"></span>
+          
+</span></button>
+      </div>
+  
+      <!---->  
+      </div>
+    </div>
+  
+    </div>
+  
+                              
+        </li>
+  
+              
+        <li id="ember204" class="ember-view   BVEFAHDhnBycIVEGPifUldaWzhrsTeWYJw occludable-update p0 relative scaffold-layout__list-item" data-occludable-job-id="4453886906">
+            
+                  
+    <div>
+      
+    <div data-job-id="4453886906" class="display-flex job-card-container relative job-card-list
+        job-card-container--clickable
+        
+        job-card-list--underline-title-on-hover  jobs-search-two-pane__job-card-container--viewport-tracking-9">
+
+      <div>
+        <div id="ember452" class="job-card-list__entity-lockup  artdeco-entity-lockup artdeco-entity-lockup--size-4 ember-view">
+            <div id="ember453" class="job-card-list__logo  artdeco-entity-lockup__image artdeco-entity-lockup__image--type-square ember-view" type="square">
+              
+    <div class="ivm-image-view-model    job-card-list__logo-ivm">
+        
+    <div class="ivm-view-attr__img-wrapper
+        
+        ">
+<!---->
+<!---->          <img width="56" src="https://media.licdn.com/dms/image/v2/D560BAQEXgc61_xEcfg/company-logo_100_100/company-logo_100_100/0/1698691340799/kake_logo?e=1788998400&amp;v=beta&amp;t=zCYHL8b5appsArX0YDgSALXFwg34GfbB93XlEuqnV2M" loading="lazy" height="56" alt="Kake logo" id="ember454" class="ivm-view-attr__img--centered EntityPhoto-square-4   evi-image lazy-image ember-view">
+    </div>
+  
+          </div>
+  
+            
+</div>
+
+          <div id="ember455" class="flex-grow-1 artdeco-entity-lockup__content ember-view">
+            <div id="ember456" class="full-width artdeco-entity-lockup__title ember-view">
+                  <a data-control-id="rUmLJ2X9F28cIKUJELFzSg==" tabindex="0" href="/jobs/view/4453886906/?eBP=CwEAAAGgL0WQLdx5W8c_lbUdAMP9k67aIKYGKog50kEyiNZvAugQCTK8npXDGDhEIfCqJntl8dRYpzajpt2ZU6-hDTjViwmeDoSmna85UumDmxb1GXoSUxogn89ONRMWlE5NzTOhsA9vKzvaCwpHmUurF6-eTmqCoHguDrYtlbVGsWtZ0Ii4gHICQwR9ERe-HxFrvVl5gzddvsKFygc2b9k114vwfKR5rM1IwqE0Ti042J-hpAVNlpS57-eFX4fUtsU8wdplOmHBJdJqpLCVMvxCZATqSZp-BDXSBs82CBrFXr9ldIEwk-1Kmk4YfgMtm0L3IvEF2WaaN3RocGsA40WtVvEN6Hn5TsO5ykUKkvjNktIZzB6fhN9IXCZYU1dNhHTqrQqm1rkg2iS9lwBk69jNpymEl1ZWdcDyacKex98kDkveaH5OvPc6bLlxkXgc6KlIt_YSyPes_yN1Y7C58m-7dEFqzVXXTfWHlZxCesaT_zzf5fMEHs5I04Hx342DE66CfA&amp;refId=Q8jrjWo96mjIueABbZuxMA%3D%3D&amp;trackingId=rUmLJ2X9F28cIKUJELFzSg%3D%3D&amp;trk=flagship3_search_srp_jobs" id="ember457" class="disabled ember-view job-card-container__link
+                      FIvOPWFOchYLcwKPkyAOjaDhcaNyXgJHnmggHU
+                      job-card-list__title--link" aria-label="Senior Web &amp; Video Player Engineer - Remote with verification" dir="ltr">
+                      <span aria-hidden="true"><strong><!---->Senior Web &amp; Video Player Engineer - Remote<!----></strong><span class="white-space-pre"> </span><!----><!----><span class="tvm__text tvm__text--low-emphasis"><svg role="none" aria-hidden="true" class="text-view-model__verified-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" data-supported-dps="16x16" data-test-icon="verified-small">
+<!---->    
+    <use href="#verified-small" width="16" height="16"></use>
+</svg>
+</span></span><span class="visually-hidden"><!---->Senior Web &amp; Video Player Engineer - Remote with verification<!----></span>
+                  </a>
+            
+</div>
+            <div id="ember458" class="artdeco-entity-lockup__subtitle ember-view">
+                <span class="wPmhNTwCcHAPFGlVtakfuKBOLoDRfVE " dir="ltr">
+                  <!---->Kake<!---->
+                </span>
+
+            </div>
+
+            <div id="ember459" class="artdeco-entity-lockup__caption ember-view">
+                  <ul class="job-card-container__metadata-wrapper">
+                      <li class="FlsmTaDBQXKINVtecGHjKJlMDqpHvrqUJyspRIP ">
+                        <span dir="ltr">
+                          <!---->Hyderabad, Telangana, India (Remote)<!---->
+                        </span>
+                      </li>
+<!---->                  </ul>
+            </div>
+
+<!---->
+<!---->          </div>
+
+        
+</div>
+
+            
+          
+    <div class="job-card-list__insight">
+        
+            <div class="display-flex align-items-center t-black--light t-12">
+                <div class="mv1">
+                  
+    <div class="ivm-image-view-model   ">
+        
+    <div class="ivm-view-attr__img-wrapper
+        
+        ">
+<!---->
+        <svg role="img" aria-hidden="false" aria-label="Company review time is typically 1 week" class="ivm-view-attr__icon ivm-view-attr__icon--signal-positive  job-card-container__job-insight-image" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" data-supported-dps="24x24" data-test-icon="responsive-medium">
+<!---->    
+    <use href="#responsive-medium" width="24" height="24"></use>
+</svg>
+
+    </div>
+  
+          </div>
+  
+                </div>
+                <div class="job-card-container__job-insight-text" dir="ltr">
+                  <!---->Company review time is typically 1 week<!---->
+                </div>
+            </div>
+          
+    </div>
+  
+      
+            <ul class="job-card-list__footer-wrapper job-card-container__footer-wrapper flex-shrink-zero display-flex t-sans t-12 t-black--light t-normal t-roman mt1">
+<!---->                      <li class="job-card-container__footer-item inline-flex align-items-center">
+                        <span dir="ltr">
+                          <!---->Promoted<!---->
+                        </span>
+                      </li>
+                    <!---->                      <li class="bigpMDfnsZpduAndXDKlilOlNenTJAZHUayvfg
+                          job-card-container__footer-item inline-flex align-items-center">
+                        <svg role="none" aria-hidden="true" class="job-card-list__icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" data-supported-dps="16x16" data-test-icon="linkedin-bug-color-small">
+<!---->    <svg display="var(--hue-web-svg-display-light)">
+      <image href="https://static.licdn.com/aero-v1/sc/h/cukxdu7s8ldmqz13xdao5xe75" x="0" y="0" width="16" height="16"></image>
+    </svg>
+    <svg display="var(--hue-web-svg-display-dark)">
+      <image href="https://static.licdn.com/aero-v1/sc/h/7qvn5nkkh1mlaqd5xm0radtjv" x="0" y="0" width="16" height="16"></image>
+    </svg>
+</svg>
+
+                        <span dir="ltr">
+                          <!---->Easy Apply<!---->
+                        </span>
+                      </li>
+            </ul>
+          <span class="visually-hidden" aria-live="polite">
+<!---->          </span>
+      </div>
+      <div class="job-card-list__actions-container">
+          
+        
+      <div>
+          <button aria-label="Dismiss Senior Web &amp; Video Player Engineer - Remote job" id="ember460" class="job-card-container__action job-card-container__action-small artdeco-button artdeco-button--muted artdeco-button--2 artdeco-button--tertiary ember-view" type="button"><!---->
+<span class="artdeco-button__text">
+    
+            <svg role="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" data-supported-dps="16x16" data-test-icon="close-small">
+<!---->    
+    <use href="#close-small" width="16" height="16"></use>
+</svg>
+
+            <span class="job-card-container__action-text"></span>
+          
+</span></button>
+      </div>
+  
+      <!---->  
+      </div>
+    </div>
+  
+    </div>
+  
+                              
+        </li>
+  
+              
+        <li id="ember205" class="ember-view   BVEFAHDhnBycIVEGPifUldaWzhrsTeWYJw occludable-update p0 relative scaffold-layout__list-item" data-occludable-job-id="4452813551">
+            
+                  
+    <div>
+      
+    <div data-job-id="4452813551" class="display-flex job-card-container relative job-card-list
+        job-card-container--clickable
+        
+        job-card-list--underline-title-on-hover  jobs-search-two-pane__job-card-container--viewport-tracking-10">
+
+      <div>
+        <div id="ember479" class="job-card-list__entity-lockup  artdeco-entity-lockup artdeco-entity-lockup--size-4 ember-view">
+            <div id="ember480" class="job-card-list__logo  artdeco-entity-lockup__image artdeco-entity-lockup__image--type-square ember-view" type="square">
+              
+    <div class="ivm-image-view-model    job-card-list__logo-ivm">
+        
+    <div class="ivm-view-attr__img-wrapper
+        
+        ">
+<!---->
+<!---->          <img width="56" src="https://media.licdn.com/dms/image/v2/C560BAQFPyJeBFIexyQ/company-logo_100_100/company-logo_100_100/0/1630659188202/altisource_logo?e=1788998400&amp;v=beta&amp;t=BhhV9kLvo6Vbi-afOwYTqMomoprBybiM0dE0Um8wjfI" loading="lazy" height="56" alt="Altisource logo" id="ember481" class="ivm-view-attr__img--centered EntityPhoto-square-4   evi-image lazy-image ember-view">
+    </div>
+  
+          </div>
+  
+            
+</div>
+
+          <div id="ember482" class="flex-grow-1 artdeco-entity-lockup__content ember-view">
+            <div id="ember483" class="full-width artdeco-entity-lockup__title ember-view">
+                  <a data-control-id="5uNYCEzt+lWqyHb67xbHIw==" tabindex="0" href="/jobs/view/4452813551/?eBP=NOT_ELIGIBLE_FOR_CHARGING&amp;refId=Q8jrjWo96mjIueABbZuxMA%3D%3D&amp;trackingId=5uNYCEzt%2BlWqyHb67xbHIw%3D%3D&amp;trk=flagship3_search_srp_jobs" id="ember484" class="disabled ember-view job-card-container__link
+                      FIvOPWFOchYLcwKPkyAOjaDhcaNyXgJHnmggHU
+                      job-card-list__title--link" aria-label="Software Engineer - Full Stack" dir="ltr">
+                      <span aria-hidden="true"><strong><!---->Software Engineer - Full Stack<!----></strong></span><span class="visually-hidden"><!---->Software Engineer - Full Stack<!----></span>
+                  </a>
+            
+</div>
+            <div id="ember485" class="artdeco-entity-lockup__subtitle ember-view">
+                <span class="wPmhNTwCcHAPFGlVtakfuKBOLoDRfVE " dir="ltr">
+                  <!---->Altisource<!---->
+                </span>
+
+            </div>
+
+            <div id="ember486" class="artdeco-entity-lockup__caption ember-view">
+                  <ul class="job-card-container__metadata-wrapper">
+                      <li class="FlsmTaDBQXKINVtecGHjKJlMDqpHvrqUJyspRIP ">
+                        <span dir="ltr">
+                          <!---->Bengaluru, Karnataka, India (Remote)<!---->
+                        </span>
+                      </li>
+<!---->                  </ul>
+            </div>
+
+<!---->
+<!---->          </div>
+
+        
+</div>
+
+            
+          
+    <div class="job-card-list__insight">
+        
+            <div class="display-flex align-items-center t-black--light t-12">
+                <div class="mv1">
+                  
+    <div class="ivm-image-view-model   ">
+        
+    <div class="ivm-view-attr__img-wrapper
+        
+        ">
+<!---->
+        <svg role="img" aria-hidden="false" aria-label="Actively reviewing applicants" class="ivm-view-attr__icon ivm-view-attr__icon--signal-positive  job-card-container__job-insight-image" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" data-supported-dps="24x24" data-test-icon="responsive-medium">
+<!---->    
+    <use href="#responsive-medium" width="24" height="24"></use>
+</svg>
+
+    </div>
+  
+          </div>
+  
+                </div>
+                <div class="job-card-container__job-insight-text" dir="ltr">
+                  <!---->Actively reviewing applicants<!---->
+                </div>
+            </div>
+          
+    </div>
+  
+      
+            <ul class="job-card-list__footer-wrapper job-card-container__footer-wrapper flex-shrink-zero display-flex t-sans t-12 t-black--light t-normal t-roman mt1">
+<!---->                          <li class="job-card-container__footer-item
+                              ">
+                            <time datetime="2026-08-18">
+                              5 days ago
+<!---->                            </time>
+                          </li>
+                      <li class="bigpMDfnsZpduAndXDKlilOlNenTJAZHUayvfg
+                          job-card-container__footer-item inline-flex align-items-center">
+                        <svg role="none" aria-hidden="true" class="job-card-list__icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" data-supported-dps="16x16" data-test-icon="linkedin-bug-color-small">
+<!---->    <svg display="var(--hue-web-svg-display-light)">
+      <image href="https://static.licdn.com/aero-v1/sc/h/cukxdu7s8ldmqz13xdao5xe75" x="0" y="0" width="16" height="16"></image>
+    </svg>
+    <svg display="var(--hue-web-svg-display-dark)">
+      <image href="https://static.licdn.com/aero-v1/sc/h/7qvn5nkkh1mlaqd5xm0radtjv" x="0" y="0" width="16" height="16"></image>
+    </svg>
+</svg>
+
+                        <span dir="ltr">
+                          <!---->Easy Apply<!---->
+                        </span>
+                      </li>
+            </ul>
+          <span class="visually-hidden" aria-live="polite">
+<!---->          </span>
+      </div>
+      <div class="job-card-list__actions-container">
+          
+        
+      <div>
+          <button aria-label="Dismiss Software Engineer - Full Stack job" id="ember487" class="job-card-container__action job-card-container__action-small artdeco-button artdeco-button--muted artdeco-button--2 artdeco-button--tertiary ember-view" type="button"><!---->
+<span class="artdeco-button__text">
+    
+            <svg role="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" data-supported-dps="16x16" data-test-icon="close-small">
+<!---->    
+    <use href="#close-small" width="16" height="16"></use>
+</svg>
+
+            <span class="job-card-container__action-text"></span>
+          
+</span></button>
+      </div>
+  
+      <!---->  
+      </div>
+    </div>
+  
+    </div>
+  
+                              
+        </li>
+  
+              
+        <li id="ember206" class="ember-view   BVEFAHDhnBycIVEGPifUldaWzhrsTeWYJw occludable-update p0 relative scaffold-layout__list-item" data-occludable-job-id="4454108327">
+            
+                  
+    <div>
+      
+    <div data-job-id="4454108327" class="display-flex job-card-container relative job-card-list
+        job-card-container--clickable
+        
+        job-card-list--underline-title-on-hover  jobs-search-two-pane__job-card-container--viewport-tracking-11">
+
+      <div>
+        <div id="ember461" class="job-card-list__entity-lockup  artdeco-entity-lockup artdeco-entity-lockup--size-4 ember-view">
+            <div id="ember462" class="job-card-list__logo  artdeco-entity-lockup__image artdeco-entity-lockup__image--type-square ember-view" type="square">
+              
+    <div class="ivm-image-view-model    job-card-list__logo-ivm">
+        
+    <div class="ivm-view-attr__img-wrapper
+        
+        ">
+<!---->
+<!---->          <img width="56" src="https://media.licdn.com/dms/image/v2/C4E0BAQHCMKx89UH0ug/company-logo_100_100/company-logo_100_100/0/1630575939669/technet_it_recruitment_ltd_logo?e=1788998400&amp;v=beta&amp;t=ymNH1LCLSKzC3WGJflCMXH10092W7YPuDJavIe0ze7U" loading="lazy" height="56" alt="TechNET IT Recruitment Ltd logo" id="ember463" class="ivm-view-attr__img--centered EntityPhoto-square-4   evi-image lazy-image ember-view">
+    </div>
+  
+          </div>
+  
+            
+</div>
+
+          <div id="ember464" class="flex-grow-1 artdeco-entity-lockup__content ember-view">
+            <div id="ember465" class="full-width artdeco-entity-lockup__title ember-view">
+                  <a data-control-id="xDt0gU2nhpchMElnxVlyiw==" tabindex="0" href="/jobs/view/4454108327/?eBP=CwEAAAGgL0WQLi75IYK2MRmZXWa85V1tBu_SVVlHX10FTDF1sE34LBzzQJ4C4p-XXOFQJK-XOdmSR124SDSR2nvNDgHkU15u9t48rTw4giPh_1rDB6MxTRi482nC2Yqw7_YOOclFxHVlVt8VQE-vSGW52vA0BALF22bQzMvd0Car_TEOvTqfa6XKxJWFT9VRXO1KrLpN97xBFUnauwetiswGvxNizC4yLbzjmocttRqeRNJkLfgwAlVCMFiZDwNBIhaQFuKsdAsUsV886jZlLD58NGowSHMqg0S53HA37qq59MA7_rOwBs6wlfLFo4-hPPlsCh4HMTa6tcEWIXPtZ8BW0KOqLfN_m9QmARFHdlbSoSE-kTVxJdawLj-SrZbFMsEqGTaoZ4H0Bo2xqY0E61xQdIzj2savni8tPylddBvSJheWimTCbyGtdw_h5RjNpAtnWtmicVE0wLfeNLrTipKr1qmQpFsZ3neG5dSXuTYUQWk7nA&amp;refId=Q8jrjWo96mjIueABbZuxMA%3D%3D&amp;trackingId=xDt0gU2nhpchMElnxVlyiw%3D%3D&amp;trk=flagship3_search_srp_jobs" id="ember466" class="disabled ember-view job-card-container__link
+                      FIvOPWFOchYLcwKPkyAOjaDhcaNyXgJHnmggHU
+                      job-card-list__title--link" aria-label="Lead Full Stack Engineer" dir="ltr">
+                      <span aria-hidden="true"><strong><!---->Lead Full Stack Engineer<!----></strong></span><span class="visually-hidden"><!---->Lead Full Stack Engineer<!----></span>
+                  </a>
+            
+</div>
+            <div id="ember467" class="artdeco-entity-lockup__subtitle ember-view">
+                <span class="wPmhNTwCcHAPFGlVtakfuKBOLoDRfVE " dir="ltr">
+                  <!---->TechNET IT Recruitment Ltd<!---->
+                </span>
+
+            </div>
+
+            <div id="ember468" class="artdeco-entity-lockup__caption ember-view">
+                  <ul class="job-card-container__metadata-wrapper">
+                      <li class="FlsmTaDBQXKINVtecGHjKJlMDqpHvrqUJyspRIP ">
+                        <span dir="ltr">
+                          <!---->India (Remote)<!---->
+                        </span>
+                      </li>
+<!---->                  </ul>
+            </div>
+
+<!---->
+<!---->          </div>
+
+        
+</div>
+
+            
+          
+    <div class="job-card-list__insight">
+        
+            <div class="display-flex align-items-center t-black--light t-12">
+                <div class="mv1">
+                  
+    <div class="ivm-image-view-model   ">
+        
+    <div class="ivm-view-attr__img-wrapper
+        
+        ">
+<!---->
+        <svg role="img" aria-hidden="false" aria-label="Actively reviewing applicants" class="ivm-view-attr__icon ivm-view-attr__icon--signal-positive  job-card-container__job-insight-image" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" data-supported-dps="24x24" data-test-icon="responsive-medium">
+<!---->    
+    <use href="#responsive-medium" width="24" height="24"></use>
+</svg>
+
+    </div>
+  
+          </div>
+  
+                </div>
+                <div class="job-card-container__job-insight-text" dir="ltr">
+                  <!---->Actively reviewing applicants<!---->
+                </div>
+            </div>
+          
+    </div>
+  
+      
+            <ul class="job-card-list__footer-wrapper job-card-container__footer-wrapper flex-shrink-zero display-flex t-sans t-12 t-black--light t-normal t-roman mt1">
+<!---->                      <li class="job-card-container__footer-item inline-flex align-items-center">
+                        <span dir="ltr">
+                          <!---->Promoted<!---->
+                        </span>
+                      </li>
+                    <!---->                      <li class="bigpMDfnsZpduAndXDKlilOlNenTJAZHUayvfg
+                          job-card-container__footer-item inline-flex align-items-center">
+                        <svg role="none" aria-hidden="true" class="job-card-list__icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" data-supported-dps="16x16" data-test-icon="linkedin-bug-color-small">
+<!---->    <svg display="var(--hue-web-svg-display-light)">
+      <image href="https://static.licdn.com/aero-v1/sc/h/cukxdu7s8ldmqz13xdao5xe75" x="0" y="0" width="16" height="16"></image>
+    </svg>
+    <svg display="var(--hue-web-svg-display-dark)">
+      <image href="https://static.licdn.com/aero-v1/sc/h/7qvn5nkkh1mlaqd5xm0radtjv" x="0" y="0" width="16" height="16"></image>
+    </svg>
+</svg>
+
+                        <span dir="ltr">
+                          <!---->Easy Apply<!---->
+                        </span>
+                      </li>
+            </ul>
+          <span class="visually-hidden" aria-live="polite">
+<!---->          </span>
+      </div>
+      <div class="job-card-list__actions-container">
+          
+        
+      <div>
+          <button aria-label="Dismiss Lead Full Stack Engineer job" id="ember469" class="job-card-container__action job-card-container__action-small artdeco-button artdeco-button--muted artdeco-button--2 artdeco-button--tertiary ember-view" type="button"><!---->
+<span class="artdeco-button__text">
+    
+            <svg role="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" data-supported-dps="16x16" data-test-icon="close-small">
+<!---->    
+    <use href="#close-small" width="16" height="16"></use>
+</svg>
+
+            <span class="job-card-container__action-text"></span>
+          
+</span></button>
+      </div>
+  
+      <!---->  
+      </div>
+    </div>
+  
+    </div>
+  
+                              
+        </li>
+  
+              
+        <li id="ember207" class="ember-view   BVEFAHDhnBycIVEGPifUldaWzhrsTeWYJw occludable-update p0 relative scaffold-layout__list-item" data-occludable-job-id="4452231679">
+            
+                  
+    <div>
+      
+    <div data-job-id="4452231679" class="display-flex job-card-container relative job-card-list
+        job-card-container--clickable
+        
+        job-card-list--underline-title-on-hover  jobs-search-two-pane__job-card-container--viewport-tracking-12">
+
+      <div>
+        <div id="ember489" class="job-card-list__entity-lockup  artdeco-entity-lockup artdeco-entity-lockup--size-4 ember-view">
+            <div id="ember490" class="job-card-list__logo  artdeco-entity-lockup__image artdeco-entity-lockup__image--type-square ember-view" type="square">
+              
+    <div class="ivm-image-view-model    job-card-list__logo-ivm">
+        
+    <div class="ivm-view-attr__img-wrapper
+        
+        ">
+<!---->
+<!---->          <img width="56" src="https://media.licdn.com/dms/image/v2/D4E0BAQHX752Ta4OnjA/company-logo_100_100/company-logo_100_100/0/1713180847629/blackpianolondon_logo?e=1788998400&amp;v=beta&amp;t=t2iPh4qpyWK1eOoabqe76qnwKWCPk02sRLh5-MickWo" loading="lazy" height="56" alt="Black Piano logo" id="ember491" class="ivm-view-attr__img--centered EntityPhoto-square-4   evi-image lazy-image ember-view">
+    </div>
+  
+          </div>
+  
+            
+</div>
+
+          <div id="ember492" class="flex-grow-1 artdeco-entity-lockup__content ember-view">
+            <div id="ember493" class="full-width artdeco-entity-lockup__title ember-view">
+                  <a data-control-id="lEwM5uGz6xK6blhuSF02bw==" tabindex="0" href="/jobs/view/4452231679/?eBP=CwEAAAGgL0WQLnhaffvMD-rE5TTejrTxxwVziXu3hWVUFZnbvLci3tgMByWcu0T-QGGMpD7zwrzNKNqBgSVuivcPohxCHKC3BjaGFQz0O5dBfCDZGm0CKA8zmPsHiXuPuTLwWVx56B6qy8L6gt2edsx2pTvjqMTHu4r4ewIX4NaKsGShwOt2h_uUhZ0wDkYaQDpyZJNTBK0zWl2_QYc1TLSabkDRVxO0rD-ahUzqFaP8x4cc-gV3VaAjRU3QaZv3jvS69IND6x3wsihUz6ZN0841YvjL6FlhQ4fZMg3ICtAYAux0yo84S0c3DIJ8TK-wJclQ6csVKI2NpgvgJJX-I7QXF4j31r-dzF2FiOEbRQ99aYiwhuHHJkvwbn2Jady9klj77O-7iJnQNDYTundTPyiIn3PId0O7gmj9S_o9WSn5pVMcXpSRlzfCBSSiWvTQNXMf4rGgJJj8-HcncM36UgyKIKbSz4k1pwMhIfH0hjrqyTELVw5eQFfCbPU&amp;refId=Q8jrjWo96mjIueABbZuxMA%3D%3D&amp;trackingId=lEwM5uGz6xK6blhuSF02bw%3D%3D&amp;trk=flagship3_search_srp_jobs" id="ember494" class="disabled ember-view job-card-container__link
+                      FIvOPWFOchYLcwKPkyAOjaDhcaNyXgJHnmggHU
+                      job-card-list__title--link" aria-label="Freelance Webflow Developer with verification" dir="ltr">
+                      <span aria-hidden="true"><strong><!---->Freelance Webflow Developer<!----></strong><span class="white-space-pre"> </span><!----><!----><span class="tvm__text tvm__text--low-emphasis"><svg role="none" aria-hidden="true" class="text-view-model__verified-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" data-supported-dps="16x16" data-test-icon="verified-small">
+<!---->    
+    <use href="#verified-small" width="16" height="16"></use>
+</svg>
+</span></span><span class="visually-hidden"><!---->Freelance Webflow Developer with verification<!----></span>
+                  </a>
+            
+</div>
+            <div id="ember495" class="artdeco-entity-lockup__subtitle ember-view">
+                <span class="wPmhNTwCcHAPFGlVtakfuKBOLoDRfVE " dir="ltr">
+                  <!---->Black Piano<!---->
+                </span>
+
+            </div>
+
+            <div id="ember496" class="artdeco-entity-lockup__caption ember-view">
+                  <ul class="job-card-container__metadata-wrapper">
+                      <li class="FlsmTaDBQXKINVtecGHjKJlMDqpHvrqUJyspRIP ">
+                        <span dir="ltr">
+                          <!---->Pune Division, Maharashtra, India (Remote)<!---->
+                        </span>
+                      </li>
+<!---->                  </ul>
+            </div>
+
+<!---->
+<!---->          </div>
+
+        
+</div>
+
+            
+          
+    <div class="job-card-list__insight">
+        
+            <div class="display-flex align-items-center t-black--light t-12">
+                <div class="mv1">
+                  
+    <div class="ivm-image-view-model   ">
+        
+    <div class="ivm-view-attr__img-wrapper
+        
+        ">
+<!---->
+        <svg role="img" aria-hidden="false" aria-label="Actively reviewing applicants" class="ivm-view-attr__icon ivm-view-attr__icon--signal-positive  job-card-container__job-insight-image" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" data-supported-dps="24x24" data-test-icon="responsive-medium">
+<!---->    
+    <use href="#responsive-medium" width="24" height="24"></use>
+</svg>
+
+    </div>
+  
+          </div>
+  
+                </div>
+                <div class="job-card-container__job-insight-text" dir="ltr">
+                  <!---->Actively reviewing applicants<!---->
+                </div>
+            </div>
+          
+    </div>
+  
+      
+            <ul class="job-card-list__footer-wrapper job-card-container__footer-wrapper flex-shrink-zero display-flex t-sans t-12 t-black--light t-normal t-roman mt1">
+                    <li class="job-card-container__footer-item job-card-container__footer-job-state t-bold">
+                      Viewed
+                    </li>
+                                        <li class="job-card-container__footer-item inline-flex align-items-center">
+                        <span dir="ltr">
+                          <!---->Promoted<!---->
+                        </span>
+                      </li>
+                    <!---->                      <li class="bigpMDfnsZpduAndXDKlilOlNenTJAZHUayvfg
+                          job-card-container__footer-item inline-flex align-items-center">
+                        <svg role="none" aria-hidden="true" class="job-card-list__icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" data-supported-dps="16x16" data-test-icon="linkedin-bug-color-small">
+<!---->    <svg display="var(--hue-web-svg-display-light)">
+      <image href="https://static.licdn.com/aero-v1/sc/h/cukxdu7s8ldmqz13xdao5xe75" x="0" y="0" width="16" height="16"></image>
+    </svg>
+    <svg display="var(--hue-web-svg-display-dark)">
+      <image href="https://static.licdn.com/aero-v1/sc/h/7qvn5nkkh1mlaqd5xm0radtjv" x="0" y="0" width="16" height="16"></image>
+    </svg>
+</svg>
+
+                        <span dir="ltr">
+                          <!---->Easy Apply<!---->
+                        </span>
+                      </li>
+            </ul>
+          <span class="visually-hidden" aria-live="polite">
+<!---->          </span>
+      </div>
+      <div class="job-card-list__actions-container">
+          
+        
+      <div>
+          <button aria-label="Dismiss Freelance Webflow Developer job" id="ember497" class="job-card-container__action job-card-container__action-small artdeco-button artdeco-button--muted artdeco-button--2 artdeco-button--tertiary ember-view" type="button"><!---->
+<span class="artdeco-button__text">
+    
+            <svg role="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" data-supported-dps="16x16" data-test-icon="close-small">
+<!---->    
+    <use href="#close-small" width="16" height="16"></use>
+</svg>
+
+            <span class="job-card-container__action-text"></span>
+          
+</span></button>
+      </div>
+  
+      <!---->  
+      </div>
+    </div>
+  
+    </div>
+  
+                              
+        </li>
+  
+              
+        <li id="ember208" class="ember-view   BVEFAHDhnBycIVEGPifUldaWzhrsTeWYJw occludable-update p0 relative scaffold-layout__list-item" data-occludable-job-id="4456205237">
+            
+                  
+    <div>
+      
+    <div data-job-id="4456205237" class="display-flex job-card-container relative job-card-list
+        job-card-container--clickable
+        
+        job-card-list--underline-title-on-hover  jobs-search-two-pane__job-card-container--viewport-tracking-13">
+
+      <div>
+        <div id="ember663" class="job-card-list__entity-lockup  artdeco-entity-lockup artdeco-entity-lockup--size-4 ember-view">
+            <div id="ember664" class="job-card-list__logo  artdeco-entity-lockup__image artdeco-entity-lockup__image--type-square ember-view" type="square">
+              
+    <div class="ivm-image-view-model    job-card-list__logo-ivm">
+        
+    <div class="ivm-view-attr__img-wrapper
+        
+        ">
+<!---->
+<!---->          <img width="56" src="https://media.licdn.com/dms/image/v2/C510BAQH-eZ8VBJkRdw/company-logo_100_100/company-logo_100_100/0/1630568348843/trantor_logo?e=1788998400&amp;v=beta&amp;t=i5AKDwB4kqbJqagjB7SloJlsw-WsGDd2alYqoTkwApc" loading="lazy" height="56" alt="Trantor logo" id="ember665" class="ivm-view-attr__img--centered EntityPhoto-square-4   evi-image lazy-image ember-view">
+    </div>
+  
+          </div>
+  
+            
+</div>
+
+          <div id="ember666" class="flex-grow-1 artdeco-entity-lockup__content ember-view">
+            <div id="ember667" class="full-width artdeco-entity-lockup__title ember-view">
+                  <a data-control-id="kT1M8fXHWqDo16EpBjdCuw==" tabindex="0" href="/jobs/view/4456205237/?eBP=CwEAAAGgL0WQLvbicNhtSIcDdSPJbRop1MDtqmmeoFDwSYiUXEHilIyIYdq_svmG4L7MQmJF7y5BWwW9olPsB2Q7alwm-21xGiVc58DzuWWmgTvIfw__i-5ZRQgyMZyANn6Vt32VDbWCTeum1njQlVlFPI2oQk5OKIH4RWrGjJ4U9Km2snkv-s8igaD746DifqdwRNYUpRRucRa_O6nTF6rHcNUGrft2uzXAZnMPJ4pSdJ5Y5FYFpl6VVWBtT4wLAU9L-tQQaSTpw-NtHndNVme0uG1b1V9VqV94qCsYRADLqUIwwe2D8wyClJi7Zv9AQo5QgUXtBPeHVu09E0mVUVDjhlcZk_XJKgm4J8sRAewtbdmGd_1MWTvA1ChPOWRnveSFJAdMOayygJpPx56tVZ6LeNLT8u2Yf02W2E47-T4PFAmX67V7YvdciFUZb6QBFXKsnN8K-DwgScZHsI6ixV1jtQI1mcBe&amp;refId=Q8jrjWo96mjIueABbZuxMA%3D%3D&amp;trackingId=kT1M8fXHWqDo16EpBjdCuw%3D%3D&amp;trk=flagship3_search_srp_jobs" id="ember668" class="disabled ember-view job-card-container__link
+                      FIvOPWFOchYLcwKPkyAOjaDhcaNyXgJHnmggHU
+                      job-card-list__title--link" aria-label="US IT Recruiter" dir="ltr">
+                      <span aria-hidden="true"><strong><!---->US IT Recruiter<!----></strong></span><span class="visually-hidden"><!---->US IT Recruiter<!----></span>
+                  </a>
+            
+</div>
+            <div id="ember669" class="artdeco-entity-lockup__subtitle ember-view">
+                <span class="wPmhNTwCcHAPFGlVtakfuKBOLoDRfVE " dir="ltr">
+                  <!---->Trantor<!---->
+                </span>
+
+            </div>
+
+            <div id="ember670" class="artdeco-entity-lockup__caption ember-view">
+                  <ul class="job-card-container__metadata-wrapper">
+                      <li class="FlsmTaDBQXKINVtecGHjKJlMDqpHvrqUJyspRIP ">
+                        <span dir="ltr">
+                          <!---->Chandigarh, India (Remote)<!---->
+                        </span>
+                      </li>
+<!---->                  </ul>
+            </div>
+
+                <div id="ember671" class="mt1 t-sans t-12 t-black--light t-normal t-roman artdeco-entity-lockup__metadata ember-view">
+                  <ul class="job-card-container__metadata-wrapper">
+                    <li class="FlsmTaDBQXKINVtecGHjKJlMDqpHvrqUJyspRIP">
+                      <span dir="ltr">
+                        <!---->1M INR/yr - 1.2M INR/yr<!---->
+                      </span>
+                    </li>
+                  </ul>
+                </div>
+
+<!---->          </div>
+
+        
+</div>
+
+            
+          
+    <div class="job-card-list__insight">
+        
+            <div class="display-flex align-items-center t-black--light t-12">
+                <div class="mv1">
+                  
+    <div class="ivm-image-view-model   ">
+        
+    <div class="ivm-view-attr__img-wrapper
+        
+        ">
+<!---->
+        <svg role="img" aria-hidden="false" aria-label="Actively reviewing applicants" class="ivm-view-attr__icon ivm-view-attr__icon--signal-positive  job-card-container__job-insight-image" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" data-supported-dps="24x24" data-test-icon="responsive-medium">
+<!---->    
+    <use href="#responsive-medium" width="24" height="24"></use>
+</svg>
+
+    </div>
+  
+          </div>
+  
+                </div>
+                <div class="job-card-container__job-insight-text" dir="ltr">
+                  <!---->Actively reviewing applicants<!---->
+                </div>
+            </div>
+          
+    </div>
+  
+      
+            <ul class="job-card-list__footer-wrapper job-card-container__footer-wrapper flex-shrink-zero display-flex t-sans t-12 t-black--light t-normal t-roman mt1">
+<!---->                      <li class="job-card-container__footer-item inline-flex align-items-center">
+                        <span dir="ltr">
+                          <!---->Promoted<!---->
+                        </span>
+                      </li>
+                    <!---->                      <li class="bigpMDfnsZpduAndXDKlilOlNenTJAZHUayvfg
+                          job-card-container__footer-item inline-flex align-items-center">
+                        <svg role="none" aria-hidden="true" class="job-card-list__icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" data-supported-dps="16x16" data-test-icon="linkedin-bug-color-small">
+<!---->    <svg display="var(--hue-web-svg-display-light)">
+      <image href="https://static.licdn.com/aero-v1/sc/h/cukxdu7s8ldmqz13xdao5xe75" x="0" y="0" width="16" height="16"></image>
+    </svg>
+    <svg display="var(--hue-web-svg-display-dark)">
+      <image href="https://static.licdn.com/aero-v1/sc/h/7qvn5nkkh1mlaqd5xm0radtjv" x="0" y="0" width="16" height="16"></image>
+    </svg>
+</svg>
+
+                        <span dir="ltr">
+                          <!---->Easy Apply<!---->
+                        </span>
+                      </li>
+            </ul>
+          <span class="visually-hidden" aria-live="polite">
+<!---->          </span>
+      </div>
+      <div class="job-card-list__actions-container">
+          
+        
+      <div>
+          <button aria-label="Dismiss US IT Recruiter job" id="ember672" class="job-card-container__action job-card-container__action-small artdeco-button artdeco-button--muted artdeco-button--2 artdeco-button--tertiary ember-view" type="button"><!---->
+<span class="artdeco-button__text">
+    
+            <svg role="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" data-supported-dps="16x16" data-test-icon="close-small">
+<!---->    
+    <use href="#close-small" width="16" height="16"></use>
+</svg>
+
+            <span class="job-card-container__action-text"></span>
+          
+</span></button>
+      </div>
+  
+      <!---->  
+      </div>
+    </div>
+  
+    </div>
+  
+                              
+        </li>
+  
+              
+        <li id="ember209" class="ember-view   BVEFAHDhnBycIVEGPifUldaWzhrsTeWYJw occludable-update p0 relative scaffold-layout__list-item" data-occludable-job-id="4455091568">
+            
+                  
+    <div>
+      
+    <div data-job-id="4455091568" class="display-flex job-card-container relative job-card-list
+        job-card-container--clickable
+        
+        job-card-list--underline-title-on-hover  jobs-search-two-pane__job-card-container--viewport-tracking-14">
+
+      <div>
+        <div id="ember654" class="job-card-list__entity-lockup  artdeco-entity-lockup artdeco-entity-lockup--size-4 ember-view">
+            <div id="ember655" class="job-card-list__logo  artdeco-entity-lockup__image artdeco-entity-lockup__image--type-square ember-view" type="square">
+              
+    <div class="ivm-image-view-model    job-card-list__logo-ivm">
+        
+    <div class="ivm-view-attr__img-wrapper
+        
+        ">
+<!---->
+<!---->          <img width="56" src="https://media.licdn.com/dms/image/v2/D4D0BAQH-mI5vrVn-iw/company-logo_100_100/B4DaAYVG1vI8AM-/0/1787114581812/leadsource_tech_logo?e=1788998400&amp;v=beta&amp;t=QHb93ITN4wPexUGEpTHkBtuzsJSD8wsw2pfzJOoJAC4" loading="lazy" height="56" alt="LEADSOURCE TECH logo" id="ember656" class="ivm-view-attr__img--centered EntityPhoto-square-4   evi-image lazy-image ember-view">
+    </div>
+  
+          </div>
+  
+            
+</div>
+
+          <div id="ember657" class="flex-grow-1 artdeco-entity-lockup__content ember-view">
+            <div id="ember658" class="full-width artdeco-entity-lockup__title ember-view">
+                  <a data-control-id="TYFO576+AQPLFx6NB8Uy8Q==" tabindex="0" href="/jobs/view/4455091568/?eBP=BUDGET_EXHAUSTED_JOB&amp;refId=Q8jrjWo96mjIueABbZuxMA%3D%3D&amp;trackingId=TYFO576%2BAQPLFx6NB8Uy8Q%3D%3D&amp;trk=flagship3_search_srp_jobs" id="ember659" class="disabled ember-view job-card-container__link
+                      FIvOPWFOchYLcwKPkyAOjaDhcaNyXgJHnmggHU
+                      job-card-list__title--link" aria-label="Full Stack Developer" dir="ltr">
+                      <span aria-hidden="true"><strong><!---->Full Stack Developer<!----></strong></span><span class="visually-hidden"><!---->Full Stack Developer<!----></span>
+                  </a>
+            
+</div>
+            <div id="ember660" class="artdeco-entity-lockup__subtitle ember-view">
+                <span class="wPmhNTwCcHAPFGlVtakfuKBOLoDRfVE " dir="ltr">
+                  <!---->LEADSOURCE TECH<!---->
+                </span>
+
+            </div>
+
+            <div id="ember661" class="artdeco-entity-lockup__caption ember-view">
+                  <ul class="job-card-container__metadata-wrapper">
+                      <li class="FlsmTaDBQXKINVtecGHjKJlMDqpHvrqUJyspRIP ">
+                        <span dir="ltr">
+                          <!---->Vijayawada, Andhra Pradesh, India (Remote)<!---->
+                        </span>
+                      </li>
+<!---->                  </ul>
+            </div>
+
+<!---->
+<!---->          </div>
+
+        
+</div>
+
+            
+<!---->      
+            <ul class="job-card-list__footer-wrapper job-card-container__footer-wrapper flex-shrink-zero display-flex t-sans t-12 t-black--light t-normal t-roman mt1">
+<!---->                      <li class="job-card-container__footer-item inline-flex align-items-center">
+                        <span dir="ltr">
+                          <!---->Promoted<!---->
+                        </span>
+                      </li>
+                    <!---->                      <li class="bigpMDfnsZpduAndXDKlilOlNenTJAZHUayvfg
+                          job-card-container__footer-item inline-flex align-items-center">
+                        <svg role="none" aria-hidden="true" class="job-card-list__icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" data-supported-dps="16x16" data-test-icon="linkedin-bug-color-small">
+<!---->    <svg display="var(--hue-web-svg-display-light)">
+      <image href="https://static.licdn.com/aero-v1/sc/h/cukxdu7s8ldmqz13xdao5xe75" x="0" y="0" width="16" height="16"></image>
+    </svg>
+    <svg display="var(--hue-web-svg-display-dark)">
+      <image href="https://static.licdn.com/aero-v1/sc/h/7qvn5nkkh1mlaqd5xm0radtjv" x="0" y="0" width="16" height="16"></image>
+    </svg>
+</svg>
+
+                        <span dir="ltr">
+                          <!---->Easy Apply<!---->
+                        </span>
+                      </li>
+            </ul>
+          <span class="visually-hidden" aria-live="polite">
+<!---->          </span>
+      </div>
+      <div class="job-card-list__actions-container">
+          
+        
+      <div>
+          <button aria-label="Dismiss Full Stack Developer job" id="ember662" class="job-card-container__action job-card-container__action-small artdeco-button artdeco-button--muted artdeco-button--2 artdeco-button--tertiary ember-view" type="button"><!---->
+<span class="artdeco-button__text">
+    
+            <svg role="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" data-supported-dps="16x16" data-test-icon="close-small">
+<!---->    
+    <use href="#close-small" width="16" height="16"></use>
+</svg>
+
+            <span class="job-card-container__action-text"></span>
+          
+</span></button>
+      </div>
+  
+      <!---->  
+      </div>
+    </div>
+  
+    </div>
+  
+                              
+        </li>
+  
+              
+        <li id="ember210" class="ember-view   BVEFAHDhnBycIVEGPifUldaWzhrsTeWYJw occludable-update p0 relative scaffold-layout__list-item" data-occludable-job-id="4377671299">
+            
+                  
+    <div>
+      
+    <div data-job-id="4377671299" class="display-flex job-card-container relative job-card-list
+        job-card-container--clickable
+        
+        job-card-list--underline-title-on-hover  jobs-search-two-pane__job-card-container--viewport-tracking-15">
+
+      <div>
+        <div id="ember615" class="job-card-list__entity-lockup  artdeco-entity-lockup artdeco-entity-lockup--size-4 ember-view">
+            <div id="ember616" class="job-card-list__logo  artdeco-entity-lockup__image artdeco-entity-lockup__image--type-square ember-view" type="square">
+              
+    <div class="ivm-image-view-model    job-card-list__logo-ivm">
+        
+    <div class="ivm-view-attr__img-wrapper
+        
+        ">
+<!---->
+<!---->          <img width="56" src="https://media.licdn.com/dms/image/v2/D560BAQEGLWHBZmzzcA/company-logo_100_100/B56ZYzlx2LHEAY-/0/1744622264274/crossinghurdles_logo?e=1788998400&amp;v=beta&amp;t=54AqXsrNAkzcYeJJKTJOy9oY_b8hSgg3oCNmBj0K-Rk" loading="lazy" height="56" alt="Crossing Hurdles logo" id="ember617" class="ivm-view-attr__img--centered EntityPhoto-square-4   evi-image lazy-image ember-view">
+    </div>
+  
+          </div>
+  
+            
+</div>
+
+          <div id="ember618" class="flex-grow-1 artdeco-entity-lockup__content ember-view">
+            <div id="ember619" class="full-width artdeco-entity-lockup__title ember-view">
+                  <a data-control-id="LI0myi0bNVMrRyGq6T++0A==" tabindex="0" href="/jobs/view/4377671299/?eBP=CwEAAAGgL0WQLgtiJhoMVrfxc9sfO2E5G8NxL1w4xPLuZ2isfdfDqsyL0G8Zw_HGc__ZQ5-LqmmeBFKQxnZ7VGRHIMNYFmXqeoO4VVNPoKEYw3v1TaNrJQMZTgXh3OlvBp1zUENFAG3dQWwmgPwA0YBw9HbRxH0_dC0tYiFMu6m-9cved8fXNRysVcaAACwWpPSUE9bh9bV5LILwi4Qr68kEFQZQO2uc5f2M4LrXVgGxbBgT9s3X3J_BdMu8eUjNin4ltQH7eYfKDSP8usj38_jQ0K0MqeH88bvNQspPIR6WuBMoJxUI8TZ9elE3kMgyYaX8dOR6Y1JzmHXnoTQ-9vJZPFh16SDrPCIDoZSn6n2NtWfI-RjyGkzo3Eax0cJws65ilNrKRyln2KDGU1mlHJAu56qSXSHsd2IR-Rbg8K1XbRpfcf4afOh56AcHaorG40zF2tjblPXk9UlDEjvT4Diilf2eAKdaojw&amp;refId=Q8jrjWo96mjIueABbZuxMA%3D%3D&amp;trackingId=LI0myi0bNVMrRyGq6T%2B%2B0A%3D%3D&amp;trk=flagship3_search_srp_jobs" id="ember620" class="disabled ember-view job-card-container__link
+                      FIvOPWFOchYLcwKPkyAOjaDhcaNyXgJHnmggHU
+                      job-card-list__title--link" aria-label="Platform Engineer | Remote" dir="ltr">
+                      <span aria-hidden="true"><strong><!---->Platform Engineer | Remote<!----></strong></span><span class="visually-hidden"><!---->Platform Engineer | Remote<!----></span>
+                  </a>
+            
+</div>
+            <div id="ember621" class="artdeco-entity-lockup__subtitle ember-view">
+                <span class="wPmhNTwCcHAPFGlVtakfuKBOLoDRfVE " dir="ltr">
+                  <!---->Crossing Hurdles<!---->
+                </span>
+
+            </div>
+
+            <div id="ember622" class="artdeco-entity-lockup__caption ember-view">
+                  <ul class="job-card-container__metadata-wrapper">
+                      <li class="FlsmTaDBQXKINVtecGHjKJlMDqpHvrqUJyspRIP ">
+                        <span dir="ltr">
+                          <!---->India (Remote)<!---->
+                        </span>
+                      </li>
+<!---->                  </ul>
+            </div>
+
+                <div id="ember623" class="mt1 t-sans t-12 t-black--light t-normal t-roman artdeco-entity-lockup__metadata ember-view">
+                  <ul class="job-card-container__metadata-wrapper">
+                    <li class="FlsmTaDBQXKINVtecGHjKJlMDqpHvrqUJyspRIP">
+                      <span dir="ltr">
+                        <!---->$70/hr - $150/hr<!---->
+                      </span>
+                    </li>
+                  </ul>
+                </div>
+
+<!---->          </div>
+
+        
+</div>
+
+            
+          
+    <div class="job-card-list__insight">
+        
+            <div class="display-flex align-items-center t-black--light t-12">
+                <div class="mv1">
+                  
+    <div class="ivm-image-view-model   ">
+        
+    <div class="ivm-view-attr__img-wrapper
+        
+        ">
+<!---->
+        <svg role="img" aria-hidden="false" aria-label="Actively reviewing applicants" class="ivm-view-attr__icon ivm-view-attr__icon--signal-positive  job-card-container__job-insight-image" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" data-supported-dps="24x24" data-test-icon="responsive-medium">
+<!---->    
+    <use href="#responsive-medium" width="24" height="24"></use>
+</svg>
+
+    </div>
+  
+          </div>
+  
+                </div>
+                <div class="job-card-container__job-insight-text" dir="ltr">
+                  <!---->Actively reviewing applicants<!---->
+                </div>
+            </div>
+          
+    </div>
+  
+      
+            <ul class="job-card-list__footer-wrapper job-card-container__footer-wrapper flex-shrink-zero display-flex t-sans t-12 t-black--light t-normal t-roman mt1">
+<!---->                      <li class="job-card-container__footer-item inline-flex align-items-center">
+                        <span dir="ltr">
+                          <!---->Promoted<!---->
+                        </span>
+                      </li>
+                    <!---->                      <li class="bigpMDfnsZpduAndXDKlilOlNenTJAZHUayvfg
+                          job-card-container__footer-item inline-flex align-items-center">
+                        <svg role="none" aria-hidden="true" class="job-card-list__icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" data-supported-dps="16x16" data-test-icon="linkedin-bug-color-small">
+<!---->    <svg display="var(--hue-web-svg-display-light)">
+      <image href="https://static.licdn.com/aero-v1/sc/h/cukxdu7s8ldmqz13xdao5xe75" x="0" y="0" width="16" height="16"></image>
+    </svg>
+    <svg display="var(--hue-web-svg-display-dark)">
+      <image href="https://static.licdn.com/aero-v1/sc/h/7qvn5nkkh1mlaqd5xm0radtjv" x="0" y="0" width="16" height="16"></image>
+    </svg>
+</svg>
+
+                        <span dir="ltr">
+                          <!---->Easy Apply<!---->
+                        </span>
+                      </li>
+            </ul>
+          <span class="visually-hidden" aria-live="polite">
+<!---->          </span>
+      </div>
+      <div class="job-card-list__actions-container">
+          
+        
+      <div>
+          <button aria-label="Dismiss Platform Engineer | Remote job" id="ember624" class="job-card-container__action job-card-container__action-small artdeco-button artdeco-button--muted artdeco-button--2 artdeco-button--tertiary ember-view" type="button"><!---->
+<span class="artdeco-button__text">
+    
+            <svg role="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" data-supported-dps="16x16" data-test-icon="close-small">
+<!---->    
+    <use href="#close-small" width="16" height="16"></use>
+</svg>
+
+            <span class="job-card-container__action-text"></span>
+          
+</span></button>
+      </div>
+  
+      <!---->  
+      </div>
+    </div>
+  
+    </div>
+  
+                              
+        </li>
+  
+              
+        <li id="ember211" class="ember-view   BVEFAHDhnBycIVEGPifUldaWzhrsTeWYJw occludable-update p0 relative scaffold-layout__list-item" data-occludable-job-id="4454205195">
+            
+                  
+    <div>
+      
+    <div data-job-id="4454205195" class="display-flex job-card-container relative job-card-list
+        job-card-container--clickable
+        
+        job-card-list--underline-title-on-hover  jobs-search-two-pane__job-card-container--viewport-tracking-16">
+
+      <div>
+        <div id="ember625" class="job-card-list__entity-lockup  artdeco-entity-lockup artdeco-entity-lockup--size-4 ember-view">
+            <div id="ember626" class="job-card-list__logo  artdeco-entity-lockup__image artdeco-entity-lockup__image--type-square ember-view" type="square">
+              
+    <div class="ivm-image-view-model    job-card-list__logo-ivm">
+        
+    <div class="ivm-view-attr__img-wrapper
+        
+        ">
+<!---->
+<!---->          <img width="56" src="https://media.licdn.com/dms/image/v2/C4D0BAQEELjlOQPVPcg/company-logo_100_100/company-logo_100_100/0/1631322963744?e=1788998400&amp;v=beta&amp;t=SwvXrXrbv5uZ9sIUZNCcRZY_01AuQf6Z71ztM2BFxbs" loading="lazy" height="56" alt="BrightEdge logo" id="ember627" class="ivm-view-attr__img--centered EntityPhoto-square-4   evi-image lazy-image ember-view">
+    </div>
+  
+          </div>
+  
+            
+</div>
+
+          <div id="ember628" class="flex-grow-1 artdeco-entity-lockup__content ember-view">
+            <div id="ember629" class="full-width artdeco-entity-lockup__title ember-view">
+                  <a data-control-id="UZAevX+YCVQw1ud5qmHE+A==" tabindex="0" href="/jobs/view/4454205195/?eBP=CwEAAAGgL0WQLndJKl4RxiJ-JcqY7VphH9MlYd3_85TfyqFVXB8hsspSGkhn3VmAE1N2x3pY9wY9Vmms4pqRcFuslHtOudQYY8DiG4UnjbEPRxDAJ9nQdj6m7H_hKGwB3AJtM3PUnIiyVwEW8DTQQauL_rxen-eVe2RlOj6INWEfYEfPhmyTXrk_HR2M4gdAYgkpob4ktzGpSsZLzlmAN4pBXvyCUyr__8Z9ObXiVFdvgCmKr40G3Fq0eq8zfIU7csGVYGejcYM_AFiNgLavVgMOc70bs2Dv1vxJRJbTR-3dLtudxCynyr553H1-J9kgKQk9M9FAMmGylgHkybhPzFro34Nzsvhf91YECkUlKYZjxcNcNC1PXdeR48Xn68fX8ME8s4u_nM-Cq0sIKTtGf9CfDlAWjtKlLFda9miJM-UE17V_kf6tjw6skNe0jvesPwcakD0ofkezj6eY8O3w&amp;refId=Q8jrjWo96mjIueABbZuxMA%3D%3D&amp;trackingId=UZAevX%2BYCVQw1ud5qmHE%2BA%3D%3D&amp;trk=flagship3_search_srp_jobs" id="ember630" class="disabled ember-view job-card-container__link
+                      FIvOPWFOchYLcwKPkyAOjaDhcaNyXgJHnmggHU
+                      job-card-list__title--link" aria-label="Software Engineer with verification" dir="ltr">
+                      <span aria-hidden="true"><strong><!---->Software Engineer<!----></strong><span class="white-space-pre"> </span><!----><!----><span class="tvm__text tvm__text--low-emphasis"><svg role="none" aria-hidden="true" class="text-view-model__verified-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" data-supported-dps="16x16" data-test-icon="verified-small">
+<!---->    
+    <use href="#verified-small" width="16" height="16"></use>
+</svg>
+</span></span><span class="visually-hidden"><!---->Software Engineer with verification<!----></span>
+                  </a>
+            
+</div>
+            <div id="ember631" class="artdeco-entity-lockup__subtitle ember-view">
+                <span class="wPmhNTwCcHAPFGlVtakfuKBOLoDRfVE " dir="ltr">
+                  <!---->BrightEdge<!---->
+                </span>
+
+            </div>
+
+            <div id="ember632" class="artdeco-entity-lockup__caption ember-view">
+                  <ul class="job-card-container__metadata-wrapper">
+                      <li class="FlsmTaDBQXKINVtecGHjKJlMDqpHvrqUJyspRIP ">
+                        <span dir="ltr">
+                          <!---->India (Remote)<!---->
+                        </span>
+                      </li>
+<!---->                  </ul>
+            </div>
+
+<!---->
+<!---->          </div>
+
+        
+</div>
+
+            
+          
+    <div class="job-card-list__insight">
+        
+            <div class="display-flex align-items-center t-black--light t-12">
+                <div class="mv1">
+                  
+    <div class="ivm-image-view-model   ">
+        
+    <div class="ivm-view-attr__img-wrapper
+        
+        ">
+<!---->
+        <svg role="img" aria-hidden="false" aria-label="Actively reviewing applicants" class="ivm-view-attr__icon ivm-view-attr__icon--signal-positive  job-card-container__job-insight-image" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" data-supported-dps="24x24" data-test-icon="responsive-medium">
+<!---->    
+    <use href="#responsive-medium" width="24" height="24"></use>
+</svg>
+
+    </div>
+  
+          </div>
+  
+                </div>
+                <div class="job-card-container__job-insight-text" dir="ltr">
+                  <!---->Actively reviewing applicants<!---->
+                </div>
+            </div>
+          
+    </div>
+  
+      
+            <ul class="job-card-list__footer-wrapper job-card-container__footer-wrapper flex-shrink-zero display-flex t-sans t-12 t-black--light t-normal t-roman mt1">
+<!---->                      <li class="job-card-container__footer-item inline-flex align-items-center">
+                        <span dir="ltr">
+                          <!---->Promoted<!---->
+                        </span>
+                      </li>
+                    <!---->                      <li class="bigpMDfnsZpduAndXDKlilOlNenTJAZHUayvfg
+                          job-card-container__footer-item inline-flex align-items-center">
+                        <svg role="none" aria-hidden="true" class="job-card-list__icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" data-supported-dps="16x16" data-test-icon="linkedin-bug-color-small">
+<!---->    <svg display="var(--hue-web-svg-display-light)">
+      <image href="https://static.licdn.com/aero-v1/sc/h/cukxdu7s8ldmqz13xdao5xe75" x="0" y="0" width="16" height="16"></image>
+    </svg>
+    <svg display="var(--hue-web-svg-display-dark)">
+      <image href="https://static.licdn.com/aero-v1/sc/h/7qvn5nkkh1mlaqd5xm0radtjv" x="0" y="0" width="16" height="16"></image>
+    </svg>
+</svg>
+
+                        <span dir="ltr">
+                          <!---->Easy Apply<!---->
+                        </span>
+                      </li>
+            </ul>
+          <span class="visually-hidden" aria-live="polite">
+<!---->          </span>
+      </div>
+      <div class="job-card-list__actions-container">
+          
+        
+      <div>
+          <button aria-label="Dismiss Software Engineer job" id="ember633" class="job-card-container__action job-card-container__action-small artdeco-button artdeco-button--muted artdeco-button--2 artdeco-button--tertiary ember-view" type="button"><!---->
+<span class="artdeco-button__text">
+    
+            <svg role="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" data-supported-dps="16x16" data-test-icon="close-small">
+<!---->    
+    <use href="#close-small" width="16" height="16"></use>
+</svg>
+
+            <span class="job-card-container__action-text"></span>
+          
+</span></button>
+      </div>
+  
+      <!---->  
+      </div>
+    </div>
+  
+    </div>
+  
+                              
+        </li>
+  
+              
+        <li id="ember212" class="ember-view   BVEFAHDhnBycIVEGPifUldaWzhrsTeWYJw occludable-update p0 relative scaffold-layout__list-item" data-occludable-job-id="4454631157">
+            
+                  
+    <div>
+      
+    <div data-job-id="4454631157" class="display-flex job-card-container relative job-card-list
+        job-card-container--clickable
+        
+        job-card-list--underline-title-on-hover  jobs-search-two-pane__job-card-container--viewport-tracking-17">
+
+      <div>
+        <div id="ember634" class="job-card-list__entity-lockup  artdeco-entity-lockup artdeco-entity-lockup--size-4 ember-view">
+            <div id="ember635" class="job-card-list__logo  artdeco-entity-lockup__image artdeco-entity-lockup__image--type-square ember-view" type="square">
+              
+    <div class="ivm-image-view-model    job-card-list__logo-ivm">
+        
+    <div class="ivm-view-attr__img-wrapper
+        
+        ">
+<!---->
+<!---->          <img width="56" src="https://media.licdn.com/dms/image/v2/D4E0BAQHXvdh6NXxDHA/company-logo_100_100/B4EZ70N8NyIcAI-/0/1782213756037/learningmate_logo?e=1788998400&amp;v=beta&amp;t=Hxzt0mWAK7FMVZKeL_gda_mri5UTbH3PaUL3Esz85EY" loading="lazy" height="56" alt="LearningMate logo" id="ember636" class="ivm-view-attr__img--centered EntityPhoto-square-4   evi-image lazy-image ember-view">
+    </div>
+  
+          </div>
+  
+            
+</div>
+
+          <div id="ember637" class="flex-grow-1 artdeco-entity-lockup__content ember-view">
+            <div id="ember638" class="full-width artdeco-entity-lockup__title ember-view">
+                  <a data-control-id="9nYVEKc9WyXNQ6OmQm6Bxw==" tabindex="0" href="/jobs/view/4454631157/?eBP=CwEAAAGgL0WQLlRsKLwswU2QdPbKEbt5LcttHc0U1KzwY2Vnvcx-HfAqqgKXjikpLtTmenl0_Ln1NkY5S7IgSByGSxMaDFoBJi3vFuoJ8xPUp8LBbQ4hN9_sN9NURnj9gPqFkM2Aoj6hkUwClPkkF4ZyUBO634lVavVqpKnZJAd6p41YH-V75dwB3Le7ROLVrBKnkgoXc8ESfTgI_7MFd6bjkBYzr50bjqjG1xl2k4ltJEOUlgE2L1qc2HqXls9bpVBQYhIMAyKKCRL0pnANDglDO282n2mmTHcfS5UZTOpQelAME149g_NEVgB9ANg5KfEzACgZTe_8PVUiEZLzTXb5tXcw4r7hRnsMFtdqT7mXaAYb9_w8A2m9_lIi3MPzZDPXli6UQLMyCv5Q9pQIvN2Jq18Otn7p8c-CIiBKoB992k6iUIiVshpzfhUnFsRmyOzQSnuA6IBdAS2stQYRMMfB7X3Wj9ZNWzS0l3jVUvIF-Po&amp;refId=Q8jrjWo96mjIueABbZuxMA%3D%3D&amp;trackingId=9nYVEKc9WyXNQ6OmQm6Bxw%3D%3D&amp;trk=flagship3_search_srp_jobs" id="ember639" class="disabled ember-view job-card-container__link
+                      FIvOPWFOchYLcwKPkyAOjaDhcaNyXgJHnmggHU
+                      job-card-list__title--link" aria-label="Senior Software Engineer with verification" dir="ltr">
+                      <span aria-hidden="true"><strong><!---->Senior Software Engineer<!----></strong><span class="white-space-pre"> </span><!----><!----><span class="tvm__text tvm__text--low-emphasis"><svg role="none" aria-hidden="true" class="text-view-model__verified-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" data-supported-dps="16x16" data-test-icon="verified-small">
+<!---->    
+    <use href="#verified-small" width="16" height="16"></use>
+</svg>
+</span></span><span class="visually-hidden"><!---->Senior Software Engineer with verification<!----></span>
+                  </a>
+            
+</div>
+            <div id="ember640" class="artdeco-entity-lockup__subtitle ember-view">
+                <span class="wPmhNTwCcHAPFGlVtakfuKBOLoDRfVE " dir="ltr">
+                  <!---->LearningMate<!---->
+                </span>
+
+            </div>
+
+            <div id="ember641" class="artdeco-entity-lockup__caption ember-view">
+                  <ul class="job-card-container__metadata-wrapper">
+                      <li class="FlsmTaDBQXKINVtecGHjKJlMDqpHvrqUJyspRIP ">
+                        <span dir="ltr">
+                          <!---->Mumbai, Maharashtra, India (Remote)<!---->
+                        </span>
+                      </li>
+<!---->                  </ul>
+            </div>
+
+<!---->
+<!---->          </div>
+
+        
+</div>
+
+            
+          
+    <div class="job-card-list__insight">
+        
+            <div class="display-flex align-items-center t-black--light t-12">
+                <div class="mv1">
+                  
+    <div class="ivm-image-view-model   ">
+        
+    <div class="ivm-view-attr__img-wrapper
+        
+        ">
+<!---->
+<!---->          <img width="32" src="https://media.licdn.com/dms/image/v2/C4D0BAQFbJbgVOfBgxA/company-logo_100_100/company-logo_100_100/0/1631328172776?e=1788998400&amp;v=beta&amp;t=Sf7NGI0HCpB6fdemoL3a8PZpfnCvWA7tdFZdt7bkysI" loading="lazy" height="32" alt="" id="ember642" class="ivm-view-attr__img--centered EntityPhoto-square-1  job-card-container__job-insight-image evi-image lazy-image ember-view">
+    </div>
+  
+          </div>
+  
+                </div>
+                <div class="job-card-container__job-insight-text" dir="ltr">
+                  <span aria-hidden="true"><!---->6 school alumni work here<!----></span><span class="visually-hidden"><!---->6 Lovely Professional University school alumni work here<!----></span>
+                </div>
+            </div>
+          
+    </div>
+  
+      
+            <ul class="job-card-list__footer-wrapper job-card-container__footer-wrapper flex-shrink-zero display-flex t-sans t-12 t-black--light t-normal t-roman mt1">
+<!---->                      <li class="job-card-container__footer-item inline-flex align-items-center">
+                        <span dir="ltr">
+                          <!---->Promoted<!---->
+                        </span>
+                      </li>
+                    <!---->                      <li class="bigpMDfnsZpduAndXDKlilOlNenTJAZHUayvfg
+                          job-card-container__footer-item inline-flex align-items-center">
+                        <svg role="none" aria-hidden="true" class="job-card-list__icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" data-supported-dps="16x16" data-test-icon="linkedin-bug-color-small">
+<!---->    <svg display="var(--hue-web-svg-display-light)">
+      <image href="https://static.licdn.com/aero-v1/sc/h/cukxdu7s8ldmqz13xdao5xe75" x="0" y="0" width="16" height="16"></image>
+    </svg>
+    <svg display="var(--hue-web-svg-display-dark)">
+      <image href="https://static.licdn.com/aero-v1/sc/h/7qvn5nkkh1mlaqd5xm0radtjv" x="0" y="0" width="16" height="16"></image>
+    </svg>
+</svg>
+
+                        <span dir="ltr">
+                          <!---->Easy Apply<!---->
+                        </span>
+                      </li>
+            </ul>
+          <span class="visually-hidden" aria-live="polite">
+<!---->          </span>
+      </div>
+      <div class="job-card-list__actions-container">
+          
+        
+      <div>
+          <button aria-label="Dismiss Senior Software Engineer job" id="ember643" class="job-card-container__action job-card-container__action-small artdeco-button artdeco-button--muted artdeco-button--2 artdeco-button--tertiary ember-view" type="button"><!---->
+<span class="artdeco-button__text">
+    
+            <svg role="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" data-supported-dps="16x16" data-test-icon="close-small">
+<!---->    
+    <use href="#close-small" width="16" height="16"></use>
+</svg>
+
+            <span class="job-card-container__action-text"></span>
+          
+</span></button>
+      </div>
+  
+      <!---->  
+      </div>
+    </div>
+  
+    </div>
+  
+                              
+        </li>
+  
+              
+        <li id="ember213" class="ember-view   BVEFAHDhnBycIVEGPifUldaWzhrsTeWYJw occludable-update p0 relative scaffold-layout__list-item" data-occludable-job-id="4454200375">
+            
+                  
+    <div>
+      
+    <div data-job-id="4454200375" class="display-flex job-card-container relative job-card-list
+        job-card-container--clickable
+        
+        job-card-list--underline-title-on-hover  jobs-search-two-pane__job-card-container--viewport-tracking-18">
+
+      <div>
+        <div id="ember644" class="job-card-list__entity-lockup  artdeco-entity-lockup artdeco-entity-lockup--size-4 ember-view">
+            <div id="ember645" class="job-card-list__logo  artdeco-entity-lockup__image artdeco-entity-lockup__image--type-square ember-view" type="square">
+              
+    <div class="ivm-image-view-model    job-card-list__logo-ivm">
+        
+    <div class="ivm-view-attr__img-wrapper
+        
+        ">
+<!---->
+<!---->          <img width="56" src="https://media.licdn.com/dms/image/v2/D4D0BAQE52GVPEz-RgA/company-logo_100_100/company-logo_100_100/0/1721761169012?e=1788998400&amp;v=beta&amp;t=eQgye6R0MWS37lVAhUz88kVj-yKDFfF5582CFJKM780" loading="lazy" height="56" alt="Techindika logo" id="ember646" class="ivm-view-attr__img--centered EntityPhoto-square-4   evi-image lazy-image ember-view">
+    </div>
+  
+          </div>
+  
+            
+</div>
+
+          <div id="ember647" class="flex-grow-1 artdeco-entity-lockup__content ember-view">
+            <div id="ember648" class="full-width artdeco-entity-lockup__title ember-view">
+                  <a data-control-id="debGynULTZLWQmDCcKW6rg==" tabindex="0" href="/jobs/view/4454200375/?eBP=CwEAAAGgL0WQLruuJAHnQivmf6l2ceQ2lDPi-t0-rLlZk3XjGQgoAcNJ0a4zcFi-ExIuqveKCfZ8P32QX4UzIEwjtclZO4Rh2-9hvbLK69u7zTbwcGDYsQ9CcFs5ltfX071oTEGFW5PjOTJ7cQEjhrPWTy6xd8V8K9cpUyXQQYkcESWO6PvXGzwMdAXRUrx4tpgIVwStZ_5w7gqGdM2CskcTcAAn1lSH9jUF2fFzg0zYsPQ07DsUT5vyf7Gg__jgCjjaK5KdGJGhJS0S8xemkfULjljVK_7XkYIi3VLo-p3S-nZLrjLs0H0Z4BCdlVEBhNFHtw4PCQodWDdRJBWNwGL8Etz-JDnlOcIrjHYWGuWk0lSyf6gYbapyDpt9vP9L2P470VmlFmHFoR-ZyqMTAUdccBdtItHLVkaxsyUxDm1ml9ezhgj2ILX5NigvZ02E46fUuvkGucOgh-JSnlLQVeyqakVBHN31bxdT2mhP047qweO1RN3kB_0fJBBN7CKoxwQSmgd4RkGX0UQjGaWcc-DA4HBE&amp;refId=Q8jrjWo96mjIueABbZuxMA%3D%3D&amp;trackingId=debGynULTZLWQmDCcKW6rg%3D%3D&amp;trk=flagship3_search_srp_jobs" id="ember649" class="disabled ember-view job-card-container__link
+                      FIvOPWFOchYLcwKPkyAOjaDhcaNyXgJHnmggHU
+                      job-card-list__title--link" aria-label="Lead Full Stack Developer with verification" dir="ltr">
+                      <span aria-hidden="true"><strong><!---->Lead Full Stack Developer<!----></strong><span class="white-space-pre"> </span><!----><!----><span class="tvm__text tvm__text--low-emphasis"><svg role="none" aria-hidden="true" class="text-view-model__verified-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" data-supported-dps="16x16" data-test-icon="verified-small">
+<!---->    
+    <use href="#verified-small" width="16" height="16"></use>
+</svg>
+</span></span><span class="visually-hidden"><!---->Lead Full Stack Developer with verification<!----></span>
+                  </a>
+            
+</div>
+            <div id="ember650" class="artdeco-entity-lockup__subtitle ember-view">
+                <span class="wPmhNTwCcHAPFGlVtakfuKBOLoDRfVE " dir="ltr">
+                  <!---->Techindika<!---->
+                </span>
+
+            </div>
+
+            <div id="ember651" class="artdeco-entity-lockup__caption ember-view">
+                  <ul class="job-card-container__metadata-wrapper">
+                      <li class="FlsmTaDBQXKINVtecGHjKJlMDqpHvrqUJyspRIP ">
+                        <span dir="ltr">
+                          <!---->India (Remote)<!---->
+                        </span>
+                      </li>
+<!---->                  </ul>
+            </div>
+
+<!---->
+<!---->          </div>
+
+        
+</div>
+
+            
+          
+    <div class="job-card-list__insight">
+        
+            <div class="display-flex align-items-center t-black--light t-12">
+                <div class="mv1">
+                  
+    <div class="ivm-image-view-model   ">
+        
+    <div class="ivm-view-attr__img-wrapper
+        
+        ">
+<!---->
+<!---->          <img width="32" src="https://media.licdn.com/dms/image/v2/C4D0BAQFbJbgVOfBgxA/company-logo_100_100/company-logo_100_100/0/1631328172776?e=1788998400&amp;v=beta&amp;t=Sf7NGI0HCpB6fdemoL3a8PZpfnCvWA7tdFZdt7bkysI" loading="lazy" height="32" alt="" id="ember652" class="ivm-view-attr__img--centered EntityPhoto-square-1  job-card-container__job-insight-image evi-image lazy-image ember-view">
+    </div>
+  
+          </div>
+  
+                </div>
+                <div class="job-card-container__job-insight-text" dir="ltr">
+                  <span aria-hidden="true"><!---->1 school alum works here<!----></span><span class="visually-hidden"><!---->1 Lovely Professional University school alum works here<!----></span>
+                </div>
+            </div>
+          
+    </div>
+  
+      
+            <ul class="job-card-list__footer-wrapper job-card-container__footer-wrapper flex-shrink-zero display-flex t-sans t-12 t-black--light t-normal t-roman mt1">
+<!---->                      <li class="job-card-container__footer-item inline-flex align-items-center">
+                        <span dir="ltr">
+                          <!---->Promoted<!---->
+                        </span>
+                      </li>
+                    <!---->                      <li class="bigpMDfnsZpduAndXDKlilOlNenTJAZHUayvfg
+                          job-card-container__footer-item inline-flex align-items-center">
+                        <svg role="none" aria-hidden="true" class="job-card-list__icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" data-supported-dps="16x16" data-test-icon="linkedin-bug-color-small">
+<!---->    <svg display="var(--hue-web-svg-display-light)">
+      <image href="https://static.licdn.com/aero-v1/sc/h/cukxdu7s8ldmqz13xdao5xe75" x="0" y="0" width="16" height="16"></image>
+    </svg>
+    <svg display="var(--hue-web-svg-display-dark)">
+      <image href="https://static.licdn.com/aero-v1/sc/h/7qvn5nkkh1mlaqd5xm0radtjv" x="0" y="0" width="16" height="16"></image>
+    </svg>
+</svg>
+
+                        <span dir="ltr">
+                          <!---->Easy Apply<!---->
+                        </span>
+                      </li>
+            </ul>
+          <span class="visually-hidden" aria-live="polite">
+<!---->          </span>
+      </div>
+      <div class="job-card-list__actions-container">
+          
+        
+      <div>
+          <button aria-label="Dismiss Lead Full Stack Developer job" id="ember653" class="job-card-container__action job-card-container__action-small artdeco-button artdeco-button--muted artdeco-button--2 artdeco-button--tertiary ember-view" type="button"><!---->
+<span class="artdeco-button__text">
+    
+            <svg role="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" data-supported-dps="16x16" data-test-icon="close-small">
+<!---->    
+    <use href="#close-small" width="16" height="16"></use>
+</svg>
+
+            <span class="job-card-container__action-text"></span>
+          
+</span></button>
+      </div>
+  
+      <!---->  
+      </div>
+    </div>
+  
+    </div>
+  
+                              
+        </li>
+  
+              
+        <li id="ember214" class="ember-view   BVEFAHDhnBycIVEGPifUldaWzhrsTeWYJw occludable-update p0 relative scaffold-layout__list-item" data-occludable-job-id="4457075896">
+            
+                  
+    <div>
+      
+    <div data-job-id="4457075896" class="display-flex job-card-container relative job-card-list
+        job-card-container--clickable
+        
+        job-card-list--underline-title-on-hover  jobs-search-two-pane__job-card-container--viewport-tracking-19">
+
+      <div>
+        <div id="ember606" class="job-card-list__entity-lockup  artdeco-entity-lockup artdeco-entity-lockup--size-4 ember-view">
+            <div id="ember607" class="job-card-list__logo  artdeco-entity-lockup__image artdeco-entity-lockup__image--type-square ember-view" type="square">
+              
+    <div class="ivm-image-view-model    job-card-list__logo-ivm">
+        
+    <div class="ivm-view-attr__img-wrapper
+        
+        ">
+<!---->
+<!---->          <img width="56" src="https://media.licdn.com/dms/image/v2/D4E0BAQHIS_fea7KQ8w/company-logo_100_100/company-logo_100_100/0/1719819519232/termgrid_logo?e=1788998400&amp;v=beta&amp;t=Ucvm7tTqKGCOAejc76WbUUQAvTbNPvjSY3fc5azZHSg" loading="lazy" height="56" alt="Termgrid logo" id="ember608" class="ivm-view-attr__img--centered EntityPhoto-square-4   evi-image lazy-image ember-view">
+    </div>
+  
+          </div>
+  
+            
+</div>
+
+          <div id="ember609" class="flex-grow-1 artdeco-entity-lockup__content ember-view">
+            <div id="ember610" class="full-width artdeco-entity-lockup__title ember-view">
+                  <a data-control-id="nx3ifP2MWHUeO3v6nOrwpw==" tabindex="0" href="/jobs/view/4457075896/?eBP=NOT_ELIGIBLE_FOR_CHARGING&amp;refId=Q8jrjWo96mjIueABbZuxMA%3D%3D&amp;trackingId=nx3ifP2MWHUeO3v6nOrwpw%3D%3D&amp;trk=flagship3_search_srp_jobs" id="ember611" class="disabled ember-view job-card-container__link
+                      FIvOPWFOchYLcwKPkyAOjaDhcaNyXgJHnmggHU
+                      job-card-list__title--link" aria-label="Backend Developer - Remote with verification" dir="ltr">
+                      <span aria-hidden="true"><strong><!---->Backend Developer - Remote<!----></strong><span class="white-space-pre"> </span><!----><!----><span class="tvm__text tvm__text--low-emphasis"><svg role="none" aria-hidden="true" class="text-view-model__verified-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" data-supported-dps="16x16" data-test-icon="verified-small">
+<!---->    
+    <use href="#verified-small" width="16" height="16"></use>
+</svg>
+</span></span><span class="visually-hidden"><!---->Backend Developer - Remote with verification<!----></span>
+                  </a>
+            
+</div>
+            <div id="ember612" class="artdeco-entity-lockup__subtitle ember-view">
+                <span class="wPmhNTwCcHAPFGlVtakfuKBOLoDRfVE " dir="ltr">
+                  <!---->Termgrid<!---->
+                </span>
+
+            </div>
+
+            <div id="ember613" class="artdeco-entity-lockup__caption ember-view">
+                  <ul class="job-card-container__metadata-wrapper">
+                      <li class="FlsmTaDBQXKINVtecGHjKJlMDqpHvrqUJyspRIP ">
+                        <span dir="ltr">
+                          <!---->India (Remote)<!---->
+                        </span>
+                      </li>
+<!---->                  </ul>
+            </div>
+
+<!---->
+<!---->          </div>
+
+        
+</div>
+
+            
+<!---->      
+            <ul class="job-card-list__footer-wrapper job-card-container__footer-wrapper flex-shrink-zero display-flex t-sans t-12 t-black--light t-normal t-roman mt1">
+<!---->                          <li class="job-card-container__footer-item
+                              ">
+                            <time datetime="2026-08-21">
+                              2 days ago
+<!---->                            </time>
+                          </li>
+                      <li class="bigpMDfnsZpduAndXDKlilOlNenTJAZHUayvfg
+                          job-card-container__footer-item inline-flex align-items-center">
+                        <svg role="none" aria-hidden="true" class="job-card-list__icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" data-supported-dps="16x16" data-test-icon="linkedin-bug-color-small">
+<!---->    <svg display="var(--hue-web-svg-display-light)">
+      <image href="https://static.licdn.com/aero-v1/sc/h/cukxdu7s8ldmqz13xdao5xe75" x="0" y="0" width="16" height="16"></image>
+    </svg>
+    <svg display="var(--hue-web-svg-display-dark)">
+      <image href="https://static.licdn.com/aero-v1/sc/h/7qvn5nkkh1mlaqd5xm0radtjv" x="0" y="0" width="16" height="16"></image>
+    </svg>
+</svg>
+
+                        <span dir="ltr">
+                          <!---->Easy Apply<!---->
+                        </span>
+                      </li>
+            </ul>
+          <span class="visually-hidden" aria-live="polite">
+<!---->          </span>
+      </div>
+      <div class="job-card-list__actions-container">
+          
+        
+      <div>
+          <button aria-label="Dismiss Backend Developer - Remote job" id="ember614" class="job-card-container__action job-card-container__action-small artdeco-button artdeco-button--muted artdeco-button--2 artdeco-button--tertiary ember-view" type="button"><!---->
+<span class="artdeco-button__text">
+    
+            <svg role="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" data-supported-dps="16x16" data-test-icon="close-small">
+<!---->    
+    <use href="#close-small" width="16" height="16"></use>
+</svg>
+
+            <span class="job-card-container__action-text"></span>
+          
+</span></button>
+      </div>
+  
+      <!---->  
+      </div>
+    </div>
+  
+    </div>
+  
+                              
+        </li>
+  
+              
+        <li id="ember215" class="ember-view   BVEFAHDhnBycIVEGPifUldaWzhrsTeWYJw occludable-update p0 relative scaffold-layout__list-item" data-occludable-job-id="4454754384">
+            
+                  
+    <div>
+      
+    <div data-job-id="4454754384" class="display-flex job-card-container relative job-card-list
+        job-card-container--clickable
+        
+        job-card-list--underline-title-on-hover  jobs-search-two-pane__job-card-container--viewport-tracking-20">
+
+      <div>
+        <div id="ember442" class="job-card-list__entity-lockup  artdeco-entity-lockup artdeco-entity-lockup--size-4 ember-view">
+            <div id="ember443" class="job-card-list__logo  artdeco-entity-lockup__image artdeco-entity-lockup__image--type-square ember-view" type="square">
+              
+    <div class="ivm-image-view-model    job-card-list__logo-ivm">
+        
+    <div class="ivm-view-attr__img-wrapper
+        
+        ">
+<!---->
+<!---->          <img width="56" src="https://media.licdn.com/dms/image/v2/C560BAQEg6Dmz0SBf7w/company-logo_100_100/company-logo_100_100/0/1630603350078/preciselydata_logo?e=1788998400&amp;v=beta&amp;t=CM3kSOAw_x-TMzj5ULSCNOeyyTTfp_OPejWOlsZX5qI" loading="lazy" height="56" alt="Precisely logo" id="ember444" class="ivm-view-attr__img--centered EntityPhoto-square-4   evi-image lazy-image ember-view">
+    </div>
+  
+          </div>
+  
+            
+</div>
+
+          <div id="ember445" class="flex-grow-1 artdeco-entity-lockup__content ember-view">
+            <div id="ember446" class="full-width artdeco-entity-lockup__title ember-view">
+                  <a data-control-id="oXcFzrlISrwehCHUqfIKDA==" tabindex="0" href="/jobs/view/4454754384/?eBP=CwEAAAGgL0WQLl-OUtU0mV0pS7AKCgf_Lpat9dLGAhnz0eDfkS1lXKR34D4KW9JAuezQpUelIVp3BEVJxfNiZNpGExplTRoOkkwtxHPIzH4m-5HzsrqFDypV7ySeWY5BlRj-DSknoB4QEmXCREpquxqDzKX3gL0zKEIjk58jfVpWUTneDdYuOBzGIZg2psNfAOENFankAFVvFxx9wEUhnr2Q0Hs9Z4HB3Z3nEh86imvlT_pX06iqGPPGioXQooRmbEjhDvg3iRZX6AnoMipk--Fg1v493ZV8jw05jMXGfV2Os8YiqCrvAoZn-fLaQSniLv7bf9p2fqij_h8uiwWArPYcuOcySLGF2H6vE9x5Ee-PTJo9NXOqfFdbBN8cs4_a1omtvANvxDGeXS7LBCjhlBpf8tbGnIXDBGr1lrLFMcYFX1zos71h8-T3ZmyXM8QL7nJpnclOrbCnjaztZPfdtAzd3SLvejMxlkMh6jxemYJFreQLjqez&amp;refId=Q8jrjWo96mjIueABbZuxMA%3D%3D&amp;trackingId=oXcFzrlISrwehCHUqfIKDA%3D%3D&amp;trk=flagship3_search_srp_jobs" id="ember447" class="disabled ember-view job-card-container__link
+                      FIvOPWFOchYLcwKPkyAOjaDhcaNyXgJHnmggHU
+                      job-card-list__title--link" aria-label="Software Engineer II (Golang) with verification" dir="ltr">
+                      <span aria-hidden="true"><strong><!---->Software Engineer II (Golang)<!----></strong><span class="white-space-pre"> </span><!----><!----><span class="tvm__text tvm__text--low-emphasis"><svg role="none" aria-hidden="true" class="text-view-model__verified-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" data-supported-dps="16x16" data-test-icon="verified-small">
+<!---->    
+    <use href="#verified-small" width="16" height="16"></use>
+</svg>
+</span></span><span class="visually-hidden"><!---->Software Engineer II (Golang) with verification<!----></span>
+                  </a>
+            
+</div>
+            <div id="ember448" class="artdeco-entity-lockup__subtitle ember-view">
+                <span class="wPmhNTwCcHAPFGlVtakfuKBOLoDRfVE " dir="ltr">
+                  <!---->Precisely<!---->
+                </span>
+
+            </div>
+
+            <div id="ember449" class="artdeco-entity-lockup__caption ember-view">
+                  <ul class="job-card-container__metadata-wrapper">
+                      <li class="FlsmTaDBQXKINVtecGHjKJlMDqpHvrqUJyspRIP ">
+                        <span dir="ltr">
+                          <!---->Bengaluru, Karnataka, India (Remote)<!---->
+                        </span>
+                      </li>
+<!---->                  </ul>
+            </div>
+
+<!---->
+<!---->          </div>
+
+        
+</div>
+
+            
+          
+    <div class="job-card-list__insight">
+        
+            <div class="display-flex align-items-center t-black--light t-12">
+                <div class="mv1">
+                  
+    <div class="ivm-image-view-model   ">
+        
+    <div class="ivm-view-attr__img-wrapper
+        
+        ">
+<!---->
+<!---->          <img width="32" src="https://media.licdn.com/dms/image/v2/C4D0BAQFbJbgVOfBgxA/company-logo_100_100/company-logo_100_100/0/1631328172776?e=1788998400&amp;v=beta&amp;t=Sf7NGI0HCpB6fdemoL3a8PZpfnCvWA7tdFZdt7bkysI" loading="lazy" height="32" alt="" id="ember450" class="ivm-view-attr__img--centered EntityPhoto-square-1  job-card-container__job-insight-image evi-image lazy-image ember-view">
+    </div>
+  
+          </div>
+  
+                </div>
+                <div class="job-card-container__job-insight-text" dir="ltr">
+                  <span aria-hidden="true"><!---->6 school alumni work here<!----></span><span class="visually-hidden"><!---->6 Lovely Professional University school alumni work here<!----></span>
+                </div>
+            </div>
+          
+    </div>
+  
+      
+            <ul class="job-card-list__footer-wrapper job-card-container__footer-wrapper flex-shrink-zero display-flex t-sans t-12 t-black--light t-normal t-roman mt1">
+<!---->                      <li class="job-card-container__footer-item inline-flex align-items-center">
+                        <span dir="ltr">
+                          <!---->Promoted<!---->
+                        </span>
+                      </li>
+                    <!---->                      <li class="bigpMDfnsZpduAndXDKlilOlNenTJAZHUayvfg
+                          job-card-container__footer-item inline-flex align-items-center">
+                        <svg role="none" aria-hidden="true" class="job-card-list__icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" data-supported-dps="16x16" data-test-icon="linkedin-bug-color-small">
+<!---->    <svg display="var(--hue-web-svg-display-light)">
+      <image href="https://static.licdn.com/aero-v1/sc/h/cukxdu7s8ldmqz13xdao5xe75" x="0" y="0" width="16" height="16"></image>
+    </svg>
+    <svg display="var(--hue-web-svg-display-dark)">
+      <image href="https://static.licdn.com/aero-v1/sc/h/7qvn5nkkh1mlaqd5xm0radtjv" x="0" y="0" width="16" height="16"></image>
+    </svg>
+</svg>
+
+                        <span dir="ltr">
+                          <!---->Easy Apply<!---->
+                        </span>
+                      </li>
+            </ul>
+          <span class="visually-hidden" aria-live="polite">
+<!---->          </span>
+      </div>
+      <div class="job-card-list__actions-container">
+          
+        
+      <div>
+          <button aria-label="Dismiss Software Engineer II (Golang) job" id="ember451" class="job-card-container__action job-card-container__action-small artdeco-button artdeco-button--muted artdeco-button--2 artdeco-button--tertiary ember-view" type="button"><!---->
+<span class="artdeco-button__text">
+    
+            <svg role="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" data-supported-dps="16x16" data-test-icon="close-small">
+<!---->    
+    <use href="#close-small" width="16" height="16"></use>
+</svg>
+
+            <span class="job-card-container__action-text"></span>
+          
+</span></button>
+      </div>
+  
+      <!---->  
+      </div>
+    </div>
+  
+    </div>
+  
+                              
+        </li>
+  
+              
+        <li id="ember216" class="ember-view   BVEFAHDhnBycIVEGPifUldaWzhrsTeWYJw occludable-update p0 relative scaffold-layout__list-item" data-occludable-job-id="4454139261">
+            
+                  
+    <div>
+      
+    <div data-job-id="4454139261" class="display-flex job-card-container relative job-card-list
+        job-card-container--clickable
+        
+        job-card-list--underline-title-on-hover  jobs-search-two-pane__job-card-container--viewport-tracking-21">
+
+      <div>
+        <div id="ember498" class="job-card-list__entity-lockup  artdeco-entity-lockup artdeco-entity-lockup--size-4 ember-view">
+            <div id="ember499" class="job-card-list__logo  artdeco-entity-lockup__image artdeco-entity-lockup__image--type-square ember-view" type="square">
+              
+    <div class="ivm-image-view-model    job-card-list__logo-ivm">
+        
+    <div class="ivm-view-attr__img-wrapper
+        
+        ">
+<!---->
+<!---->          <img width="56" src="https://media.licdn.com/dms/image/v2/D560BAQH0vY2EzFkDpw/company-logo_100_100/B56ZuwhXSsI0AQ-/0/1768193095315/stasx_logo?e=1788998400&amp;v=beta&amp;t=x5Wp7R5zEK4G342eun96Pw7SfxHmu2zfbplXMClz1Lc" loading="lazy" height="56" alt="STASX Consulting logo" id="ember500" class="ivm-view-attr__img--centered EntityPhoto-square-4   evi-image lazy-image ember-view">
+    </div>
+  
+          </div>
+  
+            
+</div>
+
+          <div id="ember501" class="flex-grow-1 artdeco-entity-lockup__content ember-view">
+            <div id="ember502" class="full-width artdeco-entity-lockup__title ember-view">
+                  <a data-control-id="J5N0G2CmxfhKjV3iHZ0n7A==" tabindex="0" href="/jobs/view/4454139261/?eBP=CwEAAAGgL0WQLkPVHeYGuSWdzlK2yHt9xKKskJ0NE0wxwtlWLQHw4F_2nJUnNboLNuMIGmbFn3Bx7Mv16VfM8cr5pZr4adbxXtkrCRybwsC1tgtAApju0kV0H0qPSXD_VAUMX9DqDc9pmFD54ukB1ygFjyD8rea8tZn902kbAaVkzbHf73NJaMhjG0iK-gm8_4vQZRBzW1CvTwcwbG9SJhplsCyZASGCdHbIjQRBjqLanktb1N-AUEPc-BbQdXK6aIngWhLilymU0TlveGwevExZWTmPEU63_c1l1MUltZA-SCuLRcKmJBRn1LqqF7kYd4-k57f5hlNWOCRuEvElaMUvb0H5LiVCQYnRDnHCvCVnvxmfF6tmuooc9L354hMMLhYzMN6SOJMJ_uheiw9z-Gufbq4lXkmoYTqB6WVnOwHXXqPdgZOHydylamwueNFSneqVK80sD9vlS1eeobdjoTyrORwFy_NVLvq5hLBh7RXYCA7l9Lg9h3gmrv3zKcMF9tP5cQ&amp;refId=Q8jrjWo96mjIueABbZuxMA%3D%3D&amp;trackingId=J5N0G2CmxfhKjV3iHZ0n7A%3D%3D&amp;trk=flagship3_search_srp_jobs" id="ember503" class="disabled ember-view job-card-container__link
+                      FIvOPWFOchYLcwKPkyAOjaDhcaNyXgJHnmggHU
+                      job-card-list__title--link" aria-label="Senior Software Development, Architecture &amp; Strategic Advisor" dir="ltr">
+                      <span aria-hidden="true"><strong><!---->Senior Software Development, Architecture &amp; Strategic Advisor<!----></strong></span><span class="visually-hidden"><!---->Senior Software Development, Architecture &amp; Strategic Advisor<!----></span>
+                  </a>
+            
+</div>
+            <div id="ember504" class="artdeco-entity-lockup__subtitle ember-view">
+                <span class="wPmhNTwCcHAPFGlVtakfuKBOLoDRfVE " dir="ltr">
+                  <!---->STASX Consulting<!---->
+                </span>
+
+            </div>
+
+            <div id="ember505" class="artdeco-entity-lockup__caption ember-view">
+                  <ul class="job-card-container__metadata-wrapper">
+                      <li class="FlsmTaDBQXKINVtecGHjKJlMDqpHvrqUJyspRIP ">
+                        <span dir="ltr">
+                          <!---->India (Remote)<!---->
+                        </span>
+                      </li>
+<!---->                  </ul>
+            </div>
+
+<!---->
+<!---->          </div>
+
+        
+</div>
+
+            
+<!---->      
+            <ul class="job-card-list__footer-wrapper job-card-container__footer-wrapper flex-shrink-zero display-flex t-sans t-12 t-black--light t-normal t-roman mt1">
+<!---->                      <li class="job-card-container__footer-item inline-flex align-items-center">
+                        <span dir="ltr">
+                          <!---->Promoted<!---->
+                        </span>
+                      </li>
+                    <!---->                      <li class="bigpMDfnsZpduAndXDKlilOlNenTJAZHUayvfg
+                          job-card-container__footer-item inline-flex align-items-center">
+                        <svg role="none" aria-hidden="true" class="job-card-list__icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" data-supported-dps="16x16" data-test-icon="linkedin-bug-color-small">
+<!---->    <svg display="var(--hue-web-svg-display-light)">
+      <image href="https://static.licdn.com/aero-v1/sc/h/cukxdu7s8ldmqz13xdao5xe75" x="0" y="0" width="16" height="16"></image>
+    </svg>
+    <svg display="var(--hue-web-svg-display-dark)">
+      <image href="https://static.licdn.com/aero-v1/sc/h/7qvn5nkkh1mlaqd5xm0radtjv" x="0" y="0" width="16" height="16"></image>
+    </svg>
+</svg>
+
+                        <span dir="ltr">
+                          <!---->Easy Apply<!---->
+                        </span>
+                      </li>
+            </ul>
+          <span class="visually-hidden" aria-live="polite">
+<!---->          </span>
+      </div>
+      <div class="job-card-list__actions-container">
+          
+        
+      <div>
+          <button aria-label="Dismiss Senior Software Development, Architecture &amp; Strategic Advisor job" id="ember506" class="job-card-container__action job-card-container__action-small artdeco-button artdeco-button--muted artdeco-button--2 artdeco-button--tertiary ember-view" type="button"><!---->
+<span class="artdeco-button__text">
+    
+            <svg role="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" data-supported-dps="16x16" data-test-icon="close-small">
+<!---->    
+    <use href="#close-small" width="16" height="16"></use>
+</svg>
+
+            <span class="job-card-container__action-text"></span>
+          
+</span></button>
+      </div>
+  
+      <!---->  
+      </div>
+    </div>
+  
+    </div>
+  
+                              
+        </li>
+  
+              
+        <li id="ember217" class="ember-view   BVEFAHDhnBycIVEGPifUldaWzhrsTeWYJw occludable-update p0 relative scaffold-layout__list-item" data-occludable-job-id="4457320348">
+            
+                  
+    <div>
+      
+    <div data-job-id="4457320348" class="display-flex job-card-container relative job-card-list
+        job-card-container--clickable
+        
+        job-card-list--underline-title-on-hover  jobs-search-two-pane__job-card-container--viewport-tracking-22">
+
+      <div>
+        <div id="ember424" class="job-card-list__entity-lockup  artdeco-entity-lockup artdeco-entity-lockup--size-4 ember-view">
+            <div id="ember425" class="job-card-list__logo  artdeco-entity-lockup__image artdeco-entity-lockup__image--type-square ember-view" type="square">
+              
+    <div class="ivm-image-view-model    job-card-list__logo-ivm">
+        
+    <div class="ivm-view-attr__img-wrapper
+        
+        ">
+<!---->
+<!---->          <img width="56" src="https://media.licdn.com/dms/image/v2/C4D0BAQFy5t4g08JChA/company-logo_100_100/company-logo_100_100/0/1631335860018?e=1788998400&amp;v=beta&amp;t=rZmtaE311UCe_cy2L4ayTa9DpsYjMiDU5OPiU1P88lE" loading="lazy" height="56" alt="Infoplus Technologies UK Limited logo" id="ember426" class="ivm-view-attr__img--centered EntityPhoto-square-4   evi-image lazy-image ember-view">
+    </div>
+  
+          </div>
+  
+            
+</div>
+
+          <div id="ember427" class="flex-grow-1 artdeco-entity-lockup__content ember-view">
+            <div id="ember428" class="full-width artdeco-entity-lockup__title ember-view">
+                  <a data-control-id="DJ1veUW0wuznJX8/Gxmt7A==" tabindex="0" href="/jobs/view/4457320348/?eBP=CwEAAAGgL0WQLlfF21AtosGw-_2uutyDi9aWxrsE-hOYaPr6R_PaxatxpbimZut8XbrTyTv8SzNJebeAaBxxWKBzSVMCScapIeDbKmZoXdJSVTqXsnhMmPEiDJjqjtzFickHkTPfp6DQcvyNsUJr23xCtyMy2AHDrAxodxlqI5nupmnl61vLJtjJPPk8S9ZBsIgAeOdR5vYJdh929mNarRvUQ5qbitF__jl_-gFn6mFTUZ3C9oWQxUqu33A4XEuepub5fO8sthq5b_Fzwl4KJ2V-3MJWs3MNvS6eSLNuTMRUnjojkmw-a2kEZeLRy6kSQG5bG6ECAZROXUwjBKH9jx6WSSPKlj2jKPnhPIAhVPi0mo1Af6SPa_pFHmgxOGKMgQxRFHG3DaCrDVb_QWmeKsjZGp9AtG4LSXEnBKY0BfaANambv4ynU5NHXg6DzxEGqKGbIsRgSq0CMZ1XR86FqtZ-e_Vxc-REpuEXW5B9i_7CJkFKDw&amp;refId=Q8jrjWo96mjIueABbZuxMA%3D%3D&amp;trackingId=DJ1veUW0wuznJX8%2FGxmt7A%3D%3D&amp;trk=flagship3_search_srp_jobs" id="ember429" class="disabled ember-view job-card-container__link
+                      FIvOPWFOchYLcwKPkyAOjaDhcaNyXgJHnmggHU
+                      job-card-list__title--link" aria-label="Senior Lead Developer (javascript + node.js) with verification" dir="ltr">
+                      <span aria-hidden="true"><strong><!---->Senior Lead Developer (javascript + node.js)<!----></strong><span class="white-space-pre"> </span><!----><!----><span class="tvm__text tvm__text--low-emphasis"><svg role="none" aria-hidden="true" class="text-view-model__verified-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" data-supported-dps="16x16" data-test-icon="verified-small">
+<!---->    
+    <use href="#verified-small" width="16" height="16"></use>
+</svg>
+</span></span><span class="visually-hidden"><!---->Senior Lead Developer (javascript + node.js) with verification<!----></span>
+                  </a>
+            
+</div>
+            <div id="ember430" class="artdeco-entity-lockup__subtitle ember-view">
+                <span class="wPmhNTwCcHAPFGlVtakfuKBOLoDRfVE " dir="ltr">
+                  <!---->Infoplus Technologies UK Limited<!---->
+                </span>
+
+            </div>
+
+            <div id="ember431" class="artdeco-entity-lockup__caption ember-view">
+                  <ul class="job-card-container__metadata-wrapper">
+                      <li class="FlsmTaDBQXKINVtecGHjKJlMDqpHvrqUJyspRIP ">
+                        <span dir="ltr">
+                          <!---->Bengaluru, Karnataka, India (Remote)<!---->
+                        </span>
+                      </li>
+<!---->                  </ul>
+            </div>
+
+<!---->
+<!---->          </div>
+
+        
+</div>
+
+            
+          
+    <div class="job-card-list__insight">
+        
+            <div class="display-flex align-items-center t-black--light t-12">
+                <div class="mv1">
+                  
+    <div class="ivm-image-view-model   ">
+        
+    <div class="ivm-view-attr__img-wrapper
+        
+        ">
+<!---->
+        <svg role="img" aria-hidden="false" aria-label="Company review time is typically 1 week" class="ivm-view-attr__icon ivm-view-attr__icon--signal-positive  job-card-container__job-insight-image" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" data-supported-dps="24x24" data-test-icon="responsive-medium">
+<!---->    
+    <use href="#responsive-medium" width="24" height="24"></use>
+</svg>
+
+    </div>
+  
+          </div>
+  
+                </div>
+                <div class="job-card-container__job-insight-text" dir="ltr">
+                  <!---->Company review time is typically 1 week<!---->
+                </div>
+            </div>
+          
+    </div>
+  
+      
+            <ul class="job-card-list__footer-wrapper job-card-container__footer-wrapper flex-shrink-zero display-flex t-sans t-12 t-black--light t-normal t-roman mt1">
+<!---->                      <li class="job-card-container__footer-item inline-flex align-items-center">
+                        <span dir="ltr">
+                          <!---->Promoted<!---->
+                        </span>
+                      </li>
+                    <!---->                      <li class="bigpMDfnsZpduAndXDKlilOlNenTJAZHUayvfg
+                          job-card-container__footer-item inline-flex align-items-center">
+                        <svg role="none" aria-hidden="true" class="job-card-list__icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" data-supported-dps="16x16" data-test-icon="linkedin-bug-color-small">
+<!---->    <svg display="var(--hue-web-svg-display-light)">
+      <image href="https://static.licdn.com/aero-v1/sc/h/cukxdu7s8ldmqz13xdao5xe75" x="0" y="0" width="16" height="16"></image>
+    </svg>
+    <svg display="var(--hue-web-svg-display-dark)">
+      <image href="https://static.licdn.com/aero-v1/sc/h/7qvn5nkkh1mlaqd5xm0radtjv" x="0" y="0" width="16" height="16"></image>
+    </svg>
+</svg>
+
+                        <span dir="ltr">
+                          <!---->Easy Apply<!---->
+                        </span>
+                      </li>
+            </ul>
+          <span class="visually-hidden" aria-live="polite">
+<!---->          </span>
+      </div>
+      <div class="job-card-list__actions-container">
+          
+        
+      <div>
+          <button aria-label="Dismiss Senior Lead Developer (javascript + node.js) job" id="ember432" class="job-card-container__action job-card-container__action-small artdeco-button artdeco-button--muted artdeco-button--2 artdeco-button--tertiary ember-view" type="button"><!---->
+<span class="artdeco-button__text">
+    
+            <svg role="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" data-supported-dps="16x16" data-test-icon="close-small">
+<!---->    
+    <use href="#close-small" width="16" height="16"></use>
+</svg>
+
+            <span class="job-card-container__action-text"></span>
+          
+</span></button>
+      </div>
+  
+      <!---->  
+      </div>
+    </div>
+  
+    </div>
+  
+                              
+        </li>
+  
+              
+        <li id="ember218" class="ember-view   BVEFAHDhnBycIVEGPifUldaWzhrsTeWYJw occludable-update p0 relative scaffold-layout__list-item" data-occludable-job-id="4454962300">
+            
+                  
+    <div>
+      
+    <div data-job-id="4454962300" class="display-flex job-card-container relative job-card-list
+        job-card-container--clickable
+        
+        job-card-list--underline-title-on-hover  jobs-search-two-pane__job-card-container--viewport-tracking-23">
+
+      <div>
+        <div id="ember433" class="job-card-list__entity-lockup  artdeco-entity-lockup artdeco-entity-lockup--size-4 ember-view">
+            <div id="ember434" class="job-card-list__logo  artdeco-entity-lockup__image artdeco-entity-lockup__image--type-square ember-view" type="square">
+              
+    <div class="ivm-image-view-model    job-card-list__logo-ivm">
+        
+    <div class="ivm-view-attr__img-wrapper
+        
+        ">
+<!---->
+<!---->          <img width="56" src="https://media.licdn.com/dms/image/v2/D560BAQGrdn05c0Yi8Q/company-logo_100_100/company-logo_100_100/0/1690617260238?e=1788998400&amp;v=beta&amp;t=4GnlNbWK3zsdI0uv3ZW1BY0pteWrRMlY-Zdfz6ErsOc" loading="lazy" height="56" alt="Papigen logo" id="ember435" class="ivm-view-attr__img--centered EntityPhoto-square-4   evi-image lazy-image ember-view">
+    </div>
+  
+          </div>
+  
+            
+</div>
+
+          <div id="ember436" class="flex-grow-1 artdeco-entity-lockup__content ember-view">
+            <div id="ember437" class="full-width artdeco-entity-lockup__title ember-view">
+                  <a data-control-id="dBxPe856WoHR1oGsE0XGrA==" tabindex="0" href="/jobs/view/4454962300/?eBP=NOT_ELIGIBLE_FOR_CHARGING&amp;refId=Q8jrjWo96mjIueABbZuxMA%3D%3D&amp;trackingId=dBxPe856WoHR1oGsE0XGrA%3D%3D&amp;trk=flagship3_search_srp_jobs" id="ember438" class="disabled ember-view job-card-container__link
+                      FIvOPWFOchYLcwKPkyAOjaDhcaNyXgJHnmggHU
+                      job-card-list__title--link" aria-label="Senior Full Stack Developer" dir="ltr">
+                      <span aria-hidden="true"><strong><!---->Senior Full Stack Developer<!----></strong></span><span class="visually-hidden"><!---->Senior Full Stack Developer<!----></span>
+                  </a>
+            
+</div>
+            <div id="ember439" class="artdeco-entity-lockup__subtitle ember-view">
+                <span class="wPmhNTwCcHAPFGlVtakfuKBOLoDRfVE " dir="ltr">
+                  <!---->Papigen<!---->
+                </span>
+
+            </div>
+
+            <div id="ember440" class="artdeco-entity-lockup__caption ember-view">
+                  <ul class="job-card-container__metadata-wrapper">
+                      <li class="FlsmTaDBQXKINVtecGHjKJlMDqpHvrqUJyspRIP ">
+                        <span dir="ltr">
+                          <!---->India (Remote)<!---->
+                        </span>
+                      </li>
+<!---->                  </ul>
+            </div>
+
+<!---->
+<!---->          </div>
+
+        
+</div>
+
+            
+<!---->      
+            <ul class="job-card-list__footer-wrapper job-card-container__footer-wrapper flex-shrink-zero display-flex t-sans t-12 t-black--light t-normal t-roman mt1">
+<!---->                          <li class="job-card-container__footer-item
+                              ">
+                            <time datetime="2026-08-19">
+                              4 days ago
+<!---->                            </time>
+                          </li>
+                      <li class="bigpMDfnsZpduAndXDKlilOlNenTJAZHUayvfg
+                          job-card-container__footer-item inline-flex align-items-center">
+                        <svg role="none" aria-hidden="true" class="job-card-list__icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" data-supported-dps="16x16" data-test-icon="linkedin-bug-color-small">
+<!---->    <svg display="var(--hue-web-svg-display-light)">
+      <image href="https://static.licdn.com/aero-v1/sc/h/cukxdu7s8ldmqz13xdao5xe75" x="0" y="0" width="16" height="16"></image>
+    </svg>
+    <svg display="var(--hue-web-svg-display-dark)">
+      <image href="https://static.licdn.com/aero-v1/sc/h/7qvn5nkkh1mlaqd5xm0radtjv" x="0" y="0" width="16" height="16"></image>
+    </svg>
+</svg>
+
+                        <span dir="ltr">
+                          <!---->Easy Apply<!---->
+                        </span>
+                      </li>
+            </ul>
+          <span class="visually-hidden" aria-live="polite">
+<!---->          </span>
+      </div>
+      <div class="job-card-list__actions-container">
+          
+        
+      <div>
+          <button aria-label="Dismiss Senior Full Stack Developer job" id="ember441" class="job-card-container__action job-card-container__action-small artdeco-button artdeco-button--muted artdeco-button--2 artdeco-button--tertiary ember-view" type="button"><!---->
+<span class="artdeco-button__text">
+    
+            <svg role="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" data-supported-dps="16x16" data-test-icon="close-small">
+<!---->    
+    <use href="#close-small" width="16" height="16"></use>
+</svg>
+
+            <span class="job-card-container__action-text"></span>
+          
+</span></button>
+      </div>
+  
+      <!---->  
+      </div>
+    </div>
+  
+    </div>
+  
+                              
+        </li>
+  
+              
+        <li id="ember219" class="ember-view   BVEFAHDhnBycIVEGPifUldaWzhrsTeWYJw occludable-update p0 relative scaffold-layout__list-item" data-occludable-job-id="4452242120">
+            
+                  
+    <div>
+      
+    <div data-job-id="4452242120" class="display-flex job-card-container relative job-card-list
+        job-card-container--clickable
+        
+        job-card-list--underline-title-on-hover  jobs-search-two-pane__job-card-container--viewport-tracking-24">
+
+      <div>
+        <div id="ember517" class="job-card-list__entity-lockup  artdeco-entity-lockup artdeco-entity-lockup--size-4 ember-view">
+            <div id="ember518" class="job-card-list__logo  artdeco-entity-lockup__image artdeco-entity-lockup__image--type-square ember-view" type="square">
+              
+    <div class="ivm-image-view-model    job-card-list__logo-ivm">
+        
+    <div class="ivm-view-attr__img-wrapper
+        
+        ">
+<!---->
+<!---->          <img width="56" src="https://media.licdn.com/dms/image/v2/D4D0BAQGyGh9BIL5mSg/company-logo_100_100/company-logo_100_100/0/1724271827147/innodata_inc__logo?e=1788998400&amp;v=beta&amp;t=umICQCv5dfPADx_zBuwyvg8p4QBzbAVEWVROQtwX3ZA" loading="lazy" height="56" alt="Innodata Inc. logo" id="ember519" class="ivm-view-attr__img--centered EntityPhoto-square-4   evi-image lazy-image ember-view">
+    </div>
+  
+          </div>
+  
+            
+</div>
+
+          <div id="ember520" class="flex-grow-1 artdeco-entity-lockup__content ember-view">
+            <div id="ember521" class="full-width artdeco-entity-lockup__title ember-view">
+                  <a data-control-id="4o2WyHfnE2t3TVTi54lJKw==" tabindex="0" href="/jobs/view/4452242120/?eBP=CwEAAAGgL0WQLoS9bwdRpvbNyNficQtRc-B9kBLOojZGUzO-3vlQEq3yr8rMuURIj2vvOYILB1UVenD-J2wVrELRaHoi4sdsnnUUJtefAA7fgi0y8aywGfXz3GP4Irxnti4h7cV9WF4GdjSGcQCn8dzDW8ykTtoOJYoUTCluy9Vyv1ZxirRtYxP_EMoIpUvukx739lmWi8PkMq7RZvwikOt_XQLy_y3Je0EiQU8SBzEd2RXDHgFGXdVMvIsM-yC1kL9WlerN-zKH9WeqZ68TYdiPghDlKQ4hbiwHTBp7GXbE0UJay7rDiOWhxU7qrjkVkg-3pJV7WOyaCfXiaX0bf0wfxvWT8EY4TXvTACbjpy411AS6Bg388XE-VvvpRQgYm9UkqhQiPb5bmgWmRfAZGBdC5z3yP33c6jysnxEc47InrY3EY0rAXiSo-VBnEZjXx6WotdC85_XshVT7vQ74SxBUopyHfoeISrw49Fch0oqul1sVYPNk&amp;refId=Q8jrjWo96mjIueABbZuxMA%3D%3D&amp;trackingId=4o2WyHfnE2t3TVTi54lJKw%3D%3D&amp;trk=flagship3_search_srp_jobs" id="ember522" class="disabled ember-view job-card-container__link
+                      FIvOPWFOchYLcwKPkyAOjaDhcaNyXgJHnmggHU
+                      job-card-list__title--link" aria-label="Senior Full Stack AI Engineer (Python + React + Google Cloud)" dir="ltr">
+                      <span aria-hidden="true"><strong><!---->Senior Full Stack AI Engineer (Python + React + Google Cloud)<!----></strong></span><span class="visually-hidden"><!---->Senior Full Stack AI Engineer (Python + React + Google Cloud)<!----></span>
+                  </a>
+            
+</div>
+            <div id="ember523" class="artdeco-entity-lockup__subtitle ember-view">
+                <span class="wPmhNTwCcHAPFGlVtakfuKBOLoDRfVE " dir="ltr">
+                  <!---->Innodata Inc.<!---->
+                </span>
+
+            </div>
+
+            <div id="ember524" class="artdeco-entity-lockup__caption ember-view">
+                  <ul class="job-card-container__metadata-wrapper">
+                      <li class="FlsmTaDBQXKINVtecGHjKJlMDqpHvrqUJyspRIP ">
+                        <span dir="ltr">
+                          <!---->India (Remote)<!---->
+                        </span>
+                      </li>
+<!---->                  </ul>
+            </div>
+
+<!---->
+<!---->          </div>
+
+        
+</div>
+
+            
+          
+    <div class="job-card-list__insight">
+        
+            <div class="display-flex align-items-center t-black--light t-12">
+                <div class="mv1">
+                  
+    <div class="ivm-image-view-model   ">
+        
+    <div class="ivm-view-attr__img-wrapper
+        
+        ">
+<!---->
+        <svg role="img" aria-hidden="false" aria-label="Actively reviewing applicants" class="ivm-view-attr__icon ivm-view-attr__icon--signal-positive  job-card-container__job-insight-image" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" data-supported-dps="24x24" data-test-icon="responsive-medium">
+<!---->    
+    <use href="#responsive-medium" width="24" height="24"></use>
+</svg>
+
+    </div>
+  
+          </div>
+  
+                </div>
+                <div class="job-card-container__job-insight-text" dir="ltr">
+                  <!---->Actively reviewing applicants<!---->
+                </div>
+            </div>
+          
+    </div>
+  
+      
+            <ul class="job-card-list__footer-wrapper job-card-container__footer-wrapper flex-shrink-zero display-flex t-sans t-12 t-black--light t-normal t-roman mt1">
+<!---->                      <li class="job-card-container__footer-item inline-flex align-items-center">
+                        <span dir="ltr">
+                          <!---->Promoted<!---->
+                        </span>
+                      </li>
+                    <!---->                      <li class="bigpMDfnsZpduAndXDKlilOlNenTJAZHUayvfg
+                          job-card-container__footer-item inline-flex align-items-center">
+                        <svg role="none" aria-hidden="true" class="job-card-list__icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" data-supported-dps="16x16" data-test-icon="linkedin-bug-color-small">
+<!---->    <svg display="var(--hue-web-svg-display-light)">
+      <image href="https://static.licdn.com/aero-v1/sc/h/cukxdu7s8ldmqz13xdao5xe75" x="0" y="0" width="16" height="16"></image>
+    </svg>
+    <svg display="var(--hue-web-svg-display-dark)">
+      <image href="https://static.licdn.com/aero-v1/sc/h/7qvn5nkkh1mlaqd5xm0radtjv" x="0" y="0" width="16" height="16"></image>
+    </svg>
+</svg>
+
+                        <span dir="ltr">
+                          <!---->Easy Apply<!---->
+                        </span>
+                      </li>
+            </ul>
+          <span class="visually-hidden" aria-live="polite">
+<!---->          </span>
+      </div>
+      <div class="job-card-list__actions-container">
+          
+        
+      <div>
+          <button aria-label="Dismiss Senior Full Stack AI Engineer (Python + React + Google Cloud) job" id="ember525" class="job-card-container__action job-card-container__action-small artdeco-button artdeco-button--muted artdeco-button--2 artdeco-button--tertiary ember-view" type="button"><!---->
+<span class="artdeco-button__text">
+    
+            <svg role="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" data-supported-dps="16x16" data-test-icon="close-small">
+<!---->    
+    <use href="#close-small" width="16" height="16"></use>
+</svg>
+
+            <span class="job-card-container__action-text"></span>
+          
+</span></button>
+      </div>
+  
+      <!---->  
+      </div>
+    </div>
+  
+    </div>
+  
+                              
+        </li>
+  
+          
+</ul>
+<!---->        <div id="jobs-search-results-footer">
+          
+      <!---->
+      <!---->
+      
+  
+        
+        <div id="ember96" class="ember-view   ">
+            
+          
+    
+        
+        
+
+    <div class="jobs-search-top-applicant-upsell-card align-items-center display-flex flex-column relative">
+<!---->      <div class="display-flex flex-column">
+<!---->        <div class="card-upsell-v2__text-container ">
+            <h3 class="text-heading-medium card-upsell-v2__headline
+                card-upsell-v2__headline--dismissible
+                mb4">
+              <!---->Get jobs personalized for you with Premium<!---->
+            </h3>
+
+<!---->
+<!---->
+<!---->
+<!---->
+            <a class="PxjXFJkGjqojrDFoZvGYjppnnRAHFXAIJY  artdeco-button artdeco-button--secondary t-normal
+                " href="http://www.linkedin.com/premium/products/?upsellOrderOrigin=Tracking%3Av1%3Apremium_job_search_bottom_upsell%3AJob+Seeker%3AIn-Product&amp;utype=job&amp;referenceId=R8AmBO4ARfmzSckI%2BapVFQ%3D%3D&amp;isSS=false&amp;upsellSlotId=JOB_SEARCH_BOTTOM&amp;destRedirectURL=https%3A%2F%2Fwww.linkedin.com%2Fjobs%2Fsearch%2F%3FcurrentJobId%3D4452227898%26f_AL%3Dtrue%26f_TPR%3Dr604800%26f_WT%3D2%26keywords%3Dlaravel" data-test-app-aware-link="">
+              <!---->Try now for free<!---->
+            </a>
+<!---->        </div>
+      </div>
+        <button id="ember530" class="card-upsell-v2__dismiss-button artdeco-button artdeco-button--circle artdeco-button--muted artdeco-button--1 artdeco-button--tertiary ember-view">        <svg role="none" aria-hidden="true" class="artdeco-button__icon " xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" data-supported-dps="16x16" data-test-icon="close-small">
+<!---->    
+    <use href="#close-small" width="16" height="16"></use>
+</svg>
+
+
+<span class="artdeco-button__text">
+    Dismiss premium promotion
+</span></button>
+    </div>
+  
+    
+        
+  
+        
+        </div>
+  
+      
+
+    
+<!----><!---->            
+    <div class="jobs-search-pagination jobs-search-results-list__pagination p4">
+        <div class="jobs-search-pagination__spacer"></div>
+
+      <ul class="jobs-search-pagination__pages">
+<!----><!---->            <li class="jobs-search-pagination__indicator">
+              <button class="jobs-search-pagination__indicator-button jobs-search-pagination__indicator-button--active" aria-current="page" aria-label="Page 1" type="button">
+                <span>1</span>
+              </button>
+            </li>
+            <li class="jobs-search-pagination__indicator">
+              <button class="jobs-search-pagination__indicator-button " aria-label="Page 2" type="button">
+                <span>2</span>
+              </button>
+            </li>
+            <li class="jobs-search-pagination__indicator">
+              <button class="jobs-search-pagination__indicator-button " aria-label="Page 3" type="button">
+                <span>3</span>
+              </button>
+            </li>
+          <li class="jobs-search-pagination__indicator">
+            <button class="jobs-search-pagination__indicator-button" aria-label="Page 4" type="button">
+              <span>…</span>
+            </button>
+          </li>
+      </ul>
+      <p class="jobs-search-pagination__page-state">
+        Page 1 of 9
+      </p>
+
+        <button aria-label="View next page" id="ember223" class="artdeco-button artdeco-button--muted artdeco-button--icon-right artdeco-button--1 artdeco-button--tertiary ember-view jobs-search-pagination__button jobs-search-pagination__button--next" type="button">        <svg role="none" aria-hidden="true" class="artdeco-button__icon " xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" data-supported-dps="16x16" data-test-icon="chevron-right-small" data-rtl="true">
+<!---->    
+    <use href="#chevron-right-small" width="16" height="16"></use>
+</svg>
+
+
+<span class="artdeco-button__text">
+    Next
+</span></button>
+    </div>
+  
+<!---->            
+    <footer class="global-footer-compact
+        " aria-label="LinkedIn Footer Content">
+      
+        <div id="ember97" class="ember-view   ">
+            
+<!---->        <ul class="global-footer-compact__content global-footer-compact__links">
+            <li class="global-footer-compact__item">
+                <a tabindex="0" target="_blank" href="https://about.linkedin.com/" id="compactfooter-about" class="ember-view global-footer__link t-12 t-normal">
+                  <span>
+                    About
+                  </span>
+                </a>
+            </li>
+            <li class="global-footer-compact__item">
+                <a tabindex="0" target="_blank" href="https://www.linkedin.com/accessibility" id="compactfooter-accessibility" class="ember-view global-footer__link t-12 t-normal">
+                  <span>
+                    Accessibility
+                  </span>
+                </a>
+            </li>
+            <li class="global-footer-compact__item">
+                <a tabindex="0" target="_blank" href="https://www.linkedin.com/help/linkedin?trk=footer_d_flagship3_postapply_next_best_action" id="compactfooter-help" class="ember-view global-footer__link t-12 t-normal">
+                  <span data-dyn-trk="">
+                    Help Center
+                  </span>
+                </a>
+            </li>
+            <li class="global-footer-compact__item">
+                
+    
+    
+    <div id="ember536" class="artdeco-dropdown artdeco-dropdown--placement-top artdeco-dropdown--justification-left ember-view global-footer-dropdown">
+      <button aria-expanded="false" id="compactfooter-privacy_dropdown-trigger" class="artdeco-dropdown__trigger artdeco-dropdown__trigger--placement-top ember-view global-footer-dropdown__trigger" type="button" tabindex="0">
+        <span class="global-footer__link global-footer__dropdown-trigger t-12 t-normal">
+          <span class="text-align-left">
+            Privacy &amp; Terms
+            <svg role="none" aria-hidden="true" class="global-footer-dropdown__trigger-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" data-supported-dps="16x16" data-test-icon="caret-small">
+<!---->    
+    <use href="#caret-small" width="16" height="16"></use>
+</svg>
+
+          </span>
+        </span>
+      
+<!----></button>
+      <div tabindex="-1" aria-hidden="true" id="ember538" class="artdeco-dropdown__content artdeco-dropdown--is-dropdown-element artdeco-dropdown__content--justification-left artdeco-dropdown__content--placement-top ember-view global-footer-dropdown__options"><!----></div>
+    </div>
+  
+  
+            </li>
+            <li class="global-footer-compact__item">
+                <a tabindex="0" target="_blank" href="https://www.linkedin.com/help/linkedin/answer/62931" id="compactfooter-ad_choices" class="ember-view global-footer__link t-12 t-normal">
+                  <span>
+                    Ad Choices
+                  </span>
+                </a>
+            </li>
+            <li class="global-footer-compact__item">
+                <a tabindex="0" target="_blank" href="https://www.linkedin.com/ad/start?trk=n_nav_ads_rr" id="compactfooter-advertising" class="ember-view global-footer__link t-12 t-normal">
+                  <span>
+                    Advertising
+                  </span>
+                </a>
+            </li>
+            <li class="global-footer-compact__item">
+                
+    
+    
+    <div id="ember541" class="artdeco-dropdown artdeco-dropdown--placement-top artdeco-dropdown--justification-left ember-view global-footer-dropdown">
+      <button aria-expanded="false" id="compactfooter-business_services_dropdown-trigger" class="artdeco-dropdown__trigger artdeco-dropdown__trigger--placement-top ember-view global-footer-dropdown__trigger" type="button" tabindex="0">
+        <span class="global-footer__link global-footer__dropdown-trigger t-12 t-normal">
+          <span class="text-align-left">
+            Business Services
+            <svg role="none" aria-hidden="true" class="global-footer-dropdown__trigger-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" data-supported-dps="16x16" data-test-icon="caret-small">
+<!---->    
+    <use href="#caret-small" width="16" height="16"></use>
+</svg>
+
+          </span>
+        </span>
+      
+<!----></button>
+      <div tabindex="-1" aria-hidden="true" id="ember543" class="artdeco-dropdown__content artdeco-dropdown--is-dropdown-element artdeco-dropdown__content--justification-left artdeco-dropdown__content--placement-top ember-view global-footer-dropdown__options"><!----></div>
+    </div>
+  
+  
+            </li>
+            <li class="global-footer-compact__item">
+                
+  <div>
+    
+    <div>
+      <div id="ember544" class="ember-view"><!----></div>
+
+      
+  <button id="compactfooter-get_app_footer" class="global-footer__link global-footer__dropdown-trigger t-12 t-normal" type="button">
+    Get the LinkedIn app
+  </button>
+
+    </div>
+  
+  </div>
+
+            </li>
+            <li class="global-footer-compact__item">
+                <button id="compactfooter-more" class="global-footer__link t-12 t-normal" aria-label="More options" type="button">
+                  More
+                </button>
+            </li>
+        </ul>
+          <div class="global-footer-compact__content t-12 t-normal text-align-center clear-both" id="compactfooter-copyright">
+            <svg role="img" aria-hidden="false" aria-label="LinkedIn" class="global-footer-compact__linkedin-logo" xmlns="http://www.w3.org/2000/svg" width="56" height="14" viewBox="0 0 56 14" data-supported-dps="56x14" data-test-icon="linkedin-logo-blue-xxsmall">
+<!---->    <svg display="var(--hue-web-svg-display-light)">
+      <image href="https://static.licdn.com/aero-v1/sc/h/aahlc8ivbnmk0t3eyz8as5gvr" x="0" y="0" width="56" height="14"></image>
+    </svg>
+    <svg display="var(--hue-web-svg-display-dark)">
+      <image href="https://static.licdn.com/aero-v1/sc/h/34bl5fp6gi8t0nscavw94xa7x" x="0" y="0" width="56" height="14"></image>
+    </svg>
+</svg>
+
+
+            LinkedIn Corporation © 2026
+          </div>
+
+        <div id="ember488" class="ember-view"><!----></div>
+      
+        </div>
+  
+    </footer>
+  
+        </div>
+      </div>

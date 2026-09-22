@@ -3,20 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>AutoApply CV Copilot</title>
-    <style>
-      html, body {
-        width: 360px;
-        min-width: 360px;
-        max-width: 360px;
-        margin: 0;
-        padding: 0;
-        overflow: hidden;
-      }
-      .popup-content {
-        opacity: 0;
-      }
-    </style>
+    <title>AutoApply CV Suite</title>
     <link rel="stylesheet" href="popup.css" />
   </head>
   <body>
@@ -24,148 +11,396 @@
     <main class="wrap">
       <!-- Header -->
       <header class="head">
-        <div id="popupToggle" class="brand" role="button" tabindex="0" aria-label="AutoApply CV">
+        <div id="popupToggle" class="brand" role="button" tabindex="0" aria-label="AutoApply CV Suite">
           <div class="brand-logo-wrap">
-            <img class="brand-logo" src="../icons/icon128.png" alt="AutoApply CV" />
+            <img class="brand-logo" src="icons/icon128.png" alt="AutoApply CV" />
           </div>
           <div class="brand-text">
             <div class="brand-title-row">
               <h1>AutoApply CV</h1>
-              <span class="sparkle-icon">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
-              </span>
+              <span class="suite-pill">SUITE</span>
             </div>
-            <p class="sub">AI LinkedIn Job Copilot</p>
+            <p class="sub">All-in-One Copilot & Outreach</p>
           </div>
         </div>
-        <span id="statusBadge" class="status-badge idle">Idle</span>
+        <div class="head-right">
+          <span id="statusBadge" class="status-badge idle">Ready</span>
+        </div>
       </header>
 
+      <!-- Navigation Bar (6 Core Modules) -->
+      <nav class="suite-nav" role="tablist">
+        <button class="nav-tab active" data-tab="tab-linkedin" title="LinkedIn Easy Apply">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg>
+          <span>LinkedIn</span>
+        </button>
+        <button class="nav-tab" data-tab="tab-indeed" title="Indeed Job Copilot">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <span>Indeed</span>
+        </button>
+        <button class="nav-tab" data-tab="tab-whatsapp" title="WhatsApp Job Outreach">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+          <span>WhatsApp</span>
+        </button>
+        <button class="nav-tab" data-tab="tab-commenter" title="LinkedIn Auto Commenter">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          <span>Comment</span>
+        </button>
+        <button class="nav-tab" data-tab="tab-emailoutreach" title="Email Job Outreach Pro">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+          <span>Email Pro</span>
+        </button>
+        <button class="nav-tab" data-tab="tab-settings" title="Answer Bank & Settings">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          <span>Answers</span>
+        </button>
+      </nav>
+
       <section id="popupContent" class="popup-content">
-        <!-- Account Status Card -->
-        <section id="accountCard" class="account-card disconnected">
-          <div class="account-head">
-            <div class="account-title-wrap">
-              <span class="account-dot"></span>
-              <strong id="accountTitle">Account</strong>
+        <!-- ═══════════════════════════════════════════════════════════ -->
+        <!-- TAB 1: LINKEDIN AUTO APPLY                                  -->
+        <!-- ═══════════════════════════════════════════════════════════ -->
+        <div id="tab-linkedin" class="tab-pane active">
+          <!-- Account Status Card -->
+          <section id="accountCard" class="account-card disconnected">
+            <div class="account-head">
+              <div class="account-title-wrap">
+                <span class="account-dot"></span>
+                <strong id="accountTitle">Account</strong>
+              </div>
+              <span id="accountBadge" class="account-badge disconnected">Disconnected</span>
             </div>
-            <span id="accountBadge" class="account-badge disconnected">Disconnected</span>
-          </div>
-          <p id="accountText" class="account-text">
-            Sign in to connect your profile and enable auto-apply controls.
-          </p>
-          <div class="actions account-actions">
+            <p id="accountText" class="account-text">Sign in to connect your profile and sync quota.</p>
             <button id="accountAction" class="btn-account">
               <span id="accountActionText">Sign in to AutoApply CV</span>
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
             </button>
-          </div>
-        </section>
+          </section>
 
-        <!-- Quota & Balance Card -->
-        <section id="quotaCard" class="quota-card">
-          <div class="quota-header">
-            <div class="quota-title-wrap">
-              <div class="quota-icon-wrap">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"/><line x1="12" y1="6" x2="12" y2="8"/><line x1="12" y1="16" x2="12" y2="18"/></svg>
-              </div>
-              <div class="quota-text-wrap">
+          <!-- Quota Balance Card -->
+          <section id="quotaCard" class="quota-card">
+            <div class="quota-header">
+              <div class="quota-title-wrap">
                 <span class="quota-balance-title"><strong id="popupHiresCount">0</strong> Hires Available</span>
                 <span class="quota-sub-detail" id="popupQuotaDetail">Daily Free: 3/3 Used &bull; Spendable: 0</span>
               </div>
-            </div>
-            <a id="popupTopupLink" href="https://autoapplycv.in/dashboard/pricing" target="_blank" rel="noopener noreferrer" class="quota-topup-btn">
-              <span>Top Up</span>
-              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-            </a>
-          </div>
-        </section>
-
-        <!-- Copilot Run Area -->
-        <section id="runArea">
-          <!-- Hero Status Card -->
-          <section class="now-card">
-            <div class="now-icon" id="nowIcon">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></svg>
-            </div>
-            <div class="now-text">
-              <p id="nowTitle" class="now-title">Loading run state...</p>
-              <p id="nowDetail" class="now-detail">Connecting to extension service worker.</p>
+              <a id="popupTopupLink" href="https://autoapplycv.in/dashboard/pricing" target="_blank" class="quota-topup-btn">Top Up</a>
             </div>
           </section>
 
-          <!-- Live Metrics Counter -->
+          <!-- Status & Controls -->
+          <section class="now-card">
+            <p id="nowTitle" class="now-title">Ready on LinkedIn</p>
+            <p id="nowDetail" class="now-detail">Open LinkedIn Jobs search page to start auto-applying.</p>
+          </section>
+
           <div class="stats-row">
             <div class="stat-pill applied">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
               <span class="stat-val" id="applied">0</span>
               <span class="stat-lbl">Applied</span>
             </div>
             <div class="stat-pill skipped">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 4 15 12 5 20 5 4"/><line x1="19" y1="5" x2="19" y2="19"/></svg>
               <span class="stat-val" id="skipped">0</span>
               <span class="stat-lbl">Skipped</span>
             </div>
             <div class="stat-pill failed">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
               <span class="stat-val" id="failed">0</span>
               <span class="stat-lbl">Cooldown</span>
             </div>
           </div>
 
-          <!-- Mode Toggle & Badge -->
           <div class="mode-control">
             <label class="mode-switch" for="liveModeToggle">
               <input id="liveModeToggle" type="checkbox" />
-              <span class="mode-switch-ui" aria-hidden="true"></span>
+              <span class="mode-switch-ui"></span>
               <span class="mode-switch-text">Live Auto Submit</span>
             </label>
             <span id="modeBadge" class="mode-badge">Dry Run</span>
           </div>
 
-          <!-- Quick Action Buttons -->
           <div class="actions primary">
-            <button id="start" class="btn-start">
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-              <span>Start</span>
-            </button>
-            <button id="pause" class="btn-pause">
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
-              <span>Pause</span>
-            </button>
-            <button id="stop" class="btn-stop">
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><rect x="4" y="4" width="16" height="16" rx="2"/></svg>
-              <span>Stop</span>
-            </button>
+            <button id="start" class="btn-start">Start</button>
+            <button id="pause" class="btn-pause">Pause</button>
+            <button id="stop" class="btn-stop">Stop</button>
           </div>
 
-          <!-- Resume for Easy Apply Direct Shortcut -->
-          <div class="resume-quick-card">
-            <div class="resume-quick-info">
-              <div class="resume-icon-badge">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+          <div class="quick-links-row">
+            <a href="https://www.linkedin.com/jobs/" target="_blank" class="btn-link-action">Open LinkedIn Jobs</a>
+            <button id="popupClearLogs" class="btn-link-action muted">Clear Counters</button>
+          </div>
+        </div>
+
+        <!-- ═══════════════════════════════════════════════════════════ -->
+        <!-- TAB 2: INDEED AUTO APPLY                                    -->
+        <!-- ═══════════════════════════════════════════════════════════ -->
+        <div id="tab-indeed" class="tab-pane">
+          <!-- Account Status Card -->
+          <section id="indeedAccountCard" class="account-card disconnected">
+            <div class="account-head">
+              <div class="account-title-wrap">
+                <span class="account-dot"></span>
+                <strong id="indeedAccountTitle">Indeed & AutoApply Account</strong>
               </div>
-              <div class="resume-quick-text">
-                <span class="resume-quick-title">Easy Apply Resume</span>
-                <span class="resume-quick-sub">LinkedIn application settings</span>
-              </div>
+              <span id="indeedAccountBadge" class="account-badge disconnected">Disconnected</span>
             </div>
-            <a href="https://www.linkedin.com/jobs/application-settings/" target="_blank" rel="noopener noreferrer" class="resume-quick-btn" title="Open LinkedIn Application Settings">
-              <span>Manage</span>
-              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+            <p id="indeedAccountText" class="account-text">Sign in to connect your profile and sync quota.</p>
+            <button id="indeedAccountAction" class="btn-account">
+              <span id="indeedAccountActionText">Sign in to AutoApply CV</span>
+            </button>
+          </section>
+
+          <!-- Quota Balance Card -->
+          <section id="indeedQuotaCard" class="quota-card">
+            <div class="quota-header">
+              <div class="quota-title-wrap">
+                <span class="quota-balance-title"><strong id="indeedPopupHiresCount">0</strong> Hires Available</span>
+                <span class="quota-sub-detail" id="indeedPopupQuotaDetail">Daily Free: 3/3 Used &bull; Spendable: 0</span>
+              </div>
+              <a id="indeedPopupTopupLink" href="https://autoapplycv.in/dashboard/pricing" target="_blank" class="quota-topup-btn">Top Up</a>
+            </div>
+          </section>
+
+          <!-- Status & Controls -->
+          <section class="now-card">
+            <p id="indeedNowTitle" class="now-title">Ready on Indeed</p>
+            <p id="indeedNowDetail" class="now-detail">Open Indeed Jobs search page to start auto-applying.</p>
+          </section>
+
+          <div class="stats-row">
+            <div class="stat-pill applied">
+              <span class="stat-val" id="indeedApplied">0</span>
+              <span class="stat-lbl">Applied</span>
+            </div>
+            <div class="stat-pill skipped">
+              <span class="stat-val" id="indeedSkipped">0</span>
+              <span class="stat-lbl">Skipped</span>
+            </div>
+            <div class="stat-pill failed">
+              <span class="stat-val" id="indeedFailed">0</span>
+              <span class="stat-lbl">Cooldown</span>
+            </div>
+          </div>
+
+          <div class="mode-control">
+            <label class="mode-switch" for="indeedLiveModeToggle">
+              <input id="indeedLiveModeToggle" type="checkbox" />
+              <span class="mode-switch-ui"></span>
+              <span class="mode-switch-text">Live Auto Submit</span>
+            </label>
+            <span id="indeedModeBadge" class="mode-badge">Dry Run</span>
+          </div>
+
+          <div class="actions primary">
+            <button id="indeedStart" class="btn-start">Start</button>
+            <button id="indeedPause" class="btn-pause">Pause</button>
+            <button id="indeedStop" class="btn-stop">Stop</button>
+          </div>
+
+          <div class="quick-links-row">
+            <a href="https://www.indeed.com/jobs" target="_blank" class="btn-link-action">Open Indeed Jobs</a>
+            <button id="indeedClearLogs" class="btn-link-action muted">Clear Counters</button>
+          </div>
+        </div>
+
+        <!-- ═══════════════════════════════════════════════════════════ -->
+        <!-- TAB 3: WHATSAPP OUTREACH & CAMPAIGNS                        -->
+        <!-- ═══════════════════════════════════════════════════════════ -->
+        <div id="tab-whatsapp" class="tab-pane">
+          <section class="now-card">
+            <p class="now-title">WhatsApp Outreach Pro</p>
+            <p class="now-detail">Scrapes WhatsApp hiring contacts from LinkedIn posts & dispatches personalized messages.</p>
+          </section>
+
+          <div class="stats-row">
+            <div class="stat-pill applied">
+              <span class="stat-val" id="waTotalLeads">0</span>
+              <span class="stat-lbl">Leads Found</span>
+            </div>
+            <div class="stat-pill" style="border-color: rgba(37, 211, 102, 0.4); color: #25D366;">
+              <span class="stat-val" id="waContactedCount">0</span>
+              <span class="stat-lbl">Messages Sent</span>
+            </div>
+          </div>
+
+          <div class="field-group">
+            <label class="field-label">Message Template ({name}, {job_title}, {company}):</label>
+            <textarea id="waTemplateInput" class="popup-textarea" rows="3" placeholder="Hi {name}! I saw your post for {job_title}..."></textarea>
+          </div>
+
+          <div class="mode-control">
+            <label class="mode-switch" for="waAutoSendToggle">
+              <input id="waAutoSendToggle" type="checkbox" />
+              <span class="mode-switch-ui"></span>
+              <span class="mode-switch-text">Auto-Click Send on WhatsApp Web</span>
+            </label>
+          </div>
+
+          <div class="mode-control" style="margin-top: 6px;">
+            <label class="mode-switch" for="waAutoCloseToggle">
+              <input id="waAutoCloseToggle" type="checkbox" />
+              <span class="mode-switch-ui"></span>
+              <span class="mode-switch-text">Auto-Close Tab After Send</span>
+            </label>
+          </div>
+
+          <div class="mode-control" style="margin-top: 6px;">
+            <label class="mode-switch" for="waShowContactedToggle">
+              <input id="waShowContactedToggle" type="checkbox" />
+              <span class="mode-switch-ui"></span>
+              <span class="mode-switch-text">Show Already Contacted Recruiter Posts</span>
+            </label>
+          </div>
+
+          <div class="actions primary">
+            <button id="waAutoSendAllBtn" class="btn-start" style="background:#25D366; color:#0f172a; font-weight:700;">⚡ Start Auto-Sending</button>
+            <button id="waSaveBtn" class="btn-pause" style="color:#ffffff;">Save Settings</button>
+          </div>
+          <div class="quick-links-row" style="margin-top:8px;">
+            <a href="https://www.linkedin.com/feed/#autoapply-module=whatsapp" target="_blank" class="btn-link-action" style="color:#25D366; border-color:rgba(37,211,102,0.4);">
+              🌐 Open Feed (WhatsApp Mode)
             </a>
           </div>
+        </div>
 
-          <div class="popup-footer-row">
-            <button id="popupClearLogs" class="btn-clear-logs" title="Clear logs and reset run stats">
-              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-              <span>Clear Logs & Counters</span>
+        <!-- ═══════════════════════════════════════════════════════════ -->
+        <!-- TAB 4: LINKEDIN AUTO COMMENTER                              -->
+        <!-- ═══════════════════════════════════════════════════════════ -->
+        <div id="tab-commenter" class="tab-pane">
+          <section class="now-card">
+            <p class="now-title" id="acStatusTitle">Fast Auto Commenter</p>
+            <p class="now-detail" id="acStatusDetail">Auto-comments your portfolio & intro on LinkedIn hiring posts.</p>
+          </section>
+
+          <div class="stats-row">
+            <div class="stat-pill applied">
+              <span class="stat-val" id="acSessionCount">0</span>
+              <span class="stat-lbl">Session</span>
+            </div>
+            <div class="stat-pill skipped">
+              <span class="stat-val" id="acTotalCount">0</span>
+              <span class="stat-lbl">All-Time</span>
+            </div>
+          </div>
+
+          <div class="field-group">
+            <label class="field-label">Comment Pitch / Portfolio:</label>
+            <textarea id="acCommentInput" class="popup-textarea" rows="2" placeholder="Hi! I am actively looking for opportunities..."></textarea>
+          </div>
+
+          <div class="mode-control">
+            <label class="mode-switch" for="acSkipSeekersToggle">
+              <input id="acSkipSeekersToggle" type="checkbox" checked />
+              <span class="mode-switch-ui"></span>
+              <span class="mode-switch-text">Skip #OpenToWork / Job Seekers</span>
+            </label>
+          </div>
+
+          <div class="actions primary">
+            <button id="acStartBtn" class="btn-start">Start Commenting</button>
+            <button id="acStopBtn" class="btn-stop">Stop</button>
+          </div>
+        </div>
+
+        <!-- ═══════════════════════════════════════════════════════════ -->
+        <!-- TAB 5: EMAIL OUTREACH PRO & COLD EMAIL CAMPAIGNS            -->
+        <!-- ═══════════════════════════════════════════════════════════ -->
+        <div id="tab-emailoutreach" class="tab-pane">
+          <section class="now-card">
+            <p class="now-title">Email Outreach Pro</p>
+            <p class="now-detail">Scrapes verified recruiter emails from LinkedIn posts & dispatches personalized cold pitches via Gmail / Mail client.</p>
+          </section>
+
+          <div class="stats-row">
+            <div class="stat-pill applied">
+              <span class="stat-val" id="emailTotalLeads">0</span>
+              <span class="stat-lbl">Leads Found</span>
+            </div>
+            <div class="stat-pill" style="border-color: rgba(99, 102, 241, 0.4); color: #818cf8;">
+              <span class="stat-val" id="emailContactedCount">0</span>
+              <span class="stat-lbl">Emails Sent</span>
+            </div>
+          </div>
+
+          <div class="field-group">
+            <label class="field-label">Email Subject ({name}, {job_title}, {company}):</label>
+            <input id="emailSubjectInput" class="popup-input" type="text" placeholder="Application for {job_title} - Parveen" />
+          </div>
+
+          <div class="field-group">
+            <label class="field-label">Message Template ({name}, {job_title}, {company}, {email}):</label>
+            <textarea id="emailTemplateInput" class="popup-textarea" rows="3" placeholder="Hi {name}! I saw your hiring post for {job_title}..."></textarea>
+          </div>
+
+          <div class="field-group">
+            <label class="field-label">Email Client Mode:</label>
+            <select id="emailClientSelect" class="popup-input" style="background: rgba(15, 23, 42, 0.6); color: #f8fafc;">
+              <option value="gmail_web">🌐 Gmail Web Compose</option>
+              <option value="mailto">📧 System Default Mail Client (Mailto)</option>
+            </select>
+          </div>
+
+          <div class="mode-control" style="margin-top: 6px;">
+            <label class="mode-switch" for="emailAutoSendToggle">
+              <input id="emailAutoSendToggle" type="checkbox" checked />
+              <span class="mode-switch-ui"></span>
+              <span class="mode-switch-text">Auto-Submit Send on Gmail Web</span>
+            </label>
+          </div>
+
+          <div class="mode-control" style="margin-top: 6px;">
+            <label class="mode-switch" for="emailAutoCloseToggle">
+              <input id="emailAutoCloseToggle" type="checkbox" checked />
+              <span class="mode-switch-ui"></span>
+              <span class="mode-switch-text">Auto-Close Tab After Sending</span>
+            </label>
+          </div>
+
+          <div class="mode-control" style="margin-top: 6px;">
+            <label class="mode-switch" for="emailShowContactedToggle">
+              <input id="emailShowContactedToggle" type="checkbox" />
+              <span class="mode-switch-ui"></span>
+              <span class="mode-switch-text">Show Already Contacted Recruiter Posts</span>
+            </label>
+          </div>
+
+          <div class="actions primary">
+            <button id="emailAutoSendAllBtn" class="btn-start" style="background:linear-gradient(135deg, #6366f1, #4f46e5); color:#ffffff; font-weight:700;">⚡ Start Auto-Sending</button>
+            <button id="emailSaveBtn" class="btn-pause" style="color:#ffffff;">Save Settings</button>
+          </div>
+
+          <div class="quick-links-row" style="margin-top:8px;">
+            <a href="https://www.linkedin.com/feed/#autoapply-module=email" target="_blank" class="btn-link-action" style="color:#818cf8; border-color:rgba(99, 102, 241, 0.4);">
+              🌐 Open Feed (Email Pro Mode)
+            </a>
+          </div>
+        </div>
+
+        <!-- ═══════════════════════════════════════════════════════════ -->
+        <!-- TAB 6: ANSWER BANK & SETTINGS                               -->
+        <!-- ═══════════════════════════════════════════════════════════ -->
+        <div id="tab-settings" class="tab-pane">
+          <section class="now-card">
+            <p class="now-title">Screening Answer Bank</p>
+            <p class="now-detail">Auto-fills job questions (years of experience, notice period, salary expectations, sponsorship).</p>
+          </section>
+
+          <div class="card-box">
+            <strong style="font-size:12px; color:#cbd5e1;">Global Sync Active:</strong>
+            <p style="font-size:11px; color:#94a3b8; margin:4px 0;">
+              Answers saved here are shared across LinkedIn and Indeed automation bots seamlessly.
+            </p>
+          </div>
+
+          <div class="actions primary" style="margin-top:10px;">
+            <button id="openOptionsPageBtn" class="btn-start" style="width:100%;">
+              Open Full Settings & Answer Bank
             </button>
           </div>
-        </section>
-
-        <p id="status" class="status"></p>
+        </div>
       </section>
+
+      <footer class="foot">
+        <span class="foot-text">AutoApply CV Suite v3.0.0</span>
+      </footer>
     </main>
     <script src="popup.js"></script>
   </body>

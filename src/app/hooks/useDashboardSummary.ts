@@ -100,10 +100,14 @@ export function useDashboardSummary() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const mountedRef = useRef(false);
+  const inFlightRef = useRef(false);
 
   const loadRef = useRef(async (_silent = false) => {});
 
   loadRef.current = async (silent = false) => {
+    if (inFlightRef.current) return;
+    inFlightRef.current = true;
+
     if (!silent && mountedRef.current) {
       setLoading(true);
     }
@@ -121,6 +125,7 @@ export function useDashboardSummary() {
       if (!mountedRef.current) return;
       setError(err instanceof Error ? err.message : "Failed to fetch dashboard summary");
     } finally {
+      inFlightRef.current = false;
       if (mountedRef.current) {
         setLoading(false);
       }
@@ -132,18 +137,21 @@ export function useDashboardSummary() {
     void loadRef.current();
 
     const onImported = () => {
-      void loadRef.current(true);
+      if (document.visibilityState === "visible") {
+        void loadRef.current(true);
+      }
     };
     const onVisibilityChange = () => {
       if (document.visibilityState === "visible") {
         void loadRef.current(true);
       }
     };
+    // 45s interval that only fires when visible
     const intervalId = window.setInterval(() => {
       if (document.visibilityState === "visible") {
         void loadRef.current(true);
       }
-    }, 30000);
+    }, 45000);
 
     window.addEventListener("cp:extensionImported", onImported);
     document.addEventListener("visibilitychange", onVisibilityChange);

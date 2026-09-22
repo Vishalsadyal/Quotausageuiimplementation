@@ -1,7 +1,25 @@
 import { useEffect, useMemo, useState } from "react";
-import { Coins, RefreshCw, Wallet, ArrowDownLeft, ArrowUpRight } from "lucide-react";
+import {
+  Coins,
+  RefreshCw,
+  Wallet,
+  ArrowDownLeft,
+  ArrowUpRight,
+  Zap,
+  Crown,
+  Check,
+  Sparkles,
+  Flame,
+  ShieldCheck,
+  Loader2,
+  Users,
+  ArrowRight,
+  Layers,
+  Star,
+} from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { useExtensionPipelineStats } from "../../hooks/useExtensionPipelineStats";
+import { toast } from "sonner";
 
 type WalletSummary = {
   plan: "free" | "pro" | "coach";
@@ -82,7 +100,8 @@ export default function Billing() {
   const [wallet, setWallet] = useState<WalletSummary | null>(null);
   const [txns, setTxns] = useState<WalletTxn[]>([]);
   const [loading, setLoading] = useState(true);
-  const [processing, setProcessing] = useState(false);
+  const [processingTopup, setProcessingTopup] = useState(false);
+  const [upgradingPlan, setUpgradingPlan] = useState<string | null>(null);
   const [applyingDiscount, setApplyingDiscount] = useState(false);
   const [usdAmount, setUsdAmount] = useState(1.0);
   const [discountCode, setDiscountCode] = useState("");
@@ -91,7 +110,7 @@ export default function Billing() {
   const [error, setError] = useState("");
 
   const INR_PER_USD = 92.5;
-  const minTopupRupees = 50;
+  const minTopupRupees = 49;
   const minTopupUsd = 0.54;
   const minTopupUsdCents = Math.round(minTopupUsd * 100);
 
@@ -119,6 +138,8 @@ export default function Billing() {
   useEffect(() => {
     void loadWallet();
   }, []);
+
+  const currentPlan = user?.plan || wallet?.plan || "free";
 
   const formattedReset = useMemo(() => {
     if (!wallet?.dailyResetTime) return "-";
@@ -149,6 +170,97 @@ export default function Billing() {
       return null;
     });
   }, [computedRupees]);
+
+  const handlePlanUpgrade = async (targetPlan: "pro" | "coach") => {
+    try {
+      setUpgradingPlan(targetPlan);
+      setError("");
+      setMessage("");
+
+      const ready = await ensureRazorpayScript();
+      if (!ready) {
+        throw new Error("Unable to load Razorpay payment gateway");
+      }
+
+      const orderRes = await fetch("/api/billing/order", {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          "x-idempotency-key": `billing_plan_${targetPlan}_${user?.id}_${Date.now()}`,
+        },
+        body: JSON.stringify({ plan: targetPlan }),
+      });
+
+      const orderData = await orderRes.json();
+      if (!orderRes.ok || !orderData?.success) {
+        throw new Error(orderData?.message || "Failed to initiate plan upgrade");
+      }
+
+      const order = orderData.data;
+
+      const rzp = new (window.Razorpay as any)({
+        key: order.keyId,
+        amount: order.amount,
+        currency: order.currency,
+        name: "AutoApply CV",
+        description: targetPlan === "pro" ? "Pro Plan Upgrade - ₹49" : "Coach Plan Upgrade - ₹1,849",
+        order_id: order.orderId,
+        prefill: {
+          name: user?.name || "",
+          email: user?.email || "",
+          contact: user?.phone || "",
+        },
+        theme: { color: "#7C3AED" },
+        handler: async (response: {
+          razorpay_payment_id: string;
+          razorpay_order_id: string;
+          razorpay_signature: string;
+        }) => {
+          try {
+            setUpgradingPlan(targetPlan);
+            const verifyRes = await fetch("/api/billing/order/verify", {
+              method: "POST",
+              credentials: "include",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                plan: targetPlan,
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature,
+              }),
+            });
+
+            const verifyData = await verifyRes.json();
+            if (!verifyRes.ok || !verifyData?.success) {
+              throw new Error(verifyData?.message || "Payment verification failed");
+            }
+
+            toast.success(`🎉 Upgrade successful! You are now on the ${targetPlan.toUpperCase()} plan.`);
+            setMessage(`Your account has been upgraded to ${targetPlan.toUpperCase()}.`);
+            await loadWallet();
+            await refreshUser();
+          } catch (err) {
+            toast.error(err instanceof Error ? err.message : "Payment verification failed");
+            setError(err instanceof Error ? err.message : "Payment verification failed");
+          } finally {
+            setUpgradingPlan(null);
+          }
+        },
+        modal: {
+          ondismiss: () => {
+            setUpgradingPlan(null);
+          },
+        },
+      });
+
+      rzp.open();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to initiate checkout");
+      setError(err instanceof Error ? err.message : "Failed to initiate checkout");
+      setUpgradingPlan(null);
+    }
+  };
 
   const applyDiscount = async () => {
     try {
@@ -192,7 +304,7 @@ export default function Billing() {
       if (!Number.isFinite(usdAmount) || cents < minTopupUsdCents) {
         throw new Error(`Minimum top-up is $${minTopupUsd.toFixed(2)}`);
       }
-      setProcessing(true);
+      setProcessingTopup(true);
       setMessage("");
       setError("");
 
@@ -255,6 +367,7 @@ export default function Billing() {
             return;
           }
           setMessage(`Top-up successful. Credited ${verifyBody?.data?.creditedHires || order.hires} Hires.`);
+          toast.success(`Credited ${verifyBody?.data?.creditedHires || order.hires} Hires.`);
           await loadWallet();
           await refreshUser();
         },
@@ -264,7 +377,7 @@ export default function Billing() {
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to process top-up");
     } finally {
-      setProcessing(false);
+      setProcessingTopup(false);
     }
   };
 
@@ -277,12 +390,14 @@ export default function Billing() {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       {/* Top Header */}
-      <div className="flex flex-wrap items-center justify-between gap-2.5">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-lg font-bold text-gray-900 leading-tight">Hires Wallet</h1>
-          <p className="text-xs text-gray-500 mt-0.5">Buy Hires in USD. 1 Hire = 1 Apply. Minimum top-up $0.54.</p>
+          <h1 className="text-xl font-bold text-gray-900 leading-tight">Plans & Billing</h1>
+          <p className="text-xs text-gray-500 mt-0.5">
+            Manage your subscription, upgrade your daily apply limits, or top up Hires credits.
+          </p>
         </div>
         <button
           onClick={() => void loadWallet()}
@@ -293,40 +408,279 @@ export default function Billing() {
         </button>
       </div>
 
-      {message ? <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-emerald-800 text-xs">{message}</div> : null}
-      {error ? <div className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-rose-800 text-xs">{error}</div> : null}
+      {message ? <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-emerald-800 text-xs font-medium">{message}</div> : null}
+      {error ? <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-2.5 text-rose-800 text-xs font-medium">{error}</div> : null}
 
-      {/* 4 Stat Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5">
-        <div className="bg-white rounded-xl p-3 border border-gray-200/80 shadow-xs">
-          <div className="text-[10px] uppercase font-bold tracking-wider text-gray-400">Balance</div>
-          <div className="text-lg font-bold text-gray-900 mt-0.5 inline-flex items-center gap-1.5">
+      {/* ======================================================== */}
+      {/* 1. CURRENT PLAN & PLANS UPGRADE SECTION                  */}
+      {/* ======================================================== */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <h2 className="text-xs font-bold text-gray-900 uppercase tracking-wider inline-flex items-center gap-1.5">
+            <Layers className="w-4 h-4 text-purple-600" />
+            Select Your Plan
+          </h2>
+          <span className="text-xs font-medium text-gray-500">
+            Current Plan: <span className="font-bold uppercase text-purple-700">{currentPlan}</span>
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* Plan 1: Free Plan */}
+          <div
+            className={`rounded-2xl border p-5 bg-white transition-all relative flex flex-col justify-between ${
+              currentPlan === "free"
+                ? "border-gray-300 ring-2 ring-gray-400/20 shadow-xs"
+                : "border-gray-200 hover:border-gray-300"
+            }`}
+          >
+            {currentPlan === "free" && (
+              <span className="absolute -top-2.5 right-4 bg-gray-800 text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider">
+                Current Plan
+              </span>
+            )}
+            <div>
+              <div className="w-9 h-9 rounded-xl bg-gray-100 flex items-center justify-center text-gray-700 mb-3">
+                <Zap className="w-5 h-5" />
+              </div>
+              <h3 className="text-base font-bold text-gray-900">Free Tier</h3>
+              <p className="text-xs text-gray-500 mt-0.5">Starter access for light job hunting</p>
+
+              <div className="my-4">
+                <div className="flex items-baseline gap-1">
+                  <span className="text-3xl font-black text-gray-900">₹0</span>
+                  <span className="text-xs text-gray-500 font-medium">/month</span>
+                </div>
+              </div>
+
+              <ul className="space-y-2.5 text-xs text-gray-600 mb-6">
+                <li className="flex items-start gap-2">
+                  <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0 mt-0.5" />
+                  <span>3 Auto-Applies per day limit</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0 mt-0.5" />
+                  <span>Basic LinkedIn & Indeed matching</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0 mt-0.5" />
+                  <span>Standard application tracking</span>
+                </li>
+              </ul>
+            </div>
+
+            <button
+              disabled={currentPlan === "free"}
+              className={`w-full py-2.5 rounded-xl text-xs font-bold transition-all ${
+                currentPlan === "free"
+                  ? "bg-gray-100 text-gray-400 cursor-default"
+                  : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+              }`}
+            >
+              {currentPlan === "free" ? "Active" : "Downgrade"}
+            </button>
+          </div>
+
+          {/* Plan 2: Pro Plan (HERO / ₹49) */}
+          <div
+            className={`rounded-2xl border-2 p-5 bg-gradient-to-b from-purple-50/60 via-white to-indigo-50/40 relative flex flex-col justify-between shadow-md transition-all ${
+              currentPlan === "pro"
+                ? "border-purple-600 ring-4 ring-purple-600/15"
+                : "border-purple-500 hover:border-purple-600 hover:shadow-lg"
+            }`}
+          >
+            <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-to-r from-amber-400 to-amber-500 text-gray-950 text-[10px] font-black px-3 py-0.5 rounded-full uppercase tracking-wider flex items-center gap-1 shadow-xs">
+              <Flame className="w-3 h-3 fill-gray-950" />
+              BEST VALUE • 90% OFF
+            </div>
+
+            {currentPlan === "pro" && (
+              <span className="absolute -top-2.5 right-4 bg-purple-700 text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider">
+                Current Plan
+              </span>
+            )}
+
+            <div>
+              <div className="w-9 h-9 rounded-xl bg-purple-600 flex items-center justify-center text-white mb-3 shadow-md shadow-purple-600/20">
+                <Crown className="w-5 h-5" />
+              </div>
+              <h3 className="text-base font-bold text-gray-900 flex items-center gap-2">
+                Pro Plan
+                <Sparkles className="w-4 h-4 text-amber-500" />
+              </h3>
+              <p className="text-xs text-gray-500 mt-0.5">High-speed volume & recruiter outreach</p>
+
+              <div className="my-4">
+                <div className="flex items-baseline gap-1.5">
+                  <span className="text-3xl font-black text-purple-700">₹49</span>
+                  <span className="text-xs text-gray-500 font-medium">/month</span>
+                  <span className="text-xs line-through text-gray-400 ml-1">₹499</span>
+                </div>
+                <div className="text-[10px] text-emerald-700 font-bold mt-0.5">⚡ Limited Time Launch Pricing</div>
+              </div>
+
+              <ul className="space-y-2.5 text-xs text-gray-700 mb-6">
+                <li className="flex items-start gap-2 font-semibold text-gray-900">
+                  <Check className="w-3.5 h-3.5 text-purple-600 shrink-0 mt-0.5" />
+                  <span>Unlimited Auto-Applies</span>
+                </li>
+                <li className="flex items-start gap-2 font-semibold text-gray-900">
+                  <Check className="w-3.5 h-3.5 text-purple-600 shrink-0 mt-0.5" />
+                  <span>HR Recruiter Emails & Phones Extractor</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <Check className="w-3.5 h-3.5 text-purple-600 shrink-0 mt-0.5" />
+                  <span>AI Resume & Cover Letter Tailoring</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <Check className="w-3.5 h-3.5 text-purple-600 shrink-0 mt-0.5" />
+                  <span>Priority application speed</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <Check className="w-3.5 h-3.5 text-purple-600 shrink-0 mt-0.5" />
+                  <span>Instant UPI & QR Code activation</span>
+                </li>
+              </ul>
+            </div>
+
+            <button
+              onClick={() => handlePlanUpgrade("pro")}
+              disabled={upgradingPlan === "pro" || currentPlan === "pro"}
+              className={`w-full py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-md ${
+                currentPlan === "pro"
+                  ? "bg-purple-100 text-purple-700 cursor-default"
+                  : "bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white shadow-purple-500/20 hover:scale-[1.02] active:scale-[0.98]"
+              }`}
+            >
+              {upgradingPlan === "pro" ? (
+                <>
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  <span>Processing...</span>
+                </>
+              ) : currentPlan === "pro" ? (
+                <span>Active Plan</span>
+              ) : (
+                <>
+                  <span>Upgrade to Pro for ₹49</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </>
+              )}
+            </button>
+          </div>
+
+          {/* Plan 3: Coach Plan */}
+          <div
+            className={`rounded-2xl border p-5 bg-white transition-all relative flex flex-col justify-between ${
+              currentPlan === "coach"
+                ? "border-indigo-600 ring-2 ring-indigo-600/20 shadow-xs"
+                : "border-gray-200 hover:border-gray-300"
+            }`}
+          >
+            {currentPlan === "coach" && (
+              <span className="absolute -top-2.5 right-4 bg-indigo-700 text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider">
+                Current Plan
+              </span>
+            )}
+            <div>
+              <div className="w-9 h-9 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-700 mb-3">
+                <Users className="w-5 h-5" />
+              </div>
+              <h3 className="text-base font-bold text-gray-900">Career Coach</h3>
+              <p className="text-xs text-gray-500 mt-0.5">1-on-1 human guidance + automation</p>
+
+              <div className="my-4">
+                <div className="flex items-baseline gap-1">
+                  <span className="text-3xl font-black text-gray-900">₹1,849</span>
+                  <span className="text-xs text-gray-500 font-medium">/month</span>
+                  <span className="text-xs line-through text-gray-400 ml-1">₹4,999</span>
+                </div>
+              </div>
+
+              <ul className="space-y-2.5 text-xs text-gray-600 mb-6">
+                <li className="flex items-start gap-2">
+                  <Check className="w-3.5 h-3.5 text-indigo-600 shrink-0 mt-0.5" />
+                  <span>Everything in Pro Plan</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <Check className="w-3.5 h-3.5 text-indigo-600 shrink-0 mt-0.5" />
+                  <span>1-on-1 Resume & LinkedIn review</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <Check className="w-3.5 h-3.5 text-indigo-600 shrink-0 mt-0.5" />
+                  <span>Mock interview prep session</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <Check className="w-3.5 h-3.5 text-indigo-600 shrink-0 mt-0.5" />
+                  <span>Dedicated job hunt mentor</span>
+                </li>
+              </ul>
+            </div>
+
+            <button
+              onClick={() => handlePlanUpgrade("coach")}
+              disabled={upgradingPlan === "coach" || currentPlan === "coach"}
+              className={`w-full py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                currentPlan === "coach"
+                  ? "bg-indigo-100 text-indigo-700 cursor-default"
+                  : "bg-gray-900 hover:bg-black text-white hover:scale-[1.02]"
+              }`}
+            >
+              {upgradingPlan === "coach" ? (
+                <>
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  <span>Processing...</span>
+                </>
+              ) : currentPlan === "coach" ? (
+                <span>Active Plan</span>
+              ) : (
+                <span>Upgrade to Coach (₹1,849)</span>
+              )}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* ======================================================== */}
+      {/* 2. STATS OVERVIEW                                       */}
+      {/* ======================================================== */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 pt-2">
+        <div className="bg-white rounded-xl p-3.5 border border-gray-200/80 shadow-xs">
+          <div className="text-[10px] uppercase font-bold tracking-wider text-gray-400">Wallet Balance</div>
+          <div className="text-lg font-bold text-gray-900 mt-1 inline-flex items-center gap-1.5">
             <Wallet className="w-4 h-4 text-purple-600" />
             <span>{wallet?.hireBalance ?? 0}</span>
             <span className="text-xs font-normal text-gray-500">Hires</span>
           </div>
         </div>
-        <div className="bg-white rounded-xl p-3 border border-gray-200/80 shadow-xs">
-          <div className="text-[10px] uppercase font-bold tracking-wider text-gray-400">Daily Usage</div>
-          <div className="text-lg font-bold text-gray-900 mt-0.5">{mergedDailyUsage.used} / {mergedDailyUsage.cap}</div>
-          <div className="text-[11px] text-gray-500">Spendable: {mergedDailyUsage.spendable}</div>
+        <div className="bg-white rounded-xl p-3.5 border border-gray-200/80 shadow-xs">
+          <div className="text-[10px] uppercase font-bold tracking-wider text-gray-400">Daily Applies Usage</div>
+          <div className="text-lg font-bold text-gray-900 mt-1">
+            {mergedDailyUsage.used} / {currentPlan === "pro" ? "∞" : mergedDailyUsage.cap}
+          </div>
+          <div className="text-[11px] text-gray-500">
+            {currentPlan === "pro" ? "Unlimited Pro Active" : `Remaining today: ${mergedDailyUsage.remaining}`}
+          </div>
         </div>
-        <div className="bg-white rounded-xl p-3 border border-gray-200/80 shadow-xs">
-          <div className="text-[10px] uppercase font-bold tracking-wider text-gray-400">Purchased</div>
-          <div className="text-lg font-bold text-gray-900 mt-0.5">{wallet?.hirePurchased ?? 0} <span className="text-xs font-normal text-gray-500">Hires</span></div>
+        <div className="bg-white rounded-xl p-3.5 border border-gray-200/80 shadow-xs">
+          <div className="text-[10px] uppercase font-bold tracking-wider text-gray-400">Purchased Hires</div>
+          <div className="text-lg font-bold text-gray-900 mt-1">
+            {wallet?.hirePurchased ?? 0} <span className="text-xs font-normal text-gray-500">Hires</span>
+          </div>
         </div>
-        <div className="bg-white rounded-xl p-3 border border-gray-200/80 shadow-xs">
-          <div className="text-[10px] uppercase font-bold tracking-wider text-gray-400">Daily Reset</div>
-          <div className="text-xs font-semibold text-gray-900 mt-1 truncate">{formattedReset}</div>
-          <div className="text-[11px] text-gray-500 mt-0.5">Free left: {wallet?.freeRemaining ?? 0}</div>
+        <div className="bg-white rounded-xl p-3.5 border border-gray-200/80 shadow-xs">
+          <div className="text-[10px] uppercase font-bold tracking-wider text-gray-400">Daily Reset Time</div>
+          <div className="text-xs font-semibold text-gray-900 mt-1.5 truncate">{formattedReset}</div>
+          <div className="text-[11px] text-gray-500 mt-0.5">Free balance: {wallet?.freeRemaining ?? 0}</div>
         </div>
       </div>
 
-      {/* Top Up Hires Form */}
+      {/* ======================================================== */}
+      {/* 3. CUSTOM HIRES TOP UP WALLET                            */}
+      {/* ======================================================== */}
       <div className="bg-white rounded-xl p-4 border border-gray-200/80 shadow-xs space-y-3">
         <h2 className="text-xs font-bold text-gray-900 uppercase tracking-wider inline-flex items-center gap-1.5">
           <Coins className="w-4 h-4 text-purple-600" />
-          Top Up Hires
+          Top Up Hires Credits (Pay As You Go)
         </h2>
         <div className="flex flex-wrap items-end gap-3">
           <div>
@@ -377,10 +731,10 @@ export default function Billing() {
           </div>
           <button
             onClick={() => void startTopup()}
-            disabled={processing || belowMinUsd}
+            disabled={processingTopup || belowMinUsd}
             className="px-4 py-2 rounded-lg bg-gradient-to-r from-[#6366F1] to-[#A855F7] hover:from-[#5558E6] hover:to-[#9647E3] text-white text-xs font-bold shadow-xs hover:shadow-sm transition-all disabled:opacity-60 cursor-pointer"
           >
-            {processing ? "Processing..." : "Pay with Razorpay"}
+            {processingTopup ? "Processing..." : "Pay with Razorpay"}
           </button>
         </div>
         {discountPreview ? (
@@ -394,11 +748,13 @@ export default function Billing() {
           </div>
         ) : null}
         <div className="text-[11px] text-gray-500">
-          Charged in INR at approximate rate: $1 = INR {INR_PER_USD.toFixed(1)}.
+          Charged in INR at approximate rate: $1 = INR {INR_PER_USD.toFixed(1)}. Instant UPI / Card activation.
         </div>
       </div>
 
-      {/* Transaction History Card */}
+      {/* ======================================================== */}
+      {/* 4. TRANSACTION HISTORY                                  */}
+      {/* ======================================================== */}
       <div className="bg-white rounded-xl border border-gray-200/80 p-4 shadow-xs">
         <h2 className="text-xs font-bold text-gray-900 uppercase tracking-wider mb-3">Transaction History</h2>
         {loading ? <div className="text-xs text-gray-500">Loading wallet...</div> : null}

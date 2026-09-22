@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "motion/react";
 import {
   Search,
@@ -247,7 +247,11 @@ export default function Applications() {
     setIsAiModalOpen(true);
   };
 
+  const loadInFlightRef = useRef(false);
+
   const load = async () => {
+    if (loadInFlightRef.current) return;
+    loadInFlightRef.current = true;
     try {
       setLoading(true);
       setError("");
@@ -258,16 +262,18 @@ export default function Applications() {
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to fetch applications");
     } finally {
+      loadInFlightRef.current = false;
       setLoading(false);
     }
   };
 
   useEffect(() => {
     void load();
-  }, []);
-
-  useEffect(() => {
-    const onImported = () => void load();
+    const onImported = () => {
+      if (document.visibilityState === "visible") {
+        void load();
+      }
+    };
     window.addEventListener("cp:extensionImported", onImported);
     return () => window.removeEventListener("cp:extensionImported", onImported);
   }, []);

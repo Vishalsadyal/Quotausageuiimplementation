@@ -28,8 +28,15 @@ export default function Interview() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-lg font-bold text-gray-900 leading-tight">Interview Prep</h1>
-          <p className="text-xs text-gray-500 mt-0.5">Use real application outcomes to prepare smarter.</p>
+          <h1 className="text-xl font-bold text-gray-900 leading-tight flex items-center gap-2">
+            <span>Live AI Interview</span>
+            <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-300 tracking-wider">
+              BETA
+            </span>
+          </h1>
+          <p className="text-xs text-gray-500 mt-0.5">
+            Real-time AI voice & role-specific interview simulation tailored to your applications.
+          </p>
         </div>
         <button
           onClick={() => void refresh()}

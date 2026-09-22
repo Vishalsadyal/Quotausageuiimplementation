@@ -5,8 +5,8 @@ const STEP_DELAY_MS = 900;
 const NO_PROGRESS_TIMEOUT_MS = 120000;
 const NO_PROGRESS_MAX_CYCLES = 25;
 const EXHAUSTED_RESULTS_PAGE_STREAK_LIMIT = 6;
-const MANUAL_ANSWER_WAIT_MS = 45000;
-const MANUAL_ANSWER_POLL_MS = 1200;
+const MANUAL_ANSWER_WAIT_MS = 180000;
+const MANUAL_ANSWER_POLL_MS = 1500;
 const JOBS_SEARCH_URL = "https://www.linkedin.com/jobs/search/?f_AL=true";
 const PANEL_PREFS_KEY = "cpPanelPrefs";
 const RUN_SEEN_STORAGE_KEY = "cpRunSeenSnapshot";
@@ -5215,6 +5215,14 @@ function getActiveModal() {
   ]);
 }
 
+function isModalLoading(modal) {
+  if (!modal) return false;
+  if (modal.getAttribute("aria-busy") === "true") return true;
+  const loader = modal.querySelector(".artdeco-loader, .artdeco-loader__bar, [class*='skeleton'], [data-test-loading], .loader, .jobs-easy-apply-modal--loading");
+  if (loader && isVisibleElement(loader)) return true;
+  return false;
+}
+
 async function waitForModalOpen(timeoutMs = 4500) {
   const start = Date.now();
   while (Date.now() - start < timeoutMs) {
@@ -5223,6 +5231,25 @@ async function waitForModalOpen(timeoutMs = 4500) {
     await sleep(180);
   }
   return null;
+}
+
+async function waitForModalReady(modal, timeoutMs = 4500) {
+  if (!modal) return false;
+  const start = Date.now();
+  while (Date.now() - start < timeoutMs) {
+    const loading = isModalLoading(modal);
+    const blocks = collectQuestionBlocks(modal);
+    const nextBtn = findNextOrReviewButton(modal, { includeDisabled: true });
+    const submitBtn = findSubmitButton(modal);
+    if (!loading && (blocks.length > 0 || nextBtn || submitBtn)) {
+      return true;
+    }
+    await sleep(250);
+  }
+  const finalBlocks = collectQuestionBlocks(modal);
+  const finalNext = findNextOrReviewButton(modal, { includeDisabled: true });
+  const finalSubmit = findSubmitButton(modal);
+  return finalBlocks.length > 0 || Boolean(finalNext) || Boolean(finalSubmit);
 }
 
 function collectQuestionBlocks(modal) {
@@ -5776,56 +5803,111 @@ function findModalButtonByIncludes(modalOrRoot, includesList) {
   return null;
 }
 
+function findSaveApplicationPromptModal() {
+  const dialogs = Array.from(document.querySelectorAll("[role='alertdialog'], .artdeco-modal, div[data-test-modal], div[role='dialog']"));
+  for (const d of dialogs.reverse()) {
+    if (isSaveApplicationPrompt(d) && isVisibleElement(d)) {
+      return d;
+    }
+  }
+  return null;
+}
+
 function isSaveApplicationPrompt(modal) {
   const text = normalizeLabel(modal?.textContent || "");
   if (!text) return false;
   return (
     text.includes("save this application") ||
     text.includes("if you choose to not save") ||
-    text.includes("your application will be discarded")
+    text.includes("your application will be discarded") ||
+    text.includes("discard draft")
   );
 }
 
+let lastDismissPromptTime = 0;
+
 async function dismissSaveApplicationPrompt(modal) {
+  const now = Date.now();
+  if (now - lastDismissPromptTime < 1400) {
+    return true;
+  }
+  lastDismissPromptTime = now;
+
+  const targetScope = (modal && isSaveApplicationPrompt(modal)) ? modal : (findSaveApplicationPromptModal() || document);
   const discardBtn =
-    findModalButtonByIncludes(modal, ["discard"]) ||
-    findModalButtonByIncludes(modal, ["don't save", "dont save"]);
+    findModalButtonByIncludes(targetScope, ["discard"]) ||
+    findModalButtonByIncludes(targetScope, ["don't save", "dont save"]) ||
+    document.querySelector("button[data-control-name='discard_application_confirm_btn']") ||
+    document.querySelector("button[data-test-dialog-secondary-action]") ||
+    document.querySelector(".artdeco-modal__action-bar button:first-child");
   if (!discardBtn) return false;
+
   await resilientClick(discardBtn, "Discard draft application");
   await logLine("Dismissed 'Save this application?' prompt by discarding draft.");
+
+  // Wait safely for LinkedIn to process the discard and remove the dialog from DOM
+  for (let wait = 0; wait < 6; wait++) {
+    await sleep(350);
+    const stillThere = findSaveApplicationPromptModal();
+    if (!stillThere || !isVisibleElement(stillThere)) {
+      return true;
+    }
+  }
+
+  // Fallback: If LinkedIn API threw an error or dialog is hung, close via 'X' button or Escape
+  const closeBtn = targetScope.querySelector?.("button[aria-label*='Dismiss'], button[data-test-modal-close-btn], button.artdeco-modal__dismiss");
+  if (closeBtn && isVisibleElement(closeBtn)) {
+    await resilientClick(closeBtn, "Close prompt modal");
+    await sleep(300);
+  } else {
+    document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+    await sleep(200);
+  }
   return true;
 }
 
 async function closePostSubmitUi(settings, options = {}) {
   const preferDiscardDraft = Boolean(options.discardDraft);
   try {
-    for (let i = 0; i < 6; i += 1) {
-      const modal = getActiveModal();
-      if (!modal) break;
-      if (preferDiscardDraft && isSaveApplicationPrompt(modal)) {
-        const dismissed = await dismissSaveApplicationPrompt(modal);
-        if (dismissed) {
-          await sleep(240);
-          continue;
+    for (let i = 0; i < 4; i += 1) {
+      if (preferDiscardDraft) {
+        const promptModal = findSaveApplicationPromptModal();
+        if (promptModal) {
+          await dismissSaveApplicationPrompt(promptModal);
+          await sleep(400);
         }
+      }
+      const modal = getActiveModal();
+      if (!modal || !isVisibleElement(modal)) break;
+      if (preferDiscardDraft && isSaveApplicationPrompt(modal)) {
+        await dismissSaveApplicationPrompt(modal);
+        await sleep(400);
+        continue;
       }
       const doneBtn = findDoneOrCloseButton(modal);
       if (doneBtn) {
         await resilientClick(doneBtn, "Done/Close");
-        await sleep(220);
+        await sleep(450);
+        if (preferDiscardDraft) {
+          const promptAfter = findSaveApplicationPromptModal();
+          if (promptAfter) {
+            await dismissSaveApplicationPrompt(promptAfter);
+            await sleep(400);
+          }
+        }
       } else {
         document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
-        await sleep(180);
+        await sleep(250);
       }
     }
     if (preferDiscardDraft) {
-      const modal = getActiveModal();
-      if (modal && isSaveApplicationPrompt(modal)) {
-        await dismissSaveApplicationPrompt(modal);
+      const promptAfter = findSaveApplicationPromptModal();
+      if (promptAfter) {
+        await dismissSaveApplicationPrompt(promptAfter);
       }
     }
     document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
-    await sleep(120);
+    await sleep(150);
   } catch {
     // best effort
   }
@@ -6609,6 +6691,12 @@ async function processEasyApplyModal(settings) {
     return { submitted: false, skipped: true, reason: "No apply modal found" };
   }
 
+  const isReady = await waitForModalReady(modal, 4500);
+  if (!isReady) {
+    await logLine("⚠️ Easy Apply modal stuck loading form fields (network/spinner hang). Skipping job...", "warn");
+    return { submitted: false, skipped: true, reachedSubmit: false, reason: "Modal stuck loading (spinner timeout)" };
+  }
+
   let activeSettings = {
     ...settings,
     screeningAnswers: { ...(settings?.screeningAnswers || {}) }
@@ -6699,7 +6787,7 @@ async function processEasyApplyModal(settings) {
       validation: modalValidationBeforeAction || ""
     });
 
-    // Preflight pass: detect visible required fields first and resolve them before advancing.
+    // Progressive 4-Stage Resolution for Unresolved Required Questions
     if (unresolvedAfter.length > 0 && !unresolvedUnknownOnly) {
       if (changedAny && unresolvedImproved) {
         stepState.preflightAttempts += 1;
@@ -6714,39 +6802,36 @@ async function processEasyApplyModal(settings) {
         continue;
       }
 
-      const preflightAutoFixed = await attemptValidationAutoFix(modal, activeSettings);
-      if (preflightAutoFixed) {
-        stepState.preflightAttempts += 1;
-        stepStateBySignature.set(stepSignature, stepState);
-        await debugLog(settings, "Preflight validation auto-fix applied", {
-          preflightAttempts: stepState.preflightAttempts
-        });
-        previousSignature = getModalSignature(modal);
-        await sleep(Math.min(700, Math.floor(STEP_DELAY_MS * 0.7)));
-        continue;
+      // ── TIER 1: Ask user in Dashboard & Wait up to 3 minutes (180s) ──
+      if (stepState.manualAnswerWaits === 0 && shouldPauseForInput) {
+        const pendingQuestions = buildPendingQuestionsFromDiagnostics(unresolvedAfter, modalValidationBeforeActionRaw);
+        if (pendingQuestions.length > 0) {
+          await sendMessage({ type: "CP_REGISTER_PENDING_QUESTIONS", questions: pendingQuestions });
+          const firstLabel = pendingQuestions[0].questionLabel || "Required field";
+          await logLine(
+            `⏳ Unresolved question: "${firstLabel.slice(0, 55)}". Please answer in Dashboard (Jobs). Waiting 3 minutes...`,
+            "warn"
+          );
+          stepState.manualAnswerWaits += 1;
+          stepStateBySignature.set(stepSignature, stepState);
+
+          const waitResult = await waitForPendingAnswersFromSettings(pendingQuestions, 180000, 1500);
+          if (waitResult.ok) {
+            activeSettings.screeningAnswers = { ...activeSettings.screeningAnswers, ...waitResult.screeningAnswers };
+            await logLine("✅ Received user answers from Dashboard! Applying to form...", "info");
+            for (const block of questionBlocks) {
+              await fillQuestionBlock(block, activeSettings);
+            }
+            previousSignature = getModalSignature(modal);
+            await sleep(350);
+            continue;
+          } else {
+            await logLine("⏱️ 3-minute dashboard wait elapsed. Attempting AI contextual & resume relation matching...", "info");
+          }
+        }
       }
 
-      const preflightAggressiveFill = await forceAnswerModalQuestions(modal, activeSettings);
-      if (preflightAggressiveFill) {
-        stepState.preflightAttempts += 1;
-        stepStateBySignature.set(stepSignature, stepState);
-        await debugLog(settings, "Preflight aggressive fill applied", {
-          preflightAttempts: stepState.preflightAttempts
-        });
-        previousSignature = getModalSignature(modal);
-        await sleep(Math.min(700, Math.floor(STEP_DELAY_MS * 0.7)));
-        continue;
-      }
-
-      stepState.preflightAttempts += 1;
-      stepStateBySignature.set(stepSignature, stepState);
-      await debugLog(settings, "Preflight unresolved fields remain", {
-        preflightAttempts: stepState.preflightAttempts,
-        unresolvedRequired: unresolvedAfter.length,
-        unresolvedFields: unresolvedAfter.slice(0, 12).map((d) => summarizeQuestionBlockState(d))
-      });
-
-      // Solve all unresolved custom/required fields using AI Copilot + Resume
+      // ── TIER 2: Contextual AI & Resume Relationship Match ──
       let aiResolvedAny = false;
       for (const block of questionBlocks) {
         const state = getQuestionBlockState(block);
@@ -6774,7 +6859,21 @@ async function processEasyApplyModal(settings) {
         continue;
       }
 
-      // Avoid blind next-click loops by giving a few no-click preflight attempts first.
+      // ── TIER 3: Fallback / Positive Match / Default Valid Selection ──
+      const preflightAggressiveFill = await forceAnswerModalQuestions(modal, activeSettings);
+      const preflightAutoFixed = await attemptValidationAutoFix(modal, activeSettings);
+      if (preflightAggressiveFill || preflightAutoFixed) {
+        stepState.preflightAttempts += 1;
+        stepStateBySignature.set(stepSignature, stepState);
+        await logLine("Applied best fallback option for remaining required fields.", "warn");
+        previousSignature = getModalSignature(modal);
+        await sleep(Math.min(700, Math.floor(STEP_DELAY_MS * 0.7)));
+        continue;
+      }
+
+      // ── TIER 4: Preflight DOM registration pass ──
+      stepState.preflightAttempts += 1;
+      stepStateBySignature.set(stepSignature, stepState);
       if (stepState.preflightAttempts <= 2) {
         previousSignature = stepSignature;
         await sleep(Math.min(700, Math.floor(STEP_DELAY_MS * 0.7)));
@@ -6993,12 +7092,9 @@ async function processEasyApplyModal(settings) {
         }
 
         const unanswered = buildPendingQuestionsFromValidation(modal, validationRaw || "Required field answer missing");
-        if (unanswered.length && shouldPauseForInput) {
+        if (unanswered.length) {
           await sendMessage({ type: "CP_REGISTER_PENDING_QUESTIONS", questions: unanswered });
-          await logLine("Need your input for required application fields. Open dashboard Jobs to answer.", "warn");
-          await sendMessage({ type: "CP_PAUSE" });
-        } else if (unanswered.length) {
-          await logLine("Required fields unresolved and pause-at-failed-question is disabled. Skipping job.", "warn");
+          await logLine("Unresolved required fields after all retry tiers. Skipping to next job...", "warn");
         }
         captureDebugEvent("modal", "UNANSWERED_FIELDS_SKIPPED", {
           stepAttempt: safety,

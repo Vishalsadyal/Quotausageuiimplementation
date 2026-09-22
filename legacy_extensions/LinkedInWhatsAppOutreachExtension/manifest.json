@@ -1,0 +1,42 @@
+{
+  "manifest_version": 3,
+  "name": "LinkedIn to WhatsApp Job Outreach Pro",
+  "version": "1.0.0",
+  "description": "Extracts hiring job titles & WhatsApp numbers from LinkedIn posts, matches target titles, and automates personalized WhatsApp outreach.",
+  "permissions": [
+    "storage",
+    "tabs",
+    "activeTab",
+    "scripting"
+  ],
+  "host_permissions": [
+    "https://*.linkedin.com/*",
+    "https://web.whatsapp.com/*",
+    "https://api.whatsapp.com/*"
+  ],
+  "background": {
+    "service_worker": "src/background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://www.linkedin.com/*",
+        "https://linkedin.com/*"
+      ],
+      "js": ["src/content_linkedin.js"],
+      "css": ["src/panel.css"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": [
+        "https://web.whatsapp.com/*"
+      ],
+      "js": ["src/content_whatsapp.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "action": {
+    "default_popup": "popup/popup.html",
+    "default_title": "WhatsApp Job Outreach"
+  }
+}

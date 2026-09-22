@@ -32,7 +32,7 @@ export function QuotaUsage({ quotaResetTime, onUpgradeClick }: QuotaUsageProps) 
   const totalLabel = user?.plan === 'pro' ? 'Unlimited' : String(total);
   const planLabel =
     user?.plan === 'pro'
-      ? 'Pro ($3/mo)'
+      ? 'Pro (₹49/mo)'
       : balance > 0
       ? 'Custom (Top-up)'
       : 'Free';

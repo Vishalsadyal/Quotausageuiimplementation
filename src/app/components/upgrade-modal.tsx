@@ -38,21 +38,22 @@ export function UpgradeModal({ isOpen, onClose }: UpgradeModalProps) {
               </div>
 
               <Dialog.Description className="text-gray-600 text-base">
-                You reached the Free daily cap (3/day). Upgrade to Pro ($3/month) for unlimited auto-apply.
+                You reached the Free daily limit. Upgrade to Pro for just ₹49 to unlock unlimited auto-apply & recruiter contacts.
               </Dialog.Description>
             </div>
 
             <div className="px-8 py-6 space-y-6">
-              <div className="relative rounded-xl border-2 border-[#0EA5E9] bg-gradient-to-br from-blue-50/50 to-cyan-50/50 p-6">
-                <div className="absolute -top-3 left-6 bg-gradient-to-r from-[#0EA5E9] to-[#06B6D4] text-white text-xs font-semibold px-3 py-1 rounded-full">
-                  MOST POPULAR
+              <div className="relative rounded-xl border-2 border-purple-600 bg-gradient-to-br from-purple-50/60 to-indigo-50/60 p-6">
+                <div className="absolute -top-3 left-6 bg-gradient-to-r from-purple-600 to-indigo-600 text-white text-xs font-semibold px-3 py-1 rounded-full">
+                  MOST POPULAR • 90% OFF
                 </div>
 
                 <div className="mb-4">
                   <h3 className="text-xl font-semibold text-[#030213] mb-1">Pro Plan</h3>
                   <div className="flex items-baseline gap-1">
-                    <span className="text-4xl font-bold text-[#030213]">$3</span>
+                    <span className="text-4xl font-bold text-[#030213]">₹49</span>
                     <span className="text-gray-600">/month</span>
+                    <span className="text-sm line-through text-gray-400 ml-2">₹499</span>
                   </div>
                 </div>
 
@@ -66,7 +67,7 @@ export function UpgradeModal({ isOpen, onClose }: UpgradeModalProps) {
                     'Weekly analytics & insights'
                   ].map((feature, index) => (
                     <li key={index} className="flex items-start gap-3">
-                      <div className="w-5 h-5 rounded-full bg-[#0EA5E9] flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <div className="w-5 h-5 rounded-full bg-purple-600 flex items-center justify-center flex-shrink-0 mt-0.5">
                         <Check className="w-3 h-3 text-white" />
                       </div>
                       <span className="text-gray-700 text-sm">{feature}</span>
@@ -76,16 +77,16 @@ export function UpgradeModal({ isOpen, onClose }: UpgradeModalProps) {
 
                 <button
                   onClick={handleUpgrade}
-                  className="w-full bg-gradient-to-r from-[#0EA5E9] to-[#06B6D4] text-white py-3 rounded-lg font-semibold hover:shadow-lg hover:scale-[1.02] transition-all duration-200"
+                  className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white py-3 rounded-lg font-bold hover:shadow-lg hover:scale-[1.02] transition-all duration-200 cursor-pointer"
                 >
-                  Upgrade to Pro
+                  Get Pro Access for ₹49
                 </button>
               </div>
 
               <div className="rounded-xl border border-gray-200 bg-gray-50 p-4">
-                <h4 className="text-sm font-semibold text-[#030213] mb-2">Stay on Free ($0) Plan</h4>
+                <h4 className="text-sm font-semibold text-[#030213] mb-2">Stay on Free Plan</h4>
                 <p className="text-sm text-gray-600 mb-3">
-                  Free plan includes 3 applies/day, plus a free 30 Hires signup bonus. Or buy Custom Hires (1 Hire = 1 Apply, minimum top-up $0.54).
+                  Free plan includes 3 applies/day with basic matching. Upgrade anytime to unlock high-speed automation.
                 </p>
                 <button
                   onClick={() => onClose()}

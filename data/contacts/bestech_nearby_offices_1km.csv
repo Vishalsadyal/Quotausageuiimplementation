@@ -1,0 +1,4 @@
+name,category,address,lat,lon,phone,email,website,phone_source,email_source,osm_type,osm_id,distance_m
+Learning Routes Pvt Ltd,office:company,"Mohali, 160062",30.6758746,76.7400041,+91-8826664930,,https://www.learningroutes.in/,osm,,node,11007315724,124.5
+"windowit technologies pvt ltd, first floor Sector 65",office:company,"scr 61, first floor sector 65 phase 11, Mohali, 160062",30.6807505,76.7450219,9876997280,windowittech@gmail.com,https://www.windowit.in/,osm,website,node,9054502263,767.4
+ThinkNEXT Technology,office:educational_institution,"Sec 65, Chandi Path, Mohali, 160062",30.6780891,76.7478766,,,,,,node,4586801153,838.2

@@ -45,7 +45,9 @@ export async function sendTelegramNotification(text: string) {
 
 export function verifyTelegramWebhookSecret(req: Request) {
   const expected = env("TELEGRAM_WEBHOOK_SECRET");
-  if (!expected) return { ok: true as const };
+  if (!expected) {
+    return { ok: false as const, error: fail("Telegram webhook secret is not configured", 500, "CONFIG_ERROR") };
+  }
   const got = String(req.headers.get("x-telegram-bot-api-secret-token") || "").trim();
   if (got !== expected) {
     return { ok: false as const, error: fail("Forbidden", 403, "FORBIDDEN") };

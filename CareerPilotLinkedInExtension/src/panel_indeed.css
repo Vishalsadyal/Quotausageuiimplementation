@@ -1,0 +1,913 @@
+:root {
+  --cp-font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --cp-text: #0f172a;
+  --cp-text-muted: #64748b;
+  --cp-primary: #6366f1;
+  --cp-primary-gradient: linear-gradient(135deg, #6366f1, #8b5cf6);
+  --cp-success: #10b981;
+  --cp-warning: #f59e0b;
+  --cp-error: #ef4444;
+  --cp-bg: rgba(255, 255, 255, 0.92);
+  --cp-card-bg: rgba(248, 250, 252, 0.85);
+  --cp-border: rgba(226, 232, 240, 0.8);
+  --cp-shadow: 0 12px 40px -8px rgba(15, 23, 42, 0.16), 0 4px 16px -2px rgba(15, 23, 42, 0.08);
+}
+
+/* ── Toggle Floating Button ── */
+#cp-linkedin-copilot-toggle {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 2147483647;
+  width: 48px;
+  height: 48px;
+  border: 0;
+  border-radius: 16px;
+  background: var(--cp-primary-gradient);
+  color: #fff;
+  cursor: pointer;
+  box-shadow: 0 8px 24px -4px rgba(99, 102, 241, 0.45);
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+#cp-linkedin-copilot-toggle:hover {
+  transform: translateY(-3px) scale(1.04);
+  box-shadow: 0 12px 30px -4px rgba(99, 102, 241, 0.55);
+}
+
+/* ── Main Panel Container ── */
+#cp-linkedin-copilot-panel {
+  position: fixed;
+  right: 24px;
+  bottom: 84px;
+  width: 400px;
+  max-height: 84vh;
+  z-index: 2147483646;
+  display: flex;
+  flex-direction: column;
+  border-radius: 20px;
+  background: var(--cp-bg);
+  color: var(--cp-text);
+  font-family: var(--cp-font);
+  border: 1px solid var(--cp-border);
+  box-shadow: var(--cp-shadow);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  overflow: hidden;
+  transition: box-shadow 0.2s ease;
+}
+#cp-linkedin-copilot-panel.cp-hidden { display: none; }
+
+/* ── Header ── */
+#cp-linkedin-copilot-panel .cp-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--cp-border);
+  cursor: move;
+  user-select: none;
+  background: rgba(255, 255, 255, 0.5);
+}
+#cp-linkedin-copilot-panel .cp-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+#cp-linkedin-copilot-panel .cp-orb {
+  position: relative;
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  overflow: hidden;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.25);
+}
+#cp-linkedin-copilot-panel .cp-orb .cp-orb-img {
+  width: 100%;
+  height: 100%;
+  border-radius: 10px;
+  object-fit: cover;
+}
+#cp-linkedin-copilot-panel .cp-title {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #0f172a;
+  letter-spacing: -0.01em;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+#cp-linkedin-copilot-panel .cp-ai-sparkle {
+  font-size: 12px;
+  animation: cp-sparkle 2s infinite ease-in-out;
+}
+@keyframes cp-sparkle {
+  0%, 100% { transform: scale(1) rotate(0deg); opacity: 0.9; }
+  50% { transform: scale(1.2) rotate(15deg); opacity: 1; }
+}
+#cp-linkedin-copilot-panel .cp-sub {
+  font-size: 10.5px;
+  color: var(--cp-text-muted);
+  font-weight: 500;
+  margin-top: 1px;
+}
+#cp-linkedin-copilot-panel .cp-head-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+#cp-linkedin-copilot-panel .cp-badge {
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 3px 9px;
+  border-radius: 20px;
+  background: rgba(15, 23, 42, 0.06);
+  color: var(--cp-text-muted);
+  white-space: nowrap;
+  letter-spacing: 0.01em;
+}
+#cp-linkedin-copilot-panel .cp-badge.cp-run {
+  background: rgba(16, 185, 129, 0.12);
+  color: #059669;
+}
+#cp-linkedin-copilot-panel .cp-badge.cp-pause {
+  background: rgba(245, 158, 11, 0.12);
+  color: #d97706;
+}
+#cp-linkedin-copilot-panel .cp-window-actions {
+  display: flex;
+  gap: 4px;
+}
+#cp-linkedin-copilot-panel .cp-window-actions button {
+  width: 24px;
+  height: 24px;
+  border: 0;
+  border-radius: 8px;
+  background: rgba(15, 23, 42, 0.05);
+  color: var(--cp-text-muted);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.12s ease;
+}
+#cp-linkedin-copilot-panel .cp-window-actions button:hover {
+  background: rgba(15, 23, 42, 0.1);
+  color: #0f172a;
+}
+
+/* ── Indeed Account Card ── */
+#cp-linkedin-copilot-panel .cp-auth-card {
+  margin: 8px 14px 0;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 12px;
+  border: 1px solid var(--cp-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 11px;
+}
+#cp-linkedin-copilot-panel .cp-auth-card #cp-indeed-auth-link {
+  font-size: 10.5px;
+  font-weight: 700;
+  color: var(--cp-primary);
+  text-decoration: none;
+  padding: 3px 9px;
+  border-radius: 8px;
+  background: rgba(99, 102, 241, 0.1);
+  transition: all 0.15s ease;
+}
+#cp-linkedin-copilot-panel .cp-auth-card #cp-indeed-auth-link:hover {
+  background: rgba(99, 102, 241, 0.2);
+}
+
+/* ── Hero AI Action Center ── */
+#cp-linkedin-copilot-panel .cp-hero {
+  margin: 10px 14px 6px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: linear-gradient(145deg, rgba(99, 102, 241, 0.06), rgba(139, 92, 246, 0.04));
+  border: 1px solid rgba(99, 102, 241, 0.15);
+  box-shadow: 0 2px 10px rgba(99, 102, 241, 0.04);
+}
+#cp-linkedin-copilot-panel .cp-hero-header {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 4px;
+}
+#cp-linkedin-copilot-panel .cp-hero-status-pulse {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--cp-primary);
+  box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.7);
+  animation: cp-pulse 2s infinite;
+}
+@keyframes cp-pulse {
+  0% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.7); }
+  70% { box-shadow: 0 0 0 6px rgba(99, 102, 241, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0); }
+}
+#cp-linkedin-copilot-panel .cp-hero-status-title {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--cp-primary);
+}
+#cp-linkedin-copilot-panel .cp-hero-job-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #0f172a;
+  line-height: 1.3;
+  margin-bottom: 2px;
+}
+#cp-linkedin-copilot-panel .cp-hero-job-sub {
+  font-size: 11px;
+  color: var(--cp-text-muted);
+  line-height: 1.35;
+}
+#cp-linkedin-copilot-panel .cp-hero-metrics {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(99, 102, 241, 0.1);
+  flex-wrap: wrap;
+}
+#cp-linkedin-copilot-panel .cp-metric-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #334155;
+  background: rgba(255, 255, 255, 0.85);
+  padding: 3px 9px;
+  border-radius: 8px;
+  border: 1px solid rgba(226, 232, 240, 0.8);
+}
+#cp-linkedin-copilot-panel .cp-metric-pill svg {
+  display: block;
+  flex-shrink: 0;
+}
+#cp-linkedin-copilot-panel .cp-icon-success {
+  color: #10b981;
+}
+#cp-linkedin-copilot-panel .cp-icon-warning {
+  color: #f59e0b;
+}
+#cp-linkedin-copilot-panel .cp-icon-primary {
+  color: #6366f1;
+}
+#cp-linkedin-copilot-panel .cp-metric-val {
+  font-weight: 700;
+  color: #0f172a;
+}
+#cp-linkedin-copilot-panel .cp-metric-quota {
+  margin-left: auto;
+  color: var(--cp-primary);
+  background: rgba(99, 102, 241, 0.08);
+  border-color: rgba(99, 102, 241, 0.15);
+}
+
+/* ── Controls & Quick Actions ── */
+#cp-linkedin-copilot-panel .cp-controls {
+  padding: 6px 14px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+#cp-linkedin-copilot-panel .cp-run-mode {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+#cp-linkedin-copilot-panel .cp-run-mode-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+#cp-linkedin-copilot-panel .cp-run-mode-toggle input {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+  pointer-events: none;
+}
+#cp-linkedin-copilot-panel .cp-switch-ui {
+  width: 32px;
+  height: 18px;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.15);
+  position: relative;
+  flex-shrink: 0;
+  transition: background 0.15s ease;
+}
+#cp-linkedin-copilot-panel .cp-switch-ui::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 14px;
+  height: 14px;
+  border-radius: 999px;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+}
+#cp-linkedin-copilot-panel .cp-run-mode-toggle input:checked + .cp-switch-ui {
+  background: var(--cp-success);
+}
+#cp-linkedin-copilot-panel .cp-run-mode-toggle input:checked + .cp-switch-ui::after {
+  transform: translateX(14px);
+}
+#cp-linkedin-copilot-panel .cp-run-mode-label {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: #334155;
+}
+#cp-linkedin-copilot-panel .cp-run-mode-chip {
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 6px;
+  background: rgba(15, 23, 42, 0.06);
+  color: var(--cp-text-muted);
+}
+#cp-linkedin-copilot-panel .cp-run-mode-chip.cp-live {
+  background: rgba(16, 185, 129, 0.12);
+  color: #059669;
+}
+#cp-linkedin-copilot-panel .cp-run-mode-chip.cp-dry {
+  background: rgba(245, 158, 11, 0.12);
+  color: #d97706;
+}
+
+/* Quick Action Buttons */
+#cp-linkedin-copilot-panel .cp-quick {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+}
+#cp-linkedin-copilot-panel .cp-quick button {
+  border: 1px solid var(--cp-border);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.85);
+  padding: 8px 0;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: #334155;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+#cp-linkedin-copilot-panel .cp-quick button:hover {
+  background: #ffffff;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+}
+#cp-linkedin-copilot-panel .cp-quick #cp-start {
+  background: var(--cp-primary-gradient);
+  border-color: transparent;
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+}
+#cp-linkedin-copilot-panel .cp-quick #cp-start:hover {
+  box-shadow: 0 6px 16px rgba(99, 102, 241, 0.4);
+}
+#cp-linkedin-copilot-panel .cp-quick #cp-pause {
+  background: rgba(245, 158, 11, 0.08);
+  border-color: rgba(245, 158, 11, 0.2);
+  color: #d97706;
+}
+#cp-linkedin-copilot-panel .cp-quick #cp-stop {
+  background: rgba(239, 68, 68, 0.08);
+  border-color: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+}
+
+/* ── Tab Switcher ── */
+#cp-linkedin-copilot-panel .cp-tab-bar {
+  display: flex;
+  margin: 4px 14px 6px;
+  background: rgba(15, 23, 42, 0.04);
+  padding: 3px;
+  border-radius: 10px;
+  gap: 4px;
+}
+#cp-linkedin-copilot-panel .cp-tab {
+  flex: 1;
+  border: 0;
+  background: transparent;
+  color: var(--cp-text-muted);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 6px 0;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+#cp-linkedin-copilot-panel .cp-tab svg {
+  display: block;
+}
+#cp-linkedin-copilot-panel .cp-tab.cp-active {
+  background: #ffffff;
+  color: #0f172a;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+}
+
+/* ── AI Activity Feed & Logs Area ── */
+#cp-linkedin-copilot-panel .cp-log {
+  margin: 0 14px;
+  border-radius: 12px;
+  border: 1px solid var(--cp-border);
+  background: rgba(248, 250, 252, 0.6);
+  padding: 8px 10px;
+  overflow-y: auto;
+  flex: 1 1 auto;
+  min-height: 180px;
+  max-height: 280px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* Clean AI Feed Cards */
+#cp-linkedin-copilot-panel .cp-ai-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 7px 10px;
+  border-radius: 10px;
+  background: #ffffff;
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.02);
+  font-size: 11.5px;
+  line-height: 1.4;
+  animation: cp-fade-in 0.2s ease-out;
+}
+@keyframes cp-fade-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+#cp-linkedin-copilot-panel .cp-ai-card.cp-submitted {
+  background: rgba(16, 185, 129, 0.06);
+  border-color: rgba(16, 185, 129, 0.25);
+}
+#cp-linkedin-copilot-panel .cp-ai-card.cp-submitted .cp-ai-icon {
+  color: #059669;
+}
+#cp-linkedin-copilot-panel .cp-ai-card.cp-skipped {
+  background: rgba(245, 158, 11, 0.05);
+  border-color: rgba(245, 158, 11, 0.2);
+}
+#cp-linkedin-copilot-panel .cp-ai-card.cp-skipped .cp-ai-icon {
+  color: #d97706;
+}
+#cp-linkedin-copilot-panel .cp-ai-card.cp-error {
+  background: rgba(239, 68, 68, 0.06);
+  border-color: rgba(239, 68, 68, 0.2);
+}
+#cp-linkedin-copilot-panel .cp-ai-card.cp-error .cp-ai-icon {
+  color: #dc2626;
+}
+#cp-linkedin-copilot-panel .cp-ai-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  color: var(--cp-primary);
+  margin-top: 1px;
+}
+
+/* ── Decision Chain & Diagnostic Trace ── */
+#cp-linkedin-copilot-panel .cp-diag-card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: #ffffff;
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  font-size: 11px;
+  line-height: 1.35;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+  animation: cp-fade-in 0.2s ease-out;
+}
+#cp-linkedin-copilot-panel .cp-diag-card.cp-diag-success {
+  border-color: rgba(16, 185, 129, 0.3);
+  background: rgba(16, 185, 129, 0.04);
+}
+#cp-linkedin-copilot-panel .cp-diag-card.cp-diag-warn {
+  border-color: rgba(245, 158, 11, 0.3);
+  background: rgba(245, 158, 11, 0.04);
+}
+#cp-linkedin-copilot-panel .cp-diag-card.cp-diag-error {
+  border-color: rgba(239, 68, 68, 0.3);
+  background: rgba(239, 68, 68, 0.04);
+}
+#cp-linkedin-copilot-panel .cp-diag-card.cp-diag-muted {
+  border-color: rgba(148, 163, 184, 0.3);
+  background: rgba(241, 245, 249, 0.5);
+}
+#cp-linkedin-copilot-panel .cp-diag-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+#cp-linkedin-copilot-panel .cp-diag-badge {
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(99, 102, 241, 0.12);
+  color: var(--cp-primary);
+}
+#cp-linkedin-copilot-panel .cp-diag-card.cp-diag-success .cp-diag-badge {
+  background: rgba(16, 185, 129, 0.15);
+  color: #059669;
+}
+#cp-linkedin-copilot-panel .cp-diag-card.cp-diag-warn .cp-diag-badge {
+  background: rgba(245, 158, 11, 0.15);
+  color: #d97706;
+}
+#cp-linkedin-copilot-panel .cp-diag-card.cp-diag-muted .cp-diag-badge {
+  background: rgba(148, 163, 184, 0.2);
+  color: #475569;
+}
+#cp-linkedin-copilot-panel .cp-diag-code {
+  font-size: 9px;
+  font-family: monospace;
+  color: #64748b;
+  background: #f1f5f9;
+  padding: 1px 5px;
+  border-radius: 3px;
+  border: 1px solid #e2e8f0;
+}
+#cp-linkedin-copilot-panel .cp-diag-time {
+  margin-left: auto;
+  font-size: 9.5px;
+  color: #94a3b8;
+  font-family: monospace;
+}
+#cp-linkedin-copilot-panel .cp-diag-body {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  color: #1e293b;
+}
+#cp-linkedin-copilot-panel .cp-diag-icon {
+  flex-shrink: 0;
+  display: inline-flex;
+  margin-top: 1px;
+  color: var(--cp-primary);
+}
+#cp-linkedin-copilot-panel .cp-diag-msg {
+  word-break: break-word;
+}
+#cp-linkedin-copilot-panel .cp-ai-icon svg {
+  display: block;
+}
+#cp-linkedin-copilot-panel .cp-ai-text {
+  flex: 1;
+  color: #1e293b;
+}
+#cp-linkedin-copilot-panel .cp-ai-text strong {
+  font-weight: 700;
+  color: #0f172a;
+}
+#cp-linkedin-copilot-panel .cp-ai-time {
+  font-size: 9.5px;
+  color: #94a3b8;
+  flex-shrink: 0;
+}
+
+/* Raw Log View (when toggled to detailed logs) */
+#cp-linkedin-copilot-panel .cp-line {
+  margin: 2px 0;
+}
+#cp-linkedin-copilot-panel .cp-bubble {
+  display: inline-block;
+  border-radius: 8px;
+  padding: 5px 8px;
+  max-width: 95%;
+  font-size: 11px;
+  background: #ffffff;
+  border: 1px solid var(--cp-border);
+}
+#cp-linkedin-copilot-panel:not(.cp-debug-ui) .cp-line.cp-debug {
+  display: none;
+}
+
+/* Typing / AI Working Indicator */
+#cp-linkedin-copilot-panel .cp-typing-card {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: rgba(99, 102, 241, 0.06);
+  border: 1px solid rgba(99, 102, 241, 0.15);
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--cp-primary);
+}
+#cp-linkedin-copilot-panel .cp-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--cp-primary);
+  animation: cp-dot-pulse 1.4s ease-in-out infinite;
+}
+#cp-linkedin-copilot-panel .cp-dot:nth-child(2) { animation-delay: 0.15s; }
+#cp-linkedin-copilot-panel .cp-dot:nth-child(3) { animation-delay: 0.30s; }
+
+@keyframes cp-dot-pulse {
+  0%, 44%, 100% { opacity: 0.3; transform: translateY(0); }
+  28% { opacity: 1; transform: translateY(-2px); }
+}
+
+/* ── Composer / Command Bar ── */
+#cp-linkedin-copilot-panel .cp-composer {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 6px;
+  align-items: center;
+  margin: 8px 14px 12px;
+  padding: 4px 4px 4px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--cp-border);
+  background: rgba(255, 255, 255, 0.7);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.02);
+}
+#cp-linkedin-copilot-panel .cp-composer:focus-within {
+  border-color: var(--cp-primary);
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12);
+}
+#cp-linkedin-copilot-panel .cp-composer input {
+  border: 0;
+  outline: none;
+  width: 100%;
+  font-size: 12px;
+  color: #0f172a;
+  background: transparent;
+  padding: 6px 0;
+}
+#cp-linkedin-copilot-panel .cp-composer input::placeholder {
+  color: var(--cp-text-muted);
+}
+#cp-linkedin-copilot-panel .cp-composer button {
+  padding: 6px 12px;
+  border: 0;
+  border-radius: 8px;
+  background: var(--cp-primary);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+#cp-linkedin-copilot-panel .cp-composer button:hover {
+  opacity: 0.9;
+}
+
+/* ── Icon Buttons ── */
+#cp-linkedin-copilot-panel .cp-icon-btn {
+  width: 24px;
+  height: 24px;
+  border: 0;
+  border-radius: 6px;
+  background: rgba(15, 23, 42, 0.05);
+  color: var(--cp-text-muted);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+#cp-linkedin-copilot-panel .cp-icon-btn:hover {
+  background: rgba(15, 23, 42, 0.1);
+}
+
+/* ── Minimized / Maximized States ── */
+#cp-linkedin-copilot-panel.cp-minimized {
+  max-height: none !important;
+  height: auto !important;
+}
+#cp-linkedin-copilot-panel.cp-minimized .cp-hero,
+#cp-linkedin-copilot-panel.cp-minimized .cp-controls,
+#cp-linkedin-copilot-panel.cp-minimized .cp-tab-bar,
+#cp-linkedin-copilot-panel.cp-minimized .cp-log,
+#cp-linkedin-copilot-panel.cp-minimized .cp-composer,
+#cp-linkedin-copilot-panel.cp-minimized .cp-auth-card {
+  display: none;
+}
+#cp-linkedin-copilot-panel.cp-maximized {
+  width: 480px !important;
+  max-height: calc(100vh - 40px) !important;
+  height: calc(100vh - 40px) !important;
+}
+#cp-linkedin-copilot-panel.cp-maximized .cp-log {
+  max-height: none;
+  flex: 1;
+}
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  #cp-linkedin-copilot-toggle { right: 14px; bottom: 14px; width: 42px; height: 42px; }
+  #cp-linkedin-copilot-panel { right: 8px; left: 8px; width: auto; bottom: 68px; max-height: calc(100vh - 78px); }
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   IN-PAGE LIVE HUD & JOB CARD OVERLAYS ON INDEED
+   ══════════════════════════════════════════════════════════════════ */
+
+/* ── Floating In-Page Live HUD ── */
+#cp-indeed-live-hud {
+  position: fixed;
+  top: 18px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 2147483640;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 20px;
+  background: rgba(15, 23, 42, 0.92);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 9999px;
+  box-shadow: 0 12px 35px -6px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 13.5px;
+  font-weight: 600;
+  pointer-events: none;
+  animation: cp-hud-slide-down 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: all 0.25s ease;
+  max-width: 90vw;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@keyframes cp-hud-slide-down {
+  0% { transform: translate(-50%, -24px); opacity: 0; }
+  100% { transform: translate(-50%, 0); opacity: 1; }
+}
+
+#cp-indeed-live-hud.cp-hud-hidden {
+  display: none !important;
+}
+
+#cp-indeed-live-hud .cp-hud-pulse {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #10b981;
+  box-shadow: 0 0 10px #10b981, 0 0 20px #10b981;
+  animation: cp-pulse-ring 1.6s infinite;
+  flex-shrink: 0;
+}
+
+#cp-indeed-live-hud.cp-hud-opening .cp-hud-pulse { background: #3b82f6; box-shadow: 0 0 10px #3b82f6; }
+#cp-indeed-live-hud.cp-hud-matching .cp-hud-pulse { background: #8b5cf6; box-shadow: 0 0 10px #8b5cf6; }
+#cp-indeed-live-hud.cp-hud-verified .cp-hud-pulse { background: #10b981; box-shadow: 0 0 10px #10b981; }
+#cp-indeed-live-hud.cp-hud-applying .cp-hud-pulse { background: #f59e0b; box-shadow: 0 0 10px #f59e0b; }
+#cp-indeed-live-hud.cp-hud-applied .cp-hud-pulse { background: #10b981; box-shadow: 0 0 10px #10b981; }
+#cp-indeed-live-hud.cp-hud-skipped .cp-hud-pulse { background: #94a3b8; box-shadow: 0 0 6px #94a3b8; }
+
+#cp-indeed-live-hud .cp-hud-title {
+  color: #f8fafc;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+#cp-indeed-live-hud .cp-hud-text {
+  color: #cbd5e1;
+  font-weight: 500;
+}
+
+#cp-indeed-live-hud .cp-hud-highlight {
+  color: #60a5fa;
+  font-weight: 700;
+}
+
+/* ── Active Job Card Glow & Badges on Indeed ── */
+.cp-indeed-card-active {
+  position: relative !important;
+  outline: 2.5px solid #004fcb !important;
+  outline-offset: -2px !important;
+  box-shadow: 0 0 22px rgba(0, 79, 203, 0.35) !important;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  background-color: rgba(240, 247, 255, 0.75) !important;
+  border-radius: 12px !important;
+}
+
+/* ── Floating Job Card Badge ── */
+.cp-card-badge {
+  position: absolute !important;
+  top: 8px !important;
+  right: 12px !important;
+  z-index: 100 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 5px !important;
+  padding: 4px 10px !important;
+  border-radius: 9999px !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  line-height: 1 !important;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12) !important;
+  pointer-events: none !important;
+  animation: cp-badge-pop 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+}
+
+@keyframes cp-badge-pop {
+  0% { transform: scale(0.7); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.cp-card-badge .cp-badge-dot {
+  width: 6px !important;
+  height: 6px !important;
+  border-radius: 50% !important;
+  display: inline-block !important;
+}
+
+/* Badge variants */
+.cp-badge-opening {
+  background: #eff6ff !important;
+  color: #1d4ed8 !important;
+  border: 1px solid #bfdbfe !important;
+}
+.cp-badge-opening .cp-badge-dot {
+  background: #3b82f6 !important;
+  box-shadow: 0 0 6px #3b82f6 !important;
+}
+
+.cp-badge-matching {
+  background: #f5f3ff !important;
+  color: #6d28d9 !important;
+  border: 1px solid #ddd6fe !important;
+}
+.cp-badge-matching .cp-badge-dot {
+  background: #8b5cf6 !important;
+  box-shadow: 0 0 6px #8b5cf6 !important;
+}
+
+.cp-badge-verified {
+  background: #ecfdf5 !important;
+  color: #047857 !important;
+  border: 1px solid #a7f3d0 !important;
+}
+.cp-badge-verified .cp-badge-dot {
+  background: #10b981 !important;
+  box-shadow: 0 0 6px #10b981 !important;
+}
+
+.cp-badge-applying {
+  background: #fffbeb !important;
+  color: #b45309 !important;
+  border: 1px solid #fde68a !important;
+}
+.cp-badge-applying .cp-badge-dot {
+  background: #f59e0b !important;
+  box-shadow: 0 0 6px #f59e0b !important;
+}
+
+.cp-badge-applied {
+  background: #dcfce7 !important;
+  color: #15803d !important;
+  border: 1px solid #86efac !important;
+}
+
+.cp-badge-skipped {
+  background: #f1f5f9 !important;
+  color: #64748b !important;
+  border: 1px solid #cbd5e1 !important;
+}

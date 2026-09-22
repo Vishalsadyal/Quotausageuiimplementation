@@ -1,0 +1,51 @@
+name,category,address,lat,lon,phone,email,website,phone_source,email_source,osm_type,osm_id
+AKSIPS,amenity:school,,30.6788431,76.7450518,,,,,,node,1763321123
+Richest Technologies Pvt. Ltd.,office:company,"SC21, Phase 10, Mohali, Punjab",30.6835885,76.7364979,+91 8427741155,info@richestsoft.com,https://richestsoft.com/,osm,website,node,2680503713
+BSNL,office:government,,30.6916007,76.7548766,,,,,,node,3618569507
+Kokri Web Development,office:company,"Kokri Web Development, S.C.O. 7, Sector 68, Near Grecian Hospital, Mohali, 160062",30.6895183,76.7236143,,,,,,node,4142651742
+Frob travelers,shop:travel_agency,,30.6606411,76.7352764,,,,,,node,4308193091
+ThinkNEXT Technology,office:educational_institution,"Sec 65, Chandi Path, Mohali, 160062",30.6780891,76.7478766,,,,,,node,4586801153
+Canara Bank,amenity:bank,"IISER Campus, Mohali, 140306",30.6636382,76.7254905,,,,,,node,5366136624
+Silver Oaks Hospital Blood Bank,amenity:blood_bank,"Mohali, Punjab, 160063",30.6921563,76.733062,01725097113; 01725063618,silveroakslab@yahoo.in,,osm,osm,node,6896428387
+"Fortis Hospital Mohali, Blood Bank",amenity:blood_bank,"Mohali, Punjab, 160062",30.6945723,76.7311683,0172469222; 01724692270,gopal.uniyal@fortishealthcare.com,http://www.fortishealthcare.com/india/hospitals-in-punjab/fortis-hospital-mohali#.VIq07c17jUY,osm,osm,node,6896428422
+Grecian Super Speciality Hospital Blood Bank,amenity:blood_bank,"Mohali, Punjab, 160062",30.6912987,76.7234833,01724696600; 01725098045; 01722234340; 01722234341,hadlabgrecian@gmail.com,https://www.grecianhospital.com/,osm,osm,node,6896428423
+Silver Oaks Hospitals,amenity:hospital,"Chandigarh, 160062",30.692086,76.733003,,,http://www.silveroakshospital.com,,,node,6908111147
+Grecian Hospital,amenity:hospital,"Punjab, 160062",30.6913534,76.7234401,062837 05192,info@grecianhospital.com,https://www.grecianhospital.com/,osm,osm,node,7051329437
+Chhina Dental Care,amenity:dentist,"Punjab, 160062",30.686601,76.7379396,2212682,,,osm,,node,7054108253
+Convenience Store,shop:convenience,,30.6639122,76.7256683,,,,,,node,7110401892
+Cafe Coffee Day,amenity:cafe,,30.658343,76.7368144,,,,,,node,7130950454
+English wine and beer shop,shop:alcohol,,30.6587676,76.736514,,,,,,node,7130950455
+Pandove Family Clinic,amenity:clinic,"Punjab, 160063",30.681776,76.7395515,,,,,,node,7856603961
+Universal Institute & Charitable Hospiital,amenity:hospital,"Punjab, 160062",30.6835144,76.7239832,,,,,,node,7856603965
+Chahal Hospital,amenity:hospital,"Punjab, 160062",30.681651,76.743628,,,,,,node,7856603981
+SR Dental Clinic and Implant Centre,amenity:dentist,"Punjab, 140308",30.6896664,76.7236435,,,,,,node,7856603992
+Grand Hospital,amenity:hospital,"Punjab, 160062",30.684294,76.7426798,,,,,,node,7856603996
+Trehan Hospital,amenity:hospital,"Punjab, 160062",30.679541,76.724947,,,,,,node,7856604009
+I- Med Hospital,amenity:hospital,"Punjab, 160062",30.6813262,76.744445,,,,,,node,7856604013
+ENT Hospital,amenity:hospital,"Punjab, 160062",30.679946,76.745555,,,,,,node,7856604024
+Dr. Deepak Joshi/ Spine Surgeon,amenity:clinic,"Fortis Hospital,, Sector 62, Phase VIII, Mohali, 160062",30.6944377,76.730969,+91 8054044777,,https://www.spineexpert.in/,website,,node,8261156234
+Eatery,amenity:restaurant,,30.6639449,76.725639,,,,,,node,8459915343
+Stationary Shop,shop:stationery,,30.6638822,76.7256958,,,,,,node,8459915344
+Aatambir's Restaurant,amenity:restaurant,,30.6636932,76.7252824,,,,,,node,8459915346
+LHC Eatery,amenity:restaurant,,30.66433,76.7294137,,,,,,node,8459915347
+"windowit technologies pvt ltd, first floor Sector 65",office:company,"scr 61, first floor sector 65 phase 11, Mohali, 160062",30.6807505,76.7450219,9876997280,windowittech@gmail.com,https://www.windowit.in/,osm,website,node,9054502263
+"Dr Manit Arora Fortis Hospital, Mohali,",amenity:clinic,"Fortis Hospital, Mohali, Chandigarh Panjab, India, 160062",30.6952431,76.7314039,+91-9915994243,Manit_arora@hotmail.com,https://www.aclspecialistchandigarh.in/,website,website,node,9176169482
+Sadda Punjab by Munish Jindal,office:educational_institution,"SCO - 9, SECTOR - 80, MOHALI, 145308",30.6772506,76.7219384,+918332830000,,https://saddapunjab.org/,osm,,node,9669556131
+Institute of Nano Science and Technology,office:educational_institution,,30.6609447,76.7275024,0172-2297000,cfao@inst.ac.in,https://inst.ac.in/,website,website,node,10697449707
+Yukti Herbs,amenity:hospital,"956, Sector 82 JLPL, Sahibzada Ajit Singh Nagar, 160055",30.6533309,76.7349821,08283865637,yuktiherbs@gmail.com,https://www.yuktiherbs.com/,osm,website,node,10810944121
+Learning Routes Pvt Ltd,office:company,"Mohali, 160062",30.6758746,76.7400041,+91-8826664930,,https://www.learningroutes.in/,osm,,node,11007315724
+Punjabi Chulla 68 Mohali,amenity:restaurant,"DSS 25, District One Market, Sector 68, Mohali",30.6810634,76.7236736,+919780420201,,https://www.punjabichullaldh.com/,osm,,node,11173878171
+Pinda Aale Restaurant in Mohali,amenity:restaurant,"Booth No 191, Mohali Bypass, Phase 10, Sector 64,, Mohali, 160062",30.6847834,76.7403955,09817800082,,https://maps.app.goo.gl/UwRPCSBuL9oGBYFGA,osm,,node,13086857789
+RADHE RADHE ENTERPRISES,shop:computer,"DSS-15, Jubilee junction, Airport Rd, Sector 66, Sahibzada Ajit Singh Nagar Mohali, 160062",30.6721416,76.7281397,+91-8558-000594,,,osm,,node,13306888670
+Banyan Tree School,amenity:school,"Chandigarh, 160047",30.6893447,76.7609644,0172-4602452,info@chd.banyantree.in,http://banyantree.in/chandigarh,osm,osm,way,260203308
+Ryan International School,amenity:school,"Chandigarh, 160047",30.6945464,76.755754,0172-2632410,ris.chandigarh@ryangroup.org,https://www.ryangroup.org/ryaninternational/cbse/chandigarh/ryan-international-school-sector-49-b,osm,osm,way,260209340
+Punjab Urban Devlopment Authority PUDA,office:government,Mohali,30.6961649,76.7307958,,,,,,way,410544052
+Punjab School Education Board,office:government,Mohali,30.6967063,76.7341537,,,,,,way,410544187
+Bestech Square,shop:mall,"Sector 66, Mohali",30.6734723,76.7401984,,,,,,way,732508664
+IISER Mohali,amenity:university,140306,30.663127,76.7270163,+91 - 172 - 2240266,,https://www.iisermohali.ac.in,website,,way,760710072
+Shopping Complex,shop:mall,,30.6637876,76.7256205,,,,,,way,761039333
+Government Model High School,amenity:school,"Chandigarh, 160047",30.6877284,76.7541086,0172-2674820,gmhs48d@gmail.com,https://www.gmhs48chd.com,osm,osm,way,1092459943
+Police Public School,amenity:school,"Sector 48 D, Chandigarh, 160047",30.6874146,76.7529019,9316039241,,,osm,,way,1136694131
+Punjab Urban Devlopment Authority,office:government,,30.6961453,76.7307438,,,,,,way,1276679004
+BHUPINDER SINGH CERAMIC STUDIO,amenity:school,"2700, SECTOR-67 SAS NAGAR MOHALI",30.6786832,76.7252031,,,,,,way,1283259138
+Retro Mocha,amenity:cafe,"Sco 15, Sector 68, Sector 68, SAS Nagar, Sahibzada Ajit Singh Nagar, Mohali, 160062",30.6846572,76.7223668,8708508035,,https://www.wheezmedia.com,osm,,way,1347254046

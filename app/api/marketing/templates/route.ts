@@ -81,11 +81,11 @@ export async function PATCH(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { id, ...updateData } = body;
+    const { id, name, subject, body: templateBody, category } = body;
 
-    if (!id) {
+    if (!id || typeof id !== 'string') {
       return NextResponse.json(
-        { error: 'Template ID is required' },
+        { error: 'Valid template ID is required' },
         { status: 400 }
       );
     }
@@ -108,6 +108,18 @@ export async function PATCH(req: NextRequest) {
         { status: 403 }
       );
     }
+
+    const updateData: {
+      name?: string;
+      subject?: string;
+      body?: string;
+      category?: string;
+    } = {};
+
+    if (typeof name === 'string') updateData.name = name.trim();
+    if (typeof subject === 'string') updateData.subject = subject.trim();
+    if (typeof templateBody === 'string') updateData.body = templateBody;
+    if (typeof category === 'string') updateData.category = category.trim();
 
     const template = await prisma.emailTemplate.update({
       where: { id },

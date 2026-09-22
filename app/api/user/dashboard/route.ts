@@ -166,16 +166,8 @@ export async function GET() {
 
     const [
       user,
-      jobsTotal,
-      jobsQueued,
-      jobsRunning,
-      jobsSucceeded,
-      jobsCancelled,
-      jobsDeadLetter,
-      jobsFailed,
-      applicationsSubmitted,
-      applicationsSkipped,
-      applicationsFailed,
+      jobStatusGroups,
+      appStatusGroups,
       recentJobs,
       jobsLast7Days,
     ] = await Promise.all([
@@ -189,16 +181,16 @@ export async function GET() {
           currentCity: true,
         },
       }),
-      prisma.autoApplyJob.count({ where: { userId } }),
-      prisma.autoApplyJob.count({ where: { userId, status: "queued" } }),
-      prisma.autoApplyJob.count({ where: { userId, status: "running" } }),
-      prisma.autoApplyJob.count({ where: { userId, status: "succeeded" } }),
-      prisma.autoApplyJob.count({ where: { userId, status: "cancelled" } }),
-      prisma.autoApplyJob.count({ where: { userId, status: "dead_letter" } }),
-      prisma.autoApplyJob.count({ where: { userId, status: "failed" } }),
-      prisma.application.count({ where: { userId, status: "submitted" } }),
-      prisma.application.count({ where: { userId, status: "skipped" } }),
-      prisma.application.count({ where: { userId, status: "failed" } }),
+      prisma.autoApplyJob.groupBy({
+        by: ["status"],
+        where: { userId },
+        _count: { _all: true },
+      }),
+      prisma.application.groupBy({
+        by: ["status"],
+        where: { userId },
+        _count: { _all: true },
+      }),
       prisma.autoApplyJob.findMany({
         where: { userId },
         orderBy: { createdAt: "desc" },
@@ -218,6 +210,32 @@ export async function GET() {
         select: { createdAt: true },
       }),
     ]);
+
+    // Map job status counts from groupBy aggregation
+    const jobCounts: Record<string, number> = {};
+    let jobsTotal = 0;
+    for (const group of jobStatusGroups) {
+      const count = group._count._all || 0;
+      jobCounts[group.status] = count;
+      jobsTotal += count;
+    }
+
+    const jobsQueued = jobCounts["queued"] || 0;
+    const jobsRunning = jobCounts["running"] || 0;
+    const jobsSucceeded = jobCounts["succeeded"] || 0;
+    const jobsCancelled = jobCounts["cancelled"] || 0;
+    const jobsDeadLetter = jobCounts["dead_letter"] || 0;
+    const jobsFailed = jobCounts["failed"] || 0;
+
+    // Map application status counts from groupBy aggregation
+    const appCounts: Record<string, number> = {};
+    for (const group of appStatusGroups) {
+      appCounts[group.status] = group._count._all || 0;
+    }
+
+    const applicationsSubmitted = appCounts["submitted"] || 0;
+    const applicationsSkipped = appCounts["skipped"] || 0;
+    const applicationsFailed = appCounts["failed"] || 0;
 
     const userSnapshot: UserSnapshot = {
       onboardingCompleted: Boolean(user?.onboardingCompleted),

@@ -1,7 +1,7 @@
 import { Prisma } from "@prisma/client";
 import { prisma } from "./prisma";
 
-export const MIN_TOPUP_RUPEES = 50;
+export const MIN_TOPUP_RUPEES = 49;
 
 function nextUtcMidnight(baseDate: Date) {
   const next = new Date(baseDate);

@@ -351,34 +351,28 @@ export async function POST(req: NextRequest) {
     const incoming = body.contacts || [];
 
     if (incoming.length > 0) {
-      for (const c of incoming) {
-        if (!c.email && !c.company && !c.name) continue;
+      const validContacts = incoming
+        .filter((c) => Boolean(c.email || c.company || c.name))
+        .map((c) => ({
+          userId,
+          name: c.name || "Hiring Manager",
+          title: c.title || "Technical Recruiter",
+          company: c.company || "Hiring Company",
+          email: c.email || "",
+          phone: c.phone || "",
+          linkedinUrl: c.linkedinUrl || "",
+          source: c.source || "extension",
+          jobType: c.jobType || "Remote / Hybrid",
+          searchKeyword: c.searchKeyword || "",
+          searchDate: c.searchDate || new Date().toISOString(),
+          notes: c.notes || "",
+        }));
 
-        // Check if contact already exists in global pool by email or (company + name)
-        const existing = await prisma.hROutreachContact.findFirst({
-          where: c.email
-            ? { email: c.email }
-            : { company: c.company || "", name: c.name || "" },
+      if (validContacts.length > 0) {
+        await prisma.hROutreachContact.createMany({
+          data: validContacts,
+          skipDuplicates: true,
         });
-
-        if (!existing) {
-          await prisma.hROutreachContact.create({
-            data: {
-              userId,
-              name: c.name || "Hiring Manager",
-              title: c.title || "Technical Recruiter",
-              company: c.company || "Hiring Company",
-              email: c.email || "",
-              phone: c.phone || "",
-              linkedinUrl: c.linkedinUrl || "",
-              source: c.source || "extension",
-              jobType: c.jobType || "Remote / Hybrid",
-              searchKeyword: c.searchKeyword || "",
-              searchDate: c.searchDate || new Date().toISOString(),
-              notes: c.notes || "",
-            },
-          });
-        }
       }
     }
 

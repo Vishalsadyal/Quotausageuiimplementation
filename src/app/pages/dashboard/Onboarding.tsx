@@ -1397,8 +1397,10 @@ export default function Onboarding() {
     void checkExtensionStatus({ silent: true });
 
     const extensionTimer = window.setInterval(() => {
-      void checkExtensionStatus({ silent: true });
-    }, 7000);
+      if (document.visibilityState === "visible") {
+        void checkExtensionStatus({ silent: true });
+      }
+    }, 15000);
 
     return () => {
       window.clearInterval(extensionTimer);

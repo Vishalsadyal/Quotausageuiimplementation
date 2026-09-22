@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "AutoApply CV - LinkedIn Auto Apply Bot",
-  "version": "2.6.1",
-  "description": "Free LinkedIn auto apply bot & Easy Apply copilot. Automate job applications safely with custom answer bank and live tracking.",
+  "name": "AutoApply CV - All-in-One Job Copilot & Outreach Suite",
+  "version": "3.1.0",
+  "description": "All-in-one job copilot: LinkedIn Easy Apply, Indeed automation, WhatsApp outreach, and live AI interview.",
   "icons": {
     "16": "icons/icon16.png",
     "32": "icons/icon32.png",
@@ -18,6 +18,13 @@
   ],
   "host_permissions": [
     "https://www.linkedin.com/*",
+    "https://*.linkedin.com/*",
+    "https://www.indeed.com/*",
+    "https://*.indeed.com/*",
+    "https://web.whatsapp.com/*",
+    "https://api.whatsapp.com/*",
+    "https://wa.me/*",
+    "https://mail.google.com/*",
     "https://autoapplycv.in/*",
     "https://www.autoapplycv.in/*",
     "https://autoapplycv.vercel.app/*",
@@ -36,23 +43,78 @@
   "web_accessible_resources": [
     {
       "resources": [
-        "icons/*.png"
+        "icons/*.png",
+        "images/*.png",
+        "images/*.jpg"
       ],
       "matches": [
-        "https://www.linkedin.com/*"
+        "https://www.linkedin.com/*",
+        "https://*.linkedin.com/*",
+        "https://www.indeed.com/*",
+        "https://*.indeed.com/*",
+        "https://web.whatsapp.com/*",
+        "https://mail.google.com/*"
       ]
     }
   ],
   "content_scripts": [
     {
       "matches": [
-        "https://www.linkedin.com/jobs/*"
+        "https://www.linkedin.com/jobs/*",
+        "https://*.linkedin.com/jobs/*"
       ],
       "js": [
         "src/content.js"
       ],
       "css": [
         "src/panel.css"
+      ],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": [
+        "https://www.linkedin.com/*",
+        "https://*.linkedin.com/*"
+      ],
+      "js": [
+        "src/content_linkedin_wa.js",
+        "src/content_linkedin_email.js",
+        "src/content_linkedin_commenter.js",
+        "src/content_linkedin_hr.js"
+      ],
+      "css": [
+        "src/panel_outreach.css"
+      ],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": [
+        "https://www.indeed.com/*",
+        "https://*.indeed.com/*"
+      ],
+      "js": [
+        "src/content_indeed.js"
+      ],
+      "css": [
+        "src/panel_indeed.css"
+      ],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": [
+        "https://web.whatsapp.com/*"
+      ],
+      "js": [
+        "src/content_whatsapp.js"
+      ],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": [
+        "https://mail.google.com/*"
+      ],
+      "js": [
+        "src/content_gmail.js"
       ],
       "run_at": "document_idle"
     },
@@ -78,12 +140,13 @@
   ],
   "options_page": "src/options.html",
   "action": {
-    "default_title": "AutoApply CV Copilot",
+    "default_title": "AutoApply CV Suite",
     "default_popup": "src/popup.html",
     "default_icon": {
       "16": "icons/icon16.png",
       "32": "icons/icon32.png",
-      "48": "icons/icon48.png"
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
     }
   }
 }

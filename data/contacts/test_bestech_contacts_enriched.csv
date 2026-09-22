@@ -1,0 +1,41 @@
+name,category,address,lat,lon,phone,email,website,phone_source,email_source,osm_type,osm_id
+Block B Market,shop:supermarket,,28.417077,77.0466108,,,,,,node,266729534
+Gardian Pharmacy,amenity:pharmacy,,28.4169284,77.0467817,,,,,,node,266729557
+Block D Market,shop:supermarket,,28.4173675,77.0510414,,,,,,node,266729875
+State Bank of India,amenity:bank,,28.3916847,77.0486793,,,,,,node,477905030
+ICICI Bank,amenity:bank,,28.3895183,77.0503769,100000000,,https://www.icicibank.com,website,,node,477905077
+Gobind Hospital,amenity:hospital,,28.3905221,77.0491169,,,,,,node,477905079
+Union Bank of India,amenity:bank,,28.3935986,77.0467381,,,https://www.unionbankofindia.co.in/,,,node,477905082
+Sai Heart and Trauma Center,amenity:hospital,,28.3978752,77.0455899,,,,,,node,477905091
+Central Bank of India,amenity:bank,,28.3949963,77.0462656,,,https://www.centralbankofindia.co.in,,,node,1363223153
+HDFC Bank,amenity:bank,,28.417248,77.050616,,,,,,node,1389062000
+Genius,amenity:pharmacy,,28.4169016,77.0467808,,,,,,node,1668936675
+Shoppers Stop,shop:clothes,"649, 649-6th Floor, Tower A Spaze iTechPark, Gurgaon, 122018",28.4129054,77.0421678,+91-7303843212,sales@magentoindia.in,https://www.magentoindia.in/,website,website,node,1668936684
+IndusInd Bank,amenity:bank,Golf Course Extension Road,28.40141,77.0486745,,,,,,node,4101264093
+HDFC Bank,amenity:bank,Golf Course Extension Road,28.4020622,77.050289,,,https://www.hdfcbank.com,,,node,4101294192
+Apollo Pharmacy,amenity:pharmacy,,28.4172278,77.0467067,,,,,,node,4446365689
+oppo,amenity:coworking_space,,28.4064803,77.0444033,,,,,,node,5257158322
+kunaic mandi mart,shop:supermarket,,28.4125265,77.0548353,,,,,,node,5877700285
+Indian Moment,shop:travel_agency,,28.4124288,77.0588806,,,,,,node,6138435085
+HDFC Bank,amenity:bank,Sohna Road,28.4195525,77.0385972,,,,,,node,6205074486
+Stryker Global Tech Center,office:company,"8th Floor, Vatika Business Park, Sohna Road, Gurugram, 122001",28.4059549,77.044758,,,,,,node,6215682700
+JMart,shop:convenience,,28.396487,77.0272011,,,,,,node,6223496988
+Nook,amenity:restaurant,"Gurugram, 122018",28.4063064,77.0448369,,,,,,node,6472488318
+Starbucks,amenity:cafe,"Vatika Business Park, Sohna Road, Gurugram, 122018",28.4061488,77.0451428,,,,,,node,6472488319
+McKinsey & Company,office:consulting,Sohna Road,28.4062298,77.0451391,,,https://www.mckinsey.com/knowledge-network/gurugram,,,node,6535129812
+Park Hospital Blood Bank,amenity:blood_bank,"Gurugram, Haryana, 122001",28.4200514,77.0482242,01244900037; 0124490038,raj1963_kanwar@yahoo.com; parkmedicenters@gmail.com,https://www.parkhospital.in/,osm,osm,node,6895185776
+Divine Look Clinic Centre,amenity:clinic,"Haryana, 122018",28.4118439,77.0485043,,,http://www.divinelook.in/,,,node,6991770316
+Park Hospital Gurgaon,amenity:hospital,"Haryana, 122001",28.4201363,77.0487258,7503141435,gurgaon@parkhospital.in,https://parkhospital.in/,osm,osm,node,6993926819
+Sona Devi Memorial Hospital and Trauma Centre,amenity:hospital,"Haryana, 122001",28.3966869,77.0464955,,,,,,node,6997845822
+Sai Dharamraj Hospital,amenity:hospital,"Haryana, 122101",28.3970019,77.045605,,,,,,node,6997926204
+Ekta Hospital,amenity:hospital,"Haryana, 122001",28.3981002,77.0453744,,,,,,node,6998006318
+"Sanjeevani Hospital, Gurgaon",amenity:hospital,"Haryana, 122001",28.3969405,77.046572,,,,,,node,6998051836
+Kamal Hospital and Maternity Centre,amenity:hospital,"Haryana, 122101",28.3887198,77.0501634,,,,,,node,7008444605
+Dr. Naresh Pandita,amenity:doctors,"Haryana, 122015",28.416015,77.048701,,,,,,node,7622826268
+Skin Clinic,amenity:clinic,"Haryana, 122018",28.4124174,77.0486222,,,,,,node,7622826301
+Best Urologist Atcomplete Family Clinic,amenity:clinic,"Haryana, 122018",28.4174052,77.0462792,,,,,,node,7622826309
+Wellness Eye Centre,amenity:clinic,"Haryana, 122003",28.4171183,77.0465259,,,,,,node,7622826311
+Vishesh Dental,amenity:dentist,"Haryana, 122018",28.4195288,77.0488361,,,,,,node,7622826312
+Dr. Anuj Sharma,amenity:doctors,"Haryana, 122015",28.416007,77.048314,,,,,,node,7622826342
+Dr. Aruna Kalra,amenity:doctors,"Haryana, 122002",28.4168587,77.0468088,,,,,,node,7622826351
+Bones Clinic - Orthopaedics,amenity:clinic,"Haryana, 122018",28.418045,77.052434,,,,,,node,7622826354

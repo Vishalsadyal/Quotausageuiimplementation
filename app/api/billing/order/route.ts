@@ -8,8 +8,8 @@ import { prisma } from "src/lib/prisma";
 import { enforceRateLimit, rateLimitKey } from "src/lib/rate-limit";
 
 const PLAN_AMOUNT_PAISE: Record<"pro" | "coach", number> = {
-  pro: 99900,
-  coach: 299900,
+  pro: Number(process.env.PLAN_PRO_PAISE || 4900),
+  coach: Number(process.env.PLAN_COACH_PAISE || 184900),
 };
 
 export async function POST(req: NextRequest) {

@@ -48,24 +48,25 @@ export default function Pricing() {
     {
       name: 'Pro',
       icon: Crown,
-      monthlyPrice: 3,
-      yearlyPrice: 36,
+      monthlyPrice: 0.59,
+      yearlyPrice: 5.9,
+      customPriceLabel: '₹49 / month',
       description: 'Unlimited applications with premium automation',
       features: [
         'Unlimited Auto-Apply',
+        'HR Recruiter Direct Email & Phone Extractor',
         'Advanced AI job matching',
         'AI resume builder and optimization',
         'Interview preparation AI tools',
         'Weekly analytics dashboard',
         'Priority support',
         'Cover letter generator',
-        'LinkedIn profile optimizer',
-        'Salary negotiation guide'
+        'LinkedIn & Indeed automation'
       ],
-      cta: 'Start Pro ($3/mo)',
+      cta: 'Start Pro (₹49/mo)',
       popular: true,
       gradient: 'from-[#6366F1] via-[#8B5CF6] to-[#A855F7]',
-      badge: 'BEST VALUE'
+      badge: 'LIMITED OFFER • 90% OFF'
     },
     {
       name: 'Custom Hires',

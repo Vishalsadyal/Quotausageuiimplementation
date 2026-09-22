@@ -144,7 +144,8 @@ export function useExtensionPipelineStats() {
                 const next = Array.from(seen).slice(-5000);
                 localStorage.setItem(importedKey, JSON.stringify(next));
                 try {
-                  window.dispatchEvent(new Event("cp:extensionImported"));
+                  // Debounce global broadcast to prevent rapid re-fetch storm
+                  window.dispatchEvent(new CustomEvent("cp:extensionImported", { detail: { count: delta.length } }));
                 } catch {
                   // ignore
                 }
@@ -171,15 +172,15 @@ export function useExtensionPipelineStats() {
     };
 
     const pingInterval = window.setInterval(() => {
-      requestSnapshot();
-    }, 10000);
+      if (document.visibilityState === "visible") {
+        requestSnapshot();
+      }
+    }, 15000);
 
-    const onImported = () => requestSnapshot();
     const onVisibilityChange = () => {
       if (document.visibilityState === "visible") requestSnapshot();
     };
 
-    window.addEventListener("cp:extensionImported", onImported as EventListener);
     document.addEventListener("visibilitychange", onVisibilityChange);
     requestSnapshot();
 
@@ -187,7 +188,6 @@ export function useExtensionPipelineStats() {
       active = false;
       window.clearTimeout(timer);
       window.clearInterval(pingInterval);
-      window.removeEventListener("cp:extensionImported", onImported as EventListener);
       document.removeEventListener("visibilitychange", onVisibilityChange);
     };
   }, []);

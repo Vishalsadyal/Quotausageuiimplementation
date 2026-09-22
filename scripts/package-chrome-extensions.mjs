@@ -20,75 +20,49 @@ function copyDirRecursive(src, dest) {
   }
 }
 
-// 1. Package LinkedIn Copilot Extension
-console.log('Packaging LinkedIn Copilot Extension...');
-const stagingLinkedin = path.join(workspaceRoot, '.ext_staging_linkedin');
-if (fs.existsSync(stagingLinkedin)) {
-  fs.rmSync(stagingLinkedin, { recursive: true, force: true });
+// 1. Package AutoApply CV Unified Suite Extension (v3.1.0)
+console.log('Packaging AutoApply CV Unified Extension Suite (v3.1.0)...');
+const stagingDir = path.join(workspaceRoot, '.ext_staging_suite');
+if (fs.existsSync(stagingDir)) {
+  fs.rmSync(stagingDir, { recursive: true, force: true });
 }
-fs.mkdirSync(stagingLinkedin, { recursive: true });
+fs.mkdirSync(stagingDir, { recursive: true });
 
+// Copy manifest.json
 fs.copyFileSync(
   path.join(workspaceRoot, 'CareerPilotLinkedInExtension', 'manifest.json'),
-  path.join(stagingLinkedin, 'manifest.json')
+  path.join(stagingDir, 'manifest.json')
 );
+
+// Copy icons
 copyDirRecursive(
   path.join(workspaceRoot, 'CareerPilotLinkedInExtension', 'icons'),
-  path.join(stagingLinkedin, 'icons')
+  path.join(stagingDir, 'icons')
 );
+
+// Copy src
 copyDirRecursive(
   path.join(workspaceRoot, 'CareerPilotLinkedInExtension', 'src'),
-  path.join(stagingLinkedin, 'src')
+  path.join(stagingDir, 'src')
 );
 
-const zip1 = path.join(workspaceRoot, 'AutoApplyCV-LinkedIn-Copilot-v2.6.1-ChromeStore.zip');
-const zip2 = path.join(workspaceRoot, 'CareerPilotLinkedInExtension.zip');
-const zip3 = path.join(workspaceRoot, 'AutoApplyCV-Copilot-v2.6.1-chrome-store.zip');
+// Read version from manifest
+const manifest = JSON.parse(fs.readFileSync(path.join(stagingDir, 'manifest.json'), 'utf8'));
+const version = manifest.version || '3.1.0';
+console.log(`Manifest Version: ${version}`);
 
-[zip1, zip2, zip3].forEach((z) => {
+const zipTargets = [
+  path.join(workspaceRoot, `AutoApplyCV-Suite-v${version}-ChromeStore.zip`),
+  path.join(workspaceRoot, `AutoApplyCV-Copilot-v${version}-chrome-store.zip`),
+  path.join(workspaceRoot, 'CareerPilotLinkedInExtension.zip'),
+];
+
+for (const z of zipTargets) {
   if (fs.existsSync(z)) fs.unlinkSync(z);
-  execSync(`powershell -Command "Compress-Archive -Path '${stagingLinkedin}\\*' -DestinationPath '${z}' -CompressionLevel Optimal"`);
+  execSync(`powershell -Command "Compress-Archive -Path '${stagingDir}\\*' -DestinationPath '${z}' -CompressionLevel Optimal"`);
   const stats = fs.statSync(z);
   console.log(`✓ Created: ${path.basename(z)} (${(stats.size / 1024).toFixed(1)} KB)`);
-});
-
-fs.rmSync(stagingLinkedin, { recursive: true, force: true });
-
-// 2. Package HR Outreach Extension
-console.log('\nPackaging HR Direct Outreach Extension...');
-const stagingHR = path.join(workspaceRoot, '.ext_staging_hroutreach');
-if (fs.existsSync(stagingHR)) {
-  fs.rmSync(stagingHR, { recursive: true, force: true });
 }
-fs.mkdirSync(stagingHR, { recursive: true });
 
-fs.copyFileSync(
-  path.join(workspaceRoot, 'HROutreachExtension', 'manifest.json'),
-  path.join(stagingHR, 'manifest.json')
-);
-copyDirRecursive(
-  path.join(workspaceRoot, 'HROutreachExtension', 'icons'),
-  path.join(stagingHR, 'icons')
-);
-copyDirRecursive(
-  path.join(workspaceRoot, 'HROutreachExtension', 'popup'),
-  path.join(stagingHR, 'popup')
-);
-copyDirRecursive(
-  path.join(workspaceRoot, 'HROutreachExtension', 'src'),
-  path.join(stagingHR, 'src')
-);
-
-const zipHR1 = path.join(workspaceRoot, 'AutoApplyCV-HROutreach-v1.1.0-ChromeStore.zip');
-const zipHR2 = path.join(workspaceRoot, 'HROutreachExtension.zip');
-
-[zipHR1, zipHR2].forEach((z) => {
-  if (fs.existsSync(z)) fs.unlinkSync(z);
-  execSync(`powershell -Command "Compress-Archive -Path '${stagingHR}\\*' -DestinationPath '${z}' -CompressionLevel Optimal"`);
-  const stats = fs.statSync(z);
-  console.log(`✓ Created: ${path.basename(z)} (${(stats.size / 1024).toFixed(1)} KB)`);
-});
-
-fs.rmSync(stagingHR, { recursive: true, force: true });
-console.log('\nAll Chrome Web Store zip packages ready!');
-
+fs.rmSync(stagingDir, { recursive: true, force: true });
+console.log('\n✅ Chrome Web Store upload packages created successfully!');

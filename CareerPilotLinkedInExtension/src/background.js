@@ -1880,6 +1880,474 @@ async function saveSettings(incoming = {}) {
   return merged;
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Combined Extension Suite Constants & State Management
+// ─────────────────────────────────────────────────────────────────────────────
+
+const DEFAULT_WA_SETTINGS = {
+  targetKeywords: [
+    'wordpress', 'shopify', 'php', 'web developer', 'frontend',
+    'full stack', 'react', 'web designer', 'javascript', 'html',
+    'developer', 'fresher', 'electrical', 'field engineer'
+  ],
+  messageTemplate: `Hi {name}!
+
+I saw your hiring post on LinkedIn regarding the {job_title} role.
+
+I am actively looking for new opportunities. Feel free to check out my portfolio & recent work:
+🌐 https://parveen-portfolio-xi.vercel.app/
+
+I am available for immediate joining and would love to connect and share more details!
+
+Best regards,
+Parveen`,
+  autoSendWhatsApp: true,
+  autoCloseTab: true,
+  autoLikePosts: true,
+  showAlreadyContacted: true,
+  filterJobSeekers: true,
+  matchAllHiringPosts: true,
+  removeSentPostFromFeed: false,
+  hideNonWhatsAppPosts: false,
+  autoScroll: true,
+  debugMode: true,
+  delayBetweenMessages: 4
+};
+
+const DEFAULT_EMAIL_SETTINGS = {
+  targetKeywords: [
+    'wordpress',
+    'shopify',
+    'php',
+    'web developer',
+    'frontend',
+    'full stack',
+    'react',
+    'web designer',
+    'javascript',
+    'html',
+    'developer',
+    'fresher',
+    'electrical',
+    'field engineer',
+    'python',
+    'node'
+  ],
+  subjectTemplate: 'Application for {job_title} - Parveen',
+  messageTemplate: `Hi {name},
+
+I saw your hiring post on LinkedIn regarding the {job_title} role at {company}.
+
+I am actively looking for new opportunities and have hands-on experience in modern web technologies, WordPress, Shopify, React, and Full Stack development.
+
+Feel free to check out my portfolio & recent work:
+🌐 https://parveen-portfolio-xi.vercel.app/
+
+I am available for immediate joining and would love to discuss how I can contribute to your team!
+
+Best regards,
+Parveen`,
+  emailClient: 'gmail_web', // 'gmail_web' or 'mailto'
+  autoCloseTab: false,
+  autoLikePosts: false,
+  showAlreadyContacted: true,
+  filterJobSeekers: true,
+  matchAllHiringPosts: true,
+  removeSentPostFromFeed: false,
+  hideNonEmailPosts: false,
+  autoScroll: true,
+  debugMode: true,
+  delayBetweenEmails: 5
+};
+
+const DEFAULT_AC_SETTINGS = {
+  commentText: "Hi! I am actively looking for new opportunities. Feel free to check out my portfolio & recent work: https://parveen-portfolio-xi.vercel.app/",
+  delaySec: 4,
+  maxComments: 25,
+  autoLike: true,
+  autoScroll: true,
+  skipJobSeekers: true,
+  skipAlreadyLiked: true,
+  debugMode: true,
+  filterKeywords: ""
+};
+
+let activeOutreachTask = null;
+let activeEmailOutreachTask = null;
+
+let acAppState = {
+  isRunning: false,
+  isPaused: false,
+  sessionCount: 0,
+  totalCount: 0,
+  activeTabId: null,
+  recentLogs: [],
+  debugLogs: []
+};
+
+const MAX_JSO_CONTACTS = 100;
+const JSO_STORAGE_KEY = 'jso_collected_hrs';
+const JSO_LOG_KEY = 'jso_debug_logs';
+
+function cleanPhoneNumber(raw) {
+  if (!raw) return '';
+  let digits = raw.replace(/\D/g, '');
+  if (digits.length === 10) {
+    digits = '91' + digits;
+  } else if (digits.length === 11 && digits.startsWith('0')) {
+    digits = '91' + digits.substring(1);
+  }
+  return digits;
+}
+
+async function saveLeadToStorage(lead) {
+  const { waLeads = [], contactedPhones = [] } = await chrome.storage.local.get(['waLeads', 'contactedPhones']);
+  const cleanPhone = cleanPhoneNumber(lead.phone);
+  const existingIndex = waLeads.findIndex(l => l.cleanPhone === cleanPhone || (lead.urn && l.urn === lead.urn));
+  const isAlreadyContacted = contactedPhones.includes(cleanPhone);
+
+  const leadRecord = {
+    id: lead.id || `lead_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
+    urn: lead.urn || '',
+    recruiterName: lead.recruiterName || 'Hiring Manager',
+    jobTitle: lead.jobTitle || 'Engineer',
+    company: lead.company || '',
+    rawPhone: lead.phone,
+    cleanPhone: cleanPhone,
+    postSnippet: lead.postSnippet || '',
+    timestamp: lead.timestamp || new Date().toISOString(),
+    status: isAlreadyContacted ? 'sent' : (lead.status || 'pending')
+  };
+
+  if (existingIndex >= 0) {
+    waLeads[existingIndex] = { ...waLeads[existingIndex], ...leadRecord };
+  } else {
+    waLeads.unshift(leadRecord);
+  }
+
+  while (waLeads.length > 300) {
+    waLeads.pop();
+  }
+
+  await chrome.storage.local.set({ waLeads });
+  return { success: true, lead: leadRecord };
+}
+
+async function handleDispatchWhatsApp(lead) {
+  const { waSettings, contactedPhones = [] } = await chrome.storage.local.get(['waSettings', 'contactedPhones']);
+  const settings = waSettings || DEFAULT_WA_SETTINGS;
+  const cleanPhone = cleanPhoneNumber(lead.phone);
+  if (!cleanPhone) {
+    throw new Error('Invalid phone number: ' + lead.phone);
+  }
+
+  let text = settings.messageTemplate || DEFAULT_WA_SETTINGS.messageTemplate;
+  text = text.replace(/{name}/g, lead.recruiterName || 'Hiring Manager');
+  text = text.replace(/{job_title}/g, lead.jobTitle || 'Engineer');
+  text = text.replace(/{company}/g, lead.company || 'your team');
+  text = text.replace(/{phone}/g, cleanPhone);
+
+  const shouldAutoSend = lead.autoSend !== undefined ? Boolean(lead.autoSend) : (settings.autoSendWhatsApp !== false);
+  const shouldAutoClose = lead.autoClose !== undefined ? Boolean(lead.autoClose) : (settings.autoCloseTab !== false);
+
+  const encodedText = encodeURIComponent(text);
+  const waUrl = `https://web.whatsapp.com/send?phone=${cleanPhone}&text=${encodedText}&app_absent=0&cp_auto_send=${shouldAutoSend ? '1' : '0'}&cp_auto_close=${shouldAutoClose ? '1' : '0'}`;
+
+  // Strict single-tab policy: close any prior WhatsApp outreach tab before opening next
+  if (activeOutreachTask && activeOutreachTask.tabId) {
+    try {
+      await chrome.tabs.remove(activeOutreachTask.tabId);
+    } catch {
+      // already closed
+    }
+  }
+
+  activeOutreachTask = {
+    leadId: lead.id,
+    urn: lead.urn || '',
+    phone: cleanPhone,
+    recruiterName: lead.recruiterName,
+    jobTitle: lead.jobTitle,
+    company: lead.company,
+    autoSend: shouldAutoSend,
+    autoClose: shouldAutoClose,
+    startTime: Date.now()
+  };
+
+  const tab = await chrome.tabs.create({ url: waUrl, active: true });
+  activeOutreachTask.tabId = tab.id;
+  return { success: true, tabId: tab.id, phone: cleanPhone };
+}
+
+async function handleMessageSent(payload, sender) {
+  const phone = payload.phone || (activeOutreachTask ? activeOutreachTask.phone : null);
+  const { waLeads = [], contactedPhones = [], contactedLog = [] } = await chrome.storage.local.get(['waLeads', 'contactedPhones', 'contactedLog']);
+
+  if (phone && !contactedPhones.includes(phone)) {
+    contactedPhones.push(phone);
+  }
+
+  const nowIsoStr = new Date().toISOString();
+  const existingLogIndex = contactedLog.findIndex(item => item.phone === phone);
+  const logEntry = {
+    phone: phone,
+    recruiterName: activeOutreachTask?.recruiterName || 'Recruiter',
+    jobTitle: activeOutreachTask?.jobTitle || 'Role',
+    company: activeOutreachTask?.company || '',
+    urn: activeOutreachTask?.urn || '',
+    sentAt: nowIsoStr
+  };
+
+  if (existingLogIndex >= 0) {
+    contactedLog[existingLogIndex] = { ...contactedLog[existingLogIndex], ...logEntry };
+  } else {
+    contactedLog.unshift(logEntry);
+  }
+
+  const updatedLeads = waLeads.map(l => {
+    if (l.cleanPhone === phone || (activeOutreachTask && l.id === activeOutreachTask.leadId)) {
+      return { ...l, status: 'sent', sentAt: nowIsoStr };
+    }
+    return l;
+  });
+
+  await chrome.storage.local.set({
+    waLeads: updatedLeads,
+    contactedPhones: contactedPhones,
+    contactedLog: contactedLog
+  });
+
+  chrome.tabs.query({ url: ["https://*.linkedin.com/*", "http://*.linkedin.com/*"] }, (tabs) => {
+    tabs.forEach(t => {
+      chrome.tabs.sendMessage(t.id, {
+        type: 'LEAD_MESSAGE_SENT',
+        payload: {
+          phone: phone,
+          urn: activeOutreachTask ? activeOutreachTask.urn : '',
+          leadId: activeOutreachTask ? activeOutreachTask.leadId : ''
+        }
+      }).catch(() => {});
+    });
+  });
+
+  const targetTabId = (sender && sender.tab && sender.tab.id) || (activeOutreachTask ? activeOutreachTask.tabId : null);
+  const shouldClose = payload.autoClose !== false;
+  if (shouldClose && targetTabId) {
+    setTimeout(() => {
+      chrome.tabs.remove(targetTabId).catch(() => {});
+    }, 1000);
+  }
+
+  activeOutreachTask = null;
+  return { success: true };
+}
+
+// ── Email Outreach Pro Helpers ──
+async function saveEmailLeadToStorage(lead) {
+  const { emailLeads = [], contactedEmails = [] } = await chrome.storage.local.get(['emailLeads', 'contactedEmails']);
+  const cleanEmail = (lead.email || '').toLowerCase().trim();
+  if (!cleanEmail) return { success: false, error: 'Empty email' };
+
+  const existingIndex = emailLeads.findIndex(l => l.email === cleanEmail || (lead.urn && l.urn === lead.urn && l.email === cleanEmail));
+  const isAlreadyContacted = contactedEmails.map(e => e.toLowerCase().trim()).includes(cleanEmail);
+
+  const leadRecord = {
+    id: lead.id || `lead_email_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
+    urn: lead.urn || '',
+    recruiterName: lead.recruiterName || 'Hiring Manager',
+    jobTitle: lead.jobTitle || 'Developer',
+    company: lead.company || '',
+    email: cleanEmail,
+    matchedKeyword: lead.matchedKeyword || 'Hiring Post',
+    postSnippet: lead.postSnippet || '',
+    timestamp: lead.timestamp || new Date().toISOString(),
+    status: isAlreadyContacted ? 'sent' : (lead.status || 'pending')
+  };
+
+  if (existingIndex >= 0) {
+    emailLeads[existingIndex] = { ...emailLeads[existingIndex], ...leadRecord };
+  } else {
+    emailLeads.unshift(leadRecord);
+  }
+
+  while (emailLeads.length > 350) {
+    emailLeads.pop();
+  }
+
+  await chrome.storage.local.set({ emailLeads });
+  return { success: true, lead: leadRecord };
+}
+
+async function handleDispatchEmail(payload) {
+  const lead = payload?.lead || payload;
+  const { emailSettings, contactedEmails = [] } = await chrome.storage.local.get(['emailSettings', 'contactedEmails']);
+  const settings = emailSettings || DEFAULT_EMAIL_SETTINGS;
+  const cleanEmail = (lead.email || '').toLowerCase().trim();
+  if (!cleanEmail) {
+    throw new Error('Invalid email: ' + lead.email);
+  }
+
+  const clientMode = payload?.client || settings.emailClient || 'gmail_web';
+
+  let subject = payload?.subjectTemplate || settings.subjectTemplate || DEFAULT_EMAIL_SETTINGS.subjectTemplate;
+  subject = subject.replace(/{name}/g, lead.recruiterName || 'Hiring Manager');
+  subject = subject.replace(/{job_title}/g, lead.jobTitle || 'Developer');
+  subject = subject.replace(/{company}/g, lead.company || 'your team');
+  subject = subject.replace(/{email}/g, cleanEmail);
+
+  let body = payload?.messageTemplate || settings.messageTemplate || DEFAULT_EMAIL_SETTINGS.messageTemplate;
+  body = body.replace(/{name}/g, lead.recruiterName || 'Hiring Manager');
+  body = body.replace(/{job_title}/g, lead.jobTitle || 'Developer');
+  body = body.replace(/{company}/g, lead.company || 'your team');
+  body = body.replace(/{email}/g, cleanEmail);
+
+  // Strict single-tab policy: close any prior Email outreach tab before opening next
+  if (activeEmailOutreachTask && activeEmailOutreachTask.tabId) {
+    try {
+      await chrome.tabs.remove(activeEmailOutreachTask.tabId);
+    } catch {
+      // already closed
+    }
+  }
+
+  activeEmailOutreachTask = {
+    leadId: lead.id,
+    urn: lead.urn || '',
+    email: cleanEmail,
+    recruiterName: lead.recruiterName,
+    jobTitle: lead.jobTitle,
+    company: lead.company,
+    autoClose: settings.autoCloseTab,
+    startTime: Date.now()
+  };
+
+  let targetUrl = '';
+  if (clientMode === 'gmail_web') {
+    targetUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(cleanEmail)}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    const tab = await chrome.tabs.create({ url: targetUrl, active: true });
+    activeEmailOutreachTask.tabId = tab.id;
+    // content_gmail.js will handle auto-send and send EMAIL_MESSAGE_SENT
+    return { success: true, tabId: tab.id, email: cleanEmail, client: 'gmail_web' };
+  } else {
+    targetUrl = `mailto:${cleanEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    const tab = await chrome.tabs.create({ url: targetUrl, active: false });
+    activeEmailOutreachTask.tabId = tab.id;
+    setTimeout(() => {
+      chrome.tabs.remove(tab.id).catch(() => {});
+    }, 1500);
+    await handleEmailMessageSent({ email: cleanEmail });
+    return { success: true, email: cleanEmail, client: 'mailto' };
+  }
+}
+
+async function handleEmailMessageSent(payload, sender) {
+  const email = (payload?.email || (activeEmailOutreachTask ? activeEmailOutreachTask.email : null) || '').toLowerCase().trim();
+  if (!email) return { success: false };
+
+  const { emailLeads = [], contactedEmails = [], contactedEmailLog = [] } = await chrome.storage.local.get(['emailLeads', 'contactedEmails', 'contactedEmailLog']);
+
+  const cleanContacted = contactedEmails.map(e => e.toLowerCase().trim());
+  if (!cleanContacted.includes(email)) {
+    cleanContacted.push(email);
+  }
+
+  const nowIsoStr = new Date().toISOString();
+  const existingLogIndex = contactedEmailLog.findIndex(item => (item.email || '').toLowerCase().trim() === email);
+  const logEntry = {
+    email: email,
+    recruiterName: activeEmailOutreachTask?.recruiterName || 'Recruiter',
+    jobTitle: activeEmailOutreachTask?.jobTitle || 'Role',
+    company: activeEmailOutreachTask?.company || '',
+    urn: activeEmailOutreachTask?.urn || '',
+    sentAt: nowIsoStr
+  };
+
+  if (existingLogIndex >= 0) {
+    contactedEmailLog[existingLogIndex] = { ...contactedEmailLog[existingLogIndex], ...logEntry };
+  } else {
+    contactedEmailLog.unshift(logEntry);
+  }
+
+  const updatedLeads = emailLeads.map(l => {
+    if ((l.email || '').toLowerCase().trim() === email || (activeEmailOutreachTask && l.id === activeEmailOutreachTask.leadId)) {
+      return { ...l, status: 'sent', sentAt: nowIsoStr };
+    }
+    return l;
+  });
+
+  await chrome.storage.local.set({
+    emailLeads: updatedLeads,
+    contactedEmails: cleanContacted,
+    contactedEmailLog: contactedEmailLog
+  });
+
+  chrome.tabs.query({ url: ["https://*.linkedin.com/*", "http://*.linkedin.com/*"] }, (tabs) => {
+    tabs.forEach(t => {
+      chrome.tabs.sendMessage(t.id, {
+        type: 'EMAIL_LEAD_SENT',
+        payload: {
+          email: email,
+          urn: activeEmailOutreachTask ? activeEmailOutreachTask.urn : '',
+          leadId: activeEmailOutreachTask ? activeEmailOutreachTask.leadId : ''
+        }
+      }).catch(() => {});
+    });
+  });
+
+  const shouldClose = payload?.autoClose !== undefined ? payload.autoClose : (activeEmailOutreachTask ? activeEmailOutreachTask.autoClose : false);
+  if (shouldClose && sender && sender.tab && sender.tab.id) {
+    setTimeout(() => {
+      chrome.tabs.remove(sender.tab.id).catch(() => {});
+    }, 1400);
+  }
+
+  activeEmailOutreachTask = null;
+  return { success: true };
+}
+
+function addAcLog(message, type = 'info') {
+  const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  const entry = { timestamp, message, type, id: Date.now() + Math.random() };
+  acAppState.recentLogs.unshift(entry);
+  if (acAppState.recentLogs.length > 50) acAppState.recentLogs.pop();
+  return entry;
+}
+
+function addAcDebugLog(category, message, details = null) {
+  const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit', fractionalSecondDigits: 3 });
+  const entry = {
+    timestamp,
+    category,
+    message,
+    details: details ? (typeof details === 'object' ? JSON.stringify(details) : String(details)) : null,
+    id: Date.now() + Math.random()
+  };
+  acAppState.debugLogs.unshift(entry);
+  if (acAppState.debugLogs.length > 150) acAppState.debugLogs.pop();
+  return entry;
+}
+
+async function getJsoContacts() {
+  const r = await chrome.storage.local.get(JSO_STORAGE_KEY);
+  return r[JSO_STORAGE_KEY] ?? [];
+}
+
+async function addJsoContact(contact) {
+  const contacts = await getJsoContacts();
+  if (contacts.length >= MAX_JSO_CONTACTS) return { capped: true };
+  const makeKey = c => (c.email || `${c.name}||${c.company}`).toLowerCase().trim();
+  const seen = new Set(contacts.map(makeKey));
+  if (seen.has(makeKey(contact))) return { duplicate: true };
+
+  const updated = [...contacts, {
+    ...contact,
+    id: `hr_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+    collectedAt: new Date().toISOString(),
+  }];
+  await chrome.storage.local.set({ [JSO_STORAGE_KEY]: updated });
+  return { added: true, count: updated.length };
+}
+
 chrome.runtime.onInstalled.addListener(async () => {
   const settings = await getSettings();
   const capState = await getDailyCapState();
@@ -1889,8 +2357,21 @@ chrome.runtime.onInstalled.addListener(async () => {
     "cpFailedHistory",
     "cpExternalHistory",
     "cpSkippedHistory",
+    "waSettings",
+    "waLeads",
+    "contactedPhones",
+    "contactedLog",
+    "emailSettings",
+    "emailLeads",
+    "contactedEmails",
+    "contactedEmailLog",
+    "autoCommentSettings",
+    "totalCommentedCount",
+    "commentedUrns",
+    JSO_STORAGE_KEY,
     RUN_SUMMARY_STORAGE_KEY,
   ]);
+
   await chrome.storage.local.set({
     cpSettings: settings,
     cpState: await getState(),
@@ -1899,6 +2380,18 @@ chrome.runtime.onInstalled.addListener(async () => {
     cpFailedHistory: Array.isArray(existing.cpFailedHistory) ? existing.cpFailedHistory : [],
     cpExternalHistory: Array.isArray(existing.cpExternalHistory) ? existing.cpExternalHistory : [],
     cpSkippedHistory: Array.isArray(existing.cpSkippedHistory) ? existing.cpSkippedHistory : [],
+    waSettings: existing.waSettings ? { ...DEFAULT_WA_SETTINGS, ...existing.waSettings } : DEFAULT_WA_SETTINGS,
+    waLeads: Array.isArray(existing.waLeads) ? existing.waLeads : [],
+    contactedPhones: Array.isArray(existing.contactedPhones) ? existing.contactedPhones : [],
+    contactedLog: Array.isArray(existing.contactedLog) ? existing.contactedLog : [],
+    emailSettings: existing.emailSettings ? { ...DEFAULT_EMAIL_SETTINGS, ...existing.emailSettings } : DEFAULT_EMAIL_SETTINGS,
+    emailLeads: Array.isArray(existing.emailLeads) ? existing.emailLeads : [],
+    contactedEmails: Array.isArray(existing.contactedEmails) ? existing.contactedEmails : [],
+    contactedEmailLog: Array.isArray(existing.contactedEmailLog) ? existing.contactedEmailLog : [],
+    autoCommentSettings: existing.autoCommentSettings ? { ...DEFAULT_AC_SETTINGS, ...existing.autoCommentSettings } : DEFAULT_AC_SETTINGS,
+    totalCommentedCount: typeof existing.totalCommentedCount === 'number' ? existing.totalCommentedCount : 0,
+    commentedUrns: Array.isArray(existing.commentedUrns) ? existing.commentedUrns : [],
+    [JSO_STORAGE_KEY]: Array.isArray(existing[JSO_STORAGE_KEY]) ? existing[JSO_STORAGE_KEY] : [],
     [RUN_SUMMARY_STORAGE_KEY]:
       existing?.[RUN_SUMMARY_STORAGE_KEY] && typeof existing[RUN_SUMMARY_STORAGE_KEY] === "object"
         ? existing[RUN_SUMMARY_STORAGE_KEY]
@@ -2507,6 +3000,412 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
           hasJobsTab
         }
       });
+      return;
+    }
+
+    if (message.type === "CP_INDEED_STATUS") {
+      const tabs = await chrome.tabs.query({ url: "*://*.indeed.com/*" });
+      const hasIndeedTab = tabs.length > 0;
+      const hasJobsTab = tabs.some((t) => String(t.url || "").includes("/jobs") || String(t.url || "").includes("/viewjob"));
+      sendResponse({
+        ok: true,
+        provider: "indeed",
+        data: {
+          hasIndeedTab,
+          hasJobsTab
+        }
+      });
+      return;
+    }
+
+    if (message.type === "CP_CLOUDFLARE_CHALLENGE_DETECTED") {
+      await pushLog(`Cloudflare challenge detected on Indeed (Ray ID: ${message.payload?.cfRayId || 'unknown'})`, 'warn');
+      sendResponse({ ok: true });
+      return;
+    }
+
+    if (message.type === "CP_SAFE_REDIRECT_SMARTAPPLY") {
+      const targetUrl = String(message.url || "").trim();
+      if (targetUrl && (targetUrl.includes("smartapply.indeed.com") || targetUrl.includes("indeed.com"))) {
+        const tab = await chrome.tabs.create({ url: targetUrl, active: true });
+        sendResponse({ ok: true, tabId: tab.id });
+      } else {
+        sendResponse({ ok: false, error: "Invalid redirect URL" });
+      }
+      return;
+    }
+
+    // ── WhatsApp Outreach Message Handlers ──
+    if (message.type === "DISPATCH_WHATSAPP_MESSAGE") {
+      const result = await handleDispatchWhatsApp(message.payload);
+      sendResponse(result);
+      return;
+    }
+
+    if (message.type === "WHATSAPP_MESSAGE_SENT") {
+      const result = await handleMessageSent(message.payload, sender);
+      sendResponse(result);
+      return;
+    }
+
+    if (message.type === "WA_NUMBER_INVALID") {
+      const phone = message.payload?.phone || '';
+      const data = await chrome.storage.local.get(['invalidPhones']);
+      const invalidPhones = data.invalidPhones || [];
+      if (phone && !invalidPhones.includes(phone)) {
+        invalidPhones.push(phone);
+        await chrome.storage.local.set({ invalidPhones });
+      }
+      sendResponse({ success: true });
+      return;
+    }
+
+    if (message.type === "DUPLICATE_WA_DETECTED") {
+      const phone = message.payload?.phone || '';
+      const data = await chrome.storage.local.get(['duplicateStats', 'contactedPhones']);
+      const duplicateStats = data.duplicateStats || { skippedCount: 0 };
+      duplicateStats.skippedCount = (duplicateStats.skippedCount || 0) + 1;
+      await chrome.storage.local.set({ duplicateStats });
+      sendResponse({ success: true, skippedCount: duplicateStats.skippedCount });
+      return;
+    }
+
+    if (message.type === "WA_CHECK_TAB_STATUS") {
+      const tabId = message.payload?.tabId;
+      if (!tabId) {
+        sendResponse({ open: false });
+        return;
+      }
+      try {
+        const tab = await chrome.tabs.get(tabId);
+        sendResponse({ open: Boolean(tab && tab.id) });
+      } catch {
+        sendResponse({ open: false });
+      }
+      return;
+    }
+
+    if (message.type === "WA_CLOSE_TAB") {
+      if (sender && sender.tab && sender.tab.id) {
+        chrome.tabs.remove(sender.tab.id).catch(() => {});
+      }
+      sendResponse({ ok: true });
+      return;
+    }
+
+    if (message.type === "WA_CLOSE_TAB_ID") {
+      const tabId = message.payload?.tabId;
+      if (tabId) {
+        chrome.tabs.remove(tabId).catch(() => {});
+      }
+      sendResponse({ ok: true });
+      return;
+    }
+
+    if (message.type === "SAVE_LEAD") {
+      const result = await saveLeadToStorage(message.payload);
+      sendResponse(result);
+      return;
+    }
+
+    if (message.type === "WA_GET_STATUS" || (message.type === "GET_STATUS" && message.module === "wa")) {
+      const data = await chrome.storage.local.get(['waSettings', 'waLeads', 'contactedPhones', 'contactedLog', 'duplicateStats']);
+      sendResponse({
+        settings: data.waSettings || DEFAULT_WA_SETTINGS,
+        totalLeads: (data.waLeads || []).length,
+        contactedCount: (data.contactedPhones || []).length,
+        contactedLog: data.contactedLog || [],
+        duplicateStats: data.duplicateStats || { skippedCount: 0 },
+        activeTask: activeOutreachTask
+      });
+      return;
+    }
+
+    if (message.type === "WA_SAVE_SETTINGS") {
+      const current = (await chrome.storage.local.get('waSettings')).waSettings || DEFAULT_WA_SETTINGS;
+      const merged = { ...current, ...(message.payload?.settings || {}) };
+      await chrome.storage.local.set({ waSettings: merged });
+      sendResponse({ success: true, settings: merged });
+      return;
+    }
+
+    // ── Email Outreach Pro Message Handlers ──
+    if (message.type === "DISPATCH_EMAIL_MESSAGE") {
+      const result = await handleDispatchEmail(message.payload);
+      sendResponse(result);
+      return;
+    }
+
+    if (message.type === "EMAIL_MESSAGE_SENT") {
+      const result = await handleEmailMessageSent(message.payload, sender);
+      sendResponse(result);
+      return;
+    }
+
+    if (message.type === "DUPLICATE_EMAIL_DETECTED") {
+      const data = await chrome.storage.local.get(['duplicateEmailStats']);
+      const duplicateStats = data.duplicateEmailStats || { skippedCount: 0 };
+      duplicateStats.skippedCount = (duplicateStats.skippedCount || 0) + 1;
+      await chrome.storage.local.set({ duplicateEmailStats: duplicateStats });
+      sendResponse({ success: true, skippedCount: duplicateStats.skippedCount });
+      return;
+    }
+
+    if (message.type === "EMAIL_CHECK_TAB_STATUS") {
+      const tabId = message.payload?.tabId;
+      if (!tabId) {
+        sendResponse({ open: false });
+        return;
+      }
+      try {
+        const tab = await chrome.tabs.get(tabId);
+        sendResponse({ open: Boolean(tab && tab.id) });
+      } catch {
+        sendResponse({ open: false });
+      }
+      return;
+    }
+
+    if (message.type === "SAVE_EMAIL_LEAD") {
+      const result = await saveEmailLeadToStorage(message.payload);
+      sendResponse(result);
+      return;
+    }
+
+    if (message.type === "EMAIL_GET_STATUS" || (message.type === "GET_STATUS" && message.module === "email")) {
+      const data = await chrome.storage.local.get(['emailSettings', 'emailLeads', 'contactedEmails', 'contactedEmailLog', 'duplicateEmailStats']);
+      sendResponse({
+        settings: data.emailSettings || DEFAULT_EMAIL_SETTINGS,
+        totalLeads: (data.emailLeads || []).length,
+        contactedCount: (data.contactedEmails || []).length,
+        contactedLog: data.contactedEmailLog || [],
+        duplicateStats: data.duplicateEmailStats || { skippedCount: 0 },
+        activeTask: activeEmailOutreachTask
+      });
+      return;
+    }
+
+    if (message.type === "EMAIL_SAVE_SETTINGS") {
+      await chrome.storage.local.set({ emailSettings: message.payload?.settings || DEFAULT_EMAIL_SETTINGS });
+      sendResponse({ success: true });
+      return;
+    }
+
+    // ── Auto Commenter Message Handlers ──
+    if (message.type === "AC_GET_STATUS" || (message.type === "GET_STATUS" && message.module === "ac")) {
+      const data = await chrome.storage.local.get(['autoCommentSettings', 'totalCommentedCount', 'commentedUrns']);
+      sendResponse({
+        state: acAppState,
+        settings: data.autoCommentSettings || DEFAULT_AC_SETTINGS,
+        totalCount: data.totalCommentedCount || 0,
+        savedUrnsCount: (data.commentedUrns || []).length,
+        debugLogs: acAppState.debugLogs
+      });
+      return;
+    }
+
+    if (message.type === "START_COMMENTING") {
+      acAppState.isRunning = true;
+      acAppState.isPaused = false;
+      acAppState.sessionCount = 0;
+      addAcLog('🚀 Auto commenting started', 'success');
+
+      const tabId = sender.tab ? sender.tab.id : null;
+      if (tabId) {
+        acAppState.activeTabId = tabId;
+        chrome.tabs.sendMessage(tabId, { type: 'CMD_START', payload: { settings: message.payload?.settings } }).catch(() => {});
+      } else {
+        chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+          if (tabs[0]?.id) {
+            acAppState.activeTabId = tabs[0].id;
+            chrome.tabs.sendMessage(tabs[0].id, { type: 'CMD_START', payload: { settings: message.payload?.settings } }).catch(() => {});
+          }
+        });
+      }
+      sendResponse({ success: true, state: acAppState });
+      return;
+    }
+
+    if (message.type === "PAUSE_COMMENTING") {
+      acAppState.isPaused = true;
+      addAcLog('⏸️ Auto commenting paused', 'warning');
+      if (acAppState.activeTabId) {
+        chrome.tabs.sendMessage(acAppState.activeTabId, { type: 'CMD_PAUSE' }).catch(() => {});
+      }
+      sendResponse({ success: true, state: acAppState });
+      return;
+    }
+
+    if (message.type === "RESUME_COMMENTING") {
+      acAppState.isPaused = false;
+      addAcLog('▶️ Auto commenting resumed', 'info');
+      if (acAppState.activeTabId) {
+        chrome.tabs.sendMessage(acAppState.activeTabId, { type: 'CMD_RESUME' }).catch(() => {});
+      }
+      sendResponse({ success: true, state: acAppState });
+      return;
+    }
+
+    if (message.type === "STOP_COMMENTING") {
+      acAppState.isRunning = false;
+      acAppState.isPaused = false;
+      addAcLog(`⏹️ Stopped commenting. Completed ${acAppState.sessionCount} comments.`, 'info');
+      if (acAppState.activeTabId) {
+        chrome.tabs.sendMessage(acAppState.activeTabId, { type: 'CMD_STOP' }).catch(() => {});
+      }
+      sendResponse({ success: true, state: acAppState });
+      return;
+    }
+
+    if (message.type === "TEST_SINGLE_POST") {
+      const tabId = sender.tab ? sender.tab.id : acAppState.activeTabId;
+      if (tabId) {
+        chrome.tabs.sendMessage(tabId, { type: 'CMD_TEST_SINGLE', payload: { settings: message.payload?.settings } }).catch(() => {});
+      } else {
+        chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+          if (tabs[0]?.id) {
+            chrome.tabs.sendMessage(tabs[0].id, { type: 'CMD_TEST_SINGLE', payload: { settings: message.payload?.settings } }).catch(() => {});
+          }
+        });
+      }
+      sendResponse({ success: true });
+      return;
+    }
+
+    if (message.type === "EVENT_COMMENTED") {
+      acAppState.sessionCount += 1;
+      const urn = message.payload?.urn;
+      const author = message.payload?.author || 'Author';
+      addAcLog(`💬 Commented on post by ${author}`, 'success');
+
+      const data = await chrome.storage.local.get(['totalCommentedCount', 'commentedUrns']);
+      const total = (data.totalCommentedCount || 0) + 1;
+      const urns = data.commentedUrns || [];
+      if (urn && !urns.includes(urn)) urns.push(urn);
+      await chrome.storage.local.set({ totalCommentedCount: total, commentedUrns: urns });
+      acAppState.totalCount = total;
+
+      sendResponse({ success: true, sessionCount: acAppState.sessionCount });
+      return;
+    }
+
+    if (message.type === "EVENT_LOG") {
+      addAcLog(message.payload?.message, message.payload?.logType || 'info');
+      sendResponse({ success: true });
+      return;
+    }
+
+    if (message.type === "DEBUG_LOG") {
+      addAcDebugLog(message.payload?.category || 'DOM', message.payload?.message, message.payload?.details);
+      sendResponse({ success: true });
+      return;
+    }
+
+    if (message.type === "RESET_HISTORY") {
+      await chrome.storage.local.set({ totalCommentedCount: 0, commentedUrns: [] });
+      acAppState.sessionCount = 0;
+      acAppState.totalCount = 0;
+      acAppState.recentLogs = [];
+      acAppState.debugLogs = [];
+      sendResponse({ success: true });
+      return;
+    }
+
+    // ── Jobs Smart HR Outreach Message Handlers ──
+    if (message.type === "JSO_GET_CONTACTS") {
+      const contacts = await getJsoContacts();
+      sendResponse({ contacts, count: contacts.length, max: MAX_JSO_CONTACTS });
+      return;
+    }
+
+    if (message.type === "JSO_ADD_CONTACT" || message.type === "JSO_QUEUE_PROFILE_FOR_EMAIL") {
+      if (message.contact?.name || message.contact?.email) {
+        const result = await addJsoContact(message.contact);
+        sendResponse(result);
+      } else {
+        sendResponse({ skipped: true });
+      }
+      return;
+    }
+
+    if (message.type === "JSO_CLEAR_CONTACTS") {
+      await chrome.storage.local.set({ [JSO_STORAGE_KEY]: [], jso_is_collecting: false, jso_active_run_id: '' });
+      sendResponse({ ok: true });
+      return;
+    }
+
+    if (message.type === "JSO_START_COLLECTING") {
+      const contacts = await getJsoContacts();
+      if (contacts.length >= MAX_JSO_CONTACTS) {
+        sendResponse({ ok: false, reason: 'capped' });
+        return;
+      }
+      const kw = message.keyword || 'we are hiring';
+      const cat = message.category || '';
+      await chrome.storage.local.set({
+        jso_is_collecting: true,
+        jso_keyword: kw,
+        jso_category: cat,
+        jso_last_error: '',
+        jso_active_run_id: Date.now().toString()
+      });
+
+      // Broadcast to LinkedIn tabs to start scraping
+      chrome.tabs.query({ url: "https://*.linkedin.com/*" }, (tabs) => {
+        tabs.forEach((t) => {
+          chrome.tabs.sendMessage(t.id, { type: 'JSO_START_SCRAPE', keyword: kw, category: cat }).catch(() => {});
+        });
+      });
+      sendResponse({ ok: true });
+      return;
+    }
+
+    if (message.type === "JSO_STOP_COLLECTING") {
+      await chrome.storage.local.set({ jso_is_collecting: false, jso_last_error: '', jso_active_run_id: '' });
+      chrome.tabs.query({ url: "https://*.linkedin.com/*" }, (tabs) => {
+        tabs.forEach((t) => {
+          chrome.tabs.sendMessage(t.id, { type: 'JSO_STOP_SCRAPE' }).catch(() => {});
+        });
+      });
+      sendResponse({ ok: true });
+      return;
+    }
+
+    if (message.type === "JSO_GET_STATUS") {
+      const contacts = await getJsoContacts();
+      const stored = await chrome.storage.local.get(['jso_is_collecting', 'jso_keyword', 'jso_category', 'jso_preferred_origin', 'jso_last_error']);
+      sendResponse({
+        count: contacts.length,
+        max: MAX_JSO_CONTACTS,
+        isCollecting: !!stored.jso_is_collecting,
+        keyword: stored.jso_keyword ?? 'we are hiring',
+        category: stored.jso_category ?? '',
+        preferredOrigin: stored.jso_preferred_origin ?? '',
+        lastError: String(stored.jso_last_error || '')
+      });
+      return;
+    }
+
+    if (message.type === "JSO_SCRAPE_DONE") {
+      await chrome.storage.local.set({ jso_is_collecting: false, jso_active_run_id: '' });
+      const contacts = await getJsoContacts();
+      chrome.runtime.sendMessage({ type: 'JSO_COLLECTING_DONE', count: contacts.length }).catch(() => {});
+      sendResponse({ ok: true });
+      return;
+    }
+
+    if (message.type === "JSO_SYNC_TO_DASHBOARD") {
+      const origin = getPortalOrigin() || PORTAL_DEFAULT_ORIGIN;
+      const targetUrl = `${origin}/dashboard/cold-emails`;
+      const tabs = await chrome.tabs.query({});
+      const dashTab = tabs.find(t => String(t.url || '').startsWith(origin));
+      if (dashTab?.id) {
+        chrome.tabs.update(dashTab.id, { active: true, url: targetUrl });
+        chrome.windows.update(dashTab.windowId, { focused: true });
+      } else {
+        chrome.tabs.create({ url: targetUrl });
+      }
+      sendResponse({ ok: true });
       return;
     }
   })().catch(async (error) => {

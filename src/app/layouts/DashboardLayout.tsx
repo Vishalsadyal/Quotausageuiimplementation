@@ -98,7 +98,7 @@ export default function DashboardLayout() {
     },
     { name: 'Applications', href: '/dashboard/applications', icon: Briefcase },
     { name: 'Resume', href: '/dashboard/resume', icon: FileText },
-    { name: 'Interview', href: '/dashboard/interview', icon: MessageSquare },
+    { name: 'Live AI Interview', href: '/dashboard/interview', icon: MessageSquare, badge: 'BETA' },
     { name: 'Analytics', href: '/dashboard/analytics', icon: BarChart3 },
     onboardingComplete
       ? { name: 'Billing', href: '/dashboard/billing', icon: CreditCard }
@@ -119,7 +119,7 @@ export default function DashboardLayout() {
   };
 
   return (
-    <div className="min-h-screen bg-[#FAFBFC] relative overflow-hidden flex flex-col">
+    <div className="min-h-screen bg-[#FAFBFC] relative overflow-hidden flex">
       {/* Ambient background */}
       <div
         aria-hidden="true"
@@ -130,44 +130,207 @@ export default function DashboardLayout() {
         className="pointer-events-none absolute inset-0 opacity-[0.08] [background-image:linear-gradient(to_right,rgba(15,23,42,0.15)_1px,transparent_1px),linear-gradient(to_bottom,rgba(15,23,42,0.15)_1px,transparent_1px)] [background-size:48px_48px]"
       />
 
-      {/* Dashboard Top Navigation & Layout — Fully Responsive on Desktop & Mobile */}
-      <div className="flex flex-col min-h-screen relative z-10 w-full">
+      {/* Mobile Sidebar Backdrop Overlay */}
+      {mobileMenuOpen && (
+        <div
+          className="fixed inset-0 bg-gray-900/50 backdrop-blur-xs z-40 lg:hidden transition-opacity"
+          onClick={() => setMobileMenuOpen(false)}
+        />
+      )}
+
+      {/* ── Vertical Sidebar Navigation ── */}
+      <aside
+        className={`fixed top-0 left-0 h-full w-64 bg-white/95 backdrop-blur-2xl border-r border-gray-200/80 z-50 flex flex-col shadow-xs transform transition-transform duration-300 ease-in-out ${
+          mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
+        } lg:translate-x-0`}
+      >
+        {/* Sidebar Brand Header */}
+        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100/80">
+          <Link to="/" className="flex items-center gap-2.5 group">
+            <img
+              src="/logos/android-chrome-192x192.png"
+              alt="AutoApply CV"
+              className="w-8 h-8 rounded-xl shadow-xs transition-transform group-hover:scale-105 shrink-0"
+              loading="eager"
+              decoding="async"
+            />
+            <div className="flex flex-col">
+              <span className="font-bold text-base text-gradient leading-tight">AutoApply CV</span>
+              <span className="text-[10px] text-gray-400 font-semibold tracking-wider uppercase">Dashboard</span>
+            </div>
+          </Link>
+          <button
+            type="button"
+            onClick={() => setMobileMenuOpen(false)}
+            className="lg:hidden p-1.5 hover:bg-gray-100 rounded-lg text-gray-400 transition-colors"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* Navigation Menu Links */}
+        <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-200">
+          {navigation.map((item) => {
+            const isMatchPrefix = (item as any).matchPrefix && location.pathname.startsWith((item as any).matchPrefix);
+            const isDirectMatch = location.pathname === item.href;
+            const isActive = isDirectMatch || isMatchPrefix;
+
+            if ((item as any).isExternal) {
+              return (
+                <a
+                  key={item.name}
+                  href={item.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold text-purple-700 bg-purple-50/70 hover:bg-purple-100/80 border border-purple-200/60 shadow-2xs transition-all duration-200 group"
+                >
+                  <div className="flex items-center gap-2.5">
+                    <item.icon className="w-4 h-4 text-purple-600 transition-transform group-hover:scale-110" />
+                    <span>{item.name}</span>
+                  </div>
+                  <ExternalLink className="w-3.5 h-3.5 text-purple-500 opacity-80" />
+                </a>
+              );
+            }
+
+            return (
+              <Link
+                key={item.name}
+                to={item.href}
+                onClick={() => setMobileMenuOpen(false)}
+                className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all duration-200 group ${
+                  isActive
+                    ? 'gradient-primary text-white shadow-xs font-bold'
+                    : 'text-gray-600 hover:text-gray-900 hover:bg-purple-50/60'
+                }`}
+              >
+                <div className="flex items-center gap-2.5">
+                  <item.icon className={`w-4 h-4 transition-transform group-hover:scale-110 ${isActive ? 'text-white' : 'text-gray-400 group-hover:text-purple-600'}`} />
+                  <span>{item.name}</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  {(item as any).badge && (
+                    <span
+                      className={`text-[9px] font-black uppercase px-1.5 py-0.5 rounded-md border tracking-wider ${
+                        isActive
+                          ? 'bg-white/25 text-white border-white/40'
+                          : 'bg-amber-100 text-amber-800 border-amber-300'
+                      }`}
+                    >
+                      {(item as any).badge}
+                    </span>
+                  )}
+                  {isActive && <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />}
+                </div>
+              </Link>
+            );
+          })}
+        </nav>
+
+        {/* Sidebar Footer Quota Card */}
+        <div className="p-3 border-t border-gray-100/80 bg-gray-50/50">
+          <div className="p-3 bg-white border border-purple-100 rounded-xl shadow-2xs space-y-2.5">
+            {/* Plan Badge & Balance */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1.5">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500">Plan:</span>
+                <span
+                  className={`text-[10px] font-extrabold uppercase px-1.5 py-0.5 rounded-md border tracking-wider ${
+                    user?.plan === 'pro'
+                      ? 'bg-purple-100 text-purple-800 border-purple-300'
+                      : user?.plan === 'coach'
+                      ? 'bg-indigo-100 text-indigo-800 border-indigo-300'
+                      : 'bg-gray-100 text-gray-700 border-gray-200'
+                  }`}
+                >
+                  {user?.plan || 'Free'}
+                </span>
+              </div>
+              <span className="text-[11px] font-bold text-purple-700">
+                {user?.plan === 'pro' ? 'Unlimited' : `${hireBalance.toLocaleString()} Hires`}
+              </span>
+            </div>
+
+            {/* Daily Usage */}
+            <div className="text-[10px] text-gray-500 flex justify-between items-center bg-gray-50/80 px-2 py-1 rounded-lg border border-gray-100">
+              <span>Today:</span>
+              <span className="font-semibold text-gray-800">
+                {user?.plan === 'pro' ? `${mergedDailyUsed} (Unlimited)` : `${mergedDailyUsed} / ${dailyCap} free`}
+              </span>
+            </div>
+
+            {/* Upgrade or Manage Billing */}
+            {user?.plan !== 'pro' && user?.plan !== 'coach' ? (
+              <div className="space-y-1.5 pt-0.5">
+                <Link
+                  to="/dashboard/billing"
+                  className="w-full flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-lg text-xs font-bold text-white bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 shadow-xs hover:shadow-purple-500/20 transition-all cursor-pointer"
+                >
+                  <Zap className="w-3.5 h-3.5 fill-white text-white" />
+                  <span>Upgrade to Pro (₹49)</span>
+                </Link>
+                <Link
+                  to="/dashboard/billing"
+                  className="w-full flex items-center justify-center gap-1 py-1 px-2 text-[10px] font-medium text-gray-500 hover:text-purple-700 transition-colors"
+                >
+                  <CreditCard className="w-3 h-3" />
+                  <span>Manage Billing / Top Up</span>
+                </Link>
+              </div>
+            ) : (
+              <Link
+                to="/dashboard/billing"
+                className="w-full flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-lg text-xs font-bold text-purple-700 bg-purple-50 hover:bg-purple-100 border border-purple-200 transition-colors"
+              >
+                <CreditCard className="w-3.5 h-3.5" />
+                <span>Manage Billing</span>
+              </Link>
+            )}
+          </div>
+        </div>
+      </aside>
+
+      {/* ── Main Content Area with Top Header ── */}
+      <div className="flex-1 lg:pl-64 flex flex-col min-h-screen relative z-10 w-full">
         {/* Sticky Top Header */}
         <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-xl border-b border-gray-200/80 shadow-xs">
-          {/* Main Top Row */}
-          <div className="max-w-7xl mx-auto px-2.5 sm:px-6 lg:px-8">
+          <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between h-14 sm:h-16 gap-2 sm:gap-4">
-              {/* Brand Logo */}
-              <div className="flex items-center gap-4 sm:gap-6">
-                <Link to="/" className="flex items-center gap-2 group">
+              {/* Mobile Sidebar Toggle & Logo */}
+              <div className="flex items-center gap-3 lg:hidden">
+                <button
+                  type="button"
+                  onClick={() => setMobileMenuOpen(true)}
+                  className="p-2 text-gray-600 hover:bg-gray-100 rounded-xl transition-colors"
+                  aria-label="Open Sidebar Menu"
+                >
+                  <Menu className="w-5 h-5" />
+                </button>
+                <Link to="/" className="flex items-center gap-2">
                   <img
                     src="/logos/android-chrome-192x192.png"
                     alt="AutoApply CV"
-                    className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl shadow-xs transition-transform group-hover:scale-105 shrink-0"
-                    loading="eager"
-                    decoding="async"
+                    className="w-7 h-7 rounded-xl"
                   />
-                  <div className="flex flex-col">
-                    <span className="font-bold text-sm sm:text-base text-gradient leading-none">AutoApply CV</span>
-                    <span className="text-[9px] sm:text-[10px] text-gray-400 font-semibold tracking-wider uppercase mt-0.5 hidden xs:block">Dashboard</span>
-                  </div>
+                  <span className="font-bold text-sm text-gradient">AutoApply CV</span>
                 </Link>
               </div>
 
-              {/* Search Bar */}
-              <div className="flex-1 max-w-md mx-auto hidden lg:block">
+              {/* Global Search Bar */}
+              <div className="flex-1 max-w-md hidden md:block">
                 <div className="relative">
                   <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                   <input
                     type="text"
                     placeholder="Search jobs, applications, skills..."
-                    className="w-full pl-10 pr-4 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50/70 focus:bg-white focus:border-purple-300 focus:ring-4 focus:ring-purple-100 transition-all outline-none"
+                    className="w-full pl-10 pr-4 py-2 text-xs sm:text-sm rounded-xl border border-gray-200 bg-gray-50/70 focus:bg-white focus:border-purple-300 focus:ring-4 focus:ring-purple-100 transition-all outline-none"
                   />
                 </div>
               </div>
 
-              {/* Right Action Group */}
-              <div className="flex items-center gap-1.5 sm:gap-3">
+              {/* Right Utility Group */}
+              <div className="flex items-center gap-1.5 sm:gap-3 ml-auto">
                 {/* Tour Button */}
                 <button
                   type="button"
@@ -179,26 +342,18 @@ export default function DashboardLayout() {
                   <span className="hidden sm:inline">Tour</span>
                 </button>
 
-                {/* Hires Badge */}
+                {/* Hires Top Pill */}
                 <Link
                   to="/dashboard/billing"
-                  className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1.5 bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200 rounded-xl hover:shadow-xs hover:border-purple-300 transition-all shrink-0"
+                  className="flex items-center gap-1 sm:gap-2 px-2.5 py-1.5 bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200 rounded-xl hover:shadow-xs hover:border-purple-300 transition-all shrink-0"
                 >
                   <Zap className="w-3.5 h-3.5 text-purple-600 shrink-0" />
                   <span className="text-xs font-bold text-purple-700">
                     {user?.plan === 'pro' ? 'Unlimited' : `${hireBalance} Hires`}
                   </span>
-                  <span className="text-[11px] text-purple-600 hidden xl:inline">
-                    {user?.plan === 'pro' ? '$3/mo' : `(${mergedDailyUsed}/${dailyCap} free today)`}
-                  </span>
-                  {needsHires ? (
-                    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-red-100 text-red-700 border border-red-200">
-                      Buy
-                    </span>
-                  ) : null}
                 </Link>
 
-                {/* Notifications */}
+                {/* Notifications Bell */}
                 <button
                   type="button"
                   aria-label="Notifications"
@@ -208,12 +363,12 @@ export default function DashboardLayout() {
                   <span className="absolute top-1 right-1 sm:top-1.5 sm:right-1.5 w-2 h-2 bg-red-500 rounded-full ring-2 ring-white"></span>
                 </button>
 
-                {/* User Profile Dropdown */}
+                {/* User Account Dropdown */}
                 <div className="relative" ref={profileRef}>
                   <button
                     type="button"
                     onClick={() => setProfileOpen(!profileOpen)}
-                    className="flex items-center gap-2.5 p-1 pl-2 rounded-xl hover:bg-gray-100 border border-transparent hover:border-gray-200 transition-all"
+                    className="flex items-center gap-2 p-1 pl-1.5 rounded-xl hover:bg-gray-100 border border-transparent hover:border-gray-200 transition-all"
                   >
                     <img
                       src={user?.avatar || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400'}
@@ -221,7 +376,7 @@ export default function DashboardLayout() {
                       className="w-7 h-7 rounded-lg object-cover border border-purple-200 shadow-2xs"
                     />
                     <div className="text-left hidden sm:block">
-                      <div className="text-xs font-semibold text-gray-800 leading-tight max-w-[100px] truncate">
+                      <div className="text-xs font-semibold text-gray-800 leading-tight max-w-[90px] truncate">
                         {user?.name || 'My Account'}
                       </div>
                       <div className="text-[10px] text-purple-600 font-medium capitalize leading-tight">
@@ -274,197 +429,12 @@ export default function DashboardLayout() {
                     </div>
                   )}
                 </div>
-
-                {/* Mobile Toggle Button for tablet view */}
-                <button
-                  type="button"
-                  onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                  className="lg:hidden p-2 text-gray-600 hover:bg-gray-100 rounded-xl transition-colors"
-                >
-                  {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-                </button>
               </div>
             </div>
           </div>
-
-          {/* Top Horizontal Menu Bar (One-Word Items & Smooth Mobile Horizontal Scroll) */}
-          <div className="border-t border-gray-200/60 bg-white/50 backdrop-blur-md relative z-30">
-            <div className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8">
-              <nav className="flex items-center gap-1.5 py-2 overflow-x-auto scrollbar-none flex-nowrap" ref={dropdownRef}>
-                {navigation.map((item) => {
-                  const hasChildren = Array.isArray((item as any).children) && (item as any).children.length > 0;
-                  const isMatchPrefix = (item as any).matchPrefix && location.pathname.startsWith((item as any).matchPrefix);
-                  const isChildrenMatch = (item as any).children?.some((child: { href: string }) => location.pathname === child.href);
-                  const isDirectMatch = location.pathname === item.href;
-                  const isGroupActive = isDirectMatch || isMatchPrefix || isChildrenMatch;
-                  const isDropdownOpen = openDropdown === item.name;
-
-                  if (!hasChildren) {
-                    if ((item as any).isExternal) {
-                      return (
-                        <a
-                          key={item.name}
-                          href={item.href}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap text-purple-700 bg-purple-50 hover:bg-purple-100 hover:text-purple-900 border border-purple-200 shadow-2xs transition-all duration-200"
-                        >
-                          <item.icon className="w-3.5 h-3.5 text-purple-600" />
-                          <span>{item.name}</span>
-                          <ExternalLink className="w-3 h-3 text-purple-500 opacity-80" />
-                        </a>
-                      );
-                    }
-
-                    return (
-                      <Link
-                        key={item.name}
-                        to={item.href}
-                        className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all duration-200 ${
-                          isDirectMatch
-                            ? 'gradient-primary text-white shadow-xs'
-                            : 'text-gray-600 hover:text-gray-900 hover:bg-purple-50/70'
-                        }`}
-                      >
-                        <item.icon className="w-3.5 h-3.5" />
-                        <span>{item.name}</span>
-                      </Link>
-                    );
-                  }
-
-                  const children = (item as any).children as Array<{ name: string; href: string }>;
-
-                  return (
-                    <div
-                      key={item.name}
-                      className="relative"
-                      onMouseEnter={() => setOpenDropdown(item.name)}
-                      onMouseLeave={() => setOpenDropdown(null)}
-                    >
-                      <button
-                        type="button"
-                        onClick={() => setOpenDropdown(isDropdownOpen ? null : item.name)}
-                        className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all duration-200 ${
-                          isGroupActive
-                            ? 'bg-purple-100 text-purple-800 font-bold border border-purple-200 shadow-2xs'
-                            : 'text-gray-600 hover:text-gray-900 hover:bg-purple-50/70'
-                        }`}
-                      >
-                        <item.icon className="w-3.5 h-3.5" />
-                        <span>{item.name}</span>
-                        <ChevronDown className={`w-3 h-3 text-gray-400 transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`} />
-                      </button>
-
-                      {/* Dropdown Menu */}
-                      {isDropdownOpen && (
-                        <div className="absolute top-full left-0 mt-1 w-48 bg-white border border-gray-200 rounded-xl shadow-2xl py-1.5 z-50 ring-1 ring-black/5 animate-in fade-in slide-in-from-top-1 duration-150">
-                          {children.map((child) => {
-                            const childActive = location.pathname === child.href;
-                            return (
-                              <Link
-                                key={child.name}
-                                to={child.href}
-                                onClick={() => setOpenDropdown(null)}
-                                className={`flex items-center justify-between px-3.5 py-2 text-xs font-semibold transition-colors ${
-                                  childActive
-                                    ? 'bg-purple-50 text-purple-700 font-bold'
-                                    : 'text-gray-700 hover:bg-purple-50/60 hover:text-purple-700'
-                                }`}
-                              >
-                                <span>{child.name}</span>
-                                {childActive && <span className="w-1.5 h-1.5 rounded-full bg-purple-600" />}
-                              </Link>
-                            );
-                          })}
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </nav>
-            </div>
-          </div>
-
-          {/* Tablet/Mobile Slide-down Navigation Panel */}
-          {mobileMenuOpen && (
-            <div className="lg:hidden border-t border-gray-200 bg-white/95 backdrop-blur-xl px-4 py-4 space-y-2">
-              <div className="relative mb-3">
-                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                <input
-                  type="text"
-                  placeholder="Search..."
-                  className="w-full pl-10 pr-4 py-2 text-xs rounded-xl border border-gray-200 bg-gray-50 focus:bg-white outline-none"
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-1.5">
-                {navigation.map((item) => {
-                  const hasChildren = Array.isArray((item as any).children) && (item as any).children.length > 0;
-                  const isActive = location.pathname === item.href;
-
-                  if (!hasChildren) {
-                    if ((item as any).isExternal) {
-                      return (
-                        <a
-                          key={item.name}
-                          href={item.href}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          onClick={() => setMobileMenuOpen(false)}
-                          className="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-purple-700 bg-purple-50 hover:bg-purple-100 border border-purple-200"
-                        >
-                          <div className="flex items-center gap-2">
-                            <item.icon className="w-4 h-4 text-purple-600" />
-                            <span>{item.name}</span>
-                          </div>
-                          <ExternalLink className="w-3.5 h-3.5 text-purple-500" />
-                        </a>
-                      );
-                    }
-
-                    return (
-                      <Link
-                        key={item.name}
-                        to={item.href}
-                        onClick={() => setMobileMenuOpen(false)}
-                        className={`flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium ${
-                          isActive ? 'gradient-primary text-white' : 'text-gray-700 hover:bg-purple-50'
-                        }`}
-                      >
-                        <item.icon className="w-4 h-4" />
-                        <span>{item.name}</span>
-                      </Link>
-                    );
-                  }
-
-                  const children = (item as any).children as Array<{ name: string; href: string }>;
-                  return (
-                    <div key={item.name} className="col-span-2 space-y-1 bg-gray-50/80 p-2 rounded-xl border border-gray-100">
-                      <div className="text-[11px] font-bold text-gray-500 uppercase px-2">{item.name}</div>
-                      <div className="flex flex-wrap gap-1">
-                        {children.map((child) => (
-                          <Link
-                            key={child.name}
-                            to={child.href}
-                            onClick={() => setMobileMenuOpen(false)}
-                            className={`px-3 py-1 rounded-lg text-xs font-semibold ${
-                              location.pathname === child.href
-                                ? 'bg-purple-600 text-white'
-                                : 'bg-white text-gray-700 border border-gray-200 hover:bg-purple-50'
-                            }`}
-                          >
-                            {child.name}
-                          </Link>
-                        ))}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
         </header>
 
-        {/* Page Content Container (Full Width, Responsive Padding) */}
+        {/* Main Content Viewport */}
         <main className="flex-1 w-full max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6">
           <Outlet />
         </main>

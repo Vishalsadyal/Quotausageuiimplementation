@@ -18,6 +18,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate } from "react-router";
 import { useAuth } from "../../context/AuthContext";
 import { UpgradeModal } from "../../components/upgrade-modal";
+import { DashboardPromoBanner } from "../../components/marketing/DashboardPromoBanner";
 import { useDashboardSummary, DashboardRecentItem } from "../../hooks/useDashboardSummary";
 import { buildJobSourceUrl, cleanJobText, inferJobProvider, jobProviderLabel, parseExternalJobId } from "src/lib/job-source";
 
@@ -159,11 +160,13 @@ export default function Overview() {
     { icon: Target, label: "Find Jobs", iconBg: "bg-blue-50 text-blue-600 border border-blue-100", href: "/dashboard/jobs/linkedin" },
     { icon: Briefcase, label: "Apply Now", iconBg: "bg-purple-50 text-purple-600 border border-purple-100", href: "/dashboard/jobs/linkedin" },
     { icon: Zap, label: "Resume Check", iconBg: "bg-emerald-50 text-emerald-600 border border-emerald-100", href: "/dashboard/resume" },
-    { icon: Users, label: "Interview Prep", iconBg: "bg-amber-50 text-amber-600 border border-amber-100", href: "/dashboard/interview" },
+    { icon: Users, label: "Live AI Interview", iconBg: "bg-amber-50 text-amber-600 border border-amber-100", href: "/dashboard/interview" },
   ];
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
+    <div className="space-y-4">
+      <DashboardPromoBanner />
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
       {/* Left Column: Recent Applications with Infinite Scroll */}
       <div className="lg:col-span-7 xl:col-span-7 space-y-4">
         <motion.div
@@ -436,6 +439,7 @@ export default function Overview() {
       </div>
 
       <UpgradeModal isOpen={showUpgradeModal} onClose={() => setShowUpgradeModal(false)} />
+      </div>
     </div>
   );
 }

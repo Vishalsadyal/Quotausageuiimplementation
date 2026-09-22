@@ -31,13 +31,38 @@ export function rateLimitKey(req: NextRequest, scope: string, identity?: string)
   return `${scope}:${who}:${ip}`;
 }
 
+// In-memory fallback map when Redis is not configured or offline
+const memoryLimitStore = new Map<string, { count: number; expiresAt: number }>();
+
+function checkMemoryRateLimit(key: string, limit: number, windowMs: number) {
+  const now = Date.now();
+  const existing = memoryLimitStore.get(key);
+
+  if (!existing || existing.expiresAt <= now) {
+    memoryLimitStore.set(key, { count: 1, expiresAt: now + windowMs });
+    return null;
+  }
+
+  existing.count += 1;
+  if (existing.count > limit) {
+    const retryAfterSec = Math.max(1, Math.ceil((existing.expiresAt - now) / 1000));
+    const res = fail("Too many requests. Try again shortly.", 429, "RATE_LIMITED");
+    res.headers.set("Retry-After", String(retryAfterSec));
+    return res;
+  }
+
+  return null;
+}
+
 export async function enforceRateLimit(input: {
   key: string;
   limit: number;
   windowMs: number;
 }) {
   const redis = getRedisClient();
-  if (!redis) return null;
+  if (!redis) {
+    return checkMemoryRateLimit(input.key, input.limit, input.windowMs);
+  }
 
   try {
     const windowSec = Math.max(1, Math.ceil(input.windowMs / 1000));
@@ -55,7 +80,7 @@ export async function enforceRateLimit(input: {
     }
     return null;
   } catch (error) {
-    console.error("[CP] rate-limit redis error:", error);
-    return null;
+    console.error("[CP] rate-limit redis error, using memory fallback:", error);
+    return checkMemoryRateLimit(input.key, input.limit, input.windowMs);
   }
 }
