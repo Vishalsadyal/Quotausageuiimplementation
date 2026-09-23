@@ -2387,6 +2387,11 @@ export default function Jobs() {
     },
   ];
 
+  const isCurrentProviderInstalled = showLinkedIn ? linkedInInstalled : indeedInstalled;
+  const currentProviderStoreUrl = showLinkedIn ? extensionStoreUrl : getExtensionProviderConfig("indeed").storeUrl;
+  const currentProviderZipUrl = showLinkedIn ? linkedInExtensionZipUrl : indeedExtensionZipUrl;
+  const currentProviderName = showLinkedIn ? "LinkedIn Auto-Apply Copilot" : "Indeed Auto-Apply Copilot";
+
   return (
     <>
       {/* Mobile Blocker ONLY for this Desktop Browser Extension Page (< 768px) */}
@@ -2412,11 +2417,11 @@ export default function Jobs() {
                     <Sparkles className="w-3 h-3 text-purple-600" />
                     Magic AI Active
                   </span>
-                  <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold border ${
-                    linkedInInstalled ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-amber-50 text-amber-700 border-amber-200"
+                  <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${
+                    isCurrentProviderInstalled ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-amber-50 text-amber-800 border-amber-300"
                   }`}>
-                    <span className={`w-1.5 h-1.5 rounded-full ${linkedInInstalled ? "bg-emerald-500" : "bg-amber-500"}`} />
-                    {linkedInInstalled ? "Extension Connected" : "Extension Ready"}
+                    <span className={`w-1.5 h-1.5 rounded-full ${isCurrentProviderInstalled ? "bg-emerald-500" : "bg-amber-500"}`} />
+                    {isCurrentProviderInstalled ? "Extension Connected" : "Extension Not Detected"}
                   </span>
                 </div>
                 <p className="text-xs text-gray-500 mt-1">
@@ -2428,6 +2433,31 @@ export default function Jobs() {
 
           {/* Top Quick Actions */}
           <div className="flex items-center gap-2 shrink-0">
+            {!isCurrentProviderInstalled && (
+              currentProviderStoreUrl ? (
+                <a
+                  ref={storeLinkButtonRef}
+                  href={currentProviderStoreUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="px-3.5 py-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white rounded-xl text-xs font-bold transition-all shadow-xs hover:shadow-sm inline-flex items-center gap-1.5"
+                >
+                  <Download className="w-3.5 h-3.5" />
+                  <span>Install Extension</span>
+                </a>
+              ) : (
+                <a
+                  ref={storeLinkButtonRef}
+                  href={currentProviderZipUrl}
+                  download={`${showLinkedIn ? "LinkedIn" : "Indeed"}_Extension.zip`}
+                  className="px-3.5 py-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white rounded-xl text-xs font-bold transition-all shadow-xs hover:shadow-sm inline-flex items-center gap-1.5"
+                >
+                  <Download className="w-3.5 h-3.5" />
+                  <span>Download .ZIP</span>
+                </a>
+              )
+            )}
+
             <a
               ref={openLinkedInJobsButtonRef}
               href={showLinkedIn ? "https://www.linkedin.com/jobs/search/?f_AL=true&f_TPR=r604800" : "https://www.indeed.com/jobs?q=engineer"}
@@ -2461,12 +2491,85 @@ export default function Jobs() {
               type="button"
               onClick={() => openInstallGuide()}
               className="px-2.5 py-2 bg-gray-50 hover:bg-gray-100 text-gray-600 hover:text-gray-900 border border-gray-200 rounded-xl text-xs font-semibold transition-colors inline-flex items-center gap-1"
-              title="Install Browser Extension"
+              title="Install Browser Extension Guide"
             >
               <Download className="w-3.5 h-3.5" />
             </button>
           </div>
         </motion.div>
+
+        {/* Extension Not Installed Notice Banner */}
+        {!isCurrentProviderInstalled && (
+          <motion.div
+            initial={{ opacity: 0, y: -6 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="rounded-2xl border-2 border-amber-300 bg-gradient-to-r from-amber-50 via-orange-50/70 to-amber-50/90 p-4 sm:p-5 shadow-sm"
+          >
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+              <div className="flex items-start gap-3.5">
+                <div className="p-2.5 rounded-xl bg-amber-500 text-white shadow-xs shrink-0 mt-0.5">
+                  <AlertCircle className="w-5 h-5" />
+                </div>
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h3 className="text-sm font-bold text-amber-950">
+                      {currentProviderName} Extension Not Detected
+                    </h3>
+                    <span className="px-2 py-0.5 rounded-full bg-amber-200/80 border border-amber-300 text-amber-900 text-[10px] font-bold">
+                      Action Required
+                    </span>
+                  </div>
+                  <p className="text-xs text-amber-900/90 max-w-2xl leading-relaxed">
+                    To automate 1-click Easy Apply jobs on {showLinkedIn ? "LinkedIn" : "Indeed"}, auto-answer screening questions with AI, and sync your profile preferences seamlessly, install the browser extension.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center flex-wrap gap-2 shrink-0">
+                {currentProviderStoreUrl && (
+                  <a
+                    href={currentProviderStoreUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white rounded-xl text-xs font-bold transition-all shadow-xs hover:shadow-sm inline-flex items-center gap-1.5"
+                  >
+                    <ExternalLink className="w-3.5 h-3.5" />
+                    <span>Install from Chrome Store</span>
+                  </a>
+                )}
+
+                <a
+                  href={currentProviderZipUrl}
+                  download={`${showLinkedIn ? "LinkedIn" : "Indeed"}_Extension.zip`}
+                  className="px-3.5 py-2 bg-white hover:bg-amber-50 text-amber-900 border border-amber-300 rounded-xl text-xs font-bold transition-colors inline-flex items-center gap-1.5 shadow-2xs"
+                >
+                  <Download className="w-3.5 h-3.5 text-amber-700" />
+                  <span>Download .ZIP</span>
+                </a>
+
+                <button
+                  type="button"
+                  onClick={() => openInstallGuide()}
+                  className="px-3.5 py-2 bg-amber-100 hover:bg-amber-200/70 text-amber-900 border border-amber-300/80 rounded-xl text-xs font-bold transition-colors inline-flex items-center gap-1.5"
+                >
+                  <BookOpen className="w-3.5 h-3.5 text-amber-700" />
+                  <span>Setup Guide</span>
+                </button>
+
+                <button
+                  ref={checkExtensionButtonRef}
+                  type="button"
+                  onClick={() => void checkExtensionStatus()}
+                  disabled={checkingExtension}
+                  className="px-3.5 py-2 bg-white hover:bg-gray-50 text-gray-700 border border-gray-200 rounded-xl text-xs font-semibold transition-colors inline-flex items-center gap-1.5 shadow-2xs"
+                >
+                  <RefreshCw className={`w-3.5 h-3.5 ${checkingExtension ? "animate-spin" : ""}`} />
+                  <span>{checkingExtension ? "Checking..." : "Check Bridge"}</span>
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        )}
 
         {/* Extension Fleet Quick Platform Switcher Bar */}
         <div className="bg-gray-100/70 p-1 rounded-xl flex items-center gap-1 overflow-x-auto border border-gray-200/60">
@@ -2565,9 +2668,15 @@ export default function Jobs() {
                     <span className="p-1.5 rounded-lg bg-purple-600 text-white shadow-2xs">
                       <Sparkles className="w-4 h-4" />
                     </span>
-                    <h2 className="text-sm font-bold text-gray-900">Magic AI Autopilot is Active</h2>
-                    <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-[10px] font-bold border border-emerald-200">
-                      Auto-Applying Enabled
+                    <h2 className="text-sm font-bold text-gray-900">
+                      {isCurrentProviderInstalled ? "Magic AI Autopilot is Active" : "Magic AI Autopilot Ready"}
+                    </h2>
+                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${
+                      isCurrentProviderInstalled
+                        ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                        : "bg-amber-50 text-amber-800 border-amber-300"
+                    }`}>
+                      {isCurrentProviderInstalled ? "Auto-Applying Enabled" : "Extension Setup Required"}
                     </span>
                   </div>
                   <p className="text-xs text-gray-600 max-w-xl">
@@ -2575,7 +2684,18 @@ export default function Jobs() {
                   </p>
                 </div>
 
-                <div className="flex items-center gap-2 shrink-0">
+                <div className="flex items-center gap-2 shrink-0 flex-wrap">
+                  {!isCurrentProviderInstalled && (
+                    <button
+                      type="button"
+                      onClick={() => openInstallGuide()}
+                      className="px-3.5 py-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white rounded-xl text-xs font-bold transition-all shadow-2xs inline-flex items-center gap-1.5"
+                    >
+                      <Download className="w-3.5 h-3.5" />
+                      <span>Install Extension</span>
+                    </button>
+                  )}
+
                   <button
                     type="button"
                     onClick={() => void autoFillAllWithAI()}
@@ -2600,13 +2720,21 @@ export default function Jobs() {
 
               {/* Status Chips Row */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-4 mt-4 border-t border-purple-100/80">
-                <div className="p-3 rounded-xl bg-white/90 border border-gray-200/70 flex items-center justify-between shadow-2xs">
+                <button
+                  type="button"
+                  onClick={() => !isCurrentProviderInstalled && openInstallGuide()}
+                  className={`p-3 rounded-xl bg-white/90 border flex items-center justify-between shadow-2xs text-left transition-colors ${
+                    !isCurrentProviderInstalled ? "border-amber-300 hover:bg-amber-50/50 cursor-pointer" : "border-gray-200/70"
+                  }`}
+                >
                   <div>
                     <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Extension Bridge</span>
-                    <span className="text-xs font-bold text-gray-800">{linkedInInstalled ? "Connected & Ready" : "Not Detected"}</span>
+                    <span className={`text-xs font-bold ${isCurrentProviderInstalled ? "text-gray-800" : "text-amber-700"}`}>
+                      {isCurrentProviderInstalled ? "Connected & Ready" : "Not Detected (Click to Install)"}
+                    </span>
                   </div>
-                  <span className={`w-2 h-2 rounded-full ${linkedInInstalled ? "bg-emerald-500" : "bg-amber-500"}`} />
-                </div>
+                  <span className={`w-2 h-2 rounded-full ${isCurrentProviderInstalled ? "bg-emerald-500" : "bg-amber-500"}`} />
+                </button>
                 <div className="p-3 rounded-xl bg-white/90 border border-gray-200/70 flex items-center justify-between shadow-2xs">
                   <div>
                     <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Screening Answers</span>
@@ -2677,24 +2805,57 @@ export default function Jobs() {
                       </div>
 
                       <div className="pt-3 mt-3 border-t border-gray-100 flex items-center gap-2">
-                        {isExternal ? (
-                          <a
-                            href={module.launchUrl}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="flex-1 px-3 py-1.5 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-bold transition-colors inline-flex items-center justify-center gap-1.5 shadow-2xs"
-                          >
-                            <ExternalLink className="w-3 h-3" />
-                            <span>{module.launchLabel}</span>
-                          </a>
+                        {module.installed ? (
+                          isExternal ? (
+                            <a
+                              href={module.launchUrl}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="flex-1 px-3 py-1.5 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-bold transition-colors inline-flex items-center justify-center gap-1.5 shadow-2xs"
+                            >
+                              <ExternalLink className="w-3 h-3" />
+                              <span>{module.launchLabel}</span>
+                            </a>
+                          ) : (
+                            <Link
+                              to={module.activeRoute}
+                              className="flex-1 px-3 py-1.5 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-bold transition-colors inline-flex items-center justify-center gap-1.5 shadow-2xs"
+                            >
+                              <ChevronRight className="w-3.5 h-3.5" />
+                              <span>{module.launchLabel}</span>
+                            </Link>
+                          )
                         ) : (
-                          <Link
-                            to={module.launchUrl}
-                            className="flex-1 px-3 py-1.5 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-bold transition-colors inline-flex items-center justify-center gap-1.5 shadow-2xs"
-                          >
-                            <ChevronRight className="w-3.5 h-3.5" />
-                            <span>{module.launchLabel}</span>
-                          </Link>
+                          <div className="flex-1 flex items-center gap-1.5">
+                            {module.storeUrl ? (
+                              <a
+                                href={module.storeUrl}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="flex-1 px-3 py-1.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white rounded-xl text-xs font-bold transition-colors inline-flex items-center justify-center gap-1.5 shadow-2xs"
+                              >
+                                <Download className="w-3 h-3" />
+                                <span>Install Extension</span>
+                              </a>
+                            ) : (
+                              <a
+                                href={module.id === "indeed" ? indeedExtensionZipUrl : linkedInExtensionZipUrl}
+                                download
+                                className="flex-1 px-3 py-1.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white rounded-xl text-xs font-bold transition-colors inline-flex items-center justify-center gap-1.5 shadow-2xs"
+                              >
+                                <Download className="w-3 h-3" />
+                                <span>Download .ZIP</span>
+                              </a>
+                            )}
+                            <button
+                              type="button"
+                              onClick={() => openInstallGuide()}
+                              className="px-2.5 py-1.5 bg-gray-50 hover:bg-gray-100 text-gray-700 border border-gray-200 rounded-xl text-xs font-medium shrink-0"
+                              title="View Setup Guide"
+                            >
+                              Guide
+                            </button>
+                          </div>
                         )}
 
                         {(module as any).secondaryUrl && (
