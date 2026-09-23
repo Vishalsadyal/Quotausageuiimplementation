@@ -50,6 +50,7 @@ const Blog = lazy(() => import('./pages/Blog'));
 const BlogPost = lazy(() => import('./pages/BlogPost'));
 const ExtensionDesign = lazy(() => import('./pages/ExtensionDesign'));
 const ThankYou = lazy(() => import('./pages/ThankYou'));
+const RecruitmentAgency = lazy(() => import('./pages/RecruitmentAgency'));
 
 // Dashboard Pages (lazy load)
 const DashboardOverview = lazy(() => import('./pages/dashboard/Overview'));
@@ -159,6 +160,8 @@ const routes = createRoutesFromElements(
       <Route path="blog" element={<Suspense fallback={<PageLoader />}><Blog /></Suspense>} />
       <Route path="blog/:slug" element={<Suspense fallback={<PageLoader />}><BlogPost /></Suspense>} />
       <Route path="thank-you" element={<Suspense fallback={<PageLoader />}><ThankYou /></Suspense>} />
+      <Route path="recruitment-agency" element={<Suspense fallback={<PageLoader />}><RecruitmentAgency /></Suspense>} />
+      <Route path="recruitment" element={<Navigate to="/recruitment-agency" replace />} />
     </Route>
 
     {/* Auth Pages */}

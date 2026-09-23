@@ -78,6 +78,12 @@ export const SEO_BY_PATH: Record<string, SeoEntry> = {
       "Compare transparent AutoApply CV pricing with clear charged vs skipped outcomes, LinkedIn automation limits, and AI resume optimization tools.",
     index: true,
   },
+  "/recruitment-agency": {
+    title: "Recruitment & Job Search Assistance Agency | AutoApply CV",
+    description:
+      "AutoApplyCV is a professional recruitment & job search assistance agency connecting candidates with relevant recruiters via email & WhatsApp outreach. Download our official 2-page brochure.",
+    index: true,
+  },
   "/auto-apply": {
     title: "Auto Apply | Free Auto Apply Tool | AutoApply CV",
     description:
