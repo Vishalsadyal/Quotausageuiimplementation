@@ -20,7 +20,7 @@ async def generate_pdf():
   <meta charset="UTF-8">
   <title>AutoApplyCV - Recruitment & Job Search Assistance Agency Brochure</title>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&family=Caveat:wght@600;700&display=swap');
     
     @page {{
       size: A4 portrait;
@@ -39,8 +39,8 @@ async def generate_pdf():
       font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
       color: #1e293b;
       background-color: #f8fafc;
-      font-size: 13px;
-      line-height: 1.5;
+      font-size: 12.5px;
+      line-height: 1.45;
     }}
     
     .page {{
@@ -48,7 +48,7 @@ async def generate_pdf():
       height: 297mm;
       position: relative;
       background: #ffffff;
-      padding: 15mm 18mm 13mm 18mm;
+      padding: 14mm 18mm 12mm 18mm;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
@@ -93,7 +93,7 @@ async def generate_pdf():
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding-bottom: 12px;
+      padding-bottom: 11px;
       border-bottom: 1.5px solid #e2e8f0;
     }}
     
@@ -104,8 +104,8 @@ async def generate_pdf():
     }}
     
     .logo-badge {{
-      width: 40px;
-      height: 40px;
+      width: 38px;
+      height: 38px;
       border-radius: 10px;
       background: linear-gradient(135deg, #1e3a8a 0%, #4f46e5 100%);
       display: flex;
@@ -113,13 +113,13 @@ async def generate_pdf():
       justify-content: center;
       color: white;
       font-weight: 800;
-      font-size: 18px;
+      font-size: 17px;
       box-shadow: 0 4px 10px rgba(30, 58, 138, 0.25);
     }}
     
     .brand-title {{
       font-family: 'Outfit', sans-serif;
-      font-size: 21px;
+      font-size: 20px;
       font-weight: 800;
       color: #0f172a;
       letter-spacing: -0.5px;
@@ -131,7 +131,7 @@ async def generate_pdf():
     }}
     
     .brand-tagline {{
-      font-size: 9.5px;
+      font-size: 9px;
       color: #64748b;
       font-weight: 600;
       text-transform: uppercase;
@@ -145,9 +145,9 @@ async def generate_pdf():
       gap: 6px;
       background: #f1f5f9;
       border: 1px solid #cbd5e1;
-      padding: 5px 12px;
+      padding: 4px 11px;
       border-radius: 20px;
-      font-size: 10.5px;
+      font-size: 10px;
       font-weight: 700;
       color: #1e293b;
     }}
@@ -161,10 +161,10 @@ async def generate_pdf():
     
     /* Cover Hero Section */
     .hero-section {{
-      margin-top: 14px;
+      margin-top: 12px;
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: 9px;
     }}
     
     .badge-pill {{
@@ -175,16 +175,16 @@ async def generate_pdf():
       background: linear-gradient(90deg, #eef2ff 0%, #e0e7ff 100%);
       border: 1px solid #c7d2fe;
       color: #4338ca;
-      font-size: 10px;
+      font-size: 9.5px;
       font-weight: 700;
-      padding: 4px 12px;
+      padding: 3px 10px;
       border-radius: 16px;
       letter-spacing: 0.3px;
     }}
     
     .hero-title {{
       font-family: 'Outfit', sans-serif;
-      font-size: 27px;
+      font-size: 26px;
       font-weight: 800;
       color: #0f172a;
       line-height: 1.18;
@@ -198,20 +198,20 @@ async def generate_pdf():
     }}
     
     .hero-subheadline {{
-      font-size: 13.5px;
+      font-size: 13px;
       font-weight: 600;
       color: #334155;
-      line-height: 1.4;
+      line-height: 1.35;
     }}
     
     .intro-card {{
       background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
       border-left: 4px solid #4f46e5;
       border-radius: 0 12px 12px 0;
-      padding: 11px 15px;
-      font-size: 11.5px;
+      padding: 10px 14px;
+      font-size: 11px;
       color: #475569;
-      line-height: 1.5;
+      line-height: 1.48;
     }}
     
     .intro-card strong {{
@@ -231,16 +231,16 @@ async def generate_pdf():
       background: #ffffff;
       border: 1px solid #e2e8f0;
       border-radius: 12px;
-      padding: 11px 12px;
+      padding: 10px 12px;
       box-shadow: 0 2px 6px rgba(15, 23, 42, 0.04);
       display: flex;
       flex-direction: column;
-      gap: 5px;
+      gap: 4px;
     }}
     
     .pillar-icon-box {{
-      width: 30px;
-      height: 30px;
+      width: 28px;
+      height: 28px;
       border-radius: 8px;
       display: flex;
       align-items: center;
@@ -253,16 +253,16 @@ async def generate_pdf():
     
     .pillar-title {{
       font-family: 'Outfit', sans-serif;
-      font-size: 12px;
+      font-size: 11.5px;
       font-weight: 700;
       color: #0f172a;
       line-height: 1.25;
     }}
     
     .pillar-desc {{
-      font-size: 10px;
+      font-size: 9.5px;
       color: #64748b;
-      line-height: 1.4;
+      line-height: 1.38;
     }}
     
     /* Illustration Section */
@@ -278,7 +278,7 @@ async def generate_pdf():
     
     .illustration-card img {{
       width: 100%;
-      max-height: 220px;
+      max-height: 200px;
       object-fit: contain;
       background: #fdfdfd;
       display: block;
@@ -293,7 +293,7 @@ async def generate_pdf():
       background: #f8fafc;
       border: 1px solid #e2e8f0;
       border-radius: 12px;
-      padding: 10px 12px;
+      padding: 9px 12px;
     }}
     
     .workflow-step {{
@@ -303,12 +303,12 @@ async def generate_pdf():
     }}
     
     .workflow-number {{
-      width: 22px;
-      height: 22px;
+      width: 20px;
+      height: 20px;
       border-radius: 50%;
       background: #4f46e5;
       color: white;
-      font-size: 10.5px;
+      font-size: 10px;
       font-weight: 800;
       display: flex;
       align-items: center;
@@ -317,14 +317,14 @@ async def generate_pdf():
     }}
     
     .workflow-title {{
-      font-size: 10.5px;
+      font-size: 10px;
       font-weight: 700;
       color: #0f172a;
       line-height: 1.2;
     }}
     
     .workflow-sub {{
-      font-size: 9px;
+      font-size: 8.5px;
       color: #64748b;
     }}
     
@@ -334,7 +334,7 @@ async def generate_pdf():
       background: #0f172a;
       color: #ffffff;
       border-radius: 12px;
-      padding: 10px 16px;
+      padding: 9px 15px;
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -348,17 +348,17 @@ async def generate_pdf():
     
     .exp-icon {{
       color: #38bdf8;
-      font-size: 14px;
+      font-size: 13px;
     }}
     
     .exp-text {{
-      font-size: 11px;
+      font-size: 10.5px;
       font-weight: 600;
       color: #f1f5f9;
     }}
     
     .exp-sub {{
-      font-size: 9px;
+      font-size: 8.5px;
       color: #94a3b8;
       font-weight: 400;
     }}
@@ -366,12 +366,12 @@ async def generate_pdf():
     /* Footer */
     .page-footer {{
       margin-top: 10px;
-      padding-top: 10px;
+      padding-top: 9px;
       border-top: 1.5px solid #e2e8f0;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      font-size: 10px;
+      font-size: 9.5px;
       color: #64748b;
     }}
     
@@ -395,20 +395,20 @@ async def generate_pdf():
     /* PAGE 2 STYLES */
     .page2-header {{
       text-align: center;
-      margin-top: 6px;
-      margin-bottom: 12px;
+      margin-top: 4px;
+      margin-bottom: 10px;
     }}
     
     .page2-title {{
       font-family: 'Outfit', sans-serif;
-      font-size: 23px;
+      font-size: 22px;
       font-weight: 800;
       color: #0f172a;
       letter-spacing: -0.4px;
     }}
     
     .page2-subtitle {{
-      font-size: 11.5px;
+      font-size: 11px;
       color: #64748b;
       margin-top: 2px;
     }}
@@ -418,14 +418,14 @@ async def generate_pdf():
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 14px;
-      margin-bottom: 12px;
+      margin-bottom: 10px;
     }}
     
     .plan-card {{
       background: #ffffff;
       border: 1.5px solid #e2e8f0;
       border-radius: 14px;
-      padding: 16px 16px 14px 16px;
+      padding: 15px 15px 13px 15px;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
@@ -441,13 +441,13 @@ async def generate_pdf():
     
     .featured-badge {{
       position: absolute;
-      top: -11px;
+      top: -10px;
       right: 16px;
       background: linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%);
       color: #ffffff;
-      font-size: 9px;
+      font-size: 8.5px;
       font-weight: 800;
-      padding: 3px 10px;
+      padding: 2.5px 9px;
       border-radius: 20px;
       text-transform: uppercase;
       letter-spacing: 0.6px;
@@ -455,39 +455,39 @@ async def generate_pdf():
     }}
     
     .plan-header {{
-      padding-bottom: 10px;
+      padding-bottom: 9px;
       border-bottom: 1px solid #f1f5f9;
     }}
     
     .plan-name {{
       font-family: 'Outfit', sans-serif;
-      font-size: 15.5px;
+      font-size: 15px;
       font-weight: 800;
       color: #0f172a;
     }}
     
     .plan-desc {{
-      font-size: 10px;
+      font-size: 9.5px;
       color: #64748b;
       margin-top: 2px;
     }}
     
     .plan-price-box {{
-      margin-top: 8px;
+      margin-top: 7px;
       display: flex;
       align-items: baseline;
       gap: 4px;
     }}
     
     .price-currency {{
-      font-size: 15px;
+      font-size: 14px;
       font-weight: 700;
       color: #0f172a;
     }}
     
     .price-amount {{
       font-family: 'Outfit', sans-serif;
-      font-size: 26px;
+      font-size: 25px;
       font-weight: 800;
       color: #0f172a;
     }}
@@ -497,38 +497,38 @@ async def generate_pdf():
     }}
     
     .price-period {{
-      font-size: 9.5px;
+      font-size: 9px;
       color: #94a3b8;
       font-weight: 600;
     }}
     
     .plan-features {{
       list-style: none;
-      margin: 12px 0 14px 0;
+      margin: 11px 0 13px 0;
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      gap: 7px;
     }}
     
     .plan-feature-item {{
       display: flex;
       align-items: flex-start;
-      gap: 8px;
-      font-size: 10.5px;
+      gap: 7px;
+      font-size: 10px;
       color: #334155;
-      line-height: 1.35;
+      line-height: 1.32;
     }}
     
     .feature-icon {{
-      width: 15px;
-      height: 15px;
+      width: 14px;
+      height: 14px;
       border-radius: 50%;
       background: #ecfdf5;
       color: #059669;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 9px;
+      font-size: 8.5px;
       font-weight: 800;
       flex-shrink: 0;
       margin-top: 1px;
@@ -543,9 +543,9 @@ async def generate_pdf():
       display: block;
       width: 100%;
       text-align: center;
-      padding: 8px 0;
-      border-radius: 10px;
-      font-size: 11px;
+      padding: 7px 0;
+      border-radius: 9px;
+      font-size: 10.5px;
       font-weight: 700;
       text-decoration: none;
       transition: all 0.2s;
@@ -567,47 +567,47 @@ async def generate_pdf():
     .disclaimer-box {{
       background: #fffbeb;
       border: 1.5px solid #fde68a;
-      border-radius: 11px;
-      padding: 9px 13px;
+      border-radius: 10px;
+      padding: 8px 12px;
       display: flex;
-      gap: 9px;
+      gap: 8px;
       align-items: flex-start;
-      margin-bottom: 11px;
+      margin-bottom: 10px;
     }}
     
     .disclaimer-icon {{
       color: #d97706;
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 800;
       margin-top: 1px;
       flex-shrink: 0;
     }}
     
     .disclaimer-title {{
-      font-size: 10px;
+      font-size: 9.5px;
       font-weight: 700;
       color: #92400e;
       text-transform: uppercase;
       letter-spacing: 0.5px;
-      margin-bottom: 2px;
+      margin-bottom: 1px;
     }}
     
     .disclaimer-text {{
-      font-size: 9.5px;
+      font-size: 9px;
       color: #78350f;
-      line-height: 1.4;
+      line-height: 1.38;
     }}
     
     /* CTA Banner */
     .cta-banner {{
       background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 60%, #1e3a8a 100%);
-      border-radius: 13px;
-      padding: 14px 18px;
+      border-radius: 12px;
+      padding: 12px 16px;
       color: #ffffff;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      box-shadow: 0 6px 16px rgba(15, 23, 42, 0.15);
+      box-shadow: 0 5px 14px rgba(15, 23, 42, 0.15);
     }}
     
     .cta-info {{
@@ -616,14 +616,14 @@ async def generate_pdf():
     
     .cta-heading {{
       font-family: 'Outfit', sans-serif;
-      font-size: 15px;
+      font-size: 14.5px;
       font-weight: 800;
       color: #ffffff;
       line-height: 1.2;
     }}
     
     .cta-subtext {{
-      font-size: 10.5px;
+      font-size: 10px;
       color: #cbd5e1;
       margin-top: 2px;
     }}
@@ -631,12 +631,12 @@ async def generate_pdf():
     .cta-button {{
       display: inline-flex;
       align-items: center;
-      gap: 6px;
+      gap: 5px;
       background: #38bdf8;
       color: #0f172a;
-      padding: 8px 16px;
-      border-radius: 9px;
-      font-size: 11.5px;
+      padding: 7.5px 15px;
+      border-radius: 8px;
+      font-size: 11px;
       font-weight: 800;
       text-decoration: none;
       box-shadow: 0 4px 10px rgba(56, 189, 248, 0.3);
@@ -644,45 +644,240 @@ async def generate_pdf():
     
     /* Contact Bar */
     .contact-bar {{
-      margin-top: 10px;
+      margin-top: 9px;
       display: flex;
       justify-content: space-between;
       background: #ffffff;
       border: 1px solid #e2e8f0;
-      border-radius: 11px;
-      padding: 9px 14px;
+      border-radius: 10px;
+      padding: 8px 12px;
     }}
     
     .contact-item {{
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 7px;
     }}
     
     .contact-icon {{
-      width: 22px;
-      height: 22px;
+      width: 20px;
+      height: 20px;
       border-radius: 6px;
       background: #f1f5f9;
       color: #4f46e5;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 11px;
+      font-size: 10px;
     }}
     
     .contact-label {{
-      font-size: 8.5px;
+      font-size: 8px;
       color: #64748b;
       text-transform: uppercase;
       font-weight: 700;
     }}
     
     .contact-value {{
-      font-size: 10.5px;
+      font-size: 10px;
       font-weight: 700;
       color: #0f172a;
       text-decoration: none;
+    }}
+
+    /* ==================== PAGE 3 STYLES ==================== */
+    .page3-header {{
+      text-align: center;
+      margin-top: 2px;
+      margin-bottom: 10px;
+    }}
+    
+    .page3-title {{
+      font-family: 'Outfit', sans-serif;
+      font-size: 20px;
+      font-weight: 800;
+      color: #0f172a;
+      letter-spacing: -0.4px;
+    }}
+    
+    .page3-subtitle {{
+      font-size: 10.5px;
+      color: #64748b;
+      margin-top: 1px;
+    }}
+
+    /* Form Layouts */
+    .form-section {{
+      background: #ffffff;
+      border: 1.5px solid #cbd5e1;
+      border-radius: 12px;
+      padding: 12px 14px;
+      margin-bottom: 10px;
+      position: relative;
+    }}
+    
+    .section-header-pill {{
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #0f172a;
+      color: #ffffff;
+      font-size: 9.5px;
+      font-weight: 800;
+      padding: 3px 10px;
+      border-radius: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      margin-bottom: 9px;
+    }}
+    
+    .form-grid-2 {{
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px 14px;
+    }}
+    
+    .form-grid-3 {{
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 8px 12px;
+    }}
+
+    .form-field {{
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }}
+    
+    .field-label {{
+      font-size: 9px;
+      font-weight: 700;
+      color: #475569;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+    }}
+    
+    .field-line {{
+      height: 22px;
+      border-bottom: 1.5px dashed #94a3b8;
+      background: #f8fafc;
+      border-radius: 4px 4px 0 0;
+    }}
+    
+    .plan-checkbox-row {{
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      padding: 6px 0;
+      border-top: 1px solid #f1f5f9;
+      margin-top: 4px;
+    }}
+    
+    .checkbox-item {{
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 10px;
+      font-weight: 700;
+      color: #1e293b;
+    }}
+    
+    .checkbox-box {{
+      width: 14px;
+      height: 14px;
+      border: 1.5px solid #64748b;
+      border-radius: 3px;
+      background: #ffffff;
+    }}
+
+    /* Agency Section Box */
+    .agency-section {{
+      background: #f8fafc;
+      border: 1.5px solid #94a3b8;
+      border-radius: 12px;
+      padding: 11px 14px;
+      margin-bottom: 8px;
+    }}
+
+    .agency-header-pill {{
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: linear-gradient(135deg, #1e3a8a 0%, #4f46e5 100%);
+      color: #ffffff;
+      font-size: 9px;
+      font-weight: 800;
+      padding: 3px 10px;
+      border-radius: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      margin-bottom: 8px;
+    }}
+
+    /* Signature Row */
+    .sign-row {{
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin-top: 6px;
+      padding-top: 8px;
+      border-top: 1.5px solid #cbd5e1;
+    }}
+
+    .sign-box {{
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      height: 65px;
+    }}
+
+    .sign-area {{
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 40px;
+      border-bottom: 1.5px solid #0f172a;
+      padding: 0 4px;
+    }}
+
+    .agency-signature-cursive {{
+      font-family: 'Caveat', cursive;
+      font-size: 28px;
+      font-weight: 700;
+      color: #1e3a8a;
+      line-height: 1;
+      transform: rotate(-3deg);
+    }}
+
+    .official-stamp {{
+      border: 1.5px solid #059669;
+      color: #059669;
+      font-size: 7.5px;
+      font-weight: 800;
+      padding: 2px 6px;
+      border-radius: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      transform: rotate(4deg);
+      background: #ecfdf5;
+    }}
+
+    .sign-caption {{
+      font-size: 8.5px;
+      color: #64748b;
+      font-weight: 600;
+      margin-top: 2px;
+    }}
+
+    .declaration-text {{
+      font-size: 8.5px;
+      color: #64748b;
+      line-height: 1.35;
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 6px 10px;
+      margin-top: 4px;
     }}
   </style>
 </head>
@@ -733,15 +928,15 @@ async def generate_pdf():
       <div class="pillars-grid">
         <div class="pillar-card">
           <div class="pillar-icon-box icon-blue">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
           </div>
           <div class="pillar-title">Personalized Job Search Assistance</div>
-          <div class="pillar-desc">Smart matching of available openings tailored to your specific role, skills, experience, and target location.</div>
+          <div class="pillar-desc">Smart matching of available openings tailored to your role, skills, experience, and target location.</div>
         </div>
         
         <div class="pillar-card">
           <div class="pillar-icon-box icon-purple">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
           </div>
           <div class="pillar-title">Recruiter Outreach</div>
           <div class="pillar-desc">Direct outreach and introduction to verified corporate recruiters, HR managers, and hiring leads across channels.</div>
@@ -749,7 +944,7 @@ async def generate_pdf():
         
         <div class="pillar-card">
           <div class="pillar-icon-box icon-teal">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
           </div>
           <div class="pillar-title">Resume Circulation</div>
           <div class="pillar-desc">Profile and CV circulation across specialized LinkedIn recruiter circles and hiring communities where permitted.</div>
@@ -816,7 +1011,7 @@ async def generate_pdf():
         <div class="footer-left">AutoApplyCV | Connecting Talent With Opportunities</div>
         <div class="footer-right">
           <span>Website: <a href="https://autoapplycv.in" class="footer-link">autoapplycv.in</a></span>
-          <span>Page 1 of 2</span>
+          <span>Page 1 of 3</span>
         </div>
       </div>
     </div>
@@ -985,7 +1180,177 @@ async def generate_pdf():
         <div class="footer-left">AutoApplyCV | Connecting Talent With Opportunities</div>
         <div class="footer-right">
           <span>Website: <a href="https://autoapplycv.in" class="footer-link">autoapplycv.in</a></span>
-          <span>Page 2 of 2</span>
+          <span>Page 2 of 3</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== PAGE 3 (ONBOARDING & VERIFICATION) ==================== -->
+  <div class="page">
+    <div class="bg-blob-1"></div>
+    <div class="bg-blob-2"></div>
+    
+    <div class="content-layer">
+      <!-- Top Header -->
+      <div class="header">
+        <div class="logo-container">
+          <div class="logo-badge">AC</div>
+          <div>
+            <div class="brand-title">AutoApply<span>CV</span></div>
+            <div class="brand-tagline">Candidate Enrollment &amp; Verification Sheet</div>
+          </div>
+        </div>
+        <div class="agency-tag">
+          <span class="agency-tag-dot"></span>
+          <span>Official Onboarding Form</span>
+        </div>
+      </div>
+
+      <!-- Page 3 Header -->
+      <div class="page3-header">
+        <h2 class="page3-title">Candidate Registration &amp; Agency Verification</h2>
+        <p class="page3-subtitle">Please complete the applicant details below to initiate your structured recruiter outreach process.</p>
+      </div>
+
+      <!-- PART A: APPLICANT USE ONLY -->
+      <div class="form-section">
+        <div class="section-header-pill">
+          <span>PART A: FOR APPLICANT USE</span>
+        </div>
+
+        <div class="form-grid-2">
+          <div class="form-field">
+            <span class="field-label">1. Full Legal Name</span>
+            <div class="field-line"></div>
+          </div>
+          <div class="form-field">
+            <span class="field-label">2. Contact / WhatsApp Number</span>
+            <div class="field-line"></div>
+          </div>
+        </div>
+
+        <div class="form-grid-2" style="margin-top: 6px;">
+          <div class="form-field">
+            <span class="field-label">3. Email Address</span>
+            <div class="field-line"></div>
+          </div>
+          <div class="form-field">
+            <span class="field-label">4. Current City / Location</span>
+            <div class="field-line"></div>
+          </div>
+        </div>
+
+        <div class="form-grid-3" style="margin-top: 6px;">
+          <div class="form-field">
+            <span class="field-label">5. Total Experience (Years)</span>
+            <div class="field-line"></div>
+          </div>
+          <div class="form-field">
+            <span class="field-label">6. Target Job Title / Role</span>
+            <div class="field-line"></div>
+          </div>
+          <div class="form-field">
+            <span class="field-label">7. Preferred Work Mode / City</span>
+            <div class="field-line"></div>
+          </div>
+        </div>
+
+        <!-- Selected Service Plan Checkbox -->
+        <div class="plan-checkbox-row">
+          <span class="field-label" style="margin-right: 4px;">Selected Service Plan:</span>
+          <div class="checkbox-item">
+            <div class="checkbox-box"></div>
+            <span>Job Search Access (₹500)</span>
+          </div>
+          <div class="checkbox-item">
+            <div class="checkbox-box"></div>
+            <span>Premium Job Outreach (₹2,000)</span>
+          </div>
+        </div>
+
+        <!-- Candidate Declaration -->
+        <div class="declaration-text">
+          <strong>Candidate Declaration:</strong> I hereby confirm that the information submitted above is accurate and authorize AutoApplyCV to circulate my resume and initiate recruiter communications on my behalf in accordance with the selected service plan.
+        </div>
+
+        <!-- Applicant Signature Line -->
+        <div style="margin-top: 6px; display: flex; justify-content: space-between; align-items: flex-end;">
+          <div style="width: 45%;">
+            <div class="field-line" style="height: 24px;"></div>
+            <span class="sign-caption">Applicant Signature</span>
+          </div>
+          <div style="width: 35%;">
+            <div class="field-line" style="height: 24px;"></div>
+            <span class="sign-caption">Date (DD / MM / YYYY)</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- PART B: FOR AGENCY USE ONLY -->
+      <div class="agency-section">
+        <div class="agency-header-pill">
+          <span>PART B: FOR AGENCY &amp; VERIFICATION USE ONLY</span>
+        </div>
+
+        <div class="form-grid-3">
+          <div class="form-field">
+            <span class="field-label">Candidate Reference ID</span>
+            <div class="field-line"></div>
+          </div>
+          <div class="form-field">
+            <span class="field-label">Assigned Outreach Specialist</span>
+            <div class="field-line"></div>
+          </div>
+          <div class="form-field">
+            <span class="field-label">Payment Receipt / Ref No.</span>
+            <div class="field-line"></div>
+          </div>
+        </div>
+
+        <div class="form-grid-2" style="margin-top: 6px;">
+          <div class="form-field">
+            <span class="field-label">Verification Status</span>
+            <div style="display: flex; gap: 12px; align-items: center; padding-top: 4px;">
+              <span style="font-size: 9.5px; font-weight: 700; color: #059669;">[✓] Verified &amp; Approved</span>
+              <span style="font-size: 9.5px; color: #64748b;">[ ] Under Review</span>
+            </div>
+          </div>
+          <div class="form-field">
+            <span class="field-label">Service Commencement Date</span>
+            <div class="field-line"></div>
+          </div>
+        </div>
+
+        <!-- Authorized Signature Block with "Vishal" Signature -->
+        <div class="sign-row">
+          <div class="sign-box">
+            <span class="field-label">Authorized Agency Signatory</span>
+            <div class="sign-area">
+              <span class="agency-signature-cursive">Vishal</span>
+              <span class="official-stamp">VERIFIED &amp; APPROVED</span>
+            </div>
+            <span class="sign-caption">Vishal — Founder / Authorized Signatory, AutoApplyCV</span>
+          </div>
+
+          <div class="sign-box">
+            <span class="field-label">Official Agency Seal &amp; Portal Auth</span>
+            <div class="sign-area" style="justify-content: center;">
+              <span style="font-size: 9px; font-weight: 800; color: #1e3a8a; letter-spacing: 0.5px;">
+                AUTOAPPLYCV RECRUITMENT SERVICES
+              </span>
+            </div>
+            <span class="sign-caption">Official Portal: https://autoapplycv.in</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Page 3 Footer -->
+      <div class="page-footer">
+        <div class="footer-left">AutoApplyCV | Candidate Enrollment &amp; Verification Sheet</div>
+        <div class="footer-right">
+          <span>Website: <a href="https://autoapplycv.in" class="footer-link">autoapplycv.in</a></span>
+          <span>Page 3 of 3</span>
         </div>
       </div>
     </div>
@@ -1024,14 +1389,15 @@ async def generate_pdf():
         
         # Take updated screenshots for inspection
         pages = await page.query_selector_all('.page')
-        if len(pages) >= 1:
-            await pages[0].screenshot(path=os.path.join(workspace_root, 'public', 'images', 'brochure_page_1.png'))
-        if len(pages) >= 2:
-            await pages[1].screenshot(path=os.path.join(workspace_root, 'public', 'images', 'brochure_page_2.png'))
+        print(f"Total pages rendered: {len(pages)}")
+        for idx, pg in enumerate(pages):
+            snap_path = os.path.join(workspace_root, 'public', 'images', f'brochure_page_{idx+1}.png')
+            await pg.screenshot(path=snap_path)
+            print(f"Saved snapshot: {snap_path}")
             
         await browser.close()
         
-    print(f"PDF successfully generated at: {pdf_out_root}")
+    print(f"3-Page PDF successfully generated at: {pdf_out_root}")
     print(f"Public PDF saved at: {pdf_out_public}")
 
 if __name__ == "__main__":

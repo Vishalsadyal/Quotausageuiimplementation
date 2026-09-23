@@ -144,8 +144,8 @@ export default function RecruitmentAgency() {
       a: "Our services are designed for candidates with 0 to 15 years of experience across all major sectors including Software & Tech, Industrial Engineering, SCADA & Automation, Business Analysis, Operations, Marketing, and Finance.",
     },
     {
-      q: "How can I download the official agency brochure?",
-      a: "You can download the full 2-page PDF brochure directly from this page by clicking 'Download Official Brochure (PDF)' or access it anytime at /AutoApplyCV_Recruitment_Brochure.pdf.",
+      q: "How can I download the official agency brochure and application form?",
+      a: "You can download the full 3-page official PDF brochure (including candidate enrollment form and authorized verification section signed by Vishal) directly from this page by clicking 'Download Brochure (PDF)' or access it anytime at /AutoApplyCV_Recruitment_Brochure.pdf.",
     },
   ];
 
@@ -335,10 +335,10 @@ export default function RecruitmentAgency() {
                 Official Agency Document
               </span>
               <h2 className="text-2xl sm:text-4xl font-extrabold text-white">
-                Official Service Brochure (2-Page PDF)
+                Official Service Brochure &amp; Enrollment (3-Page PDF)
               </h2>
               <p className="text-sm sm:text-base text-slate-300 max-w-2xl">
-                Download or share our comprehensive corporate brochure with complete service plans, outreach details, and transparent policy guidelines.
+                Download or share our comprehensive corporate brochure with complete service plans, outreach details, transparent policy guidelines, and applicant enrollment forms.
               </p>
             </div>
 
@@ -363,18 +363,18 @@ export default function RecruitmentAgency() {
             </div>
           </div>
 
-          {/* Visual Brochure Page Previews */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
+          {/* Visual Brochure Page Previews - 3 Columns */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4">
             {/* Page 1 Preview Card */}
             <div className="rounded-2xl border border-slate-700 bg-slate-800/80 p-4 shadow-xl space-y-3">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-indigo-300">PAGE 1: Cover &amp; Agency Overview</span>
+                <span className="text-xs font-bold text-indigo-300">PAGE 1: Cover &amp; Overview</span>
                 <a
                   href="/AutoApplyCV_Recruitment_Brochure.pdf"
                   target="_blank"
                   className="text-xs text-slate-400 hover:text-white inline-flex items-center gap-1"
                 >
-                  <span>Open in viewer</span>
+                  <span>Open PDF</span>
                   <ExternalLink className="w-3 h-3" />
                 </a>
               </div>
@@ -390,13 +390,13 @@ export default function RecruitmentAgency() {
             {/* Page 2 Preview Card */}
             <div className="rounded-2xl border border-slate-700 bg-slate-800/80 p-4 shadow-xl space-y-3">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-teal-300">PAGE 2: Service Plans &amp; Pricing</span>
+                <span className="text-xs font-bold text-teal-300">PAGE 2: Plans &amp; Pricing</span>
                 <a
                   href="/AutoApplyCV_Recruitment_Brochure.pdf"
                   target="_blank"
                   className="text-xs text-slate-400 hover:text-white inline-flex items-center gap-1"
                 >
-                  <span>Open in viewer</span>
+                  <span>Open PDF</span>
                   <ExternalLink className="w-3 h-3" />
                 </a>
               </div>
@@ -404,6 +404,28 @@ export default function RecruitmentAgency() {
                 <img
                   src="/images/brochure_page_2.png"
                   alt="AutoApplyCV Recruitment Agency Brochure Page 2"
+                  className="w-full h-auto object-cover transition-transform group-hover:scale-[1.02] duration-200"
+                />
+              </div>
+            </div>
+
+            {/* Page 3 Preview Card */}
+            <div className="rounded-2xl border border-slate-700 bg-slate-800/80 p-4 shadow-xl space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-amber-300">PAGE 3: Enrollment &amp; Verification</span>
+                <a
+                  href="/AutoApplyCV_Recruitment_Brochure.pdf"
+                  target="_blank"
+                  className="text-xs text-slate-400 hover:text-white inline-flex items-center gap-1"
+                >
+                  <span>Open PDF</span>
+                  <ExternalLink className="w-3 h-3" />
+                </a>
+              </div>
+              <div className="rounded-xl overflow-hidden border border-slate-700/80 bg-white group relative">
+                <img
+                  src="/images/brochure_page_3.png"
+                  alt="AutoApplyCV Recruitment Agency Brochure Page 3 Enrollment Form"
                   className="w-full h-auto object-cover transition-transform group-hover:scale-[1.02] duration-200"
                 />
               </div>
