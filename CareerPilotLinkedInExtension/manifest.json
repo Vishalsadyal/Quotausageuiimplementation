@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "AutoApply CV - All-in-One Job Copilot & Outreach Suite",
-  "version": "3.1.0",
+  "version": "3.1.1",
   "description": "All-in-one job copilot: LinkedIn Easy Apply, Indeed automation, WhatsApp outreach, and live AI interview.",
   "icons": {
     "16": "icons/icon16.png",
@@ -12,8 +12,6 @@
   "permissions": [
     "storage",
     "tabs",
-    "scripting",
-    "activeTab",
     "alarms"
   ],
   "host_permissions": [
