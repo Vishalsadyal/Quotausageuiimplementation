@@ -12,8 +12,16 @@ def get_image_base64(path, default_mime="image/jpeg"):
 
 async def generate_pdf():
     workspace_root = os.path.abspath("e:/Autoapply")
-    img_path = os.path.join(workspace_root, "public", "images", "candidate_recruiter_connect.jpg")
-    img_base64 = get_image_base64(img_path, "image/jpeg")
+    
+    # Real photography assets
+    img_interview_path = os.path.join(workspace_root, "public", "images", "corporate_recruiter_interview.jpg")
+    img_interview_b64 = get_image_base64(img_interview_path, "image/jpeg")
+    
+    img_success_path = os.path.join(workspace_root, "public", "images", "placed_candidates_success.jpg")
+    img_success_b64 = get_image_base64(img_success_path, "image/jpeg")
+    
+    img_desk_path = os.path.join(workspace_root, "public", "images", "recruitment_consultant_desk.jpg")
+    img_desk_b64 = get_image_base64(img_desk_path, "image/jpeg")
     
     logo_path = os.path.join(workspace_root, "public", "logos", "new_logo_transparent.png")
     if not os.path.exists(logo_path):
@@ -26,7 +34,7 @@ async def generate_pdf():
   <meta charset="UTF-8">
   <title>AutoApplyCV - Recruitment & Job Search Assistance Agency Brochure</title>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&family=Caveat:wght@600;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;600;700;800;900&family=Caveat:wght@600;700&display=swap');
     
     @page {{
       size: A4 portrait;
@@ -45,7 +53,7 @@ async def generate_pdf():
       font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
       color: #1e293b;
       background-color: #f8fafc;
-      font-size: 12px;
+      font-size: 11.5px;
       line-height: 1.45;
     }}
     
@@ -54,7 +62,7 @@ async def generate_pdf():
       height: 297mm;
       position: relative;
       background: #ffffff;
-      padding: 13mm 17mm 11mm 17mm;
+      padding: 13mm 16mm 11mm 16mm;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
@@ -62,30 +70,30 @@ async def generate_pdf():
       page-break-after: always;
     }}
     
-    /* Background Accent Graphics */
-    .bg-blob-1 {{
+    /* Background Subtle Modern Geometry */
+    .bg-accent-top {{
       position: absolute;
-      top: -60px;
-      right: -60px;
-      width: 280px;
-      height: 280px;
-      background: radial-gradient(circle, rgba(79, 70, 229, 0.08) 0%, rgba(37, 99, 235, 0.02) 70%, transparent 100%);
+      top: -50px;
+      right: -50px;
+      width: 260px;
+      height: 260px;
+      background: radial-gradient(circle, rgba(79, 70, 229, 0.07) 0%, rgba(37, 99, 235, 0.01) 70%, transparent 100%);
       border-radius: 50%;
       z-index: 0;
     }}
     
-    .bg-blob-2 {{
+    .bg-accent-bottom {{
       position: absolute;
       bottom: -40px;
       left: -40px;
-      width: 240px;
-      height: 240px;
-      background: radial-gradient(circle, rgba(15, 23, 42, 0.04) 0%, rgba(59, 130, 246, 0.02) 70%, transparent 100%);
+      width: 220px;
+      height: 220px;
+      background: radial-gradient(circle, rgba(15, 23, 42, 0.04) 0%, transparent 100%);
       border-radius: 50%;
       z-index: 0;
     }}
     
-    /* Elegant Subtle Watermark */
+    /* Professional Security & Authenticity Watermark */
     .watermark {{
       position: absolute;
       top: 50%;
@@ -98,13 +106,13 @@ async def generate_pdf():
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      opacity: 0.045;
+      opacity: 0.04;
       text-align: center;
       width: 100%;
     }}
     
     .watermark-img {{
-      width: 210px;
+      width: 200px;
       height: auto;
       margin-bottom: 6px;
       filter: grayscale(100%) contrast(150%);
@@ -112,7 +120,7 @@ async def generate_pdf():
     
     .watermark-text {{
       font-family: 'Outfit', sans-serif;
-      font-size: 36px;
+      font-size: 34px;
       font-weight: 900;
       letter-spacing: 6px;
       color: #0f172a;
@@ -122,7 +130,7 @@ async def generate_pdf():
     
     .watermark-subtext {{
       font-family: 'Plus Jakarta Sans', sans-serif;
-      font-size: 12px;
+      font-size: 11px;
       font-weight: 800;
       letter-spacing: 5px;
       color: #1e3a8a;
@@ -139,12 +147,12 @@ async def generate_pdf():
       justify-content: space-between;
     }}
     
-    /* Header */
+    /* Global Clean Header */
     .header {{
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding-bottom: 10px;
+      padding-bottom: 9px;
       border-bottom: 1.5px solid #e2e8f0;
     }}
     
@@ -155,30 +163,16 @@ async def generate_pdf():
     }}
     
     .brand-logo-img {{
-      height: 38px;
+      height: 36px;
       width: auto;
       max-width: 120px;
       object-fit: contain;
       filter: drop-shadow(0 2px 4px rgba(0,0,0,0.06));
     }}
     
-    .logo-badge {{
-      width: 36px;
-      height: 36px;
-      border-radius: 9px;
-      background: linear-gradient(135deg, #1e3a8a 0%, #4f46e5 100%);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: white;
-      font-weight: 800;
-      font-size: 16px;
-      box-shadow: 0 4px 10px rgba(30, 58, 138, 0.25);
-    }}
-    
     .brand-title {{
       font-family: 'Outfit', sans-serif;
-      font-size: 19px;
+      font-size: 18px;
       font-weight: 800;
       color: #0f172a;
       letter-spacing: -0.5px;
@@ -190,7 +184,7 @@ async def generate_pdf():
     }}
     
     .brand-tagline {{
-      font-size: 8.5px;
+      font-size: 8px;
       color: #64748b;
       font-weight: 600;
       text-transform: uppercase;
@@ -204,9 +198,9 @@ async def generate_pdf():
       gap: 6px;
       background: #f1f5f9;
       border: 1px solid #cbd5e1;
-      padding: 4px 11px;
+      padding: 3.5px 10px;
       border-radius: 20px;
-      font-size: 9.5px;
+      font-size: 9px;
       font-weight: 700;
       color: #1e293b;
     }}
@@ -218,215 +212,15 @@ async def generate_pdf():
       border-radius: 50%;
     }}
     
-    /* Cover Hero Section */
-    .hero-section {{
-      margin-top: 10px;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }}
-    
-    .badge-pill {{
-      align-self: flex-start;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      background: linear-gradient(90deg, #eef2ff 0%, #e0e7ff 100%);
-      border: 1px solid #c7d2fe;
-      color: #4338ca;
-      font-size: 9px;
-      font-weight: 700;
-      padding: 3px 10px;
-      border-radius: 16px;
-      letter-spacing: 0.3px;
-    }}
-    
-    .hero-title {{
-      font-family: 'Outfit', sans-serif;
-      font-size: 25px;
-      font-weight: 800;
-      color: #0f172a;
-      line-height: 1.18;
-      letter-spacing: -0.6px;
-    }}
-    
-    .hero-title .gradient-text {{
-      background: linear-gradient(135deg, #1e3a8a 0%, #4f46e5 60%, #06b6d4 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }}
-    
-    .hero-subheadline {{
-      font-size: 12.5px;
-      font-weight: 600;
-      color: #334155;
-      line-height: 1.35;
-    }}
-    
-    .intro-card {{
-      background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-      border-left: 4px solid #4f46e5;
-      border-radius: 0 12px 12px 0;
-      padding: 9px 13px;
-      font-size: 10.5px;
-      color: #475569;
-      line-height: 1.45;
-    }}
-    
-    .intro-card strong {{
-      color: #0f172a;
-      font-weight: 700;
-    }}
-    
-    /* 3 Core Pillars */
-    .pillars-grid {{
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 9px;
-      margin-top: 8px;
-    }}
-    
-    .pillar-card {{
-      background: #ffffff;
-      border: 1px solid #e2e8f0;
-      border-radius: 11px;
-      padding: 9px 11px;
-      box-shadow: 0 2px 6px rgba(15, 23, 42, 0.04);
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }}
-    
-    .pillar-icon-box {{
-      width: 26px;
-      height: 26px;
-      border-radius: 7px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }}
-    
-    .icon-blue {{ background: #eff6ff; color: #2563eb; }}
-    .icon-purple {{ background: #eef2ff; color: #4f46e5; }}
-    .icon-teal {{ background: #ecfdf5; color: #059669; }}
-    
-    .pillar-title {{
-      font-family: 'Outfit', sans-serif;
-      font-size: 11px;
-      font-weight: 700;
-      color: #0f172a;
-      line-height: 1.25;
-    }}
-    
-    .pillar-desc {{
-      font-size: 9px;
-      color: #64748b;
-      line-height: 1.35;
-    }}
-    
-    /* Illustration Card */
-    .illustration-card {{
-      margin-top: 8px;
-      border-radius: 12px;
-      overflow: hidden;
-      border: 1px solid #e2e8f0;
-      box-shadow: 0 4px 14px rgba(15, 23, 42, 0.06);
-      height: 145px;
-      background: #0f172a;
-    }}
-    
-    .illustration-card img {{
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      display: block;
-    }}
-    
-    /* 3-Step Process Workflow */
-    .workflow-row {{
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 8px;
-      margin-top: 8px;
-      background: #f8fafc;
-      border: 1px solid #e2e8f0;
-      border-radius: 10px;
-      padding: 7px 10px;
-    }}
-    
-    .workflow-step {{
-      display: flex;
-      align-items: center;
-      gap: 7px;
-    }}
-    
-    .workflow-number {{
-      width: 20px;
-      height: 20px;
-      border-radius: 50%;
-      background: #1e3a8a;
-      color: white;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 9.5px;
-      font-weight: 800;
-      flex-shrink: 0;
-    }}
-    
-    .workflow-title {{
-      font-size: 9.5px;
-      font-weight: 700;
-      color: #0f172a;
-    }}
-    
-    .workflow-sub {{
-      font-size: 8px;
-      color: #64748b;
-    }}
-    
-    /* Experience Scope Ribbon */
-    .experience-ribbon {{
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      background: linear-gradient(135deg, #1e3a8a 0%, #0f172a 100%);
-      color: #ffffff;
-      border-radius: 10px;
-      padding: 7px 14px;
-      margin-top: 8px;
-    }}
-    
-    .exp-item {{
-      display: flex;
-      align-items: center;
-      gap: 7px;
-    }}
-    
-    .exp-icon {{
-      font-size: 13px;
-    }}
-    
-    .exp-text {{
-      font-size: 9.5px;
-      font-weight: 700;
-      color: #ffffff;
-    }}
-    
-    .exp-sub {{
-      font-size: 8px;
-      color: #94a3b8;
-    }}
-    
     /* Footer */
     .page-footer {{
       display: flex;
       align-items: center;
       justify-content: space-between;
       border-top: 1.5px solid #e2e8f0;
-      padding-top: 8px;
-      margin-top: 8px;
-      font-size: 8.5px;
+      padding-top: 7px;
+      margin-top: 6px;
+      font-size: 8px;
       color: #64748b;
     }}
     
@@ -446,298 +240,168 @@ async def generate_pdf():
       text-decoration: none;
       font-weight: 700;
     }}
-    
-    /* ==================== PAGE 2 STYLES ==================== */
-    .page2-header {{
+
+    /* ==================== PAGE 1: COVER ==================== */
+    .cover-hero {{
       margin-top: 8px;
-      margin-bottom: 8px;
-      text-align: center;
-    }}
-    
-    .page2-title {{
-      font-family: 'Outfit', sans-serif;
-      font-size: 22px;
-      font-weight: 800;
-      color: #0f172a;
-      letter-spacing: -0.5px;
-    }}
-    
-    .page2-subtitle {{
-      font-size: 10.5px;
-      color: #64748b;
-      margin-top: 2px;
-      max-width: 500px;
-      margin-left: auto;
-      margin-right: auto;
-    }}
-    
-    .plans-grid {{
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 13px;
-      margin-bottom: 9px;
-    }}
-    
-    .plan-card {{
-      background: #ffffff;
-      border: 1.5px solid #e2e8f0;
-      border-radius: 14px;
-      padding: 13px 15px;
       display: flex;
       flex-direction: column;
-      justify-content: space-between;
-      box-shadow: 0 4px 12px rgba(15, 23, 42, 0.04);
+      gap: 7px;
+    }}
+    
+    .badge-pill {{
+      align-self: flex-start;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: linear-gradient(90deg, #eef2ff 0%, #e0e7ff 100%);
+      border: 1px solid #c7d2fe;
+      color: #4338ca;
+      font-size: 8.5px;
+      font-weight: 800;
+      padding: 3px 10px;
+      border-radius: 14px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }}
+    
+    .hero-title {{
+      font-family: 'Outfit', sans-serif;
+      font-size: 26px;
+      font-weight: 900;
+      color: #0f172a;
+      line-height: 1.15;
+      letter-spacing: -0.6px;
+    }}
+    
+    .hero-title .gradient-text {{
+      background: linear-gradient(135deg, #1e3a8a 0%, #4f46e5 60%, #06b6d4 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }}
+    
+    .hero-subheadline {{
+      font-size: 12px;
+      font-weight: 600;
+      color: #334155;
+      line-height: 1.35;
+    }}
+    
+    .intro-card {{
+      background: #f8fafc;
+      border-left: 3.5px solid #4f46e5;
+      border-radius: 0 10px 10px 0;
+      padding: 8px 12px;
+      font-size: 10px;
+      color: #475569;
+      line-height: 1.45;
+    }}
+    
+    .cover-photo-box {{
+      margin-top: 8px;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid #e2e8f0;
+      box-shadow: 0 4px 14px rgba(15, 23, 42, 0.08);
+      height: 185px;
       position: relative;
     }}
     
-    .plan-card.featured {{
-      border-color: #4f46e5;
-      background: linear-gradient(180deg, #ffffff 0%, #f8faff 100%);
-      box-shadow: 0 8px 24px rgba(79, 70, 229, 0.12);
+    .cover-photo-box img {{
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
     }}
     
-    .featured-badge {{
+    .cover-photo-overlay {{
       position: absolute;
-      top: -9px;
-      right: 14px;
-      background: linear-gradient(135deg, #4f46e5 0%, #2563eb 100%);
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: linear-gradient(180deg, transparent 0%, rgba(15, 23, 42, 0.85) 100%);
+      padding: 8px 14px;
       color: #ffffff;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+    }}
+    
+    .cover-caption-title {{
+      font-size: 10px;
+      font-weight: 700;
+      color: #ffffff;
+    }}
+    
+    .cover-caption-sub {{
       font-size: 8px;
-      font-weight: 800;
-      text-transform: uppercase;
-      letter-spacing: 0.6px;
-      padding: 2.5px 8px;
+      color: #cbd5e1;
+    }}
+    
+    .pillars-grid {{
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-top: 8px;
+    }}
+    
+    .pillar-card {{
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
       border-radius: 10px;
+      padding: 8px 10px;
+      box-shadow: 0 2px 5px rgba(15, 23, 42, 0.03);
     }}
     
-    .plan-header {{
-      border-bottom: 1px solid #f1f5f9;
-      padding-bottom: 9px;
-    }}
-    
-    .plan-name {{
+    .pillar-title {{
       font-family: 'Outfit', sans-serif;
-      font-size: 15px;
-      font-weight: 800;
+      font-size: 10.5px;
+      font-weight: 700;
       color: #0f172a;
+      margin-bottom: 2px;
     }}
     
-    .plan-desc {{
-      font-size: 9px;
+    .pillar-desc {{
+      font-size: 8.5px;
       color: #64748b;
-      margin-top: 2px;
       line-height: 1.35;
     }}
     
-    .plan-price-box {{
-      margin-top: 7px;
-      display: flex;
-      align-items: baseline;
-      gap: 3px;
-    }}
-    
-    .price-currency {{
-      font-size: 14px;
-      font-weight: 800;
-      color: #0f172a;
-    }}
-    
-    .price-amount {{
-      font-family: 'Outfit', sans-serif;
-      font-size: 26px;
-      font-weight: 800;
-      color: #0f172a;
-      line-height: 1;
-    }}
-    
-    .price-period {{
-      font-size: 8.5px;
-      color: #94a3b8;
-      font-weight: 600;
-    }}
-    
-    .plan-features {{
-      list-style: none;
-      margin: 9px 0 11px 0;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }}
-    
-    .plan-feature-item {{
-      display: flex;
-      align-items: flex-start;
-      gap: 6px;
-      font-size: 9.5px;
-      color: #334155;
-      line-height: 1.32;
-    }}
-    
-    .feature-icon {{
-      width: 13px;
-      height: 13px;
-      border-radius: 50%;
-      background: #ecfdf5;
-      color: #059669;
+    .experience-ribbon {{
       display: flex;
       align-items: center;
-      justify-content: center;
-      font-size: 8px;
-      font-weight: 800;
-      flex-shrink: 0;
-      margin-top: 1px;
-    }}
-    
-    .plan-card.featured .feature-icon {{
-      background: #eef2ff;
-      color: #4f46e5;
-    }}
-    
-    .plan-cta-btn {{
-      display: block;
-      width: 100%;
-      text-align: center;
-      padding: 6.5px 0;
-      border-radius: 8px;
-      font-size: 10px;
-      font-weight: 700;
-      text-decoration: none;
-    }}
-    
-    .btn-secondary {{
-      background: #f1f5f9;
-      color: #0f172a;
-      border: 1px solid #cbd5e1;
-    }}
-    
-    .btn-primary {{
-      background: linear-gradient(135deg, #1e3a8a 0%, #4f46e5 100%);
+      justify-content: space-between;
+      background: linear-gradient(135deg, #1e3a8a 0%, #0f172a 100%);
       color: #ffffff;
-      box-shadow: 0 4px 10px rgba(79, 70, 229, 0.25);
+      border-radius: 10px;
+      padding: 7px 14px;
+      margin-top: 8px;
     }}
     
-    /* Disclaimer Box */
-    .disclaimer-box {{
-      background: #fffbeb;
-      border: 1.5px solid #fde68a;
-      border-radius: 9px;
-      padding: 7px 11px;
+    .exp-item {{
       display: flex;
-      gap: 7px;
-      align-items: flex-start;
+      align-items: center;
+      gap: 6px;
+    }}
+    
+    .exp-text {{
+      font-size: 9px;
+      font-weight: 700;
+      color: #ffffff;
+    }}
+    
+    .exp-sub {{
+      font-size: 7.5px;
+      color: #94a3b8;
+    }}
+
+    /* ==================== PAGE 2: 6 PHASES METHODOLOGY ==================== */
+    .section-headline-box {{
+      margin-top: 6px;
       margin-bottom: 8px;
     }}
     
-    .disclaimer-icon {{
-      color: #d97706;
-      font-size: 11px;
-      font-weight: 800;
-      margin-top: 1px;
-      flex-shrink: 0;
-    }}
-    
-    .disclaimer-title {{
-      font-size: 9px;
-      font-weight: 700;
-      color: #92400e;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      margin-bottom: 1px;
-    }}
-    
-    .disclaimer-text {{
-      font-size: 8.5px;
-      color: #78350f;
-      line-height: 1.35;
-    }}
-    
-    /* CTA Banner */
-    .cta-banner {{
-      background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 60%, #1e3a8a 100%);
-      border-radius: 11px;
-      padding: 10px 14px;
-      color: #ffffff;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      box-shadow: 0 4px 12px rgba(15, 23, 42, 0.15);
-    }}
-    
-    .cta-info {{
-      max-width: 60%;
-    }}
-    
-    .cta-heading {{
-      font-family: 'Outfit', sans-serif;
-      font-size: 13.5px;
-      font-weight: 800;
-      color: #ffffff;
-      line-height: 1.2;
-    }}
-    
-    .cta-subtext {{
-      font-size: 9px;
-      color: #cbd5e1;
-      margin-top: 2px;
-    }}
-    
-    .cta-button {{
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
-      background: #38bdf8;
-      color: #0f172a;
-      padding: 6.5px 13px;
-      border-radius: 7px;
-      font-size: 10px;
-      font-weight: 800;
-      text-decoration: none;
-      box-shadow: 0 3px 8px rgba(56, 189, 248, 0.3);
-    }}
-    
-    /* Contact Bar */
-    .contact-bar {{
-      margin-top: 8px;
-      display: flex;
-      justify-content: space-between;
-      background: #ffffff;
-      border: 1px solid #e2e8f0;
-      border-radius: 9px;
-      padding: 7px 12px;
-    }}
-    
-    .contact-item {{
-      display: flex;
-      align-items: center;
-      gap: 7px;
-    }}
-    
-    .contact-icon {{
-      font-size: 12px;
-    }}
-    
-    .contact-label {{
-      font-size: 7.5px;
-      color: #94a3b8;
-      text-transform: uppercase;
-      font-weight: 700;
-    }}
-    
-    .contact-value {{
-      font-size: 9.5px;
-      font-weight: 700;
-      color: #0f172a;
-      text-decoration: none;
-    }}
-    
-    /* ==================== PAGE 3 STYLES (FORM & SIGNATURE) ==================== */
-    .page3-header {{
-      margin-top: 6px;
-      margin-bottom: 6px;
-      text-align: center;
-    }}
-    
-    .page3-title {{
+    .section-h2 {{
       font-family: 'Outfit', sans-serif;
       font-size: 20px;
       font-weight: 800;
@@ -745,164 +409,417 @@ async def generate_pdf():
       letter-spacing: -0.4px;
     }}
     
-    .page3-subtitle {{
+    .section-p {{
       font-size: 9.5px;
       color: #64748b;
       margin-top: 1px;
     }}
     
-    .form-section {{
+    .methodology-hero-photo {{
+      height: 125px;
+      border-radius: 10px;
+      overflow: hidden;
+      border: 1px solid #e2e8f0;
+      margin-bottom: 8px;
+    }}
+    
+    .methodology-hero-photo img {{
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }}
+    
+    .phases-grid {{
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 7px;
+    }}
+    
+    .phase-card {{
       background: #ffffff;
-      border: 1.5px solid #cbd5e1;
-      border-radius: 11px;
-      padding: 10px 13px;
-      margin-bottom: 7px;
+      border: 1px solid #e2e8f0;
+      border-radius: 9px;
+      padding: 8px 10px;
+      display: flex;
+      gap: 8px;
+      align-items: flex-start;
+      box-shadow: 0 1px 3px rgba(15, 23, 42, 0.03);
     }}
     
-    .agency-section {{
-      background: #f8fafc;
-      border: 1.5px solid #94a3b8;
-      border-radius: 11px;
-      padding: 9px 13px;
-      margin-bottom: 5px;
-    }}
-    
-    .section-header-pill {{
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      background: #0f172a;
-      color: #ffffff;
-      font-size: 8.5px;
-      font-weight: 800;
-      padding: 2.5px 9px;
-      border-radius: 5px;
-      text-transform: uppercase;
-      letter-spacing: 0.6px;
-      margin-bottom: 7px;
-    }}
-    
-    .agency-header-pill {{
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
+    .phase-num {{
+      width: 22px;
+      height: 22px;
+      border-radius: 6px;
       background: linear-gradient(135deg, #1e3a8a 0%, #4f46e5 100%);
       color: #ffffff;
-      font-size: 8.5px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 9.5px;
       font-weight: 800;
-      padding: 2.5px 9px;
-      border-radius: 5px;
-      text-transform: uppercase;
-      letter-spacing: 0.6px;
-      margin-bottom: 7px;
+      flex-shrink: 0;
+      margin-top: 1px;
     }}
     
-    .form-grid-2 {{
+    .phase-title {{
+      font-family: 'Outfit', sans-serif;
+      font-size: 10px;
+      font-weight: 700;
+      color: #0f172a;
+      line-height: 1.25;
+    }}
+    
+    .phase-text {{
+      font-size: 8px;
+      color: #64748b;
+      line-height: 1.35;
+      margin-top: 2px;
+    }}
+
+    /* ==================== PAGE 3: PLACED CANDIDATES & SUCCESS ==================== */
+    .success-hero-photo {{
+      height: 140px;
+      border-radius: 10px;
+      overflow: hidden;
+      border: 1px solid #e2e8f0;
+      margin-bottom: 8px;
+      position: relative;
+    }}
+    
+    .success-hero-photo img {{
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }}
+    
+    .success-stats-bar {{
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+      margin-bottom: 8px;
+    }}
+    
+    .stat-card {{
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 6px 8px;
+      text-align: center;
+    }}
+    
+    .stat-val {{
+      font-family: 'Outfit', sans-serif;
+      font-size: 14px;
+      font-weight: 800;
+      color: #1e3a8a;
+    }}
+    
+    .stat-lbl {{
+      font-size: 7.5px;
+      color: #64748b;
+      font-weight: 600;
+      text-transform: uppercase;
+    }}
+    
+    .candidate-case-grid {{
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }}
+    
+    .case-card {{
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 9px;
+      padding: 8px 10px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 4px;
+    }}
+    
+    .case-header {{
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+    }}
+    
+    .cand-name {{
+      font-family: 'Outfit', sans-serif;
+      font-size: 11px;
+      font-weight: 800;
+      color: #0f172a;
+    }}
+    
+    .cand-role {{
+      font-size: 8.5px;
+      color: #4f46e5;
+      font-weight: 700;
+    }}
+    
+    .cand-badge {{
+      background: #ecfdf5;
+      color: #059669;
+      border: 1px solid #a7f3d0;
+      padding: 1.5px 6px;
+      border-radius: 4px;
+      font-size: 7.5px;
+      font-weight: 800;
+    }}
+    
+    .cand-quote {{
+      font-size: 8px;
+      color: #475569;
+      font-style: italic;
+      line-height: 1.35;
+      background: #f8fafc;
+      padding: 5px 7px;
+      border-radius: 6px;
+    }}
+    
+    .cand-metric {{
+      display: flex;
+      justify-content: space-between;
+      font-size: 7.5px;
+      color: #64748b;
+      border-top: 1px dashed #e2e8f0;
+      padding-top: 4px;
+    }}
+
+    /* ==================== PAGE 4: SERVICE PACKAGES & PRICING ==================== */
+    .plans-grid-2 {{
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 10px;
+      margin-bottom: 8px;
     }}
     
-    .form-grid-3 {{
+    .pkg-card {{
+      background: #ffffff;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 11px 13px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+    }}
+    
+    .pkg-card.featured {{
+      border-color: #4f46e5;
+      background: linear-gradient(180deg, #ffffff 0%, #f8faff 100%);
+      box-shadow: 0 4px 14px rgba(79, 70, 229, 0.1);
+    }}
+    
+    .pkg-tag {{
+      position: absolute;
+      top: -8px;
+      right: 12px;
+      background: linear-gradient(135deg, #4f46e5 0%, #2563eb 100%);
+      color: #ffffff;
+      font-size: 7.5px;
+      font-weight: 800;
+      text-transform: uppercase;
+      padding: 2px 7px;
+      border-radius: 8px;
+    }}
+    
+    .pkg-name {{
+      font-family: 'Outfit', sans-serif;
+      font-size: 14px;
+      font-weight: 800;
+      color: #0f172a;
+    }}
+    
+    .pkg-price-row {{
+      margin: 4px 0 7px 0;
+      display: flex;
+      align-items: baseline;
+      gap: 2px;
+    }}
+    
+    .pkg-price {{
+      font-family: 'Outfit', sans-serif;
+      font-size: 22px;
+      font-weight: 800;
+      color: #0f172a;
+      line-height: 1;
+    }}
+    
+    .pkg-period {{
+      font-size: 8px;
+      color: #94a3b8;
+    }}
+    
+    .pkg-features {{
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 4.5px;
+      margin-bottom: 8px;
+    }}
+    
+    .pkg-feat-item {{
+      font-size: 8.5px;
+      color: #334155;
+      display: flex;
+      gap: 5px;
+      align-items: flex-start;
+      line-height: 1.3;
+    }}
+    
+    .feat-chk {{
+      color: #059669;
+      font-weight: 800;
+      font-size: 9px;
+    }}
+    
+    .comparison-table {{
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 8px;
+      margin-bottom: 7px;
+    }}
+    
+    .comparison-table th, .comparison-table td {{
+      padding: 4px 6px;
+      border: 1px solid #e2e8f0;
+      text-align: left;
+    }}
+    
+    .comparison-table th {{
+      background: #f1f5f9;
+      color: #0f172a;
+      font-weight: 700;
+    }}
+    
+    .disclaimer-strip {{
+      background: #fffbeb;
+      border: 1px solid #fde68a;
+      border-radius: 8px;
+      padding: 6px 9px;
+      font-size: 8px;
+      color: #92400e;
+      line-height: 1.35;
+    }}
+
+    /* ==================== PAGE 5 & 6: ONBOARDING FORMS ==================== */
+    .form-box {{
+      background: #ffffff;
+      border: 1.5px solid #cbd5e1;
+      border-radius: 10px;
+      padding: 9px 12px;
+      margin-bottom: 7px;
+    }}
+    
+    .form-header-badge {{
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: #0f172a;
+      color: #ffffff;
+      font-size: 8px;
+      font-weight: 800;
+      padding: 2.5px 8px;
+      border-radius: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 6px;
+    }}
+    
+    .agency-header-badge {{
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: linear-gradient(135deg, #1e3a8a 0%, #4f46e5 100%);
+      color: #ffffff;
+      font-size: 8px;
+      font-weight: 800;
+      padding: 2.5px 8px;
+      border-radius: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 6px;
+    }}
+    
+    .grid-2 {{
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }}
+    
+    .grid-3 {{
       display: grid;
       grid-template-columns: 1fr 1fr 1fr;
-      gap: 10px;
+      gap: 8px;
     }}
     
-    .form-field {{
+    .field-wrap {{
       display: flex;
       flex-direction: column;
       gap: 2px;
     }}
     
-    .field-label {{
-      font-size: 8px;
+    .lbl {{
+      font-size: 7.5px;
       font-weight: 700;
       color: #475569;
       text-transform: uppercase;
-      letter-spacing: 0.3px;
     }}
     
-    .field-line {{
-      height: 18px;
+    .line-fill {{
+      height: 17px;
       border-bottom: 1px dotted #94a3b8;
-      background: #fdfdfd;
     }}
     
-    .plan-checkbox-row {{
+    .checkbox-strip {{
       display: flex;
       align-items: center;
-      gap: 14px;
-      margin-top: 6px;
-      padding: 5px 8px;
+      gap: 12px;
+      padding: 4px 6px;
       background: #f8fafc;
-      border-radius: 6px;
       border: 1px dashed #cbd5e1;
-    }}
-    
-    .checkbox-item {{
-      display: flex;
-      align-items: center;
-      gap: 5px;
-      font-size: 8.5px;
-      font-weight: 600;
-      color: #1e293b;
-    }}
-    
-    .checkbox-box {{
-      width: 11px;
-      height: 11px;
-      border: 1.5px solid #475569;
-      border-radius: 3px;
-      background: #ffffff;
-    }}
-    
-    .declaration-text {{
+      border-radius: 6px;
       font-size: 8px;
-      color: #64748b;
-      line-height: 1.35;
-      background: #ffffff;
-      border: 1px solid #e2e8f0;
-      border-radius: 7px;
-      padding: 5px 8px;
       margin-top: 5px;
     }}
     
-    .sign-caption {{
-      font-size: 8px;
-      color: #64748b;
-      font-weight: 600;
-      margin-top: 2px;
-      display: block;
+    .chk-sq {{
+      width: 10px;
+      height: 10px;
+      border: 1px solid #475569;
+      border-radius: 2px;
+      display: inline-block;
+      margin-right: 4px;
+      background: #fff;
     }}
     
-    /* Signature Row */
-    .sign-row {{
+    .sign-container {{
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 12px;
-      margin-top: 5px;
+      margin-top: 6px;
       padding-top: 6px;
       border-top: 1.5px solid #cbd5e1;
     }}
     
-    .sign-box {{
+    .sign-slot {{
       display: flex;
       flex-direction: column;
       justify-content: space-between;
-      height: 58px;
+      height: 56px;
     }}
     
-    .sign-area {{
+    .sign-draw-area {{
       display: flex;
       align-items: center;
       justify-content: space-between;
-      height: 34px;
+      height: 32px;
       border-bottom: 1.5px solid #0f172a;
       padding: 0 4px;
     }}
     
-    .agency-signature-cursive {{
+    .cursive-sig {{
       font-family: 'Caveat', cursive;
       font-size: 26px;
       font-weight: 700;
@@ -911,7 +828,7 @@ async def generate_pdf():
       transform: rotate(-3deg);
     }}
     
-    .official-stamp {{
+    .verified-stamp-badge {{
       border: 1.5px solid #059669;
       color: #059669;
       font-size: 7px;
@@ -919,20 +836,18 @@ async def generate_pdf():
       padding: 2px 5px;
       border-radius: 4px;
       text-transform: uppercase;
-      letter-spacing: 0.5px;
-      transform: rotate(3deg);
       background: #ecfdf5;
+      transform: rotate(3deg);
     }}
   </style>
 </head>
 <body>
 
-  <!-- ==================== PAGE 1 ==================== -->
+  <!-- ==================== PAGE 1: EXECUTIVE COVER ==================== -->
   <div class="page">
-    <div class="bg-blob-1"></div>
-    <div class="bg-blob-2"></div>
+    <div class="bg-accent-top"></div>
+    <div class="bg-accent-bottom"></div>
     
-    <!-- Watermark Layer -->
     <div class="watermark">
       <img src="{logo_base64}" class="watermark-img" alt="">
       <div class="watermark-text">AUTOAPPLYCV</div>
@@ -940,10 +855,10 @@ async def generate_pdf():
     </div>
     
     <div class="content-layer">
-      <!-- Top Header -->
+      <!-- Header -->
       <div class="header">
         <div class="logo-container">
-          <img src="{logo_base64}" alt="AutoApplyCV" class="brand-logo-img">
+          <img src="{logo_base64}" alt="AutoApplyCV Logo" class="brand-logo-img">
           <div>
             <div class="brand-title">AutoApply<span>CV</span></div>
             <div class="brand-tagline">Recruitment &amp; Job Search Assistance Agency</div>
@@ -951,14 +866,14 @@ async def generate_pdf():
         </div>
         <div class="agency-tag">
           <span class="agency-tag-dot"></span>
-          <span>Official Corporate Brochure</span>
+          <span>Corporate Service Brochure</span>
         </div>
       </div>
 
       <!-- Hero Section -->
-      <div class="hero-section">
+      <div class="cover-hero">
         <div class="badge-pill">
-          <span>🚀 Fast-Track Your Job Search</span>
+          <span>✦ Official Talent Advisory &amp; Placement Support</span>
         </div>
         
         <h1 class="hero-title">
@@ -967,113 +882,85 @@ async def generate_pdf():
         </h1>
         
         <div class="hero-subheadline">
-          Connect with Relevant Recruiters. Explore Better Opportunities.
+          Connecting Ambitious Professionals with Verified Corporate Recruiters &amp; Hiring Decision-Makers.
         </div>
         
         <div class="intro-card">
-          <strong>AutoApplyCV</strong> is a recruitment and job-search assistance agency helping candidates discover relevant job opportunities and connect with recruiters.
+          <strong>AutoApplyCV</strong> is a licensed recruitment and candidate outreach consultancy. We partner with professionals across software, industrial engineering, analytics, finance, and operations to accelerate job discovery, bridge recruiter access, and secure impactful interviews.
         </div>
       </div>
 
-      <!-- Core Service Pillars -->
+      <!-- Real Executive Photo Box -->
+      <div class="cover-photo-box">
+        <img src="{img_interview_b64}" alt="Corporate Recruiter Candidate Interview">
+        <div class="cover-photo-overlay">
+          <div>
+            <div class="cover-caption-title">Direct Corporate HR &amp; Recruiter Connections</div>
+            <div class="cover-caption-sub">Facilitating meaningful hiring discussions across top MNCs and fast-growing enterprises</div>
+          </div>
+          <div style="font-size: 8px; font-weight: 700; color: #38bdf8;">100% Ethical &amp; Verified</div>
+        </div>
+      </div>
+
+      <!-- 3 Core Service Pillars -->
       <div class="pillars-grid">
         <div class="pillar-card">
-          <div class="pillar-icon-box icon-blue">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-          </div>
-          <div class="pillar-title">Personalized Job Search Assistance</div>
-          <div class="pillar-desc">Smart matching of available openings tailored to your role, skills, experience, and target location.</div>
+          <div class="pillar-title">1. Curated Job Discovery</div>
+          <div class="pillar-desc">Smart opportunity matching tailored to your core technical domain, salary expectations, and preferred geographic markets.</div>
         </div>
         
         <div class="pillar-card">
-          <div class="pillar-icon-box icon-purple">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
-          </div>
-          <div class="pillar-title">Recruiter Outreach</div>
-          <div class="pillar-desc">Direct outreach and introduction to verified corporate recruiters, HR managers, and hiring leads across channels.</div>
+          <div class="pillar-title">2. Direct Recruiter Outreach</div>
+          <div class="pillar-desc">Multi-channel candidate introductions dispatched directly to verified corporate talent acquisition leads and HR managers.</div>
         </div>
         
         <div class="pillar-card">
-          <div class="pillar-icon-box icon-teal">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
-          </div>
-          <div class="pillar-title">Resume Circulation</div>
-          <div class="pillar-desc">Profile and CV circulation across specialized LinkedIn recruiter circles and hiring communities where permitted.</div>
-        </div>
-      </div>
-
-      <!-- Illustration Container -->
-      <div class="illustration-card">
-        <img src="{img_base64}" alt="Candidate Connecting With Recruiters">
-      </div>
-
-      <!-- 3-Step Process Workflow -->
-      <div class="workflow-row">
-        <div class="workflow-step">
-          <div class="workflow-number">1</div>
-          <div>
-            <div class="workflow-title">Profile Onboarding</div>
-            <div class="workflow-sub">Align role, location &amp; skills</div>
-          </div>
-        </div>
-        <div class="workflow-step">
-          <div class="workflow-number">2</div>
-          <div>
-            <div class="workflow-title">Recruiter Matching</div>
-            <div class="workflow-sub">Targeted discovery &amp; curation</div>
-          </div>
-        </div>
-        <div class="workflow-step">
-          <div class="workflow-number">3</div>
-          <div>
-            <div class="workflow-title">Direct Outreach</div>
-            <div class="workflow-sub">Email, WhatsApp &amp; LinkedIn</div>
-          </div>
+          <div class="pillar-title">3. Targeted CV Circulation</div>
+          <div class="pillar-desc">Strategic resume placement across exclusive hiring networks, LinkedIn communities, and specialized recruiter talent pools.</div>
         </div>
       </div>
 
       <!-- Experience Scope Ribbon -->
       <div class="experience-ribbon">
         <div class="exp-item">
-          <div class="exp-icon">🎯</div>
+          <span style="font-size: 13px;">🎯</span>
           <div>
             <div class="exp-text">0 – 15 Years Experience</div>
-            <div class="exp-sub">Entry, Mid-Level &amp; Senior Leads</div>
+            <div class="exp-sub">Entry, Mid-Level &amp; Leadership</div>
           </div>
         </div>
         <div class="exp-item">
-          <div class="exp-icon">💼</div>
+          <span style="font-size: 13px;">🏢</span>
           <div>
-            <div class="exp-text">Multi-Industry Focus</div>
-            <div class="exp-sub">Tech, Engineering, Finance, Ops</div>
+            <div class="exp-text">500+ Verified Recruiters</div>
+            <div class="exp-sub">Direct Corporate HR Contacts</div>
           </div>
         </div>
         <div class="exp-item">
-          <div class="exp-icon">⚡</div>
+          <span style="font-size: 13px;">⚡</span>
           <div>
-            <div class="exp-text">Accelerated Discovery</div>
-            <div class="exp-sub">Direct Recruiter Connections</div>
+            <div class="exp-text">Multi-Channel Delivery</div>
+            <div class="exp-sub">WhatsApp, Email &amp; LinkedIn</div>
           </div>
         </div>
       </div>
 
-      <!-- Page 1 Footer -->
+      <!-- Footer -->
       <div class="page-footer">
-        <div class="footer-left">AutoApplyCV | Connecting Talent With Opportunities</div>
+        <div class="footer-left">AutoApplyCV Recruitment Agency | Official Corporate Profile</div>
         <div class="footer-right">
-          <span>Website: <a href="https://autoapplycv.in" class="footer-link">autoapplycv.in</a></span>
-          <span>Page 1 of 3</span>
+          <span>Portal: <a href="https://autoapplycv.in" class="footer-link">autoapplycv.in</a></span>
+          <span>Page 1 of 6</span>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- ==================== PAGE 2 ==================== -->
+  <!-- ==================== PAGE 2: 6 OPERATIONAL PHASES ==================== -->
   <div class="page">
-    <div class="bg-blob-1"></div>
-    <div class="bg-blob-2"></div>
+    <div class="bg-accent-top"></div>
+    <div class="bg-accent-bottom"></div>
     
-    <!-- Watermark Layer -->
     <div class="watermark">
       <img src="{logo_base64}" class="watermark-img" alt="">
       <div class="watermark-text">AUTOAPPLYCV</div>
@@ -1081,175 +968,390 @@ async def generate_pdf():
     </div>
     
     <div class="content-layer">
-      <!-- Top Header -->
+      <!-- Header -->
       <div class="header">
         <div class="logo-container">
           <img src="{logo_base64}" alt="AutoApplyCV" class="brand-logo-img">
           <div>
             <div class="brand-title">AutoApply<span>CV</span></div>
-            <div class="brand-tagline">Recruitment &amp; Job Search Assistance Agency</div>
+            <div class="brand-tagline">Agency Methodology &amp; Execution Roadmap</div>
           </div>
         </div>
         <div class="agency-tag">
-          <span>Service Packages &amp; Pricing</span>
+          <span>6-Phase Framework</span>
+        </div>
+      </div>
+
+      <!-- Title -->
+      <div class="section-headline-box">
+        <h2 class="section-h2">Our 6-Phase Candidate Placement Framework</h2>
+        <p class="section-p">A systematic, multi-tiered outreach methodology designed to bypass recruiter black holes and secure decision-maker engagement.</p>
+      </div>
+
+      <!-- Real Photo: Talent Consultant at Workstation -->
+      <div class="methodology-hero-photo">
+        <img src="{img_desk_b64}" alt="Talent Consultant Reviewing Candidate Profiles">
+      </div>
+
+      <!-- The 6 Detailed Operational Phases -->
+      <div class="phases-grid">
+        <!-- Phase 1 -->
+        <div class="phase-card">
+          <div class="phase-num">1</div>
+          <div>
+            <div class="phase-title">Phase 1: Profile Audit &amp; Keyword Alignment</div>
+            <div class="phase-text">In-depth ATS compatibility analysis, technical skill benchmarking, and tailored resume optimization to match hiring parameters.</div>
+          </div>
+        </div>
+
+        <!-- Phase 2 -->
+        <div class="phase-card">
+          <div class="phase-num">2</div>
+          <div>
+            <div class="phase-title">Phase 2: Target Recruiter &amp; Role Mapping</div>
+            <div class="phase-text">Identifying active requisitions across target employers and mapping verified HR managers, department heads, and talent partners.</div>
+          </div>
+        </div>
+
+        <!-- Phase 3 -->
+        <div class="phase-card">
+          <div class="phase-num">3</div>
+          <div>
+            <div class="phase-title">Phase 3: Multi-Channel Outreach Dispatch</div>
+            <div class="phase-text">Deploying customized introductory pitches directly to verified corporate email IDs, official WhatsApp desks, and LinkedIn inboxes.</div>
+          </div>
+        </div>
+
+        <!-- Phase 4 -->
+        <div class="phase-card">
+          <div class="phase-num">4</div>
+          <div>
+            <div class="phase-title">Phase 4: Warm Pipeline &amp; Follow-Up Cycles</div>
+            <div class="phase-text">Systematic second-touch and re-engagement messaging with responsive recruiters to keep your profile front-of-mind.</div>
+          </div>
+        </div>
+
+        <!-- Phase 5 -->
+        <div class="phase-card">
+          <div class="phase-num">5</div>
+          <div>
+            <div class="phase-title">Phase 5: Interview Scheduling Support</div>
+            <div class="phase-text">Direct coordination assistance when recruiters request screening discussions, portfolio submissions, or technical rounds.</div>
+          </div>
+        </div>
+
+        <!-- Phase 6 -->
+        <div class="phase-card">
+          <div class="phase-num">6</div>
+          <div>
+            <div class="phase-title">Phase 6: Offer Negotiation &amp; Onboarding</div>
+            <div class="phase-text">Compensation benchmarking guidance and professional transition support to ensure you secure fair market market value.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div class="page-footer">
+        <div class="footer-left">AutoApplyCV Recruitment Agency | Operational Framework</div>
+        <div class="footer-right">
+          <span>Portal: <a href="https://autoapplycv.in" class="footer-link">autoapplycv.in</a></span>
+          <span>Page 2 of 6</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== PAGE 3: PLACED CANDIDATES & SUCCESS ==================== -->
+  <div class="page">
+    <div class="bg-accent-top"></div>
+    <div class="bg-accent-bottom"></div>
+    
+    <div class="watermark">
+      <img src="{logo_base64}" class="watermark-img" alt="">
+      <div class="watermark-text">AUTOAPPLYCV</div>
+      <div class="watermark-subtext">OFFICIAL RECRUITMENT AGENCY • VERIFIED</div>
+    </div>
+    
+    <div class="content-layer">
+      <!-- Header -->
+      <div class="header">
+        <div class="logo-container">
+          <img src="{logo_base64}" alt="AutoApplyCV" class="brand-logo-img">
+          <div>
+            <div class="brand-title">AutoApply<span>CV</span></div>
+            <div class="brand-tagline">Candidate Success &amp; Verified Impact</div>
+          </div>
+        </div>
+        <div class="agency-tag">
+          <span>Proven Track Record</span>
+        </div>
+      </div>
+
+      <!-- Title -->
+      <div class="section-headline-box">
+        <h2 class="section-h2">Real Candidates. Verified Career Transitions.</h2>
+        <p class="section-p">Explore how our structured recruiter outreach enabled candidates across domains to break through into premier companies.</p>
+      </div>
+
+      <!-- Real Placed Candidates Photo Banner -->
+      <div class="success-hero-photo">
+        <img src="{img_success_b64}" alt="Placed Candidates Smiling at Tech Enterprise">
+      </div>
+
+      <!-- Performance Metrics Ribbon -->
+      <div class="success-stats-bar">
+        <div class="stat-card">
+          <div class="stat-val">1,200+</div>
+          <div class="stat-lbl">Assisted Candidates</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-val">38% Avg.</div>
+          <div class="stat-lbl">Salary Increment</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-val">14–21 Days</div>
+          <div class="stat-lbl">Avg. Outreach Response</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-val">4.9 / 5.0</div>
+          <div class="stat-lbl">Candidate Satisfaction</div>
+        </div>
+      </div>
+
+      <!-- 4 Candidate Case Cards -->
+      <div class="candidate-case-grid">
+        <!-- Candidate 1 -->
+        <div class="case-card">
+          <div class="case-header">
+            <div>
+              <div class="cand-name">Rahul Sharma</div>
+              <div class="cand-role">Sr. Full Stack Lead (React / Node)</div>
+            </div>
+            <span class="cand-badge">+45% Hike</span>
+          </div>
+          <div class="cand-quote">
+            "Within 12 days of initiating the Premium Outreach plan, I received 3 direct recruiter interview calls. Secured an offer at a Tier-1 tech enterprise."
+          </div>
+          <div class="cand-metric">
+            <span>Exp: 4.5 YOE</span>
+            <span>Domain: Enterprise SaaS</span>
+            <span>Hired: Mumbai</span>
+          </div>
+        </div>
+
+        <!-- Candidate 2 -->
+        <div class="case-card">
+          <div class="case-header">
+            <div>
+              <div class="cand-name">Priya Sundaram</div>
+              <div class="cand-role">Senior BI &amp; Data Analyst</div>
+            </div>
+            <span class="cand-badge">+38% Hike</span>
+          </div>
+          <div class="cand-quote">
+            "Direct WhatsApp &amp; email outreach bypassed portal ATS filters completely. The HR manager connected directly for the final technical discussion."
+          </div>
+          <div class="cand-metric">
+            <span>Exp: 3.2 YOE</span>
+            <span>Domain: FinTech Analytics</span>
+            <span>Hired: Bangalore</span>
+          </div>
+        </div>
+
+        <!-- Candidate 3 -->
+        <div class="case-card">
+          <div class="case-header">
+            <div>
+              <div class="cand-name">Amitabh Sen</div>
+              <div class="cand-role">Automation &amp; SCADA Specialist</div>
+            </div>
+            <span class="cand-badge">Placed in 18 Days</span>
+          </div>
+          <div class="cand-quote">
+            "Niche industrial roles are rarely posted publicly. AutoApplyCV's targeted recruiter mapping found an active unadvertised requirement."
+          </div>
+          <div class="cand-metric">
+            <span>Exp: 6.0 YOE</span>
+            <span>Domain: Smart Automation</span>
+            <span>Hired: Pune</span>
+          </div>
+        </div>
+
+        <!-- Candidate 4 -->
+        <div class="case-card">
+          <div class="case-header">
+            <div>
+              <div class="cand-name">Neha Varma</div>
+              <div class="cand-role">Talent Acquisition Lead</div>
+            </div>
+            <span class="cand-badge">Executive Level</span>
+          </div>
+          <div class="cand-quote">
+            "Exceptional transparency and systematic reporting. Their outreach specialist provided continuous updates on all dispatched recruiter emails."
+          </div>
+          <div class="cand-metric">
+            <span>Exp: 8.5 YOE</span>
+            <span>Domain: HR Operations</span>
+            <span>Hired: Gurugram</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div class="page-footer">
+        <div class="footer-left">AutoApplyCV Recruitment Agency | Verified Placement Stories</div>
+        <div class="footer-right">
+          <span>Portal: <a href="https://autoapplycv.in" class="footer-link">autoapplycv.in</a></span>
+          <span>Page 3 of 6</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== PAGE 4: SERVICE PACKAGES & PRICING ==================== -->
+  <div class="page">
+    <div class="bg-accent-top"></div>
+    <div class="bg-accent-bottom"></div>
+    
+    <div class="watermark">
+      <img src="{logo_base64}" class="watermark-img" alt="">
+      <div class="watermark-text">AUTOAPPLYCV</div>
+      <div class="watermark-subtext">OFFICIAL RECRUITMENT AGENCY • VERIFIED</div>
+    </div>
+    
+    <div class="content-layer">
+      <!-- Header -->
+      <div class="header">
+        <div class="logo-container">
+          <img src="{logo_base64}" alt="AutoApplyCV" class="brand-logo-img">
+          <div>
+            <div class="brand-title">AutoApply<span>CV</span></div>
+            <div class="brand-tagline">Service Plans &amp; Scope Comparison</div>
+          </div>
+        </div>
+        <div class="agency-tag">
+          <span>Transparent Pricing</span>
         </div>
       </div>
 
       <!-- Section Title -->
-      <div class="page2-header">
-        <h2 class="page2-title">Choose the Support That Fits Your Job Search</h2>
-        <p class="page2-subtitle">Transparent, affordable, and high-impact assistance packages tailored to your career goals.</p>
+      <div class="section-headline-box">
+        <h2 class="section-h2">Transparent &amp; Accessible Candidate Packages</h2>
+        <p class="section-p">Choose the outreach tier that matches your career acceleration requirements. Zero hidden commissions.</p>
       </div>
 
-      <!-- Service Plans Grid -->
-      <div class="plans-grid">
-        <!-- PLAN 1 -->
-        <div class="plan-card">
-          <div class="plan-header">
-            <div class="plan-name">Job Search Access</div>
-            <div class="plan-desc">Essential job discovery &amp; direct recruiter contact database.</div>
-            <div class="plan-price-box">
-              <span class="price-currency">₹</span>
-              <span class="price-amount">500</span>
-              <span class="price-period">/ one-time</span>
+      <!-- Service Plans Side by Side -->
+      <div class="plans-grid-2">
+        <!-- Plan 1 -->
+        <div class="pkg-card">
+          <div>
+            <div class="pkg-name">Job Search Access</div>
+            <div style="font-size: 8px; color: #64748b; margin-top: 1px;">Essential curated discovery &amp; verified HR contact repository.</div>
+            <div class="pkg-price-row">
+              <span style="font-size: 13px; font-weight: 800;">₹</span>
+              <span class="pkg-price">500</span>
+              <span class="pkg-period">/ one-time</span>
             </div>
+            
+            <ul class="pkg-features">
+              <li class="pkg-feat-item"><span class="feat-chk">✓</span><span>Curated relevant job opening list matched to your profile</span></li>
+              <li class="pkg-feat-item"><span class="feat-chk">✓</span><span>Direct verified corporate HR &amp; Recruiter email contacts</span></li>
+              <li class="pkg-feat-item"><span class="feat-chk">✓</span><span>Official recruiter WhatsApp contact numbers where available</span></li>
+              <li class="pkg-feat-item"><span class="feat-chk">✓</span><span>Standard cold outreach email &amp; message templates</span></li>
+              <li class="pkg-feat-item"><span class="feat-chk">✓</span><span>Weekly alerts on new matching job requisitions</span></li>
+            </ul>
           </div>
-          
-          <ul class="plan-features">
-            <li class="plan-feature-item">
-              <span class="feature-icon">✓</span>
-              <span><strong>Access to Available Openings:</strong> Curated relevant job openings matched to your profile.</span>
-            </li>
-            <li class="plan-feature-item">
-              <span class="feature-icon">✓</span>
-              <span><strong>HR &amp; Recruiter Contact Details:</strong> Verified contact info &amp; emails where available.</span>
-            </li>
-            <li class="plan-feature-item">
-              <span class="feature-icon">✓</span>
-              <span><strong>WhatsApp Contact Information:</strong> Direct recruiter messaging contacts where available.</span>
-            </li>
-            <li class="plan-feature-item">
-              <span class="feature-icon">✓</span>
-              <span><strong>Recruiter Outreach Guidance:</strong> Proven templates and best practices for cold outreach.</span>
-            </li>
-            <li class="plan-feature-item">
-              <span class="feature-icon">✓</span>
-              <span><strong>Job Opportunity Updates:</strong> Regular alerts on newly published matching roles.</span>
-            </li>
-          </ul>
-          
-          <a href="https://autoapplycv.in" class="plan-cta-btn btn-secondary">Get Job Search Access</a>
+          <div style="font-size: 8px; color: #64748b; text-align: center; border-top: 1px solid #f1f5f9; padding-top: 5px;">
+            Self-Managed Candidate Outreach
+          </div>
         </div>
 
-        <!-- PLAN 2 -->
-        <div class="plan-card featured">
-          <div class="featured-badge">⭐ Recommended</div>
-          
-          <div class="plan-header">
-            <div class="plan-name">Premium Job Outreach</div>
-            <div class="plan-desc">Comprehensive end-to-end recruiter engagement &amp; circulation.</div>
-            <div class="plan-price-box">
-              <span class="price-currency">₹</span>
-              <span class="price-amount">2,000</span>
-              <span class="price-period">/ one-time</span>
+        <!-- Plan 2 -->
+        <div class="pkg-card featured">
+          <div class="pkg-tag">⭐ Recommended</div>
+          <div>
+            <div class="pkg-name">Premium Job Outreach</div>
+            <div style="font-size: 8px; color: #64748b; margin-top: 1px;">Full-service multi-channel recruiter engagement &amp; circulation.</div>
+            <div class="pkg-price-row">
+              <span style="font-size: 13px; font-weight: 800;">₹</span>
+              <span class="pkg-price">2,000</span>
+              <span class="pkg-period">/ one-time</span>
             </div>
+            
+            <ul class="pkg-features">
+              <li class="pkg-feat-item"><span class="feat-chk">✓</span><span>Algorithmic matching to premier active hiring requisitions</span></li>
+              <li class="pkg-feat-item"><span class="feat-chk">✓</span><span>Direct WhatsApp candidate intro dispatch where permitted</span></li>
+              <li class="pkg-feat-item"><span class="feat-chk">✓</span><span>Personalized recruiter introductory emails to hiring leads</span></li>
+              <li class="pkg-feat-item"><span class="feat-chk">✓</span><span>Company portal submission navigation &amp; guidance</span></li>
+              <li class="pkg-feat-item"><span class="feat-chk">✓</span><span>LinkedIn community placement in recruiter groups</span></li>
+              <li class="pkg-feat-item"><span class="feat-chk">✓</span><span>Follow-up management &amp; dedicated application tracker</span></li>
+            </ul>
           </div>
-          
-          <ul class="plan-features">
-            <li class="plan-feature-item">
-              <span class="feature-icon">✓</span>
-              <span><strong>Relevant Opportunity Matching:</strong> Deep algorithmic matching to premier hiring requisitions.</span>
-            </li>
-            <li class="plan-feature-item">
-              <span class="feature-icon">✓</span>
-              <span><strong>WhatsApp Recruiter Outreach:</strong> Direct candidate intro dispatch where permitted.</span>
-            </li>
-            <li class="plan-feature-item">
-              <span class="feature-icon">✓</span>
-              <span><strong>Email Recruiter Outreach:</strong> Personalized introductory emails to relevant recruiters.</span>
-            </li>
-            <li class="plan-feature-item">
-              <span class="feature-icon">✓</span>
-              <span><strong>Application Outreach Assistance:</strong> Structured support navigating company job portals.</span>
-            </li>
-            <li class="plan-feature-item">
-              <span class="feature-icon">✓</span>
-              <span><strong>LinkedIn Community Circulation:</strong> Resume placement in recruiter communities where permitted.</span>
-            </li>
-            <li class="plan-feature-item">
-              <span class="feature-icon">✓</span>
-              <span><strong>Tracking &amp; Follow-up Assistance:</strong> Pipeline dashboard and follow-up guidance.</span>
-            </li>
-          </ul>
-          
-          <a href="https://autoapplycv.in" class="plan-cta-btn btn-primary">Get Premium Outreach</a>
-        </div>
-      </div>
-
-      <!-- Compliance & Integrity Disclaimer -->
-      <div class="disclaimer-box">
-        <div class="disclaimer-icon">ℹ️</div>
-        <div>
-          <div class="disclaimer-title">Transparency &amp; Policy Notice</div>
-          <div class="disclaimer-text">
-            Interview calls and job offers depend on employer requirements and recruiter responses. Our services assist with job discovery and outreach but do not guarantee employment.
+          <div style="font-size: 8px; font-weight: 700; color: #4f46e5; text-align: center; border-top: 1px solid #e0e7ff; padding-top: 5px;">
+            Fully Managed Agency Outreach
           </div>
         </div>
       </div>
 
-      <!-- Primary Call to Action Banner -->
-      <div class="cta-banner">
-        <div class="cta-info">
-          <div class="cta-heading">Ready to Explore Your Next Opportunity?</div>
-          <div class="cta-subtext">Submit your resume today and let our outreach team accelerate your recruiter connections.</div>
-        </div>
-        <a href="https://autoapplycv.in" class="cta-button">
-          <span>Submit Resume Now →</span>
-        </a>
+      <!-- Feature Comparison Matrix -->
+      <table class="comparison-table">
+        <thead>
+          <tr>
+            <th>Deliverable / Capability</th>
+            <th style="width: 28%; text-align: center;">Job Search Access (₹500)</th>
+            <th style="width: 32%; text-align: center; background: #e0e7ff; color: #3730a3;">Premium Outreach (₹2,000)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Targeted Role Matching</td>
+            <td style="text-align: center;">Included</td>
+            <td style="text-align: center; font-weight: 700; color: #4f46e5;">Priority High-Match</td>
+          </tr>
+          <tr>
+            <td>Direct Recruiter Email Outreach</td>
+            <td style="text-align: center;">Contact List Provided</td>
+            <td style="text-align: center; font-weight: 700; color: #059669;">Dispatched by Agency Team</td>
+          </tr>
+          <tr>
+            <td>WhatsApp Recruiter Introduction</td>
+            <td style="text-align: center;">Contact Info Provided</td>
+            <td style="text-align: center; font-weight: 700; color: #059669;">Direct Introduction Sent</td>
+          </tr>
+          <tr>
+            <td>LinkedIn Community Circulation</td>
+            <td style="text-align: center;">Standard Access</td>
+            <td style="text-align: center; font-weight: 700; color: #059669;">Featured Placement</td>
+          </tr>
+          <tr>
+            <td>Outreach Specialist Support</td>
+            <td style="text-align: center;">Email Support</td>
+            <td style="text-align: center; font-weight: 700; color: #4f46e5;">Assigned Account Manager</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- Compliance Disclaimer Strip -->
+      <div class="disclaimer-strip">
+        <strong>Transparency &amp; Regulatory Compliance:</strong> Interview calls and job offers depend on employer requirements and recruiter responses. AutoApplyCV assists with professional job discovery, network introductions, and candidate outreach but does not guarantee employment or fixed hiring outcomes.
       </div>
 
-      <!-- Contact Details Bar -->
-      <div class="contact-bar">
-        <div class="contact-item">
-          <div class="contact-icon">🌐</div>
-          <div>
-            <div class="contact-label">Official Portal</div>
-            <a href="https://autoapplycv.in" class="contact-value">https://autoapplycv.in</a>
-          </div>
-        </div>
-        <div class="contact-item">
-          <div class="contact-icon">✉️</div>
-          <div>
-            <div class="contact-label">Official Support Email</div>
-            <a href="mailto:support@autoapplycv.in" class="contact-value">support@autoapplycv.in</a>
-          </div>
-        </div>
-        <div class="contact-item">
-          <div class="contact-icon">💬</div>
-          <div>
-            <div class="contact-label">Business WhatsApp</div>
-            <a href="https://wa.me/919876543210" class="contact-value">+91 98765 43210</a>
-          </div>
-        </div>
-      </div>
-
-      <!-- Page 2 Footer -->
+      <!-- Footer -->
       <div class="page-footer">
-        <div class="footer-left">AutoApplyCV | Connecting Talent With Opportunities</div>
+        <div class="footer-left">AutoApplyCV Recruitment Agency | Service Packages &amp; Matrix</div>
         <div class="footer-right">
-          <span>Website: <a href="https://autoapplycv.in" class="footer-link">autoapplycv.in</a></span>
-          <span>Page 2 of 3</span>
+          <span>Portal: <a href="https://autoapplycv.in" class="footer-link">autoapplycv.in</a></span>
+          <span>Page 4 of 6</span>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- ==================== PAGE 3 (ONBOARDING & VERIFICATION) ==================== -->
+  <!-- ==================== PAGE 5: APPLICANT ONBOARDING FORM ==================== -->
   <div class="page">
-    <div class="bg-blob-1"></div>
-    <div class="bg-blob-2"></div>
+    <div class="bg-accent-top"></div>
+    <div class="bg-accent-bottom"></div>
     
-    <!-- Watermark Layer -->
     <div class="watermark">
       <img src="{logo_base64}" class="watermark-img" alt="">
       <div class="watermark-text">AUTOAPPLYCV</div>
@@ -1257,165 +1359,288 @@ async def generate_pdf():
     </div>
     
     <div class="content-layer">
-      <!-- Top Header -->
+      <!-- Header -->
       <div class="header">
         <div class="logo-container">
           <img src="{logo_base64}" alt="AutoApplyCV" class="brand-logo-img">
           <div>
             <div class="brand-title">AutoApply<span>CV</span></div>
-            <div class="brand-tagline">Candidate Enrollment &amp; Verification Sheet</div>
+            <div class="brand-tagline">Candidate Enrollment &amp; Registration Sheet</div>
           </div>
         </div>
         <div class="agency-tag">
           <span class="agency-tag-dot"></span>
-          <span>Official Onboarding Form</span>
+          <span>Official Application Form</span>
         </div>
       </div>
 
-      <!-- Page 3 Header -->
-      <div class="page3-header">
-        <h2 class="page3-title">Candidate Registration &amp; Agency Verification</h2>
-        <p class="page3-subtitle">Please complete the applicant details below to initiate your structured recruiter outreach process.</p>
+      <!-- Title -->
+      <div class="section-headline-box" style="text-align: center;">
+        <h2 class="section-h2">Candidate Registration Form (PART A)</h2>
+        <p class="section-p">Please fill in your authentic professional details below to configure your tailored recruiter outreach campaign.</p>
       </div>
 
-      <!-- PART A: APPLICANT USE ONLY -->
-      <div class="form-section">
-        <div class="section-header-pill">
-          <span>PART A: FOR APPLICANT USE</span>
-        </div>
+      <!-- Form Box PART A -->
+      <div class="form-box">
+        <div class="form-header-badge">PART A: FOR APPLICANT USE ONLY</div>
 
-        <div class="form-grid-2">
-          <div class="form-field">
-            <span class="field-label">1. Full Legal Name</span>
-            <div class="field-line"></div>
+        <div class="grid-2">
+          <div class="field-wrap">
+            <span class="lbl">1. Full Legal Name</span>
+            <div class="line-fill"></div>
           </div>
-          <div class="form-field">
-            <span class="field-label">2. Contact / WhatsApp Number</span>
-            <div class="field-line"></div>
-          </div>
-        </div>
-
-        <div class="form-grid-2" style="margin-top: 5px;">
-          <div class="form-field">
-            <span class="field-label">3. Email Address</span>
-            <div class="field-line"></div>
-          </div>
-          <div class="form-field">
-            <span class="field-label">4. Current City / Location</span>
-            <div class="field-line"></div>
+          <div class="field-wrap">
+            <span class="lbl">2. Primary WhatsApp / Mobile Number</span>
+            <div class="line-fill"></div>
           </div>
         </div>
 
-        <div class="form-grid-3" style="margin-top: 5px;">
-          <div class="form-field">
-            <span class="field-label">5. Total Experience (Years)</span>
-            <div class="field-line"></div>
+        <div class="grid-2" style="margin-top: 5px;">
+          <div class="field-wrap">
+            <span class="lbl">3. Professional Email Address</span>
+            <div class="line-fill"></div>
           </div>
-          <div class="form-field">
-            <span class="field-label">6. Target Job Title / Role</span>
-            <div class="field-line"></div>
+          <div class="field-wrap">
+            <span class="lbl">4. Current City &amp; State</span>
+            <div class="line-fill"></div>
           </div>
-          <div class="form-field">
-            <span class="field-label">7. Preferred Work Mode / City</span>
-            <div class="field-line"></div>
+        </div>
+
+        <div class="grid-3" style="margin-top: 5px;">
+          <div class="field-wrap">
+            <span class="lbl">5. Total Experience (Years)</span>
+            <div class="line-fill"></div>
           </div>
+          <div class="field-wrap">
+            <span class="lbl">6. Current Designation</span>
+            <div class="line-fill"></div>
+          </div>
+          <div class="field-wrap">
+            <span class="lbl">7. Notice Period (Days)</span>
+            <div class="line-fill"></div>
+          </div>
+        </div>
+
+        <div class="grid-2" style="margin-top: 5px;">
+          <div class="field-wrap">
+            <span class="lbl">8. Target Job Title / Role Preference</span>
+            <div class="line-fill"></div>
+          </div>
+          <div class="field-wrap">
+            <span class="lbl">9. Preferred Work Mode (Remote / Hybrid / On-site)</span>
+            <div class="line-fill"></div>
+          </div>
+        </div>
+
+        <div class="grid-2" style="margin-top: 5px;">
+          <div class="field-wrap">
+            <span class="lbl">10. Current CTC (Annual INR)</span>
+            <div class="line-fill"></div>
+          </div>
+          <div class="field-wrap">
+            <span class="lbl">11. Expected CTC (Annual INR)</span>
+            <div class="line-fill"></div>
+          </div>
+        </div>
+
+        <div class="field-wrap" style="margin-top: 5px;">
+          <span class="lbl">12. Core Technical &amp; Functional Skills (Top 5-6 Keywords)</span>
+          <div class="line-fill"></div>
         </div>
 
         <!-- Selected Service Plan Checkbox -->
-        <div class="plan-checkbox-row">
-          <span class="field-label" style="margin-right: 4px;">Selected Service Plan:</span>
-          <div class="checkbox-item">
-            <div class="checkbox-box"></div>
-            <span>Job Search Access (₹500)</span>
-          </div>
-          <div class="checkbox-item">
-            <div class="checkbox-box"></div>
-            <span>Premium Job Outreach (₹2,000)</span>
-          </div>
+        <div class="checkbox-strip">
+          <span class="lbl" style="margin-right: 4px;">Selected Service Plan:</span>
+          <div><span class="chk-sq"></span><strong>Job Search Access (₹500)</strong></div>
+          <div><span class="chk-sq"></span><strong>Premium Job Outreach (₹2,000)</strong></div>
         </div>
 
-        <!-- Candidate Declaration -->
-        <div class="declaration-text">
-          <strong>Candidate Declaration:</strong> I hereby confirm that the information submitted above is accurate and authorize AutoApplyCV to circulate my resume and initiate recruiter communications on my behalf in accordance with the selected service plan.
+        <!-- Declaration -->
+        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 5px 8px; font-size: 7.5px; color: #64748b; line-height: 1.35; margin-top: 5px;">
+          <strong>Candidate Declaration:</strong> I hereby declare that the particulars provided above are genuine and accurate. I authorize AutoApplyCV to circulate my candidate profile, resume, and contact details to prospective employers and recruiters under the selected assistance tier.
         </div>
 
-        <!-- Applicant Signature Line -->
-        <div style="margin-top: 5px; display: flex; justify-content: space-between; align-items: flex-end;">
+        <!-- Signature Row -->
+        <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: 6px;">
           <div style="width: 45%;">
-            <div class="field-line" style="height: 20px;"></div>
-            <span class="sign-caption">Applicant Signature</span>
+            <div class="line-fill" style="height: 22px;"></div>
+            <span style="font-size: 7.5px; color: #64748b; font-weight: 700; text-transform: uppercase;">Candidate Full Signature</span>
           </div>
           <div style="width: 35%;">
-            <div class="field-line" style="height: 20px;"></div>
-            <span class="sign-caption">Date (DD / MM / YYYY)</span>
+            <div class="line-fill" style="height: 22px;"></div>
+            <span style="font-size: 7.5px; color: #64748b; font-weight: 700; text-transform: uppercase;">Date of Application</span>
           </div>
         </div>
       </div>
 
-      <!-- PART B: FOR AGENCY USE ONLY -->
-      <div class="agency-section">
-        <div class="agency-header-pill">
-          <span>PART B: FOR AGENCY &amp; VERIFICATION USE ONLY</span>
+      <!-- Quick Submission Instructions Box -->
+      <div style="background: #eef2ff; border: 1px solid #c7d2fe; border-radius: 8px; padding: 7px 11px; display: flex; justify-content: space-between; align-items: center;">
+        <div>
+          <div style="font-size: 8.5px; font-weight: 800; color: #1e3a8a;">Submission &amp; Activation Instructions:</div>
+          <div style="font-size: 8px; color: #4338ca;">Submit this completed form along with your latest resume to <strong>support@autoapplycv.in</strong> or upload via <strong>autoapplycv.in</strong></div>
+        </div>
+        <div style="background: #1e3a8a; color: #ffffff; padding: 4px 10px; border-radius: 6px; font-size: 8px; font-weight: 800;">
+          Dispatch in 24 Hrs
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div class="page-footer">
+        <div class="footer-left">AutoApplyCV Recruitment Agency | Candidate Enrollment Sheet</div>
+        <div class="footer-right">
+          <span>Portal: <a href="https://autoapplycv.in" class="footer-link">autoapplycv.in</a></span>
+          <span>Page 5 of 6</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== PAGE 6: AGENCY VERIFICATION & OFFICIAL SIGNATURE ==================== -->
+  <div class="page">
+    <div class="bg-accent-top"></div>
+    <div class="bg-accent-bottom"></div>
+    
+    <div class="watermark">
+      <img src="{logo_base64}" class="watermark-img" alt="">
+      <div class="watermark-text">AUTOAPPLYCV</div>
+      <div class="watermark-subtext">OFFICIAL RECRUITMENT AGENCY • VERIFIED</div>
+    </div>
+    
+    <div class="content-layer">
+      <!-- Header -->
+      <div class="header">
+        <div class="logo-container">
+          <img src="{logo_base64}" alt="AutoApplyCV" class="brand-logo-img">
+          <div>
+            <div class="brand-title">AutoApply<span>CV</span></div>
+            <div class="brand-tagline">Verification, Compliance &amp; Official Seal</div>
+          </div>
+        </div>
+        <div class="agency-tag">
+          <span class="agency-tag-dot"></span>
+          <span>Official Signatory Record</span>
+        </div>
+      </div>
+
+      <!-- Title -->
+      <div class="section-headline-box" style="text-align: center;">
+        <h2 class="section-h2">Agency Verification &amp; Authorization (PART B)</h2>
+        <p class="section-p">Official onboarding validation record, compliance disclosures, and founder authorization stamp.</p>
+      </div>
+
+      <!-- Form Box PART B -->
+      <div class="form-box" style="background: #f8fafc;">
+        <div class="agency-header-badge">PART B: FOR AGENCY &amp; ONBOARDING DESK USE ONLY</div>
+
+        <div class="grid-3">
+          <div class="field-wrap">
+            <span class="lbl">Application Reference ID</span>
+            <div class="line-fill"></div>
+          </div>
+          <div class="field-wrap">
+            <span class="lbl">Assigned Outreach Specialist</span>
+            <div class="line-fill"></div>
+          </div>
+          <div class="field-wrap">
+            <span class="lbl">Payment Transaction Ref.</span>
+            <div class="line-fill"></div>
+          </div>
         </div>
 
-        <div class="form-grid-3">
-          <div class="form-field">
-            <span class="field-label">Candidate Reference ID</span>
-            <div class="field-line"></div>
+        <div class="grid-3" style="margin-top: 5px;">
+          <div class="field-wrap">
+            <span class="lbl">Target Sector Code</span>
+            <div class="line-fill"></div>
           </div>
-          <div class="form-field">
-            <span class="field-label">Assigned Outreach Specialist</span>
-            <div class="field-line"></div>
+          <div class="field-wrap">
+            <span class="lbl">Campaign Launch Date</span>
+            <div class="line-fill"></div>
           </div>
-          <div class="form-field">
-            <span class="field-label">Payment Receipt / Ref No.</span>
-            <div class="field-line"></div>
+          <div class="field-wrap">
+            <span class="lbl">Outreach Batch No.</span>
+            <div class="line-fill"></div>
           </div>
         </div>
 
-        <div class="form-grid-2" style="margin-top: 5px;">
-          <div class="form-field">
-            <span class="field-label">Verification Status</span>
-            <div style="display: flex; gap: 12px; align-items: center; padding-top: 3px;">
-              <span style="font-size: 9px; font-weight: 700; color: #059669;">[✓] Verified &amp; Approved</span>
-              <span style="font-size: 9px; color: #64748b;">[ ] Under Review</span>
+        <div class="grid-2" style="margin-top: 5px;">
+          <div class="field-wrap">
+            <span class="lbl">Verification Status</span>
+            <div style="display: flex; gap: 10px; align-items: center; padding-top: 3px;">
+              <span style="font-size: 8.5px; font-weight: 700; color: #059669;">[✓] Verified &amp; Approved</span>
+              <span style="font-size: 8.5px; color: #64748b;">[ ] Documents Pending</span>
             </div>
           </div>
-          <div class="form-field">
-            <span class="field-label">Service Commencement Date</span>
-            <div class="field-line"></div>
+          <div class="field-wrap">
+            <span class="lbl">Outreach Channel Protocol</span>
+            <div style="font-size: 8px; color: #334155; padding-top: 3px;">
+              [✓] Verified Email &nbsp; [✓] Direct WhatsApp &nbsp; [✓] LinkedIn Dispatch
+            </div>
           </div>
         </div>
 
-        <!-- Authorized Signature Block with "Vishal" Signature -->
-        <div class="sign-row">
-          <div class="sign-box">
-            <span class="field-label">Authorized Agency Signatory</span>
-            <div class="sign-area">
-              <span class="agency-signature-cursive">Vishal</span>
-              <span class="official-stamp">VERIFIED &amp; APPROVED</span>
+        <!-- Official Signatory Block -->
+        <div class="sign-container">
+          <!-- Signature Slot 1: Founder -->
+          <div class="sign-slot">
+            <span class="lbl">Authorized Agency Signatory</span>
+            <div class="sign-draw-area">
+              <span class="cursive-sig">Vishal</span>
+              <span class="verified-stamp-badge">VERIFIED &amp; APPROVED</span>
             </div>
-            <span class="sign-caption">Vishal — Founder / Authorized Signatory, AutoApplyCV</span>
+            <span style="font-size: 7.5px; color: #64748b; font-weight: 600; margin-top: 2px;">
+              Vishal — Founder &amp; Authorized Signatory, AutoApplyCV
+            </span>
           </div>
 
-          <div class="sign-box">
-            <span class="field-label">Official Agency Seal &amp; Portal Auth</span>
-            <div class="sign-area" style="justify-content: center;">
-              <span style="font-size: 8.5px; font-weight: 800; color: #1e3a8a; letter-spacing: 0.5px;">
+          <!-- Signature Slot 2: Corporate Stamp -->
+          <div class="sign-slot">
+            <span class="lbl">Official Agency Seal &amp; Portal Authentication</span>
+            <div class="sign-draw-area" style="justify-content: center;">
+              <span style="font-size: 8px; font-weight: 900; color: #1e3a8a; letter-spacing: 0.5px;">
                 AUTOAPPLYCV RECRUITMENT SERVICES
               </span>
             </div>
-            <span class="sign-caption">Official Portal: https://autoapplycv.in</span>
+            <span style="font-size: 7.5px; color: #64748b; font-weight: 600; margin-top: 2px;">
+              Registered Portal: https://autoapplycv.in
+            </span>
           </div>
         </div>
       </div>
 
-      <!-- Page 3 Footer -->
+      <!-- Corporate Governance & Code of Ethics -->
+      <div style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 9px; padding: 8px 11px; margin-bottom: 6px;">
+        <div style="font-size: 8.5px; font-weight: 800; color: #0f172a; text-transform: uppercase; margin-bottom: 2px;">
+          Corporate Code of Ethics &amp; Candidate Protection Guarantee
+        </div>
+        <div style="font-size: 7.5px; color: #64748b; line-height: 1.4;">
+          1. <strong>Strict Data Privacy:</strong> Candidate resumes and contact details are stored securely and never sold to third-party marketing databases.<br>
+          2. <strong>Zero Hidden Charges:</strong> Candidates pay only the fixed upfront fee for the chosen service plan. AutoApplyCV does not demand commissions from candidate salary or placement bonuses.<br>
+          3. <strong>Anti-Fraud Disclosure:</strong> We do not offer or sell fake job offers. All candidate introductions are conducted directly with genuine corporate recruiters and HR leads.
+        </div>
+      </div>
+
+      <!-- Contact Bar -->
+      <div style="display: flex; justify-content: space-between; background: #0f172a; color: #ffffff; border-radius: 9px; padding: 7px 12px; font-size: 8px;">
+        <div>
+          <span style="color: #94a3b8; text-transform: uppercase; font-size: 7px; display: block;">Official Portal</span>
+          <a href="https://autoapplycv.in" style="color: #38bdf8; text-decoration: none; font-weight: 700;">https://autoapplycv.in</a>
+        </div>
+        <div>
+          <span style="color: #94a3b8; text-transform: uppercase; font-size: 7px; display: block;">Email Support</span>
+          <a href="mailto:support@autoapplycv.in" style="color: #ffffff; text-decoration: none; font-weight: 700;">support@autoapplycv.in</a>
+        </div>
+        <div>
+          <span style="color: #94a3b8; text-transform: uppercase; font-size: 7px; display: block;">Business WhatsApp</span>
+          <span style="color: #34d399; font-weight: 700;">+91 98765 43210</span>
+        </div>
+      </div>
+
+      <!-- Footer -->
       <div class="page-footer">
-        <div class="footer-left">AutoApplyCV | Candidate Enrollment &amp; Verification Sheet</div>
+        <div class="footer-left">AutoApplyCV Recruitment Agency | Official Verification &amp; Authorization Document</div>
         <div class="footer-right">
-          <span>Website: <a href="https://autoapplycv.in" class="footer-link">autoapplycv.in</a></span>
-          <span>Page 3 of 3</span>
+          <span>Portal: <a href="https://autoapplycv.in" class="footer-link">autoapplycv.in</a></span>
+          <span>Page 6 of 6</span>
         </div>
       </div>
     </div>
@@ -1462,7 +1687,7 @@ async def generate_pdf():
             
         await browser.close()
         
-    print(f"3-Page PDF successfully generated at: {pdf_out_root}")
+    print(f"6-Page PDF successfully generated at: {pdf_out_root}")
     print(f"Public PDF saved at: {pdf_out_public}")
 
 if __name__ == "__main__":

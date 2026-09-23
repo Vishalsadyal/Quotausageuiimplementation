@@ -145,7 +145,7 @@ export default function RecruitmentAgency() {
     },
     {
       q: "How can I download the official agency brochure and application form?",
-      a: "You can download the full 3-page official PDF brochure (including candidate enrollment form and authorized verification section signed by Vishal) directly from this page by clicking 'Download Brochure (PDF)' or access it anytime at /AutoApplyCV_Recruitment_Brochure.pdf.",
+      a: "You can download the full 6-page official corporate booklet (including real placement stories, 6-phase candidate framework, candidate enrollment application, and authorized verification signed by Vishal) directly from this page by clicking 'Download 6-Page PDF' or access it anytime at /AutoApplyCV_Recruitment_Brochure.pdf.",
     },
   ];
 
@@ -335,10 +335,10 @@ export default function RecruitmentAgency() {
                 Official Agency Document
               </span>
               <h2 className="text-2xl sm:text-4xl font-extrabold text-white">
-                Official Service Brochure &amp; Enrollment (3-Page PDF)
+                Official Corporate Service Brochure (6-Page PDF)
               </h2>
               <p className="text-sm sm:text-base text-slate-300 max-w-2xl">
-                Download or share our comprehensive corporate brochure with complete service plans, outreach details, transparent policy guidelines, and applicant enrollment forms.
+                Download or share our comprehensive corporate booklet featuring real placement stories, 6-phase candidate outreach framework, transparent packages, enrollment form, and authorized founder sign-off.
               </p>
             </div>
 
@@ -349,7 +349,7 @@ export default function RecruitmentAgency() {
                 className="px-5 py-2.5 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white rounded-xl text-xs sm:text-sm font-bold shadow-md transition-all inline-flex items-center gap-2"
               >
                 <Download className="w-4 h-4" />
-                <span>Download PDF (High-Res)</span>
+                <span>Download 6-Page PDF</span>
               </a>
 
               <button
@@ -363,139 +363,167 @@ export default function RecruitmentAgency() {
             </div>
           </div>
 
-          {/* Visual Brochure Page Previews - 3 Columns */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4">
-            {/* Page 1 Preview Card */}
+          {/* Visual Brochure Page Previews - 6 Cards in 3x2 Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pt-4">
+            {/* Page 1 */}
             <div className="rounded-2xl border border-slate-700 bg-slate-800/80 p-4 shadow-xl space-y-3">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-indigo-300">PAGE 1: Cover &amp; Overview</span>
-                <a
-                  href="/AutoApplyCV_Recruitment_Brochure.pdf"
-                  target="_blank"
-                  className="text-xs text-slate-400 hover:text-white inline-flex items-center gap-1"
-                >
+                <span className="text-xs font-bold text-indigo-300">PAGE 1: Executive Cover</span>
+                <a href="/AutoApplyCV_Recruitment_Brochure.pdf" target="_blank" className="text-xs text-slate-400 hover:text-white inline-flex items-center gap-1">
                   <span>Open PDF</span>
                   <ExternalLink className="w-3 h-3" />
                 </a>
               </div>
               <div className="rounded-xl overflow-hidden border border-slate-700/80 bg-white group relative">
-                <img
-                  src="/images/brochure_page_1.png"
-                  alt="AutoApplyCV Recruitment Agency Brochure Page 1"
-                  className="w-full h-auto object-cover transition-transform group-hover:scale-[1.02] duration-200"
-                />
+                <img src="/images/brochure_page_1.png" alt="Brochure Page 1 Cover" className="w-full h-auto object-cover transition-transform group-hover:scale-[1.02] duration-200" />
               </div>
             </div>
 
-            {/* Page 2 Preview Card */}
+            {/* Page 2 */}
             <div className="rounded-2xl border border-slate-700 bg-slate-800/80 p-4 shadow-xl space-y-3">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-teal-300">PAGE 2: Plans &amp; Pricing</span>
-                <a
-                  href="/AutoApplyCV_Recruitment_Brochure.pdf"
-                  target="_blank"
-                  className="text-xs text-slate-400 hover:text-white inline-flex items-center gap-1"
-                >
+                <span className="text-xs font-bold text-blue-300">PAGE 2: 6-Phase Framework</span>
+                <a href="/AutoApplyCV_Recruitment_Brochure.pdf" target="_blank" className="text-xs text-slate-400 hover:text-white inline-flex items-center gap-1">
                   <span>Open PDF</span>
                   <ExternalLink className="w-3 h-3" />
                 </a>
               </div>
               <div className="rounded-xl overflow-hidden border border-slate-700/80 bg-white group relative">
-                <img
-                  src="/images/brochure_page_2.png"
-                  alt="AutoApplyCV Recruitment Agency Brochure Page 2"
-                  className="w-full h-auto object-cover transition-transform group-hover:scale-[1.02] duration-200"
-                />
+                <img src="/images/brochure_page_2.png" alt="Brochure Page 2 6-Phase Framework" className="w-full h-auto object-cover transition-transform group-hover:scale-[1.02] duration-200" />
               </div>
             </div>
 
-            {/* Page 3 Preview Card */}
+            {/* Page 3 */}
             <div className="rounded-2xl border border-slate-700 bg-slate-800/80 p-4 shadow-xl space-y-3">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-amber-300">PAGE 3: Enrollment &amp; Verification</span>
-                <a
-                  href="/AutoApplyCV_Recruitment_Brochure.pdf"
-                  target="_blank"
-                  className="text-xs text-slate-400 hover:text-white inline-flex items-center gap-1"
-                >
+                <span className="text-xs font-bold text-teal-300">PAGE 3: Placed Candidates</span>
+                <a href="/AutoApplyCV_Recruitment_Brochure.pdf" target="_blank" className="text-xs text-slate-400 hover:text-white inline-flex items-center gap-1">
                   <span>Open PDF</span>
                   <ExternalLink className="w-3 h-3" />
                 </a>
               </div>
               <div className="rounded-xl overflow-hidden border border-slate-700/80 bg-white group relative">
-                <img
-                  src="/images/brochure_page_3.png"
-                  alt="AutoApplyCV Recruitment Agency Brochure Page 3 Enrollment Form"
-                  className="w-full h-auto object-cover transition-transform group-hover:scale-[1.02] duration-200"
-                />
+                <img src="/images/brochure_page_3.png" alt="Brochure Page 3 Placed Candidates" className="w-full h-auto object-cover transition-transform group-hover:scale-[1.02] duration-200" />
+              </div>
+            </div>
+
+            {/* Page 4 */}
+            <div className="rounded-2xl border border-slate-700 bg-slate-800/80 p-4 shadow-xl space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-purple-300">PAGE 4: Packages &amp; Matrix</span>
+                <a href="/AutoApplyCV_Recruitment_Brochure.pdf" target="_blank" className="text-xs text-slate-400 hover:text-white inline-flex items-center gap-1">
+                  <span>Open PDF</span>
+                  <ExternalLink className="w-3 h-3" />
+                </a>
+              </div>
+              <div className="rounded-xl overflow-hidden border border-slate-700/80 bg-white group relative">
+                <img src="/images/brochure_page_4.png" alt="Brochure Page 4 Packages & Comparison" className="w-full h-auto object-cover transition-transform group-hover:scale-[1.02] duration-200" />
+              </div>
+            </div>
+
+            {/* Page 5 */}
+            <div className="rounded-2xl border border-slate-700 bg-slate-800/80 p-4 shadow-xl space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-amber-300">PAGE 5: Applicant Form</span>
+                <a href="/AutoApplyCV_Recruitment_Brochure.pdf" target="_blank" className="text-xs text-slate-400 hover:text-white inline-flex items-center gap-1">
+                  <span>Open PDF</span>
+                  <ExternalLink className="w-3 h-3" />
+                </a>
+              </div>
+              <div className="rounded-xl overflow-hidden border border-slate-700/80 bg-white group relative">
+                <img src="/images/brochure_page_5.png" alt="Brochure Page 5 Applicant Onboarding Form" className="w-full h-auto object-cover transition-transform group-hover:scale-[1.02] duration-200" />
+              </div>
+            </div>
+
+            {/* Page 6 */}
+            <div className="rounded-2xl border border-slate-700 bg-slate-800/80 p-4 shadow-xl space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-emerald-300">PAGE 6: Verification &amp; Seal</span>
+                <a href="/AutoApplyCV_Recruitment_Brochure.pdf" target="_blank" className="text-xs text-slate-400 hover:text-white inline-flex items-center gap-1">
+                  <span>Open PDF</span>
+                  <ExternalLink className="w-3 h-3" />
+                </a>
+              </div>
+              <div className="rounded-xl overflow-hidden border border-slate-700/80 bg-white group relative">
+                <img src="/images/brochure_page_6.png" alt="Brochure Page 6 Agency Seal and Signature" className="w-full h-auto object-cover transition-transform group-hover:scale-[1.02] duration-200" />
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* 4. HOW THE RECRUITMENT AGENCY WORKS (5-STEP WORKFLOW) */}
+      {/* 4. HOW THE RECRUITMENT AGENCY WORKS (6-PHASE FRAMEWORK) */}
       <section id="how-it-works" className="py-16 px-6 lg:px-8 max-w-6xl mx-auto space-y-12">
         <div className="text-center space-y-3">
           <span className="text-xs font-bold uppercase tracking-wider text-indigo-600 bg-indigo-50 border border-indigo-200 px-3 py-1 rounded-full">
-            Structured Candidate Workflow
+            Structured Candidate Framework
           </span>
           <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900">
-            How Our Recruitment Assistance Works
+            Our 6-Phase Candidate Placement Framework
           </h2>
           <p className="text-sm sm:text-base text-slate-600 max-w-2xl mx-auto">
-            A clear, 5-step roadmap engineered to maximize candidate visibility with verified hiring decision-makers.
+            A systematic, multi-tiered outreach methodology designed to bypass recruiter black holes and secure hiring decision-maker engagement.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-          <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs space-y-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs space-y-2.5">
             <div className="w-8 h-8 rounded-lg bg-indigo-600 text-white font-bold flex items-center justify-center text-sm">
               1
             </div>
-            <h4 className="text-sm font-bold text-slate-900 leading-tight">Profile &amp; Goal Alignment</h4>
+            <h4 className="text-sm font-bold text-slate-900 leading-tight">Phase 1: Profile Audit &amp; Keyword Alignment</h4>
             <p className="text-xs text-slate-600 leading-relaxed">
-              We review your resume, target roles, preferred location, and salary goals to configure matching filters.
+              In-depth ATS compatibility analysis, technical skill benchmarking, and tailored resume optimization to match hiring parameters.
             </p>
           </div>
 
-          <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs space-y-3">
+          <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs space-y-2.5">
             <div className="w-8 h-8 rounded-lg bg-blue-600 text-white font-bold flex items-center justify-center text-sm">
               2
             </div>
-            <h4 className="text-sm font-bold text-slate-900 leading-tight">Opportunity Discovery</h4>
+            <h4 className="text-sm font-bold text-slate-900 leading-tight">Phase 2: Target Recruiter &amp; Role Mapping</h4>
             <p className="text-xs text-slate-600 leading-relaxed">
-              Our team matches active hiring requisitions and verifies recruiter &amp; HR contact points.
+              Identifying active requisitions across target employers and mapping verified HR managers, department heads, and talent partners.
             </p>
           </div>
 
-          <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs space-y-3">
+          <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs space-y-2.5">
             <div className="w-8 h-8 rounded-lg bg-purple-600 text-white font-bold flex items-center justify-center text-sm">
               3
             </div>
-            <h4 className="text-sm font-bold text-slate-900 leading-tight">Direct Outreach</h4>
+            <h4 className="text-sm font-bold text-slate-900 leading-tight">Phase 3: Multi-Channel Outreach Dispatch</h4>
             <p className="text-xs text-slate-600 leading-relaxed">
-              Personalized intro messages sent directly to verified hiring managers via email and WhatsApp.
+              Deploying customized introductory pitches directly to verified corporate email IDs, official WhatsApp desks, and LinkedIn inboxes.
             </p>
           </div>
 
-          <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs space-y-3">
+          <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs space-y-2.5">
             <div className="w-8 h-8 rounded-lg bg-teal-600 text-white font-bold flex items-center justify-center text-sm">
               4
             </div>
-            <h4 className="text-sm font-bold text-slate-900 leading-tight">Resume Circulation</h4>
+            <h4 className="text-sm font-bold text-slate-900 leading-tight">Phase 4: Warm Pipeline &amp; Follow-Up Cycles</h4>
             <p className="text-xs text-slate-600 leading-relaxed">
-              Circulating candidate profiles in specialized LinkedIn hiring groups and recruiter circles.
+              Systematic second-touch and re-engagement messaging with responsive recruiters to keep your profile front-of-mind.
             </p>
           </div>
 
-          <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs space-y-3">
+          <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs space-y-2.5">
             <div className="w-8 h-8 rounded-lg bg-emerald-600 text-white font-bold flex items-center justify-center text-sm">
               5
             </div>
-            <h4 className="text-sm font-bold text-slate-900 leading-tight">Tracking &amp; Follow-up</h4>
+            <h4 className="text-sm font-bold text-slate-900 leading-tight">Phase 5: Interview Scheduling Support</h4>
             <p className="text-xs text-slate-600 leading-relaxed">
-              Ongoing assistance tracking applications, follow-ups, and interview preparation guidance.
+              Direct coordination assistance when recruiters request screening discussions, portfolio submissions, or technical rounds.
+            </p>
+          </div>
+
+          <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs space-y-2.5">
+            <div className="w-8 h-8 rounded-lg bg-amber-600 text-white font-bold flex items-center justify-center text-sm">
+              6
+            </div>
+            <h4 className="text-sm font-bold text-slate-900 leading-tight">Phase 6: Offer Negotiation &amp; Onboarding</h4>
+            <p className="text-xs text-slate-600 leading-relaxed">
+              Compensation benchmarking guidance and professional transition support to ensure you secure fair market value.
             </p>
           </div>
         </div>
