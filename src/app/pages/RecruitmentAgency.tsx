@@ -22,13 +22,15 @@ import {
   Send,
   Zap,
   HelpCircle,
+  X,
+  ChevronLeft,
 } from "lucide-react";
 import { motion } from "motion/react";
 
 export default function RecruitmentAgency() {
   const [activeTestimonialTab, setActiveTestimonialTab] = useState<"all" | "tech" | "engineering" | "mid_senior">("all");
   const [brochureModalOpen, setBrochureModalOpen] = useState(false);
-  const [selectedBrochurePage, setSelectedBrochurePage] = useState<1 | 2>(1);
+  const [selectedBrochurePage, setSelectedBrochurePage] = useState<number>(1);
 
   const testimonials = [
     {
@@ -360,30 +362,37 @@ export default function RecruitmentAgency() {
           {/* Individual 6-Page Detailed Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 pt-2">
             {[
-              { num: 1, title: "Page 1: Front Cover", subtitle: "Official corporate title & candidate highlights", img: "/images/brochure_page_1.png" },
-              { num: 2, title: "Page 2: About & Founder Seal", subtitle: "Placement metrics & authorized founder signature", img: "/images/brochure_page_2.png" },
-              { num: 3, title: "Page 3: Core Capabilities", subtitle: "Job discovery, outreach & offer guidance", img: "/images/brochure_page_3.png" },
-              { num: 4, title: "Page 4: 6-Phase Framework", subtitle: "Systematic recruiter outreach methodology", img: "/images/brochure_page_4.png" },
-              { num: 5, title: "Page 5: Pricing & Comparison", subtitle: "₹500 & ₹2,000 packages with zero commissions", img: "/images/brochure_page_5.png" },
-              { num: 6, title: "Page 6: Contact & QR Portal", subtitle: "Direct WhatsApp desk, email & QR scan access", img: "/images/brochure_page_6.png" },
+              { num: 1, title: "Page 1: Front Cover", subtitle: "Official corporate title & candidate highlights", img: "/images/brochure_page_1.png?v=2" },
+              { num: 2, title: "Page 2: About & Founder Seal", subtitle: "Placement metrics & authorized founder signature", img: "/images/brochure_page_2.png?v=2" },
+              { num: 3, title: "Page 3: Core Capabilities", subtitle: "Job discovery, outreach & offer guidance", img: "/images/brochure_page_3.png?v=2" },
+              { num: 4, title: "Page 4: 6-Phase Framework", subtitle: "Systematic recruiter outreach methodology", img: "/images/brochure_page_4.png?v=2" },
+              { num: 5, title: "Page 5: Pricing & Comparison", subtitle: "₹500 & ₹2,000 packages with zero commissions", img: "/images/brochure_page_5.png?v=2" },
+              { num: 6, title: "Page 6: Contact & WhatsApp Desks", subtitle: "Direct WhatsApp (+91 98055 59015 / 78149 58809) & QR portal", img: "/images/brochure_page_6.png?v=2" },
             ].map((p) => (
-              <div key={p.num} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm hover:shadow-md transition-all space-y-3">
+              <div
+                key={p.num}
+                onClick={() => {
+                  setSelectedBrochurePage(p.num);
+                  setBrochureModalOpen(true);
+                }}
+                className="rounded-2xl border-2 border-slate-200 hover:border-indigo-500 bg-white p-4 shadow-sm hover:shadow-lg transition-all space-y-3 cursor-pointer group"
+              >
                 <div className="flex items-center justify-between">
                   <div>
-                    <h4 className="text-xs font-bold text-slate-900">{p.title}</h4>
+                    <h4 className="text-xs font-bold text-slate-900 group-hover:text-indigo-600 transition-colors">{p.title}</h4>
                     <p className="text-[11px] text-slate-500 font-medium">{p.subtitle}</p>
                   </div>
-                  <a
-                    href="/AutoApplyCV_Recruitment_Brochure.pdf"
-                    target="_blank"
-                    className="p-1.5 rounded-lg text-slate-500 hover:text-indigo-600 hover:bg-slate-50 transition-colors"
-                    title="View PDF"
-                  >
-                    <ExternalLink className="w-4 h-4" />
-                  </a>
+                  <span className="text-[11px] font-bold text-indigo-600 bg-indigo-50 border border-indigo-200 px-2 py-0.5 rounded-md group-hover:bg-indigo-600 group-hover:text-white transition-all">
+                    View
+                  </span>
                 </div>
-                <div className="rounded-xl overflow-hidden border border-slate-200 bg-slate-50 shadow-inner">
-                  <img src={p.img} alt={p.title} className="w-full h-auto object-cover hover:scale-[1.02] transition-transform duration-200" />
+                <div className="rounded-xl overflow-hidden border border-slate-200 bg-slate-50 shadow-inner relative">
+                  <img src={p.img} alt={p.title} className="w-full h-auto object-cover group-hover:scale-[1.02] transition-transform duration-200" />
+                  <div className="absolute inset-0 bg-indigo-900/0 group-hover:bg-indigo-900/10 transition-colors flex items-center justify-center">
+                    <span className="opacity-0 group-hover:opacity-100 bg-slate-900/80 text-white text-xs font-bold px-3 py-1.5 rounded-lg transition-opacity shadow-md">
+                      Click to Enlarge
+                    </span>
+                  </div>
                 </div>
               </div>
             ))}
@@ -764,6 +773,104 @@ export default function RecruitmentAgency() {
           <p>Official Website: <a href="https://autoapplycv.in" className="text-indigo-600 underline">https://autoapplycv.in</a> · Support Email: <a href="mailto:support@autoapplycv.in" className="text-indigo-600 underline">support@autoapplycv.in</a></p>
         </div>
       </section>
+
+      {/* BROCHURE MODAL VIEWER */}
+      {brochureModalOpen && (
+        <div
+          className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 sm:p-6"
+          onClick={() => setBrochureModalOpen(false)}
+        >
+          <div
+            className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[95vh] flex flex-col overflow-hidden border border-slate-200"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div className="flex items-center justify-between px-5 py-3.5 border-b border-slate-200 bg-slate-50">
+              <div className="flex items-center gap-3">
+                <span className="font-extrabold text-sm text-slate-900">
+                  Corporate Booklet · Page {selectedBrochurePage} of 6
+                </span>
+                <span className="text-xs text-slate-500 hidden sm:inline">
+                  (High-Resolution Print Preview)
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <a
+                  href="/AutoApplyCV_Recruitment_Brochure.pdf"
+                  download="AutoApplyCV_Recruitment_Brochure.pdf"
+                  className="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold flex items-center gap-1.5 transition-colors"
+                >
+                  <Download className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">Download PDF</span>
+                </a>
+                <button
+                  type="button"
+                  onClick={() => setBrochureModalOpen(false)}
+                  className="p-1.5 rounded-lg text-slate-500 hover:text-slate-800 hover:bg-slate-200 transition-colors cursor-pointer"
+                  title="Close Preview"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+
+            {/* Modal Main Content */}
+            <div className="flex-1 overflow-y-auto p-4 sm:p-6 flex items-center justify-center bg-slate-100 relative">
+              <img
+                src={`/images/brochure_page_${selectedBrochurePage}.png?v=2`}
+                alt={`Brochure Page ${selectedBrochurePage}`}
+                className="max-h-[72vh] w-auto object-contain rounded-xl shadow-lg border border-slate-300 bg-white"
+              />
+
+              {/* Prev / Next Floating Buttons */}
+              {selectedBrochurePage > 1 && (
+                <button
+                  type="button"
+                  onClick={() => setSelectedBrochurePage((prev) => Math.max(1, prev - 1))}
+                  className="absolute left-6 top-1/2 -translate-y-1/2 p-2.5 rounded-full bg-slate-900/80 hover:bg-slate-900 text-white shadow-lg transition-all cursor-pointer"
+                  title="Previous Page"
+                >
+                  <ChevronLeft className="w-5 h-5" />
+                </button>
+              )}
+              {selectedBrochurePage < 6 && (
+                <button
+                  type="button"
+                  onClick={() => setSelectedBrochurePage((prev) => Math.min(6, prev + 1))}
+                  className="absolute right-6 top-1/2 -translate-y-1/2 p-2.5 rounded-full bg-slate-900/80 hover:bg-slate-900 text-white shadow-lg transition-all cursor-pointer"
+                  title="Next Page"
+                >
+                  <ChevronRight className="w-5 h-5" />
+                </button>
+              )}
+            </div>
+
+            {/* Modal Bottom Thumbnail Pagination */}
+            <div className="px-4 py-3 bg-white border-t border-slate-200 flex items-center justify-between overflow-x-auto gap-2">
+              <div className="flex items-center gap-2">
+                {[1, 2, 3, 4, 5, 6].map((num) => (
+                  <button
+                    key={num}
+                    type="button"
+                    onClick={() => setSelectedBrochurePage(num)}
+                    className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                      selectedBrochurePage === num
+                        ? "bg-indigo-600 text-white shadow-xs"
+                        : "bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200"
+                    }`}
+                  >
+                    Page {num}
+                  </button>
+                ))}
+              </div>
+              <p className="text-[11px] text-slate-500 font-medium hidden md:block">
+                Press Esc or click outside to close
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
+

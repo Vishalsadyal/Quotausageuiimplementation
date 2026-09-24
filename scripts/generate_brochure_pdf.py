@@ -1039,7 +1039,7 @@ async def generate_6page_pdf():
 
     async with async_playwright() as p:
         browser = await p.chromium.launch()
-        page = await browser.new_page()
+        page = await browser.new_page(device_scale_factor=2)
         
         # Load HTML
         await page.goto(f"file:///{html_path.replace(os.sep, '/')}", wait_until="networkidle")
