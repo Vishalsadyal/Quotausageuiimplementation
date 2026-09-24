@@ -157,32 +157,26 @@ export default function RecruitmentAgency() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50/50 text-slate-900 selection:bg-indigo-100 selection:text-indigo-900">
-      {/* 1. TOP HERO SECTION */}
-      <section className="relative overflow-hidden bg-gradient-to-b from-slate-900 via-indigo-950 to-slate-900 text-white pt-16 pb-20 px-6 lg:px-8">
-        {/* Subtle Background Glows */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-full overflow-hidden pointer-events-none opacity-20">
-          <div className="absolute -top-40 -left-40 w-96 h-96 bg-purple-500 rounded-full blur-3xl" />
-          <div className="absolute top-1/2 -right-40 w-96 h-96 bg-blue-500 rounded-full blur-3xl" />
-        </div>
-
-        <div className="max-w-6xl mx-auto relative z-10 text-center space-y-6">
+    <div className="min-h-screen bg-slate-50 text-slate-900 selection:bg-indigo-100 selection:text-indigo-900">
+      {/* 1. TOP HERO SECTION - Solid Light Background */}
+      <section className="bg-white text-slate-900 pt-16 pb-20 px-6 lg:px-8 border-b border-slate-200">
+        <div className="max-w-6xl mx-auto text-center space-y-6">
           {/* Badge */}
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-xs font-semibold text-indigo-200">
-            <Sparkles className="w-3.5 h-3.5 text-indigo-300" />
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-indigo-50 border border-indigo-200 text-xs font-bold text-indigo-700 shadow-xs">
+            <Sparkles className="w-3.5 h-3.5 text-indigo-600" />
             <span>Official Recruitment &amp; Candidate Assistance Agency</span>
           </div>
 
           {/* Main Headline */}
-          <h1 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight leading-tight max-w-4xl mx-auto">
+          <h1 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight leading-tight max-w-4xl mx-auto text-slate-900">
             Your Next Career Opportunity{" "}
-            <span className="bg-gradient-to-r from-blue-400 via-indigo-300 to-teal-300 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-indigo-600 via-blue-600 to-teal-600 bg-clip-text text-transparent">
               Starts Here
             </span>
           </h1>
 
           {/* Subheadline */}
-          <p className="text-base sm:text-xl text-slate-300 font-medium max-w-3xl mx-auto leading-relaxed">
+          <p className="text-base sm:text-xl text-slate-600 font-medium max-w-3xl mx-auto leading-relaxed">
             Connect with Relevant Recruiters. Explore Better Opportunities. Fast-track your hiring pipeline with dedicated recruiter matching and multi-channel outreach.
           </p>
 
@@ -190,7 +184,7 @@ export default function RecruitmentAgency() {
           <div className="flex flex-wrap items-center justify-center gap-3.5 pt-4">
             <a
               href="#plans"
-              className="px-6 py-3 bg-gradient-to-r from-indigo-500 to-blue-600 hover:from-indigo-600 hover:to-blue-700 text-white rounded-xl text-sm font-bold shadow-lg shadow-indigo-500/25 transition-all hover:scale-105 inline-flex items-center gap-2"
+              className="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-bold shadow-md transition-all hover:scale-[1.02] inline-flex items-center gap-2"
             >
               <span>Explore Service Plans</span>
               <ChevronRight className="w-4 h-4" />
@@ -200,9 +194,9 @@ export default function RecruitmentAgency() {
               href="/AutoApplyCV_Recruitment_Brochure.pdf"
               target="_blank"
               rel="noreferrer"
-              className="px-5 py-3 bg-white/10 hover:bg-white/20 text-white border border-white/20 rounded-xl text-sm font-semibold backdrop-blur-md transition-all inline-flex items-center gap-2"
+              className="px-5 py-3 bg-white hover:bg-slate-100 text-slate-800 border border-slate-300 rounded-xl text-sm font-semibold shadow-xs transition-all inline-flex items-center gap-2"
             >
-              <Download className="w-4 h-4 text-indigo-300" />
+              <Download className="w-4 h-4 text-indigo-600" />
               <span>Download Brochure (PDF)</span>
             </a>
 
@@ -210,31 +204,31 @@ export default function RecruitmentAgency() {
               href="https://recruitment.autoapplycv.in/index.html"
               target="_blank"
               rel="noreferrer"
-              className="px-5 py-3 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-xl text-sm font-semibold transition-all inline-flex items-center gap-2"
+              className="px-5 py-3 bg-white hover:bg-slate-100 text-indigo-700 border border-indigo-200 rounded-xl text-sm font-semibold shadow-xs transition-all inline-flex items-center gap-2"
             >
-              <Globe className="w-4 h-4 text-teal-300" />
+              <Globe className="w-4 h-4 text-teal-600" />
               <span>Candidate Portal</span>
               <ExternalLink className="w-3.5 h-3.5 text-slate-400" />
             </a>
           </div>
 
-          {/* Key Metrics Ribbon */}
+          {/* Key Metrics Ribbon - Solid Light Cards */}
           <div className="pt-10 grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto">
-            <div className="p-3.5 rounded-xl bg-white/5 border border-white/10 backdrop-blur-xs text-center">
-              <div className="text-xl font-bold text-white">0 – 15 YOE</div>
-              <div className="text-xs text-slate-400">Entry to Senior Leads</div>
+            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 text-center shadow-xs">
+              <div className="text-xl font-extrabold text-slate-900">0 – 15 YOE</div>
+              <div className="text-xs text-slate-500 mt-0.5">Entry to Senior Leads</div>
             </div>
-            <div className="p-3.5 rounded-xl bg-white/5 border border-white/10 backdrop-blur-xs text-center">
-              <div className="text-xl font-bold text-blue-300">500+ Recruiters</div>
-              <div className="text-xs text-slate-400">Verified Direct Contacts</div>
+            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 text-center shadow-xs">
+              <div className="text-xl font-extrabold text-blue-600">500+ Recruiters</div>
+              <div className="text-xs text-slate-500 mt-0.5">Verified Direct Contacts</div>
             </div>
-            <div className="p-3.5 rounded-xl bg-white/5 border border-white/10 backdrop-blur-xs text-center">
-              <div className="text-xl font-bold text-indigo-300">Multi-Channel</div>
-              <div className="text-xs text-slate-400">Email, WhatsApp &amp; LinkedIn</div>
+            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 text-center shadow-xs">
+              <div className="text-xl font-extrabold text-indigo-600">Multi-Channel</div>
+              <div className="text-xs text-slate-500 mt-0.5">Email, WhatsApp &amp; LinkedIn</div>
             </div>
-            <div className="p-3.5 rounded-xl bg-white/5 border border-white/10 backdrop-blur-xs text-center">
-              <div className="text-xl font-bold text-teal-300">100% Ethical</div>
-              <div className="text-xs text-slate-400">Clear Policy Compliance</div>
+            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 text-center shadow-xs">
+              <div className="text-xl font-extrabold text-teal-600">100% Ethical</div>
+              <div className="text-xs text-slate-500 mt-0.5">Clear Policy Compliance</div>
             </div>
           </div>
         </div>
@@ -256,8 +250,8 @@ export default function RecruitmentAgency() {
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* Pillar 1 */}
-          <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm hover:shadow-md transition-all space-y-4">
-            <div className="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 border border-blue-100 flex items-center justify-center font-bold">
+          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm hover:shadow-md transition-all space-y-4">
+            <div className="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 border border-blue-200 flex items-center justify-center font-bold">
               <Target className="w-6 h-6" />
             </div>
             <h3 className="text-lg font-bold text-slate-900">
@@ -279,8 +273,8 @@ export default function RecruitmentAgency() {
           </div>
 
           {/* Pillar 2 */}
-          <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm hover:shadow-md transition-all space-y-4">
-            <div className="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-600 border border-indigo-100 flex items-center justify-center font-bold">
+          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm hover:shadow-md transition-all space-y-4">
+            <div className="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-600 border border-indigo-200 flex items-center justify-center font-bold">
               <MessageCircle className="w-6 h-6" />
             </div>
             <h3 className="text-lg font-bold text-slate-900">
@@ -302,8 +296,8 @@ export default function RecruitmentAgency() {
           </div>
 
           {/* Pillar 3 */}
-          <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm hover:shadow-md transition-all space-y-4">
-            <div className="w-12 h-12 rounded-xl bg-teal-50 text-teal-600 border border-teal-100 flex items-center justify-center font-bold">
+          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm hover:shadow-md transition-all space-y-4">
+            <div className="w-12 h-12 rounded-xl bg-teal-50 text-teal-600 border border-teal-200 flex items-center justify-center font-bold">
               <FileText className="w-6 h-6" />
             </div>
             <h3 className="text-lg font-bold text-slate-900">
@@ -326,19 +320,19 @@ export default function RecruitmentAgency() {
         </div>
       </section>
 
-      {/* 3. DEDICATED BROCHURE PREVIEW & DOWNLOAD HUB */}
-      <section id="brochure" className="py-16 px-6 lg:px-8 bg-slate-900 text-white relative overflow-hidden">
+      {/* 3. DEDICATED BROCHURE PREVIEW & DOWNLOAD HUB - Solid Light Section */}
+      <section id="brochure" className="py-16 px-6 lg:px-8 bg-slate-100 border-y border-slate-200">
         <div className="max-w-6xl mx-auto space-y-8">
           <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
             <div className="space-y-2">
-              <span className="text-xs font-bold uppercase tracking-wider text-teal-300 bg-teal-900/50 border border-teal-700/50 px-3 py-1 rounded-full">
-                Official Agency Document
+              <span className="text-xs font-bold uppercase tracking-wider text-indigo-700 bg-indigo-50 border border-indigo-200 px-3 py-1 rounded-full">
+                Official Agency Publication
               </span>
-              <h2 className="text-2xl sm:text-4xl font-extrabold text-white">
-                Official Corporate Service Brochure (6-Page PDF)
+              <h2 className="text-2xl sm:text-4xl font-extrabold text-slate-900">
+                Official 6-Page Corporate Booklet (PDF)
               </h2>
-              <p className="text-sm sm:text-base text-slate-300 max-w-2xl">
-                Download or share our comprehensive corporate booklet featuring real placement stories, 6-phase candidate outreach framework, transparent packages, enrollment form, and authorized founder sign-off.
+              <p className="text-sm sm:text-base text-slate-600 max-w-2xl">
+                Download our complete 6-page corporate booklet featuring our agency profile, core capabilities, 6-phase candidate framework, transparent pricing tiers, and contact directory with scannable QR portal access.
               </p>
             </div>
 
@@ -346,7 +340,7 @@ export default function RecruitmentAgency() {
               <a
                 href="/AutoApplyCV_Recruitment_Brochure.pdf"
                 download="AutoApplyCV_Recruitment_Brochure.pdf"
-                className="px-5 py-2.5 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white rounded-xl text-xs sm:text-sm font-bold shadow-md transition-all inline-flex items-center gap-2"
+                className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs sm:text-sm font-bold shadow-sm transition-all inline-flex items-center gap-2"
               >
                 <Download className="w-4 h-4" />
                 <span>Download 6-Page PDF</span>
@@ -355,7 +349,7 @@ export default function RecruitmentAgency() {
               <button
                 type="button"
                 onClick={shareBrochureOnWhatsApp}
-                className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs sm:text-sm font-bold shadow-md transition-all inline-flex items-center gap-2"
+                className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs sm:text-sm font-bold shadow-sm transition-all inline-flex items-center gap-2 cursor-pointer"
               >
                 <Share2 className="w-4 h-4" />
                 <span>Share via WhatsApp</span>
@@ -363,91 +357,36 @@ export default function RecruitmentAgency() {
             </div>
           </div>
 
-          {/* Visual Brochure Page Previews - 6 Cards in 3x2 Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pt-4">
-            {/* Page 1 */}
-            <div className="rounded-2xl border border-slate-700 bg-slate-800/80 p-4 shadow-xl space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-indigo-300">PAGE 1: Executive Cover</span>
-                <a href="/AutoApplyCV_Recruitment_Brochure.pdf" target="_blank" className="text-xs text-slate-400 hover:text-white inline-flex items-center gap-1">
-                  <span>Open PDF</span>
-                  <ExternalLink className="w-3 h-3" />
-                </a>
+          {/* Individual 6-Page Detailed Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 pt-2">
+            {[
+              { num: 1, title: "Page 1: Front Cover", subtitle: "Official corporate title & candidate highlights", img: "/images/brochure_page_1.png" },
+              { num: 2, title: "Page 2: About & Founder Seal", subtitle: "Placement metrics & authorized founder signature", img: "/images/brochure_page_2.png" },
+              { num: 3, title: "Page 3: Core Capabilities", subtitle: "Job discovery, outreach & offer guidance", img: "/images/brochure_page_3.png" },
+              { num: 4, title: "Page 4: 6-Phase Framework", subtitle: "Systematic recruiter outreach methodology", img: "/images/brochure_page_4.png" },
+              { num: 5, title: "Page 5: Pricing & Comparison", subtitle: "₹500 & ₹2,000 packages with zero commissions", img: "/images/brochure_page_5.png" },
+              { num: 6, title: "Page 6: Contact & QR Portal", subtitle: "Direct WhatsApp desk, email & QR scan access", img: "/images/brochure_page_6.png" },
+            ].map((p) => (
+              <div key={p.num} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm hover:shadow-md transition-all space-y-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h4 className="text-xs font-bold text-slate-900">{p.title}</h4>
+                    <p className="text-[11px] text-slate-500 font-medium">{p.subtitle}</p>
+                  </div>
+                  <a
+                    href="/AutoApplyCV_Recruitment_Brochure.pdf"
+                    target="_blank"
+                    className="p-1.5 rounded-lg text-slate-500 hover:text-indigo-600 hover:bg-slate-50 transition-colors"
+                    title="View PDF"
+                  >
+                    <ExternalLink className="w-4 h-4" />
+                  </a>
+                </div>
+                <div className="rounded-xl overflow-hidden border border-slate-200 bg-slate-50 shadow-inner">
+                  <img src={p.img} alt={p.title} className="w-full h-auto object-cover hover:scale-[1.02] transition-transform duration-200" />
+                </div>
               </div>
-              <div className="rounded-xl overflow-hidden border border-slate-700/80 bg-white group relative">
-                <img src="/images/brochure_page_1.png" alt="Brochure Page 1 Cover" className="w-full h-auto object-cover transition-transform group-hover:scale-[1.02] duration-200" />
-              </div>
-            </div>
-
-            {/* Page 2 */}
-            <div className="rounded-2xl border border-slate-700 bg-slate-800/80 p-4 shadow-xl space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-blue-300">PAGE 2: 6-Phase Framework</span>
-                <a href="/AutoApplyCV_Recruitment_Brochure.pdf" target="_blank" className="text-xs text-slate-400 hover:text-white inline-flex items-center gap-1">
-                  <span>Open PDF</span>
-                  <ExternalLink className="w-3 h-3" />
-                </a>
-              </div>
-              <div className="rounded-xl overflow-hidden border border-slate-700/80 bg-white group relative">
-                <img src="/images/brochure_page_2.png" alt="Brochure Page 2 6-Phase Framework" className="w-full h-auto object-cover transition-transform group-hover:scale-[1.02] duration-200" />
-              </div>
-            </div>
-
-            {/* Page 3 */}
-            <div className="rounded-2xl border border-slate-700 bg-slate-800/80 p-4 shadow-xl space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-teal-300">PAGE 3: Placed Candidates</span>
-                <a href="/AutoApplyCV_Recruitment_Brochure.pdf" target="_blank" className="text-xs text-slate-400 hover:text-white inline-flex items-center gap-1">
-                  <span>Open PDF</span>
-                  <ExternalLink className="w-3 h-3" />
-                </a>
-              </div>
-              <div className="rounded-xl overflow-hidden border border-slate-700/80 bg-white group relative">
-                <img src="/images/brochure_page_3.png" alt="Brochure Page 3 Placed Candidates" className="w-full h-auto object-cover transition-transform group-hover:scale-[1.02] duration-200" />
-              </div>
-            </div>
-
-            {/* Page 4 */}
-            <div className="rounded-2xl border border-slate-700 bg-slate-800/80 p-4 shadow-xl space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-purple-300">PAGE 4: Packages &amp; Matrix</span>
-                <a href="/AutoApplyCV_Recruitment_Brochure.pdf" target="_blank" className="text-xs text-slate-400 hover:text-white inline-flex items-center gap-1">
-                  <span>Open PDF</span>
-                  <ExternalLink className="w-3 h-3" />
-                </a>
-              </div>
-              <div className="rounded-xl overflow-hidden border border-slate-700/80 bg-white group relative">
-                <img src="/images/brochure_page_4.png" alt="Brochure Page 4 Packages & Comparison" className="w-full h-auto object-cover transition-transform group-hover:scale-[1.02] duration-200" />
-              </div>
-            </div>
-
-            {/* Page 5 */}
-            <div className="rounded-2xl border border-slate-700 bg-slate-800/80 p-4 shadow-xl space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-amber-300">PAGE 5: Applicant Form</span>
-                <a href="/AutoApplyCV_Recruitment_Brochure.pdf" target="_blank" className="text-xs text-slate-400 hover:text-white inline-flex items-center gap-1">
-                  <span>Open PDF</span>
-                  <ExternalLink className="w-3 h-3" />
-                </a>
-              </div>
-              <div className="rounded-xl overflow-hidden border border-slate-700/80 bg-white group relative">
-                <img src="/images/brochure_page_5.png" alt="Brochure Page 5 Applicant Onboarding Form" className="w-full h-auto object-cover transition-transform group-hover:scale-[1.02] duration-200" />
-              </div>
-            </div>
-
-            {/* Page 6 */}
-            <div className="rounded-2xl border border-slate-700 bg-slate-800/80 p-4 shadow-xl space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-emerald-300">PAGE 6: Verification &amp; Seal</span>
-                <a href="/AutoApplyCV_Recruitment_Brochure.pdf" target="_blank" className="text-xs text-slate-400 hover:text-white inline-flex items-center gap-1">
-                  <span>Open PDF</span>
-                  <ExternalLink className="w-3 h-3" />
-                </a>
-              </div>
-              <div className="rounded-xl overflow-hidden border border-slate-700/80 bg-white group relative">
-                <img src="/images/brochure_page_6.png" alt="Brochure Page 6 Agency Seal and Signature" className="w-full h-auto object-cover transition-transform group-hover:scale-[1.02] duration-200" />
-              </div>
-            </div>
+            ))}
           </div>
         </div>
       </section>
@@ -467,7 +406,7 @@ export default function RecruitmentAgency() {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs space-y-2.5">
+          <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-2.5">
             <div className="w-8 h-8 rounded-lg bg-indigo-600 text-white font-bold flex items-center justify-center text-sm">
               1
             </div>
@@ -477,7 +416,7 @@ export default function RecruitmentAgency() {
             </p>
           </div>
 
-          <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs space-y-2.5">
+          <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-2.5">
             <div className="w-8 h-8 rounded-lg bg-blue-600 text-white font-bold flex items-center justify-center text-sm">
               2
             </div>
@@ -487,7 +426,7 @@ export default function RecruitmentAgency() {
             </p>
           </div>
 
-          <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs space-y-2.5">
+          <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-2.5">
             <div className="w-8 h-8 rounded-lg bg-purple-600 text-white font-bold flex items-center justify-center text-sm">
               3
             </div>
@@ -497,7 +436,7 @@ export default function RecruitmentAgency() {
             </p>
           </div>
 
-          <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs space-y-2.5">
+          <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-2.5">
             <div className="w-8 h-8 rounded-lg bg-teal-600 text-white font-bold flex items-center justify-center text-sm">
               4
             </div>
@@ -507,7 +446,7 @@ export default function RecruitmentAgency() {
             </p>
           </div>
 
-          <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs space-y-2.5">
+          <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-2.5">
             <div className="w-8 h-8 rounded-lg bg-emerald-600 text-white font-bold flex items-center justify-center text-sm">
               5
             </div>
@@ -517,7 +456,7 @@ export default function RecruitmentAgency() {
             </p>
           </div>
 
-          <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs space-y-2.5">
+          <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-2.5">
             <div className="w-8 h-8 rounded-lg bg-amber-600 text-white font-bold flex items-center justify-center text-sm">
               6
             </div>
@@ -529,8 +468,8 @@ export default function RecruitmentAgency() {
         </div>
       </section>
 
-      {/* 5. SERVICE PLANS & PRICING */}
-      <section id="plans" className="py-16 px-6 lg:px-8 bg-slate-100/70">
+      {/* 5. SERVICE PLANS & PRICING - Solid Light Section */}
+      <section id="plans" className="py-16 px-6 lg:px-8 bg-slate-100 border-t border-slate-200">
         <div className="max-w-5xl mx-auto space-y-10">
           <div className="text-center space-y-3">
             <span className="text-xs font-bold uppercase tracking-wider text-indigo-600 bg-indigo-50 border border-indigo-200 px-3 py-1 rounded-full">
@@ -596,8 +535,8 @@ export default function RecruitmentAgency() {
             </div>
 
             {/* PLAN 2 - FEATURED */}
-            <div className="bg-gradient-to-b from-white to-indigo-50/40 rounded-2xl border-2 border-indigo-600 p-8 shadow-xl flex flex-col justify-between space-y-6 relative">
-              <div className="absolute -top-3.5 right-6 bg-gradient-to-r from-indigo-600 to-blue-600 text-white text-[10px] font-extrabold uppercase tracking-wider px-3 py-1 rounded-full shadow-md">
+            <div className="bg-white rounded-2xl border-2 border-indigo-600 p-8 shadow-md flex flex-col justify-between space-y-6 relative">
+              <div className="absolute -top-3.5 right-6 bg-indigo-600 text-white text-[10px] font-extrabold uppercase tracking-wider px-3 py-1 rounded-full shadow-sm">
                 ⭐ Recommended Package
               </div>
 
@@ -647,16 +586,16 @@ export default function RecruitmentAgency() {
                 href="https://recruitment.autoapplycv.in/index.html"
                 target="_blank"
                 rel="noreferrer"
-                className="w-full py-3 text-center rounded-xl bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white font-bold text-xs sm:text-sm transition-all shadow-md block"
+                className="w-full py-3 text-center rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs sm:text-sm transition-all shadow-sm block"
               >
                 Enroll in Premium Outreach (₹2,000)
               </a>
             </div>
           </div>
 
-          {/* 6. TRANSPARENCY & DISCLAIMER BOX */}
-          <div className="rounded-2xl border-2 border-amber-300 bg-amber-50/80 p-5 shadow-xs flex items-start gap-3.5">
-            <div className="p-2 rounded-xl bg-amber-500 text-white shadow-2xs shrink-0 mt-0.5">
+          {/* 6. TRANSPARENCY & DISCLAIMER BOX - Solid Amber Card */}
+          <div className="rounded-2xl border-2 border-amber-300 bg-amber-50 p-5 shadow-xs flex items-start gap-3.5">
+            <div className="p-2 rounded-xl bg-amber-500 text-white shadow-xs shrink-0 mt-0.5">
               <ShieldCheck className="w-5 h-5" />
             </div>
             <div className="space-y-1">
@@ -697,7 +636,7 @@ export default function RecruitmentAgency() {
               key={tab.id}
               type="button"
               onClick={() => setActiveTestimonialTab(tab.id as any)}
-              className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all shrink-0 ${
+              className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all shrink-0 cursor-pointer ${
                 activeTestimonialTab === tab.id
                   ? "bg-indigo-600 text-white shadow-xs"
                   : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-50"
@@ -713,7 +652,7 @@ export default function RecruitmentAgency() {
           {filteredTestimonials.map((t) => (
             <div
               key={t.id}
-              className="bg-white rounded-2xl border border-slate-200/90 p-6 shadow-xs hover:shadow-md transition-all flex flex-col justify-between space-y-4"
+              className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs hover:shadow-md transition-all flex flex-col justify-between space-y-4"
             >
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
@@ -733,7 +672,7 @@ export default function RecruitmentAgency() {
               </div>
 
               <div className="pt-3 border-t border-slate-100 flex items-center gap-3">
-                <div className={`w-9 h-9 rounded-full ${t.avatarBg} text-white font-bold text-xs flex items-center justify-center shadow-2xs`}>
+                <div className={`w-9 h-9 rounded-full ${t.avatarBg} text-white font-bold text-xs flex items-center justify-center shadow-xs`}>
                   {t.avatar}
                 </div>
                 <div>
@@ -747,8 +686,8 @@ export default function RecruitmentAgency() {
         </div>
       </section>
 
-      {/* 8. AGENCY FAQ ACCORDION */}
-      <section className="py-16 px-6 lg:px-8 bg-slate-100/50 max-w-5xl mx-auto rounded-3xl border border-slate-200/70 my-10 space-y-8">
+      {/* 8. AGENCY FAQ ACCORDION - Solid Light Section */}
+      <section className="py-16 px-6 lg:px-8 bg-slate-100 max-w-5xl mx-auto rounded-3xl border border-slate-200 my-10 space-y-8">
         <div className="text-center space-y-2">
           <span className="text-xs font-bold uppercase tracking-wider text-indigo-600">Got Questions?</span>
           <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900">
@@ -758,7 +697,7 @@ export default function RecruitmentAgency() {
 
         <div className="space-y-4 max-w-3xl mx-auto">
           {faqs.map((faq, idx) => (
-            <div key={idx} className="bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs space-y-2">
+            <div key={idx} className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-2">
               <h4 className="text-sm font-bold text-slate-900 flex items-center gap-2">
                 <HelpCircle className="w-4 h-4 text-indigo-600 shrink-0" />
                 <span>{faq.q}</span>
@@ -771,17 +710,17 @@ export default function RecruitmentAgency() {
         </div>
       </section>
 
-      {/* 9. FINAL CALL TO ACTION BANNER */}
+      {/* 9. FINAL CALL TO ACTION BANNER - Solid Light Card */}
       <section className="py-16 px-6 lg:px-8 max-w-6xl mx-auto">
-        <div className="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 rounded-3xl p-8 sm:p-12 text-white shadow-2xl relative overflow-hidden flex flex-col md:flex-row md:items-center md:justify-between gap-8">
+        <div className="bg-indigo-50 border-2 border-indigo-200 rounded-3xl p-8 sm:p-12 text-slate-900 shadow-md flex flex-col md:flex-row md:items-center md:justify-between gap-8">
           <div className="space-y-3 max-w-xl">
-            <span className="text-xs font-bold uppercase tracking-wider text-indigo-300">
+            <span className="text-xs font-bold uppercase tracking-wider text-indigo-700 bg-white border border-indigo-200 px-3 py-1 rounded-full inline-block">
               Take the Next Career Leap
             </span>
-            <h2 className="text-2xl sm:text-4xl font-extrabold leading-tight">
+            <h2 className="text-2xl sm:text-4xl font-extrabold text-slate-900 leading-tight">
               Ready to Explore Your Next Opportunity?
             </h2>
-            <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
+            <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
               Submit your resume today and let our recruitment outreach specialists connect you with hiring managers across the country.
             </p>
           </div>
@@ -791,20 +730,30 @@ export default function RecruitmentAgency() {
               href="https://recruitment.autoapplycv.in/index.html"
               target="_blank"
               rel="noreferrer"
-              className="px-6 py-3.5 bg-gradient-to-r from-teal-400 to-emerald-500 hover:from-teal-500 hover:to-emerald-600 text-slate-950 font-extrabold text-sm rounded-xl shadow-lg text-center transition-all inline-flex items-center justify-center gap-2"
+              className="px-6 py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold text-sm rounded-xl shadow-md text-center transition-all inline-flex items-center justify-center gap-2"
             >
               <span>Submit Your Resume Today</span>
               <ArrowRight className="w-4 h-4" />
             </a>
 
             <a
-              href="https://wa.me/919876543210"
+              href="https://wa.me/919805559015"
               target="_blank"
               rel="noreferrer"
-              className="px-5 py-3.5 bg-white/10 hover:bg-white/20 text-white border border-white/20 font-bold text-sm rounded-xl text-center backdrop-blur-md transition-all inline-flex items-center justify-center gap-2"
+              className="px-5 py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm rounded-xl text-center shadow-xs transition-all inline-flex items-center justify-center gap-2"
             >
-              <MessageCircle className="w-4 h-4 text-emerald-400" />
-              <span>WhatsApp Us</span>
+              <MessageCircle className="w-4 h-4" />
+              <span>WhatsApp (9805559015)</span>
+            </a>
+
+            <a
+              href="https://wa.me/917814958809"
+              target="_blank"
+              rel="noreferrer"
+              className="px-5 py-3.5 bg-white hover:bg-slate-100 text-slate-800 border border-slate-300 font-bold text-sm rounded-xl text-center shadow-xs transition-all inline-flex items-center justify-center gap-2"
+            >
+              <MessageCircle className="w-4 h-4 text-emerald-600" />
+              <span>WhatsApp (7814958809)</span>
             </a>
           </div>
         </div>

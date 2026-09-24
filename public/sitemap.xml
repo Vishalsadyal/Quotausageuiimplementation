@@ -1,9 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <!-- Core Landing & Product Pages -->
   <url>
     <loc>https://www.autoapplycv.in/</loc>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://www.autoapplycv.in/recruitment-agency</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.95</priority>
   </url>
   <url>
     <loc>https://www.autoapplycv.in/auto-apply-linkedin</loc>
@@ -26,12 +32,17 @@
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://www.autoapplycv.in/product</loc>
+    <loc>https://www.autoapplycv.in/pricing</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://www.autoapplycv.in/features</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.autoapplycv.in/features</loc>
+    <loc>https://www.autoapplycv.in/product</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -41,11 +52,6 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.autoapplycv.in/pricing</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
-  </url>
-  <url>
     <loc>https://www.autoapplycv.in/roadmap</loc>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
@@ -53,22 +59,12 @@
   <url>
     <loc>https://www.autoapplycv.in/about</loc>
     <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://www.autoapplycv.in/careers</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
+    <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.autoapplycv.in/contact</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.autoapplycv.in/press-kit</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.5</priority>
   </url>
   <url>
     <loc>https://www.autoapplycv.in/faq</loc>
@@ -86,6 +82,21 @@
     <priority>0.6</priority>
   </url>
   <url>
+    <loc>https://www.autoapplycv.in/careers</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.autoapplycv.in/press-kit</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://www.autoapplycv.in/extension-design</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
     <loc>https://www.autoapplycv.in/privacy-policy</loc>
     <changefreq>yearly</changefreq>
     <priority>0.4</priority>
@@ -100,24 +111,66 @@
     <changefreq>yearly</changefreq>
     <priority>0.4</priority>
   </url>
+
+  <!-- Blog & Content Hub -->
   <url>
     <loc>https://www.autoapplycv.in/blog</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.85</priority>
+  </url>
+  <url>
+    <loc>https://www.autoapplycv.in/blog/no-1-auto-apply-extension-available-in-chrome</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
+    <loc>https://www.autoapplycv.in/blog/why-autoapply-cv-is-no-1-linkedin-extension</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.autoapplycv.in/blog/best-linkedin-extension-hr-outreach-vs-auto-apply</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.autoapplycv.in/blog/auto-apply-meaning-and-best-practices</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.75</priority>
+  </url>
+  <url>
+    <loc>https://www.autoapplycv.in/blog/auto-apply-linkedin-setup-safety-results</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.75</priority>
+  </url>
+  <url>
+    <loc>https://www.autoapplycv.in/blog/free-auto-apply-jobs-quality-first-strategy</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.75</priority>
+  </url>
+  <url>
+    <loc>https://www.autoapplycv.in/blog/auto-apply-vs-easy-apply-what-counts</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.75</priority>
+  </url>
+  <url>
+    <loc>https://www.autoapplycv.in/blog/auto-apply-resume-tips-ats-keywords</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.75</priority>
+  </url>
+  <url>
     <loc>https://www.autoapplycv.in/blog/lazyapply-alternative</loc>
     <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
+    <priority>0.75</priority>
   </url>
   <url>
     <loc>https://www.autoapplycv.in/blog/best-ai-job-search-tools</loc>
     <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
+    <priority>0.75</priority>
   </url>
   <url>
     <loc>https://www.autoapplycv.in/blog/linkedin-easy-apply-does-it-work</loc>
     <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
+    <priority>0.75</priority>
   </url>
 </urlset>

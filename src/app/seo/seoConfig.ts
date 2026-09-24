@@ -79,10 +79,57 @@ export const SEO_BY_PATH: Record<string, SeoEntry> = {
     index: true,
   },
   "/recruitment-agency": {
-    title: "Recruitment & Job Search Assistance Agency | AutoApply CV",
+    title: "Recruitment & Candidate Job Search Assistance Agency | AutoApply CV",
     description:
-      "AutoApplyCV is a professional recruitment & job search assistance agency connecting candidates with relevant recruiters via email & WhatsApp outreach. Download our official 2-page brochure.",
+      "AutoApplyCV is an authorized recruitment & candidate assistance agency connecting professionals with 500+ verified corporate recruiters via WhatsApp & direct email outreach. Download our official 6-page brochure.",
     index: true,
+    structuredData: [
+      {
+        "@context": "https://schema.org",
+        "@type": "EmploymentAgency",
+        name: "AutoApplyCV Recruitment Agency",
+        url: "https://www.autoapplycv.in/recruitment-agency",
+        description:
+          "Professional recruitment & candidate job-search assistance agency connecting ambitious job seekers with verified recruiters across India.",
+        telephone: "+919805559015",
+        email: "support@autoapplycv.in",
+        priceRange: "₹500 - ₹2000",
+        address: {
+          "@type": "PostalAddress",
+          addressCountry: "IN",
+        },
+      },
+      {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        mainEntity: [
+          {
+            "@type": "Question",
+            name: "What is AutoApplyCV Recruitment Agency?",
+            acceptedAnswer: {
+              "@type": "Answer",
+              text: "AutoApplyCV is a professional recruitment & candidate job-search assistance agency connecting candidates directly with verified HR decision-makers via multi-channel outreach.",
+            },
+          },
+          {
+            "@type": "Question",
+            name: "How can candidates submit their profile on WhatsApp?",
+            acceptedAnswer: {
+              "@type": "Answer",
+              text: "Candidates can send their updated resume, target job roles, total years of experience, preferred locations, and CTC details directly to our official WhatsApp desks at +91 98055 59015 or +91 78149 58809.",
+            },
+          },
+          {
+            "@type": "Question",
+            name: "What are the service pricing packages?",
+            acceptedAnswer: {
+              "@type": "Answer",
+              text: "AutoApplyCV offers transparent one-time plans: ₹500 for Job Search Access and ₹2,000 for Full-Service Premium Job Outreach, with zero salary commission cuts.",
+            },
+          },
+        ],
+      },
+    ],
   },
   "/auto-apply": {
     title: "Auto Apply | Free Auto Apply Tool | AutoApply CV",
