@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import { ArrowLeft, CalendarDays, User } from "lucide-react";
+import { STATIC_BLOG_POSTS_BY_SLUG } from "src/content/blogPosts";
 
 type PublicBlogPost = {
   id: string;
@@ -25,8 +26,10 @@ function toKeywordList(value: unknown) {
 export default function BlogPost() {
   const { slug } = useParams();
   const navigate = useNavigate();
-  const [post, setPost] = useState<PublicBlogPost | null>(null);
-  const [loading, setLoading] = useState(true);
+  // Seed from bundled posts so the article is in the server-rendered HTML.
+  const staticPost = STATIC_BLOG_POSTS_BY_SLUG[String(slug || "").trim().toLowerCase()] as PublicBlogPost | undefined;
+  const [post, setPost] = useState<PublicBlogPost | null>(staticPost || null);
+  const [loading, setLoading] = useState(!staticPost);
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -38,7 +41,7 @@ export default function BlogPost() {
         return;
       }
       try {
-        setLoading(true);
+        if (!STATIC_BLOG_POSTS_BY_SLUG[cleanSlug.toLowerCase()]) setLoading(true);
         setError("");
         const res = await fetch(`/api/public/blogs/${encodeURIComponent(cleanSlug)}`);
         const data = await res.json();
@@ -56,7 +59,7 @@ export default function BlogPost() {
 
   const keywords = useMemo(() => toKeywordList(post?.keywordsJson), [post?.keywordsJson]);
   const publishedLabel = post?.publishedAt || post?.createdAt
-    ? new Date(String(post?.publishedAt || post?.createdAt)).toLocaleDateString()
+    ? new Date(String(post?.publishedAt || post?.createdAt)).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric", timeZone: "UTC" })
     : "";
 
   if (loading) {

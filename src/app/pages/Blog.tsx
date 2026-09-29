@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router";
+import { Link, useNavigate } from "react-router";
 import { ArrowRight, BookOpen, CalendarDays, Loader2, Search, Target } from "lucide-react";
+import { STATIC_BLOG_POSTS } from "src/content/blogPosts";
 
 type PublicBlogPost = {
   id: string;
@@ -30,15 +31,15 @@ function firstKeyword(value: unknown) {
 
 export default function Blog() {
   const navigate = useNavigate();
-  const [posts, setPosts] = useState<PublicBlogPost[]>([]);
+  // Seed from bundled posts so the list and its links are in the server-rendered HTML.
+  const [posts, setPosts] = useState<PublicBlogPost[]>(STATIC_BLOG_POSTS);
   const [searchQuery, setSearchQuery] = useState("");
   const [error, setError] = useState("");
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const load = async () => {
       try {
-        setLoading(true);
         setError("");
         const res = await fetch("/api/public/blogs?limit=50");
         const data = await res.json();
@@ -172,7 +173,7 @@ export default function Blog() {
                     {post.publishedAt ? (
                       <div className="inline-flex items-center gap-1 text-xs text-gray-500">
                         <CalendarDays className="w-3.5 h-3.5" />
-                        {new Date(post.publishedAt).toLocaleDateString()}
+                        {new Date(post.publishedAt).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric", timeZone: "UTC" })}
                       </div>
                     ) : null}
                   </div>
@@ -180,13 +181,13 @@ export default function Blog() {
                   <h2 className="text-xl font-bold text-gray-900 leading-snug mb-3">{post.title}</h2>
                   <p className="text-gray-600 leading-relaxed flex-1">{post.description}</p>
 
-                  <button
-                    onClick={() => navigate(`/blog/${post.slug}`)}
+                  <Link
+                    to={`/blog/${post.slug}`}
                     className="mt-5 inline-flex items-center gap-2 text-purple-700 font-semibold hover:text-purple-800"
                   >
                     Read guide
                     <ArrowRight className="w-4 h-4" />
-                  </button>
+                  </Link>
                 </div>
               </article>
             ))}

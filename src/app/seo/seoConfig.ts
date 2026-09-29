@@ -453,7 +453,12 @@ export function resolveSeo(pathname: string): SeoEntry {
           "@type": "Article",
           headline: post.title,
           description: post.excerpt,
+          datePublished: post.publishedAt,
+          dateModified: post.publishedAt,
+          image: `https://www.autoapplycv.in${post.coverImage}`,
+          mainEntityOfPage: `https://www.autoapplycv.in/blog/${post.slug}`,
           author: { "@type": "Organization", name: "AutoApply CV" },
+          publisher: { "@type": "Organization", name: "AutoApply CV" },
         },
       };
     }
