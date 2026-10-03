@@ -32,23 +32,32 @@ export function normalizeCanonicalBaseUrl(value?: string) {
 
 export const SEO_BY_PATH: Record<string, SeoEntry> = {
   "/": {
-    title: "Free AutoApply CV | Free LinkedIn Auto Apply Bot & Job Search Automation",
+    title: "AutoApply CV - Free AI Auto Apply for LinkedIn & Indeed Jobs",
     description:
-      "Free LinkedIn auto apply bot & job search automation. Apply to LinkedIn Easy Apply jobs automatically with AutoApply CV, featuring custom answer banks, duplicate prevention, and real-time tracking.",
+      "Free AI auto apply Chrome extension for LinkedIn Easy Apply and Indeed. Auto apply to jobs in India and worldwide with answer banks, duplicate prevention and live tracking.",
     index: true,
     structuredData: [
       {
         "@context": "https://schema.org",
         "@type": "SoftwareApplication",
         name: "AutoApply CV",
+        url: "https://www.autoapplycv.in",
         applicationCategory: "BusinessApplication",
-        operatingSystem: "Web",
+        operatingSystem: "Web, Chrome",
         description:
-          "AI job search automation platform with LinkedIn auto apply, resume optimization, and job application tracking.",
+          "Free AI auto apply tool and Chrome extension for LinkedIn Easy Apply and Indeed, with resume optimization and job application tracking.",
+        offers: { "@type": "Offer", price: "0", priceCurrency: "INR" },
       },
       {
         "@context": "https://schema.org",
         "@type": "Organization",
+        name: "AutoApply CV",
+        url: "https://www.autoapplycv.in",
+        logo: "https://www.autoapplycv.in/apple-touch-icon.png",
+      },
+      {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
         name: "AutoApply CV",
         url: "https://www.autoapplycv.in",
       },
@@ -132,7 +141,7 @@ export const SEO_BY_PATH: Record<string, SeoEntry> = {
     ],
   },
   "/auto-apply": {
-    title: "Auto Apply | Free Auto Apply Tool | AutoApply CV",
+    title: "Auto Apply for Jobs - Free AI Auto Apply Tool | AutoApply CV",
     description:
       "Free auto apply tool to apply faster with quality controls, reusable answers, and tracking. Learn how to auto apply without wasting applications.",
     index: true,
@@ -410,17 +419,27 @@ export const SEO_BY_PATH: Record<string, SeoEntry> = {
   "/login": {
     title: "Login | AutoApply CV",
     description: "Login to your AutoApply CV account.",
-    index: true,
+    index: false,
   },
   "/signup": {
-    title: "Sign Up | AutoApply CV",
-    description: "Create your AutoApply CV account.",
+    title: "Sign Up Free | AutoApply CV",
+    description: "Create your free AutoApply CV account and start auto applying to LinkedIn and Indeed jobs.",
     index: true,
+  },
+  "/forgot-password": {
+    title: "Reset Password | AutoApply CV",
+    description: "Reset your AutoApply CV account password.",
+    index: false,
   },
   "/admin/login": {
     title: "Admin Login | AutoApply CV",
     description: "Admin access portal for AutoApply CV platform operations.",
-    index: true,
+    index: false,
+  },
+  "/extension-design": {
+    title: "Extension Design | AutoApply CV",
+    description: "Internal design preview for the AutoApply CV Chrome extension.",
+    index: false,
   },
 };
 
@@ -470,25 +489,11 @@ export function resolveSeo(pathname: string): SeoEntry {
       ? {
           title: "AutoApply CV Dashboard",
           description: "Private dashboard area.",
-          index: true,
+          index: false,
         }
       : DEFAULT_SEO);
 
-  const shouldAddFree =
-    !pathname.startsWith("/dashboard") &&
-    !pathname.startsWith("/admin") &&
-    !pathname.startsWith("/api");
-
-  if (!shouldAddFree) return base;
-
-  const hasFreeTitle = /\bfree\b/i.test(base.title);
-  const hasFreeDesc = /\bfree\b/i.test(base.description);
-
-  return {
-    ...base,
-    title: hasFreeTitle ? base.title : `Free ${base.title}`,
-    description: hasFreeDesc ? base.description : `Free to start. ${base.description}`,
-  };
+  return base;
 }
 
 export function canonicalForPath(pathname: string, baseUrl = "https://www.autoapplycv.in") {
