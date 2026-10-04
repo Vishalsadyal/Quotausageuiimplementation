@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Pencil, RefreshCw, Search, Trash2, Users as UsersIcon, X } from "lucide-react";
+import { useNavigate } from "react-router";
+import { Pencil, RefreshCw, Search, Trash2, UserCheck, Users as UsersIcon, X } from "lucide-react";
+import { useAuth } from "../../context/AuthContext";
 
 type AdminUser = {
   id: string;
@@ -50,6 +52,9 @@ export default function Users() {
   const searchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [error, setError] = useState("");
   const [deletingUserId, setDeletingUserId] = useState<string | null>(null);
+  const [impersonatingUserId, setImpersonatingUserId] = useState<string | null>(null);
+  const navigate = useNavigate();
+  const { startImpersonation } = useAuth();
   const [savingUserId, setSavingUserId] = useState<string | null>(null);
   const [editingUser, setEditingUser] = useState<AdminUser | null>(null);
   const [editForm, setEditForm] = useState<EditUserForm>({
@@ -95,6 +100,21 @@ export default function Users() {
       if (searchTimerRef.current) clearTimeout(searchTimerRef.current);
     };
   }, [search]);
+
+  const impersonateUser = async (user: AdminUser) => {
+    const confirmed = window.confirm(`Log in as ${user.email}? You'll see their dashboard and can return to admin from the banner.`);
+    if (!confirmed) return;
+
+    try {
+      setImpersonatingUserId(user.id);
+      setError("");
+      await startImpersonation(user.id);
+      navigate("/dashboard");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to impersonate user");
+      setImpersonatingUserId(null);
+    }
+  };
 
   const deleteUser = async (user: AdminUser) => {
     const confirmed = window.confirm(`Delete user ${user.email}? This cannot be undone.`);
@@ -355,6 +375,16 @@ export default function Users() {
                           <Pencil className="h-4 w-4" />
                           Edit
                         </button>
+                        {u.role === "user" && (
+                          <button
+                            onClick={() => void impersonateUser(u)}
+                            disabled={impersonatingUserId !== null}
+                            className="inline-flex items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-1.5 font-medium text-amber-800 transition hover:bg-amber-100 disabled:cursor-not-allowed disabled:opacity-60"
+                          >
+                            <UserCheck className="h-4 w-4" />
+                            {impersonatingUserId === u.id ? "Opening..." : "Impersonate"}
+                          </button>
+                        )}
                         <button
                           onClick={() => void deleteUser(u)}
                           disabled={deletingUserId === u.id || savingUserId === u.id}

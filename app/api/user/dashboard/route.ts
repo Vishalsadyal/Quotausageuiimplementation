@@ -148,9 +148,9 @@ function buildInterviewCard(summary: {
   return {
     upcomingCount: 0,
     title: "Pipeline is warming up",
-    body: `${summary.submitted} applications are submitted and ${summary.activeJobs} jobs are still active. Use Interview Prep to practice against your latest roles.`,
-    ctaLabel: "Open interview prep",
-    ctaHref: "/dashboard/interview",
+    body: `${summary.submitted} applications are submitted and ${summary.activeJobs} jobs are still active. Keep an eye on replies from your latest roles.`,
+    ctaLabel: "View applications",
+    ctaHref: "/dashboard/applications",
   };
 }
 

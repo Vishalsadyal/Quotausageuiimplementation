@@ -25,6 +25,7 @@ interface User {
   portfolioUrl?: string;
   resumeFileName?: string;
   onboardingCompleted?: boolean;
+  impersonatedBy?: { id: string; email: string; name?: string };
 }
 
 type Role = 'user' | 'admin';
@@ -39,6 +40,8 @@ type AuthStore = {
   signup: (name: string, email: string, password: string, phone: string) => Promise<void>;
   incrementQuota: () => void;
   refreshUser: () => Promise<void>;
+  startImpersonation: (userId: string) => Promise<void>;
+  stopImpersonation: () => Promise<void>;
 };
 
 type AuthContextType = {
@@ -51,6 +54,8 @@ type AuthContextType = {
   signup: (name: string, email: string, password: string, phone: string) => Promise<void>;
   incrementQuota: () => void;
   refreshUser: () => Promise<void>;
+  startImpersonation: (userId: string) => Promise<void>;
+  stopImpersonation: () => Promise<void>;
 };
 
 const SESSION_KEY = 'user';
@@ -201,6 +206,30 @@ const useAuthStore = create<AuthStore>((set, get) => ({
     writeStoredUser(updatedUser);
   },
 
+  startImpersonation: async (userId: string) => {
+    const res = await fetch(`/api/admin/users/${userId}/impersonate`, { method: 'POST', credentials: 'include' });
+    const data = await res.json();
+    if (!res.ok || !data?.success) throw new Error(data?.message || 'Failed to impersonate user');
+    const sessionUser = data.data.user as User;
+    set({ user: sessionUser });
+    writeStoredUser(sessionUser);
+  },
+
+  stopImpersonation: async () => {
+    const res = await fetch('/api/auth/impersonation/stop', { method: 'POST', credentials: 'include' });
+    const data = await res.json();
+    if (!res.ok || !data?.success) {
+      // Admin session is gone; drop the user session too so nobody stays stuck as the user.
+      await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' }).catch(() => {});
+      set({ user: null });
+      writeStoredUser(null);
+      throw new Error(data?.message || 'Failed to return to admin');
+    }
+    const sessionUser = data.data.user as User;
+    set({ user: sessionUser });
+    writeStoredUser(sessionUser);
+  },
+
   refreshUser: async () => {
     const result = await fetchCurrentUser();
     if (result.user) {
@@ -233,6 +262,8 @@ export function useAuth(): AuthContextType {
   const signup = useAuthStore((state) => state.signup);
   const incrementQuota = useAuthStore((state) => state.incrementQuota);
   const refreshUser = useAuthStore((state) => state.refreshUser);
+  const startImpersonation = useAuthStore((state) => state.startImpersonation);
+  const stopImpersonation = useAuthStore((state) => state.stopImpersonation);
 
   return {
     user,
@@ -244,5 +275,7 @@ export function useAuth(): AuthContextType {
     signup,
     incrementQuota,
     refreshUser,
+    startImpersonation,
+    stopImpersonation,
   };
 }

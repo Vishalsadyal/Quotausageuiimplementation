@@ -41,7 +41,21 @@ export default function DashboardLayout() {
 
   const location = useLocation();
   const navigate = useNavigate();
-  const { user, logout, refreshUser } = useAuth();
+  const { user, logout, refreshUser, stopImpersonation } = useAuth();
+  const [stoppingImpersonation, setStoppingImpersonation] = useState(false);
+
+  const handleStopImpersonation = async () => {
+    setStoppingImpersonation(true);
+    try {
+      await stopImpersonation();
+      navigate('/admin/users', { replace: true });
+    } catch (error) {
+      window.alert(error instanceof Error ? error.message : 'Failed to return to admin');
+      navigate('/admin/login', { replace: true });
+    } finally {
+      setStoppingImpersonation(false);
+    }
+  };
   const extensionStats = useExtensionPipelineStats();
 
   const onboardingComplete = hasCompletedRequiredOnboarding(user) && Boolean(user?.onboardingCompleted);
@@ -98,7 +112,7 @@ export default function DashboardLayout() {
     },
     { name: 'Applications', href: '/dashboard/applications', icon: Briefcase },
     { name: 'Resume', href: '/dashboard/resume', icon: FileText },
-    { name: 'Live AI Interview', href: '/dashboard/interview', icon: MessageSquare, badge: 'BETA' },
+    { name: 'Call Copilot', href: '/dashboard/interview', icon: MessageSquare, badge: 'LIVE' },
     { name: 'Analytics', href: '/dashboard/analytics', icon: BarChart3 },
     onboardingComplete
       ? { name: 'Billing', href: '/dashboard/billing', icon: CreditCard }
@@ -293,6 +307,21 @@ export default function DashboardLayout() {
 
       {/* ── Main Content Area with Top Header ── */}
       <div className="flex-1 lg:pl-64 flex flex-col min-h-screen relative z-10 w-full">
+        {user?.impersonatedBy && (
+          <div className="sticky top-0 z-50 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 bg-amber-400 px-4 py-2 text-sm font-medium text-amber-950">
+            <span>
+              Viewing as <strong>{user.name || user.email}</strong> ({user.email}). Actions you take affect this account.
+            </span>
+            <button
+              onClick={() => void handleStopImpersonation()}
+              disabled={stoppingImpersonation}
+              className="rounded-lg bg-amber-950 px-3 py-1 text-xs font-semibold text-white hover:bg-black disabled:opacity-60"
+            >
+              {stoppingImpersonation ? 'Returning…' : 'Return to admin'}
+            </button>
+          </div>
+        )}
+
         {/* Sticky Top Header */}
         <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-xl border-b border-gray-200/80 shadow-xs">
           <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">

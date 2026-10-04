@@ -160,7 +160,7 @@ export default function Overview() {
     { icon: Target, label: "Find Jobs", iconBg: "bg-blue-50 text-blue-600 border border-blue-100", href: "/dashboard/jobs/linkedin" },
     { icon: Briefcase, label: "Apply Now", iconBg: "bg-purple-50 text-purple-600 border border-purple-100", href: "/dashboard/jobs/linkedin" },
     { icon: Zap, label: "Resume Check", iconBg: "bg-emerald-50 text-emerald-600 border border-emerald-100", href: "/dashboard/resume" },
-    { icon: Users, label: "Live AI Interview", iconBg: "bg-amber-50 text-amber-600 border border-amber-100", href: "/dashboard/interview" },
+    { icon: Users, label: "Call Copilot", iconBg: "bg-amber-50 text-amber-600 border border-amber-100", href: "/dashboard/interview" },
   ];
 
   return (

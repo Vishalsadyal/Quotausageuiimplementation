@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { ImageWithFallback } from '../components/figma/ImageWithFallback';
 import { MediaSlot } from '../components/marketing/MediaSlot';
+import { HeroQuickStart } from '../components/HeroQuickStart';
 
 export default function Home() {
   const navigate = useNavigate();
@@ -275,9 +276,9 @@ export default function Home() {
         <div className="absolute inset-0 bg-dot-pattern opacity-20"></div>
         
         <div className="max-w-7xl mx-auto px-6 lg:px-8 relative">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
+          <div className="grid lg:grid-cols-2 gap-12 items-stretch">
             {/* Left Column */}
-            <div className="space-y-8">
+            <div className="space-y-8 self-center">
               <div className="inline-flex items-center gap-2 px-4 py-2 glass rounded-full text-purple-700 text-sm font-semibold shadow-premium">
                 <Sparkles className="w-4 h-4" />
                 Trusted by 50,000+ Engineers
@@ -297,21 +298,12 @@ export default function Home() {
                 Free AI-powered job search automation to apply to LinkedIn jobs automatically, optimize your ATS resume, and manage everything in one job application tracker.
               </p>
 
-              <div className="flex flex-col sm:flex-row gap-4">
-                <button 
-                  onClick={() => navigate('/auto-apply')}
-                  className="group btn-premium px-8 py-4 gradient-primary text-white rounded-xl font-semibold text-lg shadow-premium hover:shadow-premium-lg hover:scale-105 transition-all duration-300 flex items-center justify-center gap-2"
-                >
-                  Start Free Auto Apply
-                  <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                </button>
-                <button 
-                  onClick={() => navigate('/how-it-works')}
-                  className="px-8 py-4 glass hover:bg-white border-2 border-purple-200 text-gray-700 rounded-xl font-semibold text-lg hover:border-purple-400 hover:shadow-premium transition-all duration-300"
-                >
-                  See Auto Apply Demo
-                </button>
-              </div>
+              <button
+                onClick={() => document.getElementById('demo-video')?.scrollIntoView({ behavior: 'smooth' })}
+                className="text-sm font-semibold text-purple-700 hover:text-purple-900 underline-offset-4 hover:underline"
+              >
+                See Auto Apply Demo ↓
+              </button>
 
               {/* Stats */}
               <div className="flex items-center gap-8 pt-4">
@@ -332,23 +324,87 @@ export default function Home() {
 
             {/* Right Column */}
             <div className="relative">
-              <div className="relative rounded-3xl overflow-hidden shadow-premium-lg border-8 border-white hover-lift">
-                <MediaSlot
-                  videoSrc={mediaAssets.heroVideoSrc}
-                  imageSrc={mediaAssets.heroImageSrc}
-                  className="w-full h-[460px] object-cover"
-                  placeholderTitle="Hero demo media"
-                  placeholderHint="Add a 8-12s product clip (recommended) or dashboard hero screenshot."
-                  autoPlay
-                  loop
-                  muted
-                  videoControls={false}
-                />
+              <div className="relative z-10 h-full flex flex-col gap-4">
+                <div className="flex items-center justify-between gap-3">
+                  <h2 className="text-lg font-bold text-gray-900">Get your job matches in 30 seconds</h2>
+                  <span className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-xs font-semibold text-emerald-700">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                    Free to start
+                  </span>
+                </div>
+
+                <HeroQuickStart className="flex-1" />
+
+                {/* What happens next */}
+                <div className="grid grid-cols-3 gap-3">
+                  {[
+                    { icon: Target, title: 'Matches roles', text: 'Finds jobs that fit your profile' },
+                    { icon: FileText, title: 'Tailors resume', text: 'ATS-ready for every job' },
+                    { icon: Zap, title: 'Auto-applies', text: 'Easy Apply on autopilot' },
+                  ].map((item) => (
+                    <div key={item.title} className="glass rounded-xl border border-white/60 p-3 shadow-sm">
+                      <item.icon className="w-5 h-5 text-purple-600 mb-1.5" />
+                      <div className="text-sm font-bold text-gray-900">{item.title}</div>
+                      <div className="text-xs text-gray-600 leading-snug">{item.text}</div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Live activity */}
+                <div className="glass rounded-xl border border-white/60 px-4 py-3 shadow-sm">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs font-bold uppercase tracking-wider text-gray-500">Recently applied by the agent</span>
+                    <span className="relative flex h-2 w-2">
+                      <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75 animate-ping"></span>
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                    </span>
+                  </div>
+                  <div className="space-y-1.5">
+                    {extensionDemo.activity.map((item) => (
+                      <div key={item.label} className="flex items-center justify-between gap-3 text-xs">
+                        <span className="flex items-center gap-2 min-w-0 font-semibold text-gray-800">
+                          <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                          <span className="truncate">{item.label}</span>
+                        </span>
+                        <span className="text-gray-500 shrink-0">{item.time}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-xs text-gray-500">
+                  <span className="flex items-center gap-1"><Shield className="w-3.5 h-3.5" /> No credit card</span>
+                  <span className="flex items-center gap-1"><Clock className="w-3.5 h-3.5" /> Takes 30 seconds</span>
+                  <span className="flex items-center gap-1"><Star className="w-3.5 h-3.5" /> 30 free Hires coins</span>
+                </div>
               </div>
               {/* Decorative blurs */}
               <div className="absolute -top-10 -right-10 w-40 h-40 bg-gradient-to-br from-purple-400 to-pink-400 rounded-full blur-3xl opacity-20 animate-pulse-slow"></div>
               <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-gradient-to-br from-blue-400 to-cyan-400 rounded-full blur-3xl opacity-20 animate-float"></div>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Demo Video */}
+      <section id="demo-video" className="py-20 bg-white scroll-mt-20">
+        <div className="max-w-5xl mx-auto px-6 lg:px-8">
+          <div className="text-center mb-10">
+            <h2 className="text-4xl font-bold text-gray-900 mb-3">See AutoApply CV in action</h2>
+            <p className="text-lg text-gray-600">Watch the extension apply to LinkedIn Easy Apply jobs on its own.</p>
+          </div>
+          <div className="rounded-3xl overflow-hidden shadow-premium-lg border-8 border-white">
+            <MediaSlot
+              videoSrc={mediaAssets.heroVideoSrc}
+              imageSrc={mediaAssets.heroImageSrc}
+              className="w-full aspect-video object-cover"
+              placeholderTitle="Demo video"
+              placeholderHint="Add a 8-12s product clip (recommended) or dashboard screenshot."
+              autoPlay
+              loop
+              muted
+              videoControls={false}
+            />
           </div>
         </div>
       </section>

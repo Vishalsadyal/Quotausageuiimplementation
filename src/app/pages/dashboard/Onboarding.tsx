@@ -19,6 +19,7 @@ import {
 import { useAuth } from "../../context/AuthContext";
 import { ExtensionInstallGuide, type ExtensionInstallGuideStep } from "../../components/ExtensionInstallGuide";
 import { getExtensionProviderConfig } from "src/lib/extension-providers";
+import { readHeroLead } from "src/lib/heroLead";
 import { collectExtensionBridgeSnapshot } from "src/lib/extension-bridge-client";
 import {
   DASHBOARD_TOUR_EVENT_NAME,
@@ -1349,6 +1350,20 @@ export default function Onboarding() {
         .map((value) => value.trim())
         .filter(Boolean)
         .sort();
+
+      // Prefill empty fields from the home-page hero form (cleared once onboarding completes).
+      const heroLead = readHeroLead();
+      if (heroLead) {
+        if (!nextProfile.linkedinUrl) nextProfile.linkedinUrl = heroLead.linkedinUrl;
+        if (!nextProfile.yearsOfExperience) nextProfile.yearsOfExperience = heroLead.yearsOfExperience;
+        if (!nextPreferences.yearsOfExperience) nextPreferences.yearsOfExperience = heroLead.yearsOfExperience;
+        if (heroLead.jobTitle && !nextProfile.preferredJobTitles.length) nextProfile.preferredJobTitles = [heroLead.jobTitle];
+        if (heroLead.jobTitle && !nextPreferences.searchTerms.length) nextPreferences.searchTerms = [heroLead.jobTitle];
+        if (!readAnswer("work_mode_preference", "cp_pref_work_mode")) {
+          nextProfile.workModePreference = heroLead.workMode;
+          nextPreferences.workMode = heroLead.workMode;
+        }
+      }
 
       setProfile(nextProfile);
       setPreferences(nextPreferences);

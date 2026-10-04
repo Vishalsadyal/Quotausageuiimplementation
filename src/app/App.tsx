@@ -13,6 +13,8 @@ import {
 } from 'react-router';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { hasCompletedRequiredOnboarding } from 'src/lib/onboarding';
+import { clearHeroLead, readHeroLead } from 'src/lib/heroLead';
+import { DashboardAuthGate } from './components/DashboardAuthGate';
 
 // Layouts (lightweight - keep eager)
 import Root from './Root';
@@ -106,8 +108,12 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   if (isAuthenticated && user?.role === 'user' && !onboardingComplete && location.pathname !== '/dashboard/onboarding') {
     return <Navigate to="/dashboard/onboarding" replace />;
   }
+  if (isAuthenticated && onboardingComplete) clearHeroLead();
   if (isAuthenticated && user?.role === 'user' && onboardingComplete && location.pathname === '/dashboard/onboarding') {
     return <Navigate to="/dashboard" replace />;
+  }
+  if (!isAuthenticated && location.pathname.startsWith('/dashboard') && readHeroLead()) {
+    return <DashboardAuthGate />;
   }
   return isAuthenticated ? <>{children}</> : <Navigate to="/login" replace />;
 }

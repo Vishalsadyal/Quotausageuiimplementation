@@ -442,7 +442,24 @@ function setupEmailOutreachControls() {
   });
 }
 
-// ── Module 6: Settings & Options Page Link ──
+// ── Module 6: Client Call Copilot (Google Meet) ──
+function setupMeetCopilotControls() {
+  document.getElementById("mcOpenMeetBtn")?.addEventListener("click", async () => {
+    const tabs = await chrome.tabs.query({ url: "https://meet.google.com/*" });
+    const meetingTab = tabs.find((t) => /meet\.google\.com\/[a-z]{3,4}-[a-z]{4}-[a-z]{3,4}/i.test(String(t.url || "")));
+    if (!meetingTab?.id) {
+      chrome.tabs.create({ url: "https://meet.google.com/" });
+      return;
+    }
+    await chrome.tabs.update(meetingTab.id, { active: true });
+    chrome.windows.update(meetingTab.windowId, { focused: true });
+    chrome.tabs.sendMessage(meetingTab.id, { type: "MC_TOGGLE_PANEL" }).catch(() => {
+      alert("Refresh the Meet tab once so the copilot can load.");
+    });
+  });
+}
+
+// ── Module 7: Settings & Options Page Link ──
 function setupSettingsControls() {
   document.getElementById("openOptionsPageBtn")?.addEventListener("click", () => {
     chrome.runtime.openOptionsPage();
@@ -457,6 +474,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   setupWhatsAppControls();
   setupCommenterControls();
   setupEmailOutreachControls();
+  setupMeetCopilotControls();
   setupSettingsControls();
 
   await Promise.all([updateLinkedInState(), updateIndeedState()]);

@@ -36,7 +36,11 @@ export function middleware(req: NextRequest) {
         path === "/api/billing/webhook/razorpay" ||
         path === "/api/integrations/telegram/webhook" ||
         path === "/api/internal/worker/run";
-      if (!sameOrigin && !(allowNoOrigin && !origin)) {
+      // The Chrome extension's service worker calls these with its own
+      // chrome-extension:// origin; they still require the user's auth.
+      const allowExtensionOrigin =
+        path === "/api/ai/call-copilot" && Boolean(origin?.startsWith("chrome-extension://"));
+      if (!sameOrigin && !allowExtensionOrigin && !(allowNoOrigin && !origin)) {
         return NextResponse.json({ success: false, message: "Not found" }, { status: 404 });
       }
     }

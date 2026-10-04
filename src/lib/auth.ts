@@ -8,6 +8,9 @@ const ACCESS_TOKEN_TTL_SECONDS = Number(process.env.ACCESS_TOKEN_TTL_SECONDS || 
 const REFRESH_TOKEN_TTL_SECONDS = Number(process.env.REFRESH_TOKEN_TTL_SECONDS || 30 * 24 * 60 * 60);
 const ACCESS_COOKIE = "cp_access_token";
 const REFRESH_COOKIE = "cp_refresh_token";
+// Holds the admin's own refresh token while they are impersonating a user.
+const IMPERSONATOR_COOKIE = "cp_impersonator_refresh";
+const IMPERSONATION_TTL_SECONDS = 8 * 60 * 60;
 
 export type AuthUser = {
   id: string;
@@ -271,4 +274,50 @@ export function toClientUser(user: {
     dailyHireCap: user.dailyHireCap,
     dailyHireResetTime: user.dailyHireResetTime.toISOString(),
   };
+}
+
+export function setImpersonatorCookie(adminRefreshToken: string) {
+  return (async () => {
+    const store = await cookies();
+    store.set(IMPERSONATOR_COOKIE, adminRefreshToken, {
+      httpOnly: true,
+      sameSite: "lax",
+      secure: isProd(),
+      path: "/",
+      maxAge: IMPERSONATION_TTL_SECONDS,
+    });
+  })();
+}
+
+export function readImpersonatorCookie() {
+  return (async () => {
+    const store = await cookies();
+    return store.get(IMPERSONATOR_COOKIE)?.value || null;
+  })();
+}
+
+export function clearImpersonatorCookie() {
+  return (async () => {
+    const store = await cookies();
+    store.delete(IMPERSONATOR_COOKIE);
+  })();
+}
+
+export async function revokeSessionById(sessionId: string) {
+  await prisma.session.updateMany({
+    where: { id: sessionId, status: "active" },
+    data: { status: "revoked" },
+  });
+}
+
+// Returns the admin behind the current impersonation, if any.
+export async function getImpersonator() {
+  const token = await readImpersonatorCookie();
+  if (!token) return null;
+  const session = await prisma.session.findFirst({
+    where: { refreshTokenHash: hashToken(token), status: "active", expiresAt: { gt: new Date() } },
+    include: { user: { select: { id: true, email: true, name: true, role: true } } },
+  });
+  if (!session || session.user.role !== "admin") return null;
+  return { id: session.user.id, email: session.user.email, name: session.user.name };
 }

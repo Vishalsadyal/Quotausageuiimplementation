@@ -3408,6 +3408,12 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       sendResponse({ ok: true });
       return;
     }
+
+    // ── Client Call Copilot (Google Meet) ──
+    if (message.type === "MC_SUGGEST") {
+      sendResponse(await generateMeetCopilotSuggestion(message));
+      return;
+    }
   })().catch(async (error) => {
     await pushLog(error?.message || String(error), "error");
     sendResponse({ ok: false, error: error?.message || "Internal extension error" });
@@ -3415,3 +3421,63 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
   return true;
 });
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Client Call Copilot (Google Meet)
+// Stateless relay: the transcript and setup arrive with each request, go to the
+// portal's /api/ai/call-copilot (which holds the Groq key server-side) and are
+// never stored by the extension.
+// ─────────────────────────────────────────────────────────────────────────────
+async function generateMeetCopilotSuggestion(message) {
+  const settings = await getSettings();
+  const preferred = getPortalOrigin();
+  const detected = await detectPortalOriginsFromTabs();
+  const targetOrigins = [...new Set([preferred, ...detected, PORTAL_DEFAULT_ORIGIN].filter(Boolean))];
+  const setup = message.setup && typeof message.setup === "object" ? message.setup : {};
+  const payload = JSON.stringify({
+    mode: String(message.mode || "auto"),
+    trigger: String(message.trigger || "").slice(0, 1500),
+    transcript: String(message.transcript || "").slice(-8000),
+    setup: {
+      myRole: String(setup.myRole || "").slice(0, 300),
+      theirRole: String(setup.theirRole || "").slice(0, 300),
+      goal: String(setup.goal || "").slice(0, 600),
+      offer: String(setup.offer || "").slice(0, 3000),
+      tone: String(setup.tone || "consultative"),
+      model: String(setup.model || "openai/gpt-oss-20b")
+    }
+  });
+
+  let lastError = "Could not reach AutoApply CV — open the dashboard and sign in.";
+  for (const origin of targetOrigins) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 25000);
+    try {
+      const res = await fetch(`${origin}/api/ai/call-copilot`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(settings.authToken ? { Authorization: settings.authToken.startsWith("Bearer ") ? settings.authToken : `Bearer ${settings.authToken}` } : {})
+        },
+        credentials: "include",
+        signal: controller.signal,
+        body: payload
+      });
+      const body = await res.json().catch(() => null);
+      if (res.ok && body?.success && body?.data) {
+        return { ok: true, data: body.data };
+      }
+      if (res.status === 401) {
+        lastError = "Sign in to AutoApply CV (open the dashboard) to use Call Copilot.";
+        continue;
+      }
+      lastError = body?.error?.message || body?.error || body?.message || `Call Copilot request failed (${res.status})`;
+      if (res.status === 429) return { ok: false, error: String(lastError) };
+    } catch (error) {
+      if (error?.name === "AbortError") lastError = "AI took too long — try again";
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+  return { ok: false, error: String(lastError) };
+}
