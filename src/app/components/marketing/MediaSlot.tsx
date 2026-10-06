@@ -1,3 +1,6 @@
+"use client";
+
+import { useEffect, useRef, useState } from "react";
 import { ImageIcon, VideoIcon } from "lucide-react";
 import { ImageWithFallback } from "../figma/ImageWithFallback";
 
@@ -13,6 +16,9 @@ type MediaSlotProps = {
   autoPlay?: boolean;
   loop?: boolean;
   muted?: boolean;
+  /** Intrinsic image size, so the browser reserves space before it loads. */
+  width?: number;
+  height?: number;
 };
 
 function hasValue(value?: string) {
@@ -31,6 +37,8 @@ export function MediaSlot({
   autoPlay = false,
   loop = false,
   muted = false,
+  width,
+  height,
 }: MediaSlotProps) {
   const cleanVideo = String(videoSrc || "").trim();
   const cleanImage = String(imageSrc || "").trim();
@@ -38,7 +46,7 @@ export function MediaSlot({
 
   if (hasValue(cleanVideo)) {
     return (
-      <video
+      <LazyVideo
         src={cleanVideo}
         poster={hasValue(cleanPoster) ? cleanPoster : undefined}
         className={className}
@@ -46,13 +54,22 @@ export function MediaSlot({
         autoPlay={autoPlay}
         loop={loop}
         muted={muted}
-        playsInline
       />
     );
   }
 
   if (hasValue(cleanImage)) {
-    return <ImageWithFallback src={cleanImage} alt={alt || placeholderTitle} className={className} />;
+    return (
+      <ImageWithFallback
+        src={cleanImage}
+        alt={alt || placeholderTitle}
+        className={className}
+        width={width}
+        height={height}
+        loading="lazy"
+        decoding="async"
+      />
+    );
   }
 
   return (
@@ -69,5 +86,68 @@ export function MediaSlot({
         <p className="text-sm text-gray-600">{placeholderHint}</p>
       </div>
     </div>
+  );
+}
+
+// Defers downloading a video until it is about to scroll into view, so large
+// demo clips do not compete with the first paint of the page.
+function LazyVideo({
+  src,
+  poster,
+  className,
+  controls,
+  autoPlay,
+  loop,
+  muted,
+}: {
+  src: string;
+  poster?: string;
+  className?: string;
+  controls: boolean;
+  autoPlay: boolean;
+  loop: boolean;
+  muted: boolean;
+}) {
+  const ref = useRef<HTMLVideoElement | null>(null);
+  const [inView, setInView] = useState(false);
+
+  useEffect(() => {
+    const node = ref.current;
+    if (!node) return;
+    if (typeof IntersectionObserver === "undefined") {
+      setInView(true);
+      return;
+    }
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((entry) => entry.isIntersecting)) {
+          setInView(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin: "200px" }
+    );
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    if (inView && autoPlay) void ref.current?.play().catch(() => undefined);
+  }, [inView, autoPlay]);
+
+  return (
+    <video
+      ref={ref}
+      src={inView ? src : undefined}
+      poster={poster}
+      className={className}
+      controls={controls}
+      autoPlay={inView && autoPlay}
+      loop={loop}
+      muted={muted}
+      playsInline
+      preload="none"
+      aria-hidden={muted && !controls ? true : undefined}
+    />
   );
 }

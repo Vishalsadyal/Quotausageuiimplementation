@@ -156,7 +156,10 @@ export default function ChatWidget() {
                   className="cp-chat-staff-2 h-10 w-10 rounded-full border border-white/60 object-cover bg-white/20 shadow-sm"
                 />
                 <img
-                  src="/bot/128660445-eac307db-718e-453b-81c7-30247c5dcac6.gif"
+                  src="/bot/bot-avatar.webp"
+                  width={48}
+                  height={48}
+                  decoding="async"
                   alt=""
                   className="cp-chat-bot-avatar h-10 w-10 rounded-full border border-white/90 object-cover bg-white/20 shadow-sm"
                 />
@@ -302,7 +305,10 @@ export default function ChatWidget() {
                 className="cp-chat-staff-2 h-12 w-12 rounded-full border border-white/60 object-cover bg-white/20 shadow-sm"
               />
               <img
-                src="/bot/128660445-eac307db-718e-453b-81c7-30247c5dcac6.gif"
+                src="/bot/bot-avatar.webp"
+                  width={48}
+                  height={48}
+                  decoding="async"
                 alt="Bot"
                 className="cp-chat-bot-avatar h-12 w-12 rounded-full border border-white/90 object-cover bg-white/20 shadow-sm"
               />

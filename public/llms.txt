@@ -1,22 +1,43 @@
 # AutoApply CV
 
-## What this site is
-AutoApply CV is an AI-assisted job search automation platform focused on LinkedIn Easy Apply workflows, reusable screening answers, and application tracking.
+> AutoApply CV is an AI job search platform for software engineers and tech professionals. Its Chrome extension auto-applies to LinkedIn Easy Apply jobs using saved, truthful screening answers, skips jobs already applied to, and pauses when a question needs a human answer. The dashboard tailors resumes for applicant tracking systems (ATS) and tracks every application. The Free plan includes 3 auto-apply actions per day; Pro costs ₹49 per month for unlimited auto-apply.
 
-## Key pages
-- Product: /product
-- Features: /features
-- How it works: /how-it-works
-- Pricing: /pricing
-- FAQ: /faq
-- Blog: /blog
-- Contact: /contact
+## Product
 
-## Content types
-- Marketing pages describing product features and pricing
-- Help/troubleshooting content for extension + dashboard sync
-- Blog articles about job search automation and best practices
+- [Home](https://www.autoapplycv.in/): Overview of the free LinkedIn auto apply bot and AI job search tools.
+- [Product overview](https://www.autoapplycv.in/product): The complete platform: LinkedIn automation, AI resume optimization and application tracking.
+- [Features](https://www.autoapplycv.in/features): Auto apply, AI resume builder, job matching, tracker, interview prep and analytics.
+- [How it works](https://www.autoapplycv.in/how-it-works): Setup steps, page-ready submission checks, answer sync and pipeline tracking.
+- [Pricing](https://www.autoapplycv.in/pricing): Free, Pro (₹49/month) and pay-as-you-go Hires credits, and what is and is not charged.
 
-## Data and privacy
-See: /privacy-policy
+## Auto apply guides
 
+- [Auto apply for jobs](https://www.autoapplycv.in/auto-apply): How to auto apply with quality controls, reusable answers and tracking.
+- [LinkedIn auto apply bot](https://www.autoapplycv.in/auto-apply-linkedin): LinkedIn Easy Apply automation with answer banks and live tracking.
+- [Auto apply jobs](https://www.autoapplycv.in/auto-apply-jobs): Automated job applications for LinkedIn and Indeed roles.
+- [Chrome extension](https://www.autoapplycv.in/auto-apply-chrome-extension): Installing and using the AutoApply CV LinkedIn Copilot extension.
+
+## Help
+
+- [Help center](https://www.autoapplycv.in/help-center): Getting started, run outcomes, plans and limits, and supported platforms.
+- [FAQ](https://www.autoapplycv.in/faq): Answers about auto apply limits, safety, billing and setup.
+- [Contact](https://www.autoapplycv.in/contact): Support, billing and partnership email addresses.
+
+## Blog
+
+- [Blog](https://www.autoapplycv.in/blog): Guides on job search automation, ATS resumes and LinkedIn Easy Apply.
+- [LazyApply alternative](https://www.autoapplycv.in/blog/lazyapply-alternative): What to look for in an auto apply tool for better interview results.
+- [LinkedIn Easy Apply: does it work?](https://www.autoapplycv.in/blog/linkedin-easy-apply-does-it-work): When Easy Apply works and how to improve callbacks.
+- [Best AI job search tools](https://www.autoapplycv.in/blog/best-ai-job-search-tools): Categories of AI job search tools and what engineers should look for.
+
+## Company and policies
+
+- [About](https://www.autoapplycv.in/about): What AutoApply CV does and how it is built.
+- [Press kit](https://www.autoapplycv.in/press-kit): Company boilerplate, product facts and brand assets.
+- [Privacy policy](https://www.autoapplycv.in/privacy-policy): What data is collected, AI processing, third-party services and security.
+- [Terms of service](https://www.autoapplycv.in/terms-of-service): Plans, billing, responsibilities and use of third-party job platforms.
+
+## Optional
+
+- [Roadmap](https://www.autoapplycv.in/roadmap): Recently shipped work and upcoming improvements.
+- [Sitemap](https://www.autoapplycv.in/sitemap.xml): Every public page and blog post.

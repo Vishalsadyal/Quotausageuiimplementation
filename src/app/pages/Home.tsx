@@ -26,7 +26,7 @@ export default function Home() {
     heroVideoSrc: '/uploads/resumes/AutoApplyMax.mp4',
     heroImageSrc: '',
     valueImageSrc: '/marketing/value-dashboard.png',
-    reliabilityEvidenceImageSrc: '/marketing/reliability-evidence.png',
+    reliabilityEvidenceImageSrc: '/marketing/reliability-evidence.webp',
   };
 
   const extensionDemo = {
@@ -506,6 +506,8 @@ export default function Home() {
           <div className="mt-8 rounded-2xl overflow-hidden border border-white/10 bg-white shadow-[0_30px_70px_rgba(4,3,14,.45)]">
             <MediaSlot
               imageSrc={mediaAssets.reliabilityEvidenceImageSrc}
+              width={1280}
+              height={714}
               className="w-full h-auto max-h-[540px] object-cover md:object-contain bg-[#f8f7fb]"
               alt="AutoApply CV Reliability, Modal Check and Duplicate Prevention Guardrails"
               placeholderTitle="Reliability evidence image"
@@ -592,7 +594,7 @@ export default function Home() {
                 >
                   <feature.icon className="w-6 h-6" />
                 </div>
-                <span className="absolute top-7 right-7 text-sm font-extrabold text-[#d9d4ea]">
+                <span aria-hidden="true" className="absolute top-7 right-7 text-sm font-extrabold text-[#8f89a8]">
                   {String(index + 1).padStart(2, '0')}
                 </span>
                 <h3 className="text-xl font-bold text-[#17152b] mb-3">{feature.title}</h3>
@@ -755,7 +757,7 @@ export default function Home() {
                     </div>
                   </div>
                 </div>
-                <div className="flex gap-0.5 mt-4 mb-3" aria-label="Rated 5 out of 5">
+                <div className="flex gap-0.5 mt-4 mb-3" role="img" aria-label="Rated 5 out of 5">
                   {[...Array(5)].map((_, i) => (
                     <Star key={i} className="w-4 h-4 fill-[#fbbc04] text-[#fbbc04]" />
                   ))}

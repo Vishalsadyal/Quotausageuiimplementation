@@ -106,7 +106,7 @@ export function Footer() {
           <div className="lg:col-span-2">
             <Link to="/" className="flex items-center gap-2 mb-4 hover:opacity-80 transition-opacity">
               <img
-                src="/logos/brandmark-80.png"
+                src="/logos/brandmark-80.webp"
                 alt="AutoApply CV logo"
                 className="w-10 h-10 object-contain"
                 width={40}

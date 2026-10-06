@@ -21,7 +21,7 @@ export default function Pricing() {
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
   const navigate = useNavigate();
   const mediaAssets = {
-    billingEvidenceImageSrc: '/marketing/billing-evidence.png',
+    billingEvidenceImageSrc: '/marketing/billing-evidence.webp',
     billingEvidenceVideoSrc: '',
   };
 
@@ -259,6 +259,8 @@ export default function Pricing() {
           <div className="mt-6 rounded-2xl overflow-hidden border border-gray-200 bg-white">
             <MediaSlot
               imageSrc={mediaAssets.billingEvidenceImageSrc}
+              width={1280}
+              height={507}
               videoSrc={mediaAssets.billingEvidenceVideoSrc}
               className="w-full h-[260px] object-cover"
               placeholderTitle="Billing evidence media"

@@ -54,7 +54,8 @@ export function middleware(req: NextRequest) {
     }
   }
 
-  const hasAdSense = Boolean(String(process.env.NEXT_PUBLIC_ADSENSE_CLIENT || "").trim());
+  // Same fallback publisher ID as app/layout.tsx, so the CSP allows the script the layout loads.
+  const hasAdSense = Boolean(String(process.env.NEXT_PUBLIC_ADSENSE_CLIENT || "ca-pub-5625706421007973").trim());
   const allowAdSense = hasAdSense || !isProd;
 
   const res = NextResponse.next();
