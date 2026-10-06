@@ -245,7 +245,7 @@ export function DashboardPromoBanner() {
             <button
               onClick={handleQuickCheckout}
               disabled={loading}
-              className="w-full sm:w-auto px-6 py-3 bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-gray-950 font-black text-sm rounded-xl shadow-lg hover:shadow-amber-500/25 transition-all transform hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer"
+              className="w-full sm:w-auto px-6 py-3 bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-gray-950 font-black text-sm rounded-xl shadow-lg hover:shadow-amber-500/25 transition-all transform hover:-translate-y-px active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer"
             >
               {loading ? (
                 <>

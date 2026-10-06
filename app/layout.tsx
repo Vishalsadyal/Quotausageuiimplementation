@@ -1,101 +1,93 @@
 import type { Metadata } from "next";
 import Script from "next/script";
-import { cookies } from "next/headers";
+import { Inter } from "next/font/google";
 import "./globals.css";
 import CookieConsentBanner from "./CookieConsentBanner";
 import AnalyticsScripts from "./AnalyticsScripts";
 import GoogleConsentMode from "./GoogleConsentMode";
 import ChatWidget from "./ChatWidget";
+import { OG_IMAGE } from "../src/app/seo/seoConfig";
+
+// Self-hosted at build time: no request to Google Fonts, which the CSP blocks.
+const inter = Inter({ subsets: ["latin"], display: "swap", variable: "--font-inter" });
 
 const GOOGLE_TAG_ID = String(process.env.NEXT_PUBLIC_GOOGLE_TAG_ID || "").trim();
 const GTM_ID = String(process.env.NEXT_PUBLIC_GTM_ID || "").trim();
 const CLARITY_TAG_ID = String(process.env.NEXT_PUBLIC_CLARITY_TAG_ID || "").trim();
 const ADSENSE_CLIENT = String(process.env.NEXT_PUBLIC_ADSENSE_CLIENT || "ca-pub-5625706421007973").trim();
 
-function consentModeDefaultsFromCookie(raw: string | undefined) {
-  const base = {
+// Google Consent Mode defaults, computed in the browser from the
+// cp_cookie_consent cookie before GTM loads. Reading the cookie here instead of
+// with cookies() on the server lets every page be statically cached.
+const CONSENT_DEFAULT_SCRIPT = `
+(function () {
+  var KEYS = ["ad_storage", "ad_user_data", "ad_personalization", "analytics_storage", "functionality_storage", "personalization_storage", "security_storage"];
+  var base = {
     ad_storage: "denied",
     ad_user_data: "denied",
     ad_personalization: "denied",
     analytics_storage: "denied",
     functionality_storage: "granted",
     personalization_storage: "denied",
-    security_storage: "granted",
-  } as const;
+    security_storage: "granted"
+  };
 
-  const trimmed = String(raw || "").trim();
-  if (!trimmed) return base;
-
-  const lower = trimmed.toLowerCase();
-  if (lower === "granted" || lower === "accept" || lower === "accepted" || lower === "yes" || lower === "true") {
-    return {
-      ad_storage: "granted",
-      ad_user_data: "granted",
-      ad_personalization: "granted",
-      analytics_storage: "granted",
-      functionality_storage: "granted",
-      personalization_storage: "granted",
-      security_storage: "granted",
-    } as const;
-  }
-  if (lower === "denied" || lower === "reject" || lower === "rejected" || lower === "no" || lower === "false") {
-    return base;
+  function readCookie() {
+    var match = document.cookie.match(/(?:^|;\s*)cp_cookie_consent=([^;]*)/);
+    if (!match) return "";
+    try { return decodeURIComponent(match[1]); } catch (e) { return match[1]; }
   }
 
-  try {
-    const parsed = JSON.parse(trimmed) as Record<string, unknown>;
-    // Back-compat with old { analytics, advertising }.
-    if (typeof parsed.analytics === "boolean" || typeof parsed.advertising === "boolean") {
-      const analytics = Boolean(parsed.analytics);
-      const advertising = Boolean(parsed.advertising);
-      return {
-        ad_storage: advertising ? "granted" : "denied",
-        ad_user_data: advertising ? "granted" : "denied",
-        ad_personalization: advertising ? "granted" : "denied",
-        analytics_storage: analytics ? "granted" : "denied",
-        functionality_storage: "granted",
-        personalization_storage: advertising ? "granted" : "denied",
-        security_storage: "granted",
-      } as const;
+  function defaults(raw) {
+    var trimmed = String(raw || "").trim();
+    if (!trimmed) return base;
+    var lower = trimmed.toLowerCase();
+    if (["granted", "accept", "accepted", "yes", "true"].indexOf(lower) !== -1) {
+      var all = {};
+      KEYS.forEach(function (k) { all[k] = "granted"; });
+      return all;
     }
-
-    const get = (k: string) => (parsed[k] === true ? "granted" : parsed[k] === false ? "denied" : null);
-    const ad_storage = get("ad_storage");
-    const ad_user_data = get("ad_user_data");
-    const ad_personalization = get("ad_personalization");
-    const analytics_storage = get("analytics_storage");
-    const functionality_storage = get("functionality_storage");
-    const personalization_storage = get("personalization_storage");
-    const security_storage = get("security_storage");
-    if (
-      !ad_storage ||
-      !ad_user_data ||
-      !ad_personalization ||
-      !analytics_storage ||
-      !functionality_storage ||
-      !personalization_storage ||
-      !security_storage
-    ) {
+    if (["denied", "reject", "rejected", "no", "false"].indexOf(lower) !== -1) return base;
+    try {
+      var parsed = JSON.parse(trimmed);
+      if (!parsed || typeof parsed !== "object") return base;
+      // Back-compat with old { analytics, advertising }.
+      if (typeof parsed.analytics === "boolean" || typeof parsed.advertising === "boolean") {
+        var analytics = Boolean(parsed.analytics);
+        var advertising = Boolean(parsed.advertising);
+        return {
+          ad_storage: advertising ? "granted" : "denied",
+          ad_user_data: advertising ? "granted" : "denied",
+          ad_personalization: advertising ? "granted" : "denied",
+          analytics_storage: analytics ? "granted" : "denied",
+          functionality_storage: "granted",
+          personalization_storage: advertising ? "granted" : "denied",
+          security_storage: "granted"
+        };
+      }
+      var out = {};
+      for (var i = 0; i < KEYS.length; i++) {
+        var v = parsed[KEYS[i]];
+        if (v === true) out[KEYS[i]] = "granted";
+        else if (v === false) out[KEYS[i]] = "denied";
+        else return base;
+      }
+      return out;
+    } catch (e) {
       return base;
     }
-    return {
-      ad_storage,
-      ad_user_data,
-      ad_personalization,
-      analytics_storage,
-      functionality_storage,
-      personalization_storage,
-      security_storage,
-    } as const;
-  } catch {
-    return base;
   }
-}
+
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag("consent", "default", defaults(readCookie()), { wait_for_update: 500 });
+})();
+`;
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://www.autoapplycv.in"),
   title: "Free Auto Apply CV | AI-Powered Job Application Automation",
-  description: "Free auto apply CV tool that automates job applications on LinkedIn and Indeed. Save hours with AI-powered resume matching, smart application tracking, and automated job search. Start applying to hundreds of jobs for free!",
+  description: "Free auto apply CV tool for LinkedIn and Indeed. Save hours with AI resume matching, smart application tracking and automated job search.",
   manifest: "/site.webmanifest",
   keywords: ["free auto apply cv", "free job application automation", "auto apply jobs free", "automated job applications", "LinkedIn auto apply", "Indeed auto apply", "free AI job search", "resume automation free"],
   openGraph: {
@@ -103,11 +95,14 @@ export const metadata: Metadata = {
     description: "Apply to hundreds of jobs automatically for free! AI-powered job application automation for LinkedIn and Indeed. Smart resume matching and application tracking included.",
     type: "website",
     url: "https://www.autoapplycv.in",
+    siteName: "AutoApply CV",
+    images: [OG_IMAGE],
   },
   twitter: {
     card: "summary_large_image",
     title: "Free Auto Apply CV | AI Job Application Automation",
     description: "Free tool to auto-apply to jobs on LinkedIn & Indeed. Save time with AI-powered automation. Start now!",
+    images: [OG_IMAGE.url],
   },
   icons: {
     icon: [
@@ -122,19 +117,12 @@ export const metadata: Metadata = {
   },
 };
 
-export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const consentCookie = (await cookies()).get("cp_cookie_consent")?.value;
-  const consentDefaults = consentModeDefaultsFromCookie(consentCookie);
-
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" className={inter.variable} suppressHydrationWarning>
       <head>
         <Script id="gtag-consent-default" strategy="beforeInteractive">
-          {`
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
-            gtag('consent', 'default', ${JSON.stringify(consentDefaults)}, { wait_for_update: 500 });
-          `}
+          {CONSENT_DEFAULT_SCRIPT}
         </Script>
         {ADSENSE_CLIENT ? (
           <Script

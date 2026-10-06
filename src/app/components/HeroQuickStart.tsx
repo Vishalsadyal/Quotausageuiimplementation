@@ -131,24 +131,39 @@ export function HeroQuickStart({ className = '' }: { className?: string }) {
   };
 
   return (
-    <div className={`glass rounded-2xl shadow-premium border border-white/60 overflow-hidden flex flex-col ${className}`}>
-      <div className="flex items-center gap-3 px-5 py-3 border-b border-gray-100 bg-white/70">
-        <div className="w-9 h-9 rounded-full gradient-primary flex items-center justify-center shadow-sm">
-          <Sparkles className="w-4 h-4 text-white" />
+    <div className={`group relative [perspective:1400px] ${className}`}>
+      {/* Tilted 3D stage: the card leans back on desktop and straightens on hover */}
+      <div className="relative transition-transform duration-500 ease-out [transform-style:preserve-3d] lg:[transform:rotateY(-9deg)_rotateX(4deg)] lg:group-hover:[transform:rotateY(-2deg)_rotateX(1deg)]">
+        {/* Stacked depth layers behind the card */}
+        <div
+          aria-hidden="true"
+          className="absolute inset-0 rounded-2xl bg-[linear-gradient(135deg,#8068ff,#4932cf)] opacity-70 [transform:translate3d(22px,22px,-60px)]"
+        />
+        <div
+          aria-hidden="true"
+          className="absolute inset-0 rounded-2xl bg-[#c8ff62] opacity-45 [transform:translate3d(11px,11px,-30px)]"
+        />
+
+        {/* Glowing gradient edge */}
+        <div className="relative rounded-2xl p-[1.5px] bg-[linear-gradient(135deg,rgba(200,255,98,.9),rgba(96,71,245,.9)_55%,rgba(255,255,255,.25))] shadow-[0_40px_80px_-20px_rgba(4,3,14,.7),0_20px_40px_-20px_rgba(96,71,245,.6)]">
+    <div className="bg-white rounded-[15px] overflow-hidden flex flex-col">
+      <div className="flex items-center gap-2.5 px-4 py-2.5 bg-[linear-gradient(180deg,#25204a,#17142e)] shadow-[inset_0_1px_0_rgba(255,255,255,.12)]">
+        <div className="w-8 h-8 rounded-full bg-[#c8ff62] flex items-center justify-center shadow-[0_0_20px_rgba(200,255,98,.24)]">
+          <Sparkles className="w-3.5 h-3.5 text-[#17142e]" />
         </div>
         <div className="leading-tight">
-          <div className="text-sm font-bold text-gray-900">AutoApply AI Agent</div>
-          <div className="flex items-center gap-1.5 text-xs text-emerald-600 font-medium">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+          <div className="text-sm font-bold text-white">AutoApply AI Agent</div>
+          <div className="flex items-center gap-1.5 text-xs text-[#c8ff62] font-medium">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#c8ff62] shadow-[0_0_0_3px_rgba(200,255,98,.18)]" />
             Online
           </div>
         </div>
-        <div className="ml-auto text-xs font-semibold text-gray-400">
+        <div className="ml-auto px-2 py-0.5 rounded-full bg-white/10 text-xs font-semibold text-[#bdb8d4]">
           {Math.min(stepIndex + (isDone ? 1 : 0), STEPS.length)}/{STEPS.length}
         </div>
       </div>
 
-      <div ref={scrollRef} className="flex-1 min-h-72 overflow-y-auto px-5 py-4 space-y-3 bg-white/40" aria-live="polite">
+      <div ref={scrollRef} className="flex-1 min-h-48 max-h-60 overflow-y-auto px-4 py-3 space-y-2.5 bg-[#f8f8fc]" aria-live="polite">
         <AnimatePresence initial={false}>
           {messages.map((m, i) => (
             <motion.div
@@ -159,10 +174,10 @@ export function HeroQuickStart({ className = '' }: { className?: string }) {
               className={`flex ${m.from === 'user' ? 'justify-end' : 'justify-start'}`}
             >
               <div
-                className={`max-w-[85%] px-4 py-2.5 text-sm leading-relaxed rounded-2xl break-words ${
+                className={`max-w-[85%] px-3.5 py-2 text-[13px] leading-relaxed rounded-2xl break-words ${
                   m.from === 'user'
-                    ? 'gradient-primary text-white rounded-br-md'
-                    : 'bg-white border border-gray-100 text-gray-800 rounded-bl-md shadow-sm'
+                    ? 'bg-[linear-gradient(135deg,#684cff,#5237db)] text-white rounded-br-md shadow-[inset_0_1px_0_rgba(255,255,255,.25),0_8px_18px_rgba(96,71,245,.3)]'
+                    : 'bg-white border border-[#e6e3ee] text-[#17152b] rounded-bl-md shadow-[0_6px_14px_rgba(35,27,66,.08)]'
                 }`}
               >
                 {m.text}
@@ -172,11 +187,11 @@ export function HeroQuickStart({ className = '' }: { className?: string }) {
         </AnimatePresence>
         {isTyping && (
           <div className="flex justify-start" aria-label="AI is typing">
-            <div className="px-4 py-3 bg-white border border-gray-100 rounded-2xl rounded-bl-md shadow-sm flex gap-1">
+            <div className="px-3.5 py-2.5 bg-white border border-[#e6e3ee] rounded-2xl rounded-bl-md shadow-sm flex gap-1">
               {[0, 1, 2].map((d) => (
                 <motion.span
                   key={d}
-                  className="w-1.5 h-1.5 rounded-full bg-purple-400"
+                  className="w-1.5 h-1.5 rounded-full bg-[#6047f5]"
                   animate={{ opacity: [0.3, 1, 0.3], y: [0, -2, 0] }}
                   transition={{ duration: 0.9, repeat: Infinity, delay: d * 0.15 }}
                 />
@@ -186,7 +201,7 @@ export function HeroQuickStart({ className = '' }: { className?: string }) {
         )}
       </div>
 
-      <div className="px-4 pb-4 pt-3 bg-white/70 border-t border-gray-100 space-y-3">
+      <div className="px-3 pb-3 pt-2.5 bg-[#17142e] border-t border-white/10 space-y-2.5">
         {step?.chips && !isTyping && !isDone && (
           <div className="flex flex-wrap gap-2">
             {step.chips.map((chip) => (
@@ -194,7 +209,7 @@ export function HeroQuickStart({ className = '' }: { className?: string }) {
                 key={chip.value}
                 type="button"
                 onClick={() => void submit(chip.value, chip.label)}
-                className="px-3 py-1.5 rounded-full border border-purple-200 bg-white text-sm font-medium text-purple-700 hover:bg-purple-50 hover:border-purple-400 transition-all"
+                className="px-2.5 py-1 text-[13px] rounded-full border border-white/15 bg-white/[0.08] font-semibold text-[#eae7ff] shadow-[inset_0_1px_0_rgba(255,255,255,.12),0_3px_0_rgba(0,0,0,.45)] hover:bg-[#c8ff62] hover:border-[#c8ff62] hover:text-[#17142e] hover:-translate-y-px active:translate-y-[2px] active:shadow-[inset_0_1px_0_rgba(255,255,255,.12),0_1px_0_rgba(0,0,0,.45)] transition-all"
               >
                 {chip.label}
               </button>
@@ -218,20 +233,23 @@ export function HeroQuickStart({ className = '' }: { className?: string }) {
               disabled={isTyping}
               placeholder={isTyping ? 'AI is typing…' : step?.placeholder}
               aria-label={step?.placeholder || 'Your answer'}
-              className="flex-1 px-4 py-3 rounded-xl border-2 border-gray-200 bg-white focus:border-purple-400 focus:ring-4 focus:ring-purple-100 transition-all outline-none disabled:bg-gray-50"
+              className="flex-1 min-w-0 px-3.5 py-2.5 text-sm rounded-xl border border-white/20 bg-white text-[#17152b] shadow-[inset_0_2px_4px_rgba(23,20,46,.12)] caret-[#6047f5] placeholder:text-[#8f89a8] focus:border-[#8d7aff] focus:ring-4 focus:ring-[rgba(96,71,245,.35)] transition-all outline-none disabled:opacity-60"
             />
             <button
               type="submit"
               disabled={isTyping || !input.trim()}
               aria-label="Send"
-              className="w-12 h-12 shrink-0 rounded-xl gradient-primary text-white flex items-center justify-center shadow-premium disabled:opacity-40 transition-all"
+              className="w-10 h-10 shrink-0 rounded-xl bg-[linear-gradient(135deg,#684cff,#5237db)] text-white flex items-center justify-center shadow-[inset_0_1px_0_rgba(255,255,255,.3),0_4px_0_#3a27a6,0_10px_24px_rgba(96,71,245,.45)] hover:-translate-y-px active:translate-y-[3px] active:shadow-[inset_0_1px_0_rgba(255,255,255,.3),0_1px_0_#3a27a6,0_4px_10px_rgba(96,71,245,.35)] disabled:opacity-40 disabled:hover:translate-y-0 transition-all"
             >
-              <Send className="w-5 h-5" />
+              <Send className="w-4 h-4" />
             </button>
           </form>
         )}
 
-        {isDone && <div className="text-center text-sm font-semibold text-purple-700 py-2">Opening your dashboard…</div>}
+        {isDone && <div className="text-center text-sm font-semibold text-[#c8ff62] py-2">Opening your dashboard…</div>}
+      </div>
+    </div>
+        </div>
       </div>
     </div>
   );

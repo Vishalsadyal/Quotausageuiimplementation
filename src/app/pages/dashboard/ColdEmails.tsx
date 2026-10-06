@@ -1091,7 +1091,7 @@ LinkedIn: ${user?.linkedinUrl || "https://linkedin.com"}`;
           {/* Mini Interactive Outreach AI Orb */}
           <div
             onClick={() => setIsVoiceModalOpen(true)}
-            className="relative w-11 h-11 rounded-full bg-gradient-to-tr from-cyan-500 via-indigo-600 to-purple-600 flex items-center justify-center cursor-pointer shadow-md shadow-indigo-500/25 shrink-0 hover:scale-105 transition-all group"
+            className="relative w-11 h-11 rounded-full bg-gradient-to-tr from-cyan-500 via-indigo-600 to-purple-600 flex items-center justify-center cursor-pointer shadow-md shadow-indigo-500/25 shrink-0 hover:-translate-y-px transition-all group"
             title="Open Outreach AI Modal"
           >
             {isAgentActive && (
@@ -1139,7 +1139,7 @@ LinkedIn: ${user?.linkedinUrl || "https://linkedin.com"}`;
           <button
             type="button"
             onClick={() => setIsVoiceModalOpen(true)}
-            className="px-4 py-2 rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-bold text-xs font-mono flex items-center justify-center gap-2 shadow-md shadow-indigo-500/20 hover:scale-[1.02] transition-all cursor-pointer w-full sm:w-auto"
+            className="px-4 py-2 rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-bold text-xs font-mono flex items-center justify-center gap-2 shadow-md shadow-indigo-500/20 hover:-translate-y-px transition-all cursor-pointer w-full sm:w-auto"
           >
             <Mic className="w-3.5 h-3.5 text-yellow-300" />
             <span>Open Outreach AI</span>
@@ -1227,7 +1227,7 @@ LinkedIn: ${user?.linkedinUrl || "https://linkedin.com"}`;
                     className={`w-28 h-28 rounded-full flex items-center justify-center shadow-2xl relative transition-all duration-300 ${
                       isAgentActive
                         ? "bg-gradient-to-tr from-cyan-500 via-indigo-600 to-purple-600 shadow-indigo-500/40 ring-4 ring-indigo-200"
-                        : "bg-gradient-to-tr from-indigo-600 via-purple-600 to-blue-600 hover:scale-105 shadow-indigo-500/25 ring-2 ring-indigo-100"
+                        : "bg-gradient-to-tr from-indigo-600 via-purple-600 to-blue-600 hover:-translate-y-px shadow-indigo-500/25 ring-2 ring-indigo-100"
                     }`}
                   >
                     {/* Inner Glass Wave Pattern */}

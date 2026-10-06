@@ -305,6 +305,18 @@ export const STATIC_BLOG_POSTS: StaticBlogPost[] = [
         <li>Track outcomes (submitted / skipped / failed) and fix blockers.</li>
       </ol>
       <p>Free to start: focus on high-signal roles and improve your resume iteratively.</p>
+            <h2>Auto apply vs mass applying</h2>
+      <p>Auto apply is often confused with mass applying, but they are different strategies. Mass applying sends the same resume to every open role and hopes for the best. Auto apply, done well, automates only the repetitive part (typing your details and standard answers) while you decide which roles are worth applying to. The automation saves time; the targeting is what earns interviews.</p>
+      <h2>Best practices that improve callbacks</h2>
+      <ul>
+        <li><strong>Start narrow.</strong> One or two job titles in one or two locations produce cleaner data than ten titles everywhere.</li>
+        <li><strong>Use honest answers only.</strong> Screening answers are checked later in interviews. A mismatch costs more than a skipped application.</li>
+        <li><strong>Prefer fresh postings.</strong> Applications sent in the first day or two of a posting face less competition.</li>
+        <li><strong>Set a daily limit.</strong> A steady 20–40 well-matched applications a day is easier to review and follow up than 300 in one burst.</li>
+        <li><strong>Review weekly.</strong> Compare callbacks by title, company size, and resume version, then drop what does not respond.</li>
+      </ul>
+      <h2>How to measure whether auto apply is working</h2>
+      <p>Count <strong>replies and interview invites per 100 submitted applications</strong>. If that number is low, the fix is usually targeting or resume keywords, not more volume. If it is healthy, you can safely raise your daily limit. Track skip reasons too: a large share of “external apply” or “validation error” skips points to settings you can fix once.</p>
       <h2>Helpful internal links</h2>
       <ul>
         <li><a href="/auto-apply">Free Auto Apply guide</a></li>
@@ -343,6 +355,21 @@ export const STATIC_BLOG_POSTS: StaticBlogPost[] = [
         <li>Refresh keywords in your resume weekly based on top roles.</li>
         <li>Track skip reasons and fix them once.</li>
       </ul>
+            <h2>A safe daily routine for LinkedIn auto apply</h2>
+      <ol>
+        <li><strong>Morning:</strong> check new postings from the last 24 hours for your target titles and start the run with Easy Apply-only enabled.</li>
+        <li><strong>During the run:</strong> answer any paused screening questions in the dashboard so they are reused next time.</li>
+        <li><strong>Evening:</strong> review submitted and skipped jobs, and note any role types that keep failing.</li>
+      </ol>
+      <h2>What “safe” really means</h2>
+      <p>Safety on LinkedIn is mostly about behaving like a careful human applicant. Keep pacing reasonable, avoid re-applying to the same job, and do not submit answers you would not stand behind in an interview. Duplicate prevention and pause-on-unknown-question behavior exist for exactly this reason: they stop the automation from doing something you would not do yourself.</p>
+      <h2>Reading your results</h2>
+      <ul>
+        <li><strong>Many “external apply” skips:</strong> your search includes lots of roles that apply on company websites. Keep Easy Apply-only on, or apply to the best of those manually.</li>
+        <li><strong>Many validation pauses:</strong> a saved answer has the wrong format (for example a decimal where a whole number is expected). Fix it once in the answer bank.</li>
+        <li><strong>Submissions but no replies:</strong> tighten the title and seniority filters and refresh resume keywords from the roles you want most.</li>
+      </ul>
+      <p>Treat the first two weeks as calibration. Small, deliberate changes each week compound into a much higher callback rate.</p>
       <h2>Helpful internal links</h2>
       <ul>
         <li><a href="/auto-apply-linkedin">Auto Apply LinkedIn guide</a></li>
@@ -370,6 +397,16 @@ export const STATIC_BLOG_POSTS: StaticBlogPost[] = [
       <p>Log submitted vs skipped vs failed. Your next improvement should always remove the biggest blocker.</p>
       <h2>FAQ</h2>
       <p><strong>Does free auto apply mean unlimited?</strong> Not always—many tools include daily caps. Use the cap wisely on high-fit roles.</p>
+            <h2>Making the most of a daily cap</h2>
+      <p>Free plans usually come with a daily limit. That is not a weakness if you use it on your best-fit roles. With three free applications a day, pick the three postings that match your title, seniority, and core skills most closely, ideally posted in the last day or two. Over a month that is roughly ninety carefully chosen applications, which often outperforms hundreds of generic ones.</p>
+      <h2>A simple weekly loop</h2>
+      <ol>
+        <li><strong>Monday:</strong> choose this week's target title and three to five keywords.</li>
+        <li><strong>Daily:</strong> spend your free applications on the strongest matches and answer any paused questions.</li>
+        <li><strong>Friday:</strong> check which applications got replies and adjust next week's keywords.</li>
+      </ol>
+      <h2>When it is worth upgrading</h2>
+      <p>Upgrade when the free cap, not your targeting, is the bottleneck: you consistently find more strong-fit roles each day than the cap allows, and your reply rate is already healthy. On AutoApply CV that means moving to Pro for unlimited auto-apply, or topping up the Hires wallet if you only need extra applications occasionally. Skipped and duplicate jobs are never charged, so you only pay for real submissions.</p>
       <h2>Helpful internal links</h2>
       <ul>
         <li><a href="/auto-apply">Free Auto Apply guide</a></li>
@@ -401,6 +438,18 @@ export const STATIC_BLOG_POSTS: StaticBlogPost[] = [
       </ul>
       <h2>Best practice</h2>
       <p>Optimize for completion quality: fewer, better submissions outperform broad low-fit applications.</p>
+            <h2>The difference in one sentence</h2>
+      <p><strong>Easy Apply</strong> is LinkedIn's short, in-platform application form. <strong>Auto apply</strong> is any automation that fills and submits application forms for you. An auto apply tool for LinkedIn usually works on top of Easy Apply, because those forms are consistent enough to complete reliably.</p>
+      <h2>Why some jobs cannot be auto-applied</h2>
+      <ul>
+        <li><strong>External apply:</strong> the job redirects to a company careers site with its own multi-step form and account requirements.</li>
+        <li><strong>Unusual required fields:</strong> custom uploads, essays, or assessments need a human.</li>
+        <li><strong>Already applied:</strong> duplicate prevention deliberately skips jobs in your history.</li>
+      </ul>
+      <h2>How applications are counted on AutoApply CV</h2>
+      <p>Only a <strong>successfully submitted</strong> application counts as an apply action or uses a Hire credit. Jobs skipped because they are external, already applied, or blocked by a validation error are not counted, and neither are runs you pause or stop before submitting. That keeps your numbers honest: “submitted” always means a real application reached the employer.</p>
+      <h2>Which should you use?</h2>
+      <p>Use automation for high-fit Easy Apply roles where speed matters, and apply manually (or contact the hiring team) for the few external roles you want most. Combining both gives you reach without losing the personal touch on your top targets.</p>
       <h2>Helpful internal links</h2>
       <ul>
         <li><a href="/auto-apply-linkedin">Auto Apply LinkedIn</a></li>
@@ -429,12 +478,148 @@ export const STATIC_BLOG_POSTS: StaticBlogPost[] = [
       <p>Add keywords where they are true. Prioritize tools, frameworks, and responsibilities that appear in target roles.</p>
       <h2>Quick tailoring</h2>
       <p>Swap 3–5 bullets to mirror the job’s core responsibilities and seniority level.</p>
+            <h2>How applicant tracking systems read your resume</h2>
+      <p>An applicant tracking system (ATS) extracts text from your resume, splits it into sections, and lets recruiters search or rank candidates by keywords. If the text cannot be extracted cleanly, or the words recruiters search for are missing, a strong candidate can be filtered out before a person ever reads the resume.</p>
+      <h2>A practical keyword workflow</h2>
+      <ol>
+        <li>Collect five job descriptions for the exact role you want.</li>
+        <li>Highlight the tools, frameworks, and responsibilities that appear in at least three of them.</li>
+        <li>Check which of those you genuinely have experience with, and make sure each appears in your skills section and at least one bullet point.</li>
+        <li>Rewrite your top bullets to show results with those tools, for example “Reduced API latency by 40% by moving hot paths to Redis caching”.</li>
+      </ol>
+      <h2>Common ATS mistakes</h2>
+      <ul>
+        <li>Putting key information in headers, footers, text boxes, or images.</li>
+        <li>Creative section names such as “My Journey” instead of “Experience”.</li>
+        <li>Listing skills that appear nowhere in your experience, which reads as keyword stuffing.</li>
+        <li>Sending one generic resume to very different role types.</li>
+      </ul>
+      <p>AutoApply CV's resume builder produces a clean, single-column layout and highlights missing keywords for a target role, so the tailored version is ready before you start auto applying.</p>
       <h2>Helpful internal links</h2>
       <ul>
         <li><a href="/auto-apply">Free Auto Apply guide</a></li>
         <li><a href="/features">Features</a></li>
         <li><a href="/signup">Sign up free</a></li>
       </ul>
+    `,
+  }),
+  post({
+    daysAgo: 40,
+    title: "LazyApply Alternative: What to Pick for Better Interview Results",
+    slug: "lazyapply-alternative",
+    excerpt:
+      "Looking for a LazyApply alternative? Compare automation quality, ATS resume optimization, and tracking so every application has a real chance of an interview.",
+    coverImage: coverFor(1),
+    keywordsJson: ["lazyapply alternative", "linkedin auto apply bot", "auto apply tool comparison"],
+    contentHtml: `
+      <p>If you are searching for a <strong>LazyApply alternative</strong>, you are probably not short on applications. You are short on interviews. The fix is rarely “apply to even more jobs”. It is choosing a tool that gives you control over <em>which</em> jobs you apply to and <em>how</em> each application looks to a recruiter and an applicant tracking system (ATS).</p>
+      <p>This guide walks through what to look for, how to compare options fairly, and a setup that keeps volume high without burning your profile on roles you never had a chance at.</p>
+
+      <h2>What matters most in a LinkedIn auto apply bot</h2>
+      <ul>
+        <li><strong>Resume tailoring before each apply action.</strong> A single generic resume sent to 300 roles loses to a tailored resume sent to 60. Look for a tool that matches your resume keywords to each job description before it submits.</li>
+        <li><strong>Screening question controls and review checkpoints.</strong> Easy Apply forms ask about notice period, salary, work authorization, and years of experience. A good tool stores your real answers once and pauses when it meets a question it cannot answer truthfully.</li>
+        <li><strong>Post-apply tracking and interview analytics.</strong> If you cannot see which roles, titles, and resume versions produce callbacks, you cannot improve. Tracking turns automation into a feedback loop.</li>
+        <li><strong>Duplicate protection.</strong> Re-applying to the same job after a page refresh looks careless to recruiters. The tool should skip jobs you already applied to.</li>
+        <li><strong>Pacing.</strong> Human-like pacing and daily limits protect your account and keep applications reviewable.</li>
+      </ul>
+
+      <h2>Why alternatives outperform one-click bots</h2>
+      <p>Most people searching for a LazyApply alternative want higher callback quality, not just a higher application count. One-click volume tools optimize for the number of submissions. Hiring teams optimize for fit. When those two goals clash, you get hundreds of “applied” statuses and very few replies.</p>
+      <p>A stronger workflow combines three things: an <strong>AI resume builder</strong> that tailors keywords per role, <strong>filtered job matching</strong> so only relevant roles enter the queue, and a <strong>job application tracker</strong> so every application is measurable. Each piece makes the next one more effective.</p>
+
+      <h2>How to compare auto apply tools fairly</h2>
+      <ol>
+        <li><strong>Run a one-week test.</strong> Use the same target titles and location filters in each tool you are evaluating.</li>
+        <li><strong>Measure callbacks, not submissions.</strong> Count recruiter replies and interview invites per 100 applications.</li>
+        <li><strong>Check the skipped list.</strong> A tool that tells you <em>why</em> it skipped a job (external apply, missing answer, already applied) is far easier to tune.</li>
+        <li><strong>Review a sample of submitted forms.</strong> Make sure answers are accurate and the right resume version was attached.</li>
+      </ol>
+
+      <h2>Recommended setup</h2>
+      <p>Use AutoApply CV to apply to LinkedIn jobs automatically with resume tailoring, ATS checks, and pipeline tracking in one place:</p>
+      <ol>
+        <li>Install the <a href="/auto-apply-chrome-extension">AutoApply CV Chrome extension</a> from the Chrome Web Store.</li>
+        <li>Add your resume and fill the answer bank once (notice period, salary range, work authorization).</li>
+        <li>Set target titles, seniority, and locations, then start with a modest daily limit.</li>
+        <li>Review your callback rate weekly on the dashboard and adjust titles or resume keywords.</li>
+      </ol>
+      <p>Ready to compare? See <a href="/pricing">plans and pricing</a> or read <a href="/blog/auto-apply-bot-how-to-evaluate-tools">how to evaluate auto apply tools</a>.</p>
+    `,
+  }),
+  post({
+    daysAgo: 41,
+    title: "Best AI Job Search Tools in 2026: Practical Picks for Engineers",
+    slug: "best-ai-job-search-tools",
+    excerpt:
+      "Compare AI job search tools for engineers: automation quality, resume tailoring, tracking, and the guardrails that stop wasted applications.",
+    coverImage: coverFor(2),
+    keywordsJson: ["best ai job search tools", "ai job search for engineers", "job search automation"],
+    contentHtml: `
+      <p>The best AI job search tools combine <strong>job discovery</strong>, <strong>resume optimization</strong>, and <strong>application tracking</strong> so you can improve callbacks consistently instead of guessing. For software engineers, that combination matters even more because technical roles are filtered heavily on keywords, stack, and seniority.</p>
+
+      <h2>The four categories of AI job search tools</h2>
+      <ul>
+        <li><strong>Job discovery and matching.</strong> Tools that score open roles against your skills and experience so you spend time on jobs you can realistically win.</li>
+        <li><strong>Resume builders and tailoring.</strong> Tools that rewrite bullet points and surface the keywords an ATS looks for in each job description.</li>
+        <li><strong>Application automation.</strong> Browser extensions that fill repetitive forms such as LinkedIn Easy Apply using your saved answers.</li>
+        <li><strong>Tracking and analytics.</strong> Dashboards that show which titles, companies, and resume versions turn into interviews.</li>
+      </ul>
+      <p>You can stitch several single-purpose tools together, but every hand-off between tools is a place where data gets lost. An all-in-one workflow keeps your resume, answers, and results connected.</p>
+
+      <h2>What engineers should look for</h2>
+      <ol>
+        <li><strong>Stack-aware matching.</strong> “Backend engineer” covers very different stacks. Matching should read the job description, not just the title.</li>
+        <li><strong>ATS-friendly output.</strong> Clean, single-column resumes with standard section headings parse reliably.</li>
+        <li><strong>Truthful automation.</strong> The tool should never invent experience or answers. It should pause and ask when it meets a new question.</li>
+        <li><strong>Duplicate and pacing controls.</strong> Skipping already-applied jobs and pacing submissions protect your reputation and your account.</li>
+        <li><strong>Measurable results.</strong> Callback rate per 100 applications is the number that matters.</li>
+      </ol>
+
+      <h2>A practical weekly workflow</h2>
+      <ul>
+        <li><strong>Monday:</strong> refresh target titles and filters; update resume keywords from the roles that got replies last week.</li>
+        <li><strong>Daily:</strong> run automated applications with a sensible daily limit and answer any paused questions.</li>
+        <li><strong>Friday:</strong> review callbacks by title and company size; drop the segments that never respond.</li>
+      </ul>
+
+      <h2>Where AutoApply CV fits</h2>
+      <p>AutoApply CV brings LinkedIn auto apply, AI resume tailoring, an answer bank for screening questions, and a job application tracker into one dashboard. Start with the <a href="/features">feature overview</a>, see <a href="/how-it-works">how it works</a>, or read our <a href="/blog/top-10-auto-apply-tools-2026">top auto apply tools list</a> for a wider comparison.</p>
+    `,
+  }),
+  post({
+    daysAgo: 42,
+    title: "LinkedIn Easy Apply: Does It Work for Software Engineers?",
+    slug: "linkedin-easy-apply-does-it-work",
+    excerpt:
+      "See when LinkedIn Easy Apply works, why applications go unanswered, and how resume tailoring and better targeting improve callbacks.",
+    coverImage: coverFor(3),
+    keywordsJson: ["linkedin easy apply", "does easy apply work", "easy apply tips for engineers"],
+    contentHtml: `
+      <p><strong>LinkedIn Easy Apply can work</strong>, but results improve sharply when you combine it with resume tailoring, targeting filters, and a job application tracker. Easy Apply removes friction for you, and for every other candidate. That is why roles can collect hundreds of applicants within hours, and why a generic application is easy to overlook.</p>
+
+      <h2>Why Easy Apply applications go unanswered</h2>
+      <ul>
+        <li><strong>Volume.</strong> Popular roles receive far more applications than a recruiter can read, so early and well-matched applications get the most attention.</li>
+        <li><strong>Keyword mismatch.</strong> Many companies screen Easy Apply candidates through an ATS. If your resume does not mention the stack in the job description, it may never reach a person.</li>
+        <li><strong>Seniority mismatch.</strong> Applying to senior roles with a mid-level profile, or the reverse, is one of the most common reasons for silence.</li>
+        <li><strong>Weak screening answers.</strong> Inconsistent answers on experience, notice period, or work authorization can filter you out automatically.</li>
+      </ul>
+
+      <h2>When Easy Apply works best</h2>
+      <ol>
+        <li><strong>Apply early.</strong> Roles posted in the last 24–48 hours have fewer competing applicants.</li>
+        <li><strong>Tailor the resume.</strong> Mirror the job description's core technologies and responsibilities in your top bullets.</li>
+        <li><strong>Target tightly.</strong> Filter by title, seniority, location, and remote policy so every application is a realistic fit.</li>
+        <li><strong>Keep answers consistent.</strong> Use the same accurate answers for recurring screening questions.</li>
+        <li><strong>Track outcomes.</strong> Record which applications get replies so you can double down on what works.</li>
+      </ol>
+
+      <h2>Easy Apply vs applying on the company site</h2>
+      <p>Applying on a company's careers page can take longer but sometimes reaches a different pipeline. A balanced approach: use Easy Apply for well-matched roles at scale, and apply directly (or message the hiring team) for the handful of roles you want most.</p>
+
+      <h2>How to scale Easy Apply without losing quality</h2>
+      <p>Automation helps when it protects quality. AutoApply CV fills Easy Apply forms with your saved answers, skips jobs you already applied to, pauses on questions it cannot answer, and tracks every submission so you can see your callback rate. Read the <a href="/auto-apply-linkedin">LinkedIn auto apply guide</a> or compare <a href="/blog/auto-apply-vs-easy-apply-what-counts">auto apply vs Easy Apply</a>.</p>
     `,
   }),
 ];

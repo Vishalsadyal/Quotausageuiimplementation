@@ -94,7 +94,7 @@ export default function HowItWorks() {
           
           <h1 className="text-5xl lg:text-6xl font-bold text-gray-900 mb-6">
             From AI resume builder to{' '}
-            <span className="bg-gradient-to-r from-[#6366F1] to-[#A855F7] bg-clip-text text-transparent">
+            <span className="bg-[#6047f5] bg-clip-text text-transparent">
               LinkedIn auto apply
             </span>
           </h1>
@@ -189,7 +189,7 @@ export default function HowItWorks() {
           <div className="grid md:grid-cols-3 gap-6 mb-10">
             {runGuardrails.map((item, index) => (
               <div key={item.title} className="rounded-2xl bg-white border border-gray-200 p-6 shadow-sm">
-                <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-[#6366F1] to-[#A855F7] flex items-center justify-center mb-4">
+                <div className="w-11 h-11 rounded-xl bg-[#6047f5] flex items-center justify-center mb-4">
                   <item.icon className="w-5 h-5 text-white" />
                 </div>
                 <h3 className="text-lg font-bold text-gray-900 mb-2">{item.title}</h3>
@@ -240,7 +240,7 @@ export default function HowItWorks() {
             ].map((milestone, index) => (
               <div key={index} className="flex gap-6 items-start">
                 <div className="flex-shrink-0 w-32">
-                  <div className="text-xl font-bold bg-gradient-to-r from-[#6366F1] to-[#A855F7] bg-clip-text text-transparent">
+                  <div className="text-xl font-bold bg-[#6047f5] bg-clip-text text-transparent">
                     {milestone.time}
                   </div>
                 </div>
@@ -255,7 +255,7 @@ export default function HowItWorks() {
       </section>
 
       {/* CTA */}
-      <section className="py-24 bg-gradient-to-br from-[#6366F1] via-[#8B5CF6] to-[#A855F7] text-white">
+      <section className="py-24 bg-[#6047f5] text-white">
         <div className="max-w-4xl mx-auto px-6 lg:px-8 text-center">
           <h2 className="text-4xl lg:text-5xl font-bold mb-6">
             Start your success story today
@@ -267,7 +267,7 @@ export default function HowItWorks() {
 
           <button 
             onClick={() => navigate('/pricing')}
-            className="px-10 py-5 bg-white text-purple-700 rounded-xl font-bold text-lg hover:bg-gray-100 shadow-2xl hover:scale-105 transition-all duration-200 inline-flex items-center gap-2"
+            className="px-10 py-5 bg-white text-purple-700 rounded-xl font-bold text-lg hover:bg-gray-100 shadow-2xl hover:-translate-y-px transition-all duration-200 inline-flex items-center gap-2"
           >
             Get Started Free
             <ArrowRight className="w-5 h-5" />

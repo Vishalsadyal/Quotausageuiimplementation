@@ -3,34 +3,48 @@
 :root {
   --font-size: 16px;
   
+  /* Brand tokens (violet / navy / lime, matching the backlinks generator) */
+  --blue: #6047f5;
+  --blue-dark: #4932cf;
+  --blue-soft: #eeeaff;
+  --gold: #c8ff62;
+  --gold-soft: #f4ffe0;
+  --ink: #17152b;
+  --navy: #17142e;
+  --lime: #c8ff62;
+  --line: #e6e3ee;
+  --surface: #ffffff;
+  --canvas: #f7f7fb;
+  --shadow: 0 10px 30px rgba(35, 27, 66, .08);
+
   /* Premium Color Palette */
-  --background: #FAFBFC;
-  --foreground: #0F172A;
-  
-  /* Brand Colors - Sophisticated Purple/Indigo */
-  --primary: #6366F1;
-  --primary-light: #818CF8;
-  --primary-dark: #4F46E5;
-  --secondary: #8B5CF6;
-  --accent: #06B6D4;
-  
+  --background: #ffffff;
+  --foreground: #17152b;
+
+  /* Brand Colors */
+  --primary: #6047f5;
+  --primary-light: #8d7aff;
+  --primary-dark: #4932cf;
+  --secondary: #17142e;
+  --accent: #c8ff62;
+
   /* Neutral Colors */
-  --gray-50: #F9FAFB;
-  --gray-100: #F3F4F6;
-  --gray-200: #E5E7EB;
-  --gray-300: #D1D5DB;
-  --gray-400: #9CA3AF;
-  --gray-500: #6B7280;
-  --gray-600: #4B5563;
-  --gray-700: #374151;
-  --gray-800: #1F2937;
+  --gray-50: #f7f7fb;
+  --gray-100: #efeef5;
+  --gray-200: #e6e3ee;
+  --gray-300: #cfd7e3;
+  --gray-400: #98a2b3;
+  --gray-500: #4b5563;
+  --gray-600: #2b3544;
+  --gray-700: #1a2230;
+  --gray-800: #111827;
   --gray-900: #111827;
-  
+
   /* Semantic Colors */
-  --success: #10B981;
-  --warning: #F59E0B;
-  --error: #EF4444;
-  --info: #3B82F6;
+  --success: #16a36a;
+  --warning: #d89b24;
+  --error: #dc4c4c;
+  --info: #6047f5;
   
   /* Legacy variables for compatibility */
   --card: #ffffff;
@@ -39,26 +53,26 @@
   --popover-foreground: oklch(0.145 0 0);
   --primary-foreground: #ffffff;
   --secondary-foreground: #ffffff;
-  --muted: #F3F4F6;
-  --muted-foreground: #6B7280;
-  --destructive: #EF4444;
+  --muted: #f7f7fb;
+  --muted-foreground: #2b3544;
+  --destructive: #dc4c4c;
   --destructive-foreground: #ffffff;
-  --border: rgba(0, 0, 0, 0.08);
+  --border: #e6e3ee;
   --input: transparent;
-  --input-background: #F9FAFB;
-  --switch-background: #cbced4;
+  --input-background: #f7f7fb;
+  --switch-background: #cbd3df;
   --font-weight-medium: 500;
   --font-weight-normal: 400;
-  --ring: oklch(0.708 0 0);
+  --ring: #6047f5;
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);
   --chart-4: oklch(0.828 0.189 84.429);
   --chart-5: oklch(0.769 0.188 70.08);
-  --radius: 0.75rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: #6366F1;
+  --radius: 0.875rem;
+  --sidebar: #ffffff;
+  --sidebar-foreground: #111827;
+  --sidebar-primary: #6047f5;
   --sidebar-primary-foreground: #ffffff;
   --sidebar-accent: oklch(0.97 0 0);
   --sidebar-accent-foreground: oklch(0.205 0 0);
@@ -101,6 +115,87 @@
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(0.269 0 0);
   --sidebar-ring: oklch(0.439 0 0);
+}
+
+/*
+ * Palette remap: every indigo / purple / violet / blue utility already used in
+ * the pages resolves to the brand violet, so the whole site picks up the
+ * backlinks generator look without touching markup.
+ */
+@theme {
+  --font-sans: var(--font-inter), "Inter", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+
+  --color-blue-50: #eeeaff;
+  --color-blue-100: #e2dcff;
+  --color-blue-200: #c9bfff;
+  --color-blue-300: #a99aff;
+  --color-blue-400: #8d7aff;
+  --color-blue-500: #7560fa;
+  --color-blue-600: #6047f5;
+  --color-blue-700: #4932cf;
+  --color-blue-800: #3a27a6;
+  --color-blue-900: #2b1f78;
+  --color-blue-950: #17142e;
+
+  --color-indigo-50: #eeeaff;
+  --color-indigo-100: #e2dcff;
+  --color-indigo-200: #c9bfff;
+  --color-indigo-300: #a99aff;
+  --color-indigo-400: #8d7aff;
+  --color-indigo-500: #7560fa;
+  --color-indigo-600: #6047f5;
+  --color-indigo-700: #4932cf;
+  --color-indigo-800: #3a27a6;
+  --color-indigo-900: #2b1f78;
+  --color-indigo-950: #17142e;
+
+  --color-purple-50: #eeeaff;
+  --color-purple-100: #e2dcff;
+  --color-purple-200: #c9bfff;
+  --color-purple-300: #a99aff;
+  --color-purple-400: #8d7aff;
+  --color-purple-500: #7560fa;
+  --color-purple-600: #6047f5;
+  --color-purple-700: #4932cf;
+  --color-purple-800: #3a27a6;
+  --color-purple-900: #2b1f78;
+  --color-purple-950: #17142e;
+
+  --color-violet-50: #eeeaff;
+  --color-violet-100: #e2dcff;
+  --color-violet-200: #c9bfff;
+  --color-violet-300: #a99aff;
+  --color-violet-400: #8d7aff;
+  --color-violet-500: #7560fa;
+  --color-violet-600: #6047f5;
+  --color-violet-700: #4932cf;
+  --color-violet-800: #3a27a6;
+  --color-violet-900: #2b1f78;
+  --color-violet-950: #17142e;
+
+  --color-gray-50: #f7f7fb;
+  --color-gray-100: #efeef5;
+  --color-gray-200: #e6e3ee;
+  --color-gray-300: #cfd7e3;
+  --color-gray-400: #98a2b3;
+  --color-gray-500: #4b5563;
+  --color-gray-600: #2b3544;
+  --color-gray-700: #1a2230;
+  --color-gray-800: #111827;
+  --color-gray-900: #111827;
+  --color-gray-950: #17142e;
+
+  --color-slate-50: #f7f7fb;
+  --color-slate-100: #efeef5;
+  --color-slate-200: #e6e3ee;
+  --color-slate-300: #cfd7e3;
+  --color-slate-400: #98a2b3;
+  --color-slate-500: #4b5563;
+  --color-slate-600: #2b3544;
+  --color-slate-700: #1a2230;
+  --color-slate-800: #111827;
+  --color-slate-900: #111827;
+  --color-slate-950: #17142e;
 }
 
 @theme inline {
@@ -205,36 +300,39 @@
   }
 }
 
-/* Premium Utilities */
+/* Premium Utilities (restyled to the flat blue / gold system) */
 @layer utilities {
   .gradient-primary {
-    @apply bg-gradient-to-r from-[#6366F1] via-[#8B5CF6] to-[#A855F7];
+    background: var(--blue);
   }
-  
+
   .text-gradient {
-    @apply bg-gradient-to-r from-[#6366F1] to-[#A855F7] bg-clip-text text-transparent;
+    color: var(--blue);
   }
-  
+
   .glass {
-    @apply bg-white/80 backdrop-blur-lg;
+    background: color-mix(in srgb, var(--surface) 94%, transparent);
+    border-color: var(--line);
+    backdrop-filter: blur(14px);
   }
-  
+
   .shadow-premium {
-    box-shadow: 0 10px 40px rgba(99, 102, 241, 0.15);
+    box-shadow: var(--shadow);
   }
-  
+
   .shadow-premium-lg {
-    box-shadow: 0 20px 60px rgba(99, 102, 241, 0.25);
+    box-shadow: 0 30px 80px rgba(31, 56, 92, .16);
   }
-  
+
   .btn-premium {
-    @apply hover:scale-105 active:scale-95 transition-transform duration-200;
+    @apply hover:-translate-y-px transition-transform duration-200;
   }
-  
+
   .bg-grid-pattern {
-    background-image: 
-      linear-gradient(rgba(99, 102, 241, 0.05) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(99, 102, 241, 0.05) 1px, transparent 1px);
-    background-size: 50px 50px;
+    background-image:
+      linear-gradient(var(--line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--line) 1px, transparent 1px);
+    background-size: 46px 46px;
+    mask-image: linear-gradient(to bottom, black, transparent 85%);
   }
 }

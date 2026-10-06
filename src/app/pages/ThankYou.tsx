@@ -67,7 +67,7 @@ export default function ThankYou() {
           
           <h1 className="text-5xl lg:text-6xl font-bold text-gray-900 mb-6">
             Thank You for{' '}
-            <span className="bg-gradient-to-r from-[#6366F1] to-[#A855F7] bg-clip-text text-transparent">
+            <span className="bg-[#6047f5] bg-clip-text text-transparent">
               Choosing Us
             </span>
           </h1>
@@ -84,7 +84,7 @@ export default function ThankYou() {
               { number: '24/7', label: 'Support' }
             ].map((stat, index) => (
               <div key={index} className="bg-white/80 backdrop-blur-sm rounded-2xl p-4 border border-purple-100 shadow-lg">
-                <div className="text-3xl font-bold bg-gradient-to-r from-[#6366F1] to-[#A855F7] bg-clip-text text-transparent">
+                <div className="text-3xl font-bold bg-[#6047f5] bg-clip-text text-transparent">
                   {stat.number}
                 </div>
                 <div className="text-sm text-gray-600 font-medium">{stat.label}</div>
@@ -128,7 +128,7 @@ export default function ThankYou() {
                   {step.description}
                 </p>
 
-                <button className="w-full px-6 py-3 bg-gradient-to-r from-[#6366F1] to-[#A855F7] text-white rounded-xl font-semibold hover:shadow-xl hover:scale-105 transition-all duration-200 flex items-center justify-center gap-2">
+                <button className="w-full px-6 py-3 bg-[#6047f5] text-white rounded-xl font-semibold hover:shadow-xl hover:-translate-y-px transition-all duration-200 flex items-center justify-center gap-2">
                   {step.action}
                   <ArrowRight className="w-5 h-5" />
                 </button>
@@ -170,7 +170,7 @@ export default function ThankYou() {
 
               <button 
                 onClick={() => navigate('/')}
-                className="mt-8 px-8 py-4 bg-gradient-to-r from-[#6366F1] to-[#A855F7] text-white rounded-xl font-bold hover:shadow-xl hover:scale-105 transition-all duration-200 inline-flex items-center gap-2"
+                className="mt-8 px-8 py-4 bg-[#6047f5] text-white rounded-xl font-bold hover:shadow-xl hover:-translate-y-px transition-all duration-200 inline-flex items-center gap-2"
               >
                 Go to Dashboard
                 <ArrowRight className="w-5 h-5" />
@@ -219,7 +219,7 @@ export default function ThankYou() {
       </section>
 
       {/* Final CTA */}
-      <section className="py-24 bg-gradient-to-br from-[#6366F1] via-[#8B5CF6] to-[#A855F7] text-white">
+      <section className="py-24 bg-[#6047f5] text-white">
         <div className="max-w-4xl mx-auto px-6 lg:px-8 text-center">
           <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/20 backdrop-blur-sm rounded-full text-sm font-semibold mb-8">
             <Sparkles className="w-4 h-4" />
@@ -236,7 +236,7 @@ export default function ThankYou() {
 
           <button 
             onClick={() => navigate('/')}
-            className="px-10 py-5 bg-white text-purple-700 rounded-xl font-bold text-lg hover:bg-gray-100 shadow-2xl hover:scale-105 transition-all duration-200 inline-flex items-center gap-2"
+            className="px-10 py-5 bg-white text-purple-700 rounded-xl font-bold text-lg hover:bg-gray-100 shadow-2xl hover:-translate-y-px transition-all duration-200 inline-flex items-center gap-2"
           >
             Start Using AutoApply CV
             <ArrowRight className="w-5 h-5" />

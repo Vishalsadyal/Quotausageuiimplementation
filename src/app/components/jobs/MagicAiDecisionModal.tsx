@@ -299,7 +299,7 @@ export const MagicAiDecisionModal: React.FC<MagicAiDecisionModalProps> = ({
               animation: dataFlowForward 1.2s linear infinite;
             }
             .eclipse-core {
-              background: radial-gradient(circle at 50% 50%, #090d16 60%, #1e1035 90%, #6366f1 100%);
+              background: radial-gradient(circle at 50% 50%, #090d16 60%, #1e1035 90%, #6047f5 100%);
               box-shadow: 
                 0 0 60px rgba(139, 92, 246, 0.35),
                 inset 0 0 40px rgba(6, 182, 212, 0.25);
@@ -408,7 +408,7 @@ export const MagicAiDecisionModal: React.FC<MagicAiDecisionModalProps> = ({
               <button
                 type="button"
                 onClick={() => setIsDrawerOpen(true)}
-                className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-900/90 border border-cyan-500/50 hover:border-cyan-400 text-cyan-300 text-[10px] font-mono shadow-lg shadow-cyan-500/20 backdrop-blur-md transition-all hover:scale-105 cursor-pointer"
+                className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-900/90 border border-cyan-500/50 hover:border-cyan-400 text-cyan-300 text-[10px] font-mono shadow-lg shadow-cyan-500/20 backdrop-blur-md transition-all hover:-translate-y-px cursor-pointer"
               >
                 <Terminal className="w-3 h-3 text-cyan-400" />
                 <span>MySQL DB Telemetry ({totalSyncedCount} Synced)</span>
@@ -446,8 +446,8 @@ export const MagicAiDecisionModal: React.FC<MagicAiDecisionModalProps> = ({
                 {/* 3D Sphere Globe Radial Gradient */}
                 <radialGradient id="sphereGlobeRadial" cx="50%" cy="50%" r="50%">
                   <stop offset="0%" stopColor="#38bdf8" stopOpacity="0.22" />
-                  <stop offset="45%" stopColor="#818cf8" stopOpacity="0.12" />
-                  <stop offset="80%" stopColor="#c084fc" stopOpacity="0.05" />
+                  <stop offset="45%" stopColor="#8d7aff" stopOpacity="0.12" />
+                  <stop offset="80%" stopColor="#b9adff" stopOpacity="0.05" />
                   <stop offset="100%" stopColor="#020617" stopOpacity="0" />
                 </radialGradient>
 
@@ -474,27 +474,27 @@ export const MagicAiDecisionModal: React.FC<MagicAiDecisionModalProps> = ({
                 </linearGradient>
 
                 <linearGradient id="fiberLeftGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stopColor="#c084fc" />
+                  <stop offset="0%" stopColor="#b9adff" />
                   <stop offset="50%" stopColor="#38bdf8" />
                   <stop offset="100%" stopColor="#22d3ee" />
                 </linearGradient>
 
                 <linearGradient id="fiberRightGrad" x1="0%" y1="0%" x2="100%" y2="100%">
                   <stop offset="0%" stopColor="#22d3ee" />
-                  <stop offset="50%" stopColor="#818cf8" />
+                  <stop offset="50%" stopColor="#8d7aff" />
                   <stop offset="100%" stopColor="#38bdf8" />
                 </linearGradient>
               </defs>
 
               {/* 1. TOP-FANNING CABLES FROM BEACON TOP */}
-              <path d="M 545 45 C 530 25, 500 10, 470 0" stroke="#c084fc" strokeWidth="2" strokeOpacity="0.8" />
+              <path d="M 545 45 C 530 25, 500 10, 470 0" stroke="#b9adff" strokeWidth="2" strokeOpacity="0.8" />
               <path d="M 548 45 C 540 25, 520 10, 500 0" stroke="#38bdf8" strokeWidth="2" strokeOpacity="0.8" />
               <path d="M 550 45 L 550 0" stroke="#22d3ee" strokeWidth="2.5" strokeOpacity="0.9" className="animate-pulse" />
               <path d="M 552 45 C 560 25, 580 10, 600 0" stroke="#38bdf8" strokeWidth="2" strokeOpacity="0.8" />
               <path d="M 555 45 C 570 25, 600 10, 630 0" stroke="#f472b6" strokeWidth="2" strokeOpacity="0.8" />
 
               {/* 2. BOTTOM-FANNING CABLES FROM BEACON TO MODAL */}
-              <path d="M 545 60 C 530 80, 500 100, 480 125" stroke="#c084fc" strokeWidth="2" strokeOpacity="0.8" />
+              <path d="M 545 60 C 530 80, 500 100, 480 125" stroke="#b9adff" strokeWidth="2" strokeOpacity="0.8" />
               <path d="M 548 60 C 540 80, 520 105, 510 125" stroke="#38bdf8" strokeWidth="2" strokeOpacity="0.8" />
               <path d="M 550 60 L 550 125" stroke="#22d3ee" strokeWidth="2.5" strokeOpacity="0.95" className="animate-pulse" />
               <path d="M 552 60 C 560 80, 580 105, 590 125" stroke="#38bdf8" strokeWidth="2" strokeOpacity="0.8" />
@@ -503,12 +503,12 @@ export const MagicAiDecisionModal: React.FC<MagicAiDecisionModalProps> = ({
               {/* 3. 3D HOLOGRAPHIC SPHERE GLOBE (Center: 550, 320, Radius: 210) */}
               <circle cx="550" cy="320" r="210" fill="url(#sphereGlobeRadial)" />
               <circle cx="550" cy="320" r="210" stroke="#38bdf8" strokeOpacity="0.35" strokeWidth="1.5" strokeDasharray="6 4" />
-              <circle cx="550" cy="320" r="220" stroke="#818cf8" strokeOpacity="0.2" strokeWidth="1" strokeDasharray="4 6" />
+              <circle cx="550" cy="320" r="220" stroke="#8d7aff" strokeOpacity="0.2" strokeWidth="1" strokeDasharray="4 6" />
 
               {/* Latitudes & Longitudes */}
               <ellipse cx="550" cy="320" rx="210" ry="120" stroke="#38bdf8" strokeOpacity="0.35" strokeWidth="1.2" />
-              <ellipse cx="550" cy="320" rx="120" ry="210" stroke="#818cf8" strokeOpacity="0.35" strokeWidth="1.2" />
-              <ellipse cx="550" cy="320" rx="210" ry="60" stroke="#c084fc" strokeOpacity="0.25" strokeWidth="1" strokeDasharray="4 4" />
+              <ellipse cx="550" cy="320" rx="120" ry="210" stroke="#8d7aff" strokeOpacity="0.35" strokeWidth="1.2" />
+              <ellipse cx="550" cy="320" rx="210" ry="60" stroke="#b9adff" strokeOpacity="0.25" strokeWidth="1" strokeDasharray="4 4" />
               <ellipse cx="550" cy="320" rx="60" ry="210" stroke="#38bdf8" strokeOpacity="0.25" strokeWidth="1" strokeDasharray="4 4" />
 
               {/* 4. RADIANT SUN OBJECT IN CENTER */}
@@ -541,18 +541,18 @@ export const MagicAiDecisionModal: React.FC<MagicAiDecisionModalProps> = ({
               <g className="animate-spin" style={{ transformOrigin: "550px 320px", animationDuration: "40s" }}>
                 <ellipse cx="550" cy="320" rx="240" ry="90" stroke="#22d3ee" strokeOpacity="0.45" strokeWidth="1.2" strokeDasharray="10 6" />
                 <circle cx="310" cy="320" r="4" fill="#22d3ee" className="shadow-lg shadow-cyan-400" />
-                <circle cx="790" cy="320" r="4" fill="#a855f7" />
+                <circle cx="790" cy="320" r="4" fill="#4932cf" />
               </g>
 
               {/* 5. OPTICAL FIBER RAYS TO LEFT 6 AGENT NODES */}
               <path d="M 380 200 C 330 140, 280 100, 240 90" stroke="url(#fiberLeftGrad)" strokeWidth="3.5" strokeLinecap="round" filter="url(#glowPurple)" />
               <path d="M 380 200 C 330 140, 280 100, 240 90" stroke="#fef08a" strokeWidth="1.5" className="animate-data-flow" />
-              <circle cx="290" cy="135" r="5.5" fill="#0f172a" stroke="#c084fc" strokeWidth="1.8" />
+              <circle cx="290" cy="135" r="5.5" fill="#0f172a" stroke="#b9adff" strokeWidth="1.8" />
               <circle cx="290" cy="135" r="2.5" fill="#22d3ee" className="animate-ping" />
 
               <path d="M 380 240 C 290 210, 220 190, 160 180" stroke="url(#fiberLeftGrad)" strokeWidth="3.5" strokeLinecap="round" filter="url(#glowPurple)" />
               <path d="M 380 240 C 290 210, 220 190, 160 180" stroke="#fef08a" strokeWidth="1.5" className="animate-data-flow" />
-              <circle cx="250" cy="205" r="5.5" fill="#0f172a" stroke="#a855f7" strokeWidth="1.8" />
+              <circle cx="250" cy="205" r="5.5" fill="#0f172a" stroke="#4932cf" strokeWidth="1.8" />
               <circle cx="250" cy="205" r="2.5" fill="#38bdf8" />
 
               <path d="M 380 290 C 260 280, 170 275, 90 275" stroke="url(#fiberLeftGrad)" strokeWidth="4" strokeLinecap="round" filter="url(#glowAmber)" />
@@ -567,7 +567,7 @@ export const MagicAiDecisionModal: React.FC<MagicAiDecisionModalProps> = ({
 
               <path d="M 380 400 C 280 430, 200 455, 140 470" stroke="url(#fiberLeftGrad)" strokeWidth="3.5" strokeLinecap="round" filter="url(#glowPurple)" />
               <path d="M 380 400 C 280 430, 200 455, 140 470" stroke="#fef08a" strokeWidth="1.5" className="animate-data-flow" />
-              <circle cx="240" cy="440" r="5.5" fill="#0f172a" stroke="#c084fc" strokeWidth="1.8" />
+              <circle cx="240" cy="440" r="5.5" fill="#0f172a" stroke="#b9adff" strokeWidth="1.8" />
               <circle cx="240" cy="440" r="2.5" fill="#38bdf8" />
 
               <path d="M 380 440 C 310 490, 260 535, 220 560" stroke="url(#fiberLeftGrad)" strokeWidth="3.5" strokeLinecap="round" filter="url(#glowAmber)" />
@@ -598,7 +598,7 @@ export const MagicAiDecisionModal: React.FC<MagicAiDecisionModalProps> = ({
 
               <path d="M 720 440 C 780 480, 825 515, 860 535" stroke="url(#fiberRightGrad)" strokeWidth="3.5" strokeLinecap="round" filter="url(#glowCyan)" />
               <path d="M 720 440 C 780 480, 825 515, 860 535" stroke="#fef08a" strokeWidth="1.5" className="animate-data-flow" />
-              <circle cx="800" cy="495" r="5.5" fill="#0f172a" stroke="#c084fc" strokeWidth="1.8" />
+              <circle cx="800" cy="495" r="5.5" fill="#0f172a" stroke="#b9adff" strokeWidth="1.8" />
               <circle cx="800" cy="495" r="2.5" fill="#38bdf8" />
             </svg>
 
@@ -776,7 +776,7 @@ export const MagicAiDecisionModal: React.FC<MagicAiDecisionModalProps> = ({
                 animate={{ scale: 1, opacity: 1 }}
                 exit={{ scale: 0.9, opacity: 0 }}
                 onClick={() => setIsCardMinimized(false)}
-                className="relative rounded-2xl bg-gradient-to-r from-slate-900/95 via-indigo-950/95 to-slate-900/95 border-2 border-cyan-400/80 px-4 py-2 text-white shadow-2xl shadow-cyan-500/30 backdrop-blur-xl z-30 pointer-events-auto cursor-pointer hover:border-cyan-300 hover:scale-105 transition-all flex items-center gap-2.5"
+                className="relative rounded-2xl bg-gradient-to-r from-slate-900/95 via-indigo-950/95 to-slate-900/95 border-2 border-cyan-400/80 px-4 py-2 text-white shadow-2xl shadow-cyan-500/30 backdrop-blur-xl z-30 pointer-events-auto cursor-pointer hover:border-cyan-300 hover:-translate-y-px transition-all flex items-center gap-2.5"
               >
                 <div className="flex items-center gap-1.5">
                   <span className="text-yellow-300 font-black text-xs animate-spin" style={{ animationDuration: "6s" }}>✨</span>
@@ -858,7 +858,7 @@ export const MagicAiDecisionModal: React.FC<MagicAiDecisionModalProps> = ({
                     className={`w-full p-2.5 rounded-xl border text-left transition-all flex items-center justify-between gap-2.5 cursor-pointer ${
                       processingAction === "optimize"
                         ? "bg-purple-900/90 border-cyan-400 ring-2 ring-cyan-400 shadow-lg shadow-cyan-500/30"
-                        : "bg-gradient-to-r from-purple-900/80 via-indigo-900/80 to-purple-900/80 border-purple-400/80 hover:border-cyan-300 hover:scale-[1.02] shadow-md shadow-purple-950/50"
+                        : "bg-gradient-to-r from-purple-900/80 via-indigo-900/80 to-purple-900/80 border-purple-400/80 hover:border-cyan-300 hover:-translate-y-px shadow-md shadow-purple-950/50"
                     }`}
                   >
                     <div className="flex items-center gap-2.5 min-w-0">
@@ -1404,7 +1404,7 @@ export const MagicAiDecisionModal: React.FC<MagicAiDecisionModalProps> = ({
             <button
               type="button"
               onClick={onClose}
-              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white font-bold text-xs shadow-xl shadow-purple-500/40 hover:scale-105 transition-all cursor-pointer border border-white/30"
+              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white font-bold text-xs shadow-xl shadow-purple-500/40 hover:-translate-y-px transition-all cursor-pointer border border-white/30"
             >
               <div className="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center">
                 <Bot className="w-3 h-3 text-cyan-200" />

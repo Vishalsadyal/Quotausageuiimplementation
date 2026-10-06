@@ -34,7 +34,7 @@ export const SEO_BY_PATH: Record<string, SeoEntry> = {
   "/": {
     title: "AutoApply CV - Free AI Auto Apply for LinkedIn & Indeed Jobs",
     description:
-      "Free AI auto apply Chrome extension for LinkedIn Easy Apply and Indeed. Auto apply to jobs in India and worldwide with answer banks, duplicate prevention and live tracking.",
+      "Free AI auto apply Chrome extension for LinkedIn Easy Apply and Indeed. Saved answers, duplicate prevention and live tracking for every application.",
     index: true,
     structuredData: [
       {
@@ -52,19 +52,23 @@ export const SEO_BY_PATH: Record<string, SeoEntry> = {
         "@context": "https://schema.org",
         "@type": "Organization",
         name: "AutoApply CV",
+        alternateName: "AutoApplyCV",
         url: "https://www.autoapplycv.in",
         logo: "https://www.autoapplycv.in/apple-touch-icon.png",
+        // Official profiles only. Add LinkedIn / X / YouTube company pages here once they exist.
+        sameAs: ["https://chromewebstore.google.com/detail/mcfmniiniaigfhhjlaegpmhecbdoikjd"],
       },
       {
         "@context": "https://schema.org",
         "@type": "WebSite",
         name: "AutoApply CV",
+        alternateName: "AutoApplyCV",
         url: "https://www.autoapplycv.in",
       },
     ],
   },
   "/features": {
-    title: "AI Resume Builder, Job Tracker & Auto Apply Features | AutoApply CV",
+    title: "Auto Apply, AI Resume & Job Tracker Features | AutoApply CV",
     description:
       "Explore job search automation features: LinkedIn easy apply bot workflows, AI resume tailoring, interview preparation AI, and application analytics.",
     index: true,
@@ -82,15 +86,48 @@ export const SEO_BY_PATH: Record<string, SeoEntry> = {
     index: true,
   },
   "/pricing": {
-    title: "Pricing | LinkedIn Auto Apply Bot Plans | AutoApply CV",
+    title: "Pricing: Free & Pro Plans | AutoApply CV",
     description:
       "Compare transparent AutoApply CV pricing with clear charged vs skipped outcomes, LinkedIn automation limits, and AI resume optimization tools.",
     index: true,
+    // Prices must match src/lib/billing.ts (Pro is charged in INR via Razorpay).
+    structuredData: {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      name: "AutoApply CV",
+      url: "https://www.autoapplycv.in/pricing",
+      applicationCategory: "BusinessApplication",
+      operatingSystem: "Web, Chrome",
+      offers: [
+        {
+          "@type": "Offer",
+          name: "Free",
+          description: "3 auto-apply actions per day, application tracker and resume builder.",
+          price: "0",
+          priceCurrency: "INR",
+          url: "https://www.autoapplycv.in/pricing",
+        },
+        {
+          "@type": "Offer",
+          name: "Pro",
+          description: "Unlimited auto-apply with premium automation, billed monthly.",
+          price: "49",
+          priceCurrency: "INR",
+          priceSpecification: {
+            "@type": "UnitPriceSpecification",
+            price: "49",
+            priceCurrency: "INR",
+            unitText: "MONTH",
+          },
+          url: "https://www.autoapplycv.in/pricing",
+        },
+      ],
+    },
   },
   "/recruitment-agency": {
-    title: "Recruitment & Candidate Job Search Assistance Agency | AutoApply CV",
+    title: "Recruitment & Job Search Assistance Agency | AutoApply CV",
     description:
-      "AutoApplyCV is an authorized recruitment & candidate assistance agency connecting professionals with 500+ verified corporate recruiters via WhatsApp & direct email outreach. Download our official 6-page brochure.",
+      "Recruitment and candidate assistance agency connecting professionals with verified corporate recruiters via WhatsApp and direct email outreach.",
     index: true,
     structuredData: [
       {
@@ -175,7 +212,7 @@ export const SEO_BY_PATH: Record<string, SeoEntry> = {
   "/auto-apply-linkedin": {
     title: "LinkedIn Auto Apply Bot (Free) | AutoApply CV",
     description:
-      "Free LinkedIn auto apply bot & Easy Apply copilot. Automate job applications safely on LinkedIn with custom answer banks, smart resume matching, and live tracking.",
+      "Free LinkedIn auto apply bot and Easy Apply copilot. Automate applications safely with answer banks, smart resume matching and live tracking.",
     index: true,
     structuredData: [
       {
@@ -187,7 +224,7 @@ export const SEO_BY_PATH: Record<string, SeoEntry> = {
         offers: {
           "@type": "Offer",
           price: "0",
-          priceCurrency: "USD",
+          priceCurrency: "INR",
         },
         description:
           "Free LinkedIn auto apply bot and Easy Apply copilot for software engineers and professionals.",
@@ -233,9 +270,9 @@ export const SEO_BY_PATH: Record<string, SeoEntry> = {
     ],
   },
   "/auto-apply-jobs": {
-    title: "Auto Apply Jobs (Free) | Automated Job Applications | AutoApply CV",
+    title: "Auto Apply to Jobs Free with AI | AutoApply CV",
     description:
-      "Free auto apply jobs tool to apply to LinkedIn and Indeed roles automatically. Match resumes, submit applications with verified answers, and track interviews.",
+      "Free auto apply jobs tool for LinkedIn and Indeed. Match resumes, submit applications with verified answers and track every interview.",
     index: true,
     structuredData: {
       "@context": "https://schema.org",
@@ -263,7 +300,7 @@ export const SEO_BY_PATH: Record<string, SeoEntry> = {
   "/auto-apply-chrome-extension": {
     title: "Auto Apply Chrome Extension for LinkedIn (Free) | AutoApply CV",
     description:
-      "Free auto apply Chrome extension for LinkedIn Easy Apply. Automates repetitive application forms, syncs screening answers, and prevents duplicate applications.",
+      "Free auto apply Chrome extension for LinkedIn Easy Apply. Fills repetitive forms, syncs screening answers and prevents duplicate applications.",
     index: true,
     structuredData: {
       "@context": "https://schema.org",
@@ -274,7 +311,7 @@ export const SEO_BY_PATH: Record<string, SeoEntry> = {
       offers: {
         "@type": "Offer",
         price: "0",
-        priceCurrency: "USD",
+        priceCurrency: "INR",
       },
     },
   },
@@ -284,7 +321,7 @@ export const SEO_BY_PATH: Record<string, SeoEntry> = {
     index: true,
   },
   "/faq": {
-    title: "FAQ | LinkedIn Auto Apply Bot Questions | AutoApply CV",
+    title: "Auto Apply FAQ | AutoApply CV",
     description:
       "Get answers about LinkedIn easy apply bot behavior, auto apply limits, AI resume builder features, and job search automation setup.",
     index: true,
@@ -376,46 +413,6 @@ export const SEO_BY_PATH: Record<string, SeoEntry> = {
       description: "Guides about AI job search automation and LinkedIn auto apply workflows.",
     },
   },
-  "/blog/lazyapply-alternative": {
-    title: "LazyApply Alternative for Better Results | AutoApply CV Blog",
-    description:
-      "Looking for a LazyApply alternative? Compare automation quality, ATS resume optimization, and tracking for better interviews.",
-    index: true,
-    structuredData: {
-      "@context": "https://schema.org",
-      "@type": "Article",
-      headline: "LazyApply Alternative: What to Pick for Better Interview Results",
-      description:
-        "A practical comparison guide for users evaluating LazyApply alternatives and LinkedIn auto apply workflows.",
-      author: { "@type": "Organization", name: "AutoApply CV" },
-    },
-  },
-  "/blog/best-ai-job-search-tools": {
-    title: "Best AI Job Search Tools for 2026 | AutoApply CV Blog",
-    description:
-      "Compare AI job search tools for engineers: automation quality, resume tailoring, tracking, and practical guardrails that prevent wasted applications.",
-    index: true,
-    structuredData: {
-      "@context": "https://schema.org",
-      "@type": "Article",
-      headline: "Best AI Job Search Tools for Engineers (2026)",
-      description: "A comparison of AI job search tools and automation workflows for engineers.",
-      author: { "@type": "Organization", name: "AutoApply CV" },
-    },
-  },
-  "/blog/linkedin-easy-apply-does-it-work": {
-    title: "LinkedIn Easy Apply: Does It Work? | AutoApply CV Blog",
-    description:
-      "See when LinkedIn Easy Apply works, why applications fail, and how to improve callbacks with resume and targeting changes.",
-    index: true,
-    structuredData: {
-      "@context": "https://schema.org",
-      "@type": "Article",
-      headline: "LinkedIn Easy Apply: Does It Work for Software Engineers?",
-      description: "Guidance on improving LinkedIn Easy Apply results with tailored resumes and better targeting.",
-      author: { "@type": "Organization", name: "AutoApply CV" },
-    },
-  },
   "/login": {
     title: "Login | AutoApply CV",
     description: "Login to your AutoApply CV account.",
@@ -495,6 +492,14 @@ export function resolveSeo(pathname: string): SeoEntry {
 
   return base;
 }
+
+// Shared social preview image, generated by app/og-image.png/route.tsx.
+export const OG_IMAGE = {
+  url: "https://www.autoapplycv.in/og-image.png",
+  width: 1200,
+  height: 630,
+  alt: "AutoApply CV - Free LinkedIn Auto Apply Bot",
+};
 
 export function canonicalForPath(pathname: string, baseUrl = "https://www.autoapplycv.in") {
   const normalizedBase = normalizeCanonicalBaseUrl(baseUrl);

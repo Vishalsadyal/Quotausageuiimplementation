@@ -13,6 +13,8 @@ import {
   Workflow,
   Star,
   ExternalLink,
+  ArrowRight,
+  Clock,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
@@ -56,17 +58,35 @@ export function Navigation() {
   return (
     <>
       {/* Announcement Bar */}
-      <div className="bg-gradient-to-r from-[#6366F1] via-[#8B5CF6] to-[#A855F7] text-white py-2.5 px-4 text-center text-sm">
-        <span className="inline-flex items-center gap-2">
-          <Sparkles className="w-4 h-4 text-yellow-300" />
-          <span><strong>Free:</strong> Start applying with $0 signup + 30 Hires bonus credits.</span>
+      <div className="w-full h-8 px-3 sm:px-6 flex items-center justify-center gap-2.5 bg-[#17142e] text-[#eae7ff] text-xs">
+        <span className="shrink-0 px-2 py-0.5 rounded-full bg-[#c8ff62] text-[#17142e] text-[10px] font-extrabold uppercase">
+          New
         </span>
+        <p className="m-0 min-w-0 truncate text-[#bdb8d4]">
+          <strong className="text-white">Free:</strong> Start applying with $0 signup + 30 Hires bonus credits.
+        </p>
+        <Link to="/signup" className="hidden sm:inline-flex shrink-0 items-center gap-1 font-bold text-white hover:underline">
+          Get started <ArrowRight className="w-3 h-3" />
+        </Link>
+      </div>
+
+      {/* Urgency Bar */}
+      <div className="w-full h-8 px-3 sm:px-6 flex items-center justify-center gap-2.5 bg-[#c8ff62] text-[#3b2600] text-xs">
+        <strong className="shrink-0 inline-flex items-center gap-1.5 font-extrabold">
+          <Clock className="w-3 h-3" /> Limited offer
+        </strong>
+        <p className="m-0 min-w-0 truncate text-[#496312]">
+          Pro is 90% off: unlimited auto-apply for ₹49/month.
+        </p>
+        <Link to="/pricing" className="hidden sm:inline-flex shrink-0 items-center gap-1 font-extrabold hover:underline">
+          View Pro plan <ArrowRight className="w-3 h-3" />
+        </Link>
       </div>
 
       {/* Navigation */}
-      <nav className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-gray-200 shadow-sm">
+      <nav className="sticky top-0 z-50 bg-white/90 backdrop-blur-[14px] border-b border-gray-200/75">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
+          <div className="flex items-center justify-between h-[72px]">
             {/* Logo */}
             <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
               <img
@@ -78,8 +98,25 @@ export function Navigation() {
                 loading="eager"
                 decoding="async"
               />
-              <span className="text-xl font-bold bg-gradient-to-r from-[#6366F1] to-[#A855F7] bg-clip-text text-transparent">
-                AutoApply CV
+              <span className="flex flex-col leading-none">
+                <span className="text-lg font-extrabold tracking-[-0.5px] text-gray-900 leading-tight">
+                  AutoApply <span className="text-[#6047f5]">CV</span>
+                </span>
+                <span className="mt-1 inline-flex items-center gap-1 text-[11px] font-semibold text-gray-500">
+                  <svg
+                    viewBox="0 0 24 24"
+                    className="w-3.5 h-3.5 shrink-0"
+                    role="img"
+                    aria-label="LinkedIn"
+                  >
+                    <rect width="24" height="24" rx="4" fill="#0a66c2" />
+                    <path
+                      fill="#ffffff"
+                      d="M7.1 9.6h2.5v8.1H7.1V9.6Zm1.25-4a1.45 1.45 0 1 1 0 2.9 1.45 1.45 0 0 1 0-2.9Zm2.8 4h2.4v1.1h.03c.34-.63 1.15-1.3 2.37-1.3 2.53 0 3 1.67 3 3.83v4.47h-2.5v-3.96c0-.95-.02-2.16-1.32-2.16-1.32 0-1.52 1.03-1.52 2.1v4.02h-2.5V9.6Z"
+                    />
+                  </svg>
+                  LinkedIn Partner
+                </span>
               </span>
             </Link>
 
@@ -95,11 +132,11 @@ export function Navigation() {
                 <button
                   type="button"
                   onClick={() => setRecruitmentMenuOpen(!recruitmentMenuOpen)}
-                  className="flex items-center gap-1.5 text-gray-700 hover:text-[#8B5CF6] font-medium transition-colors py-2 focus:outline-none"
+                  className="flex items-center gap-1.5 text-sm text-gray-600 hover:text-[#6047f5] font-semibold transition-colors py-2 focus:outline-none"
                 >
-                  <Building2 className="w-4 h-4 text-[#8B5CF6]" />
+                  <Building2 className="w-4 h-4 text-[#6047f5]" />
                   <span>Recruitment Agency</span>
-                  <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${recruitmentMenuOpen ? 'rotate-180 text-[#8B5CF6]' : 'text-gray-400'}`} />
+                  <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${recruitmentMenuOpen ? 'rotate-180 text-[#6047f5]' : 'text-gray-400'}`} />
                 </button>
 
                 {recruitmentMenuOpen && (
@@ -192,25 +229,25 @@ export function Navigation() {
                 )}
               </div>
 
-              <Link to="/how-it-works" className="text-gray-700 hover:text-[#8B5CF6] font-medium transition-colors">
+              <Link to="/how-it-works" className="text-sm text-gray-600 hover:text-[#6047f5] font-semibold transition-colors">
                 How It Works
               </Link>
-              <Link to="/auto-apply" className="text-gray-700 hover:text-[#8B5CF6] font-medium transition-colors">
+              <Link to="/auto-apply" className="text-sm text-gray-600 hover:text-[#6047f5] font-semibold transition-colors">
                 Auto Apply
               </Link>
-              <Link to="/pricing" className="text-gray-700 hover:text-[#8B5CF6] font-medium transition-colors">
+              <Link to="/pricing" className="text-sm text-gray-600 hover:text-[#6047f5] font-semibold transition-colors">
                 Pricing
               </Link>
-              <Link to="/roadmap" className="text-gray-700 hover:text-[#8B5CF6] font-medium transition-colors">
+              <Link to="/roadmap" className="text-sm text-gray-600 hover:text-[#6047f5] font-semibold transition-colors">
                 Roadmap
               </Link>
-              <Link to="/about" className="text-gray-700 hover:text-[#8B5CF6] font-medium transition-colors">
+              <Link to="/about" className="text-sm text-gray-600 hover:text-[#6047f5] font-semibold transition-colors">
                 About Us
               </Link>
-              <Link to="/faq" className="text-gray-700 hover:text-[#8B5CF6] font-medium transition-colors">
+              <Link to="/faq" className="text-sm text-gray-600 hover:text-[#6047f5] font-semibold transition-colors">
                 FAQ
               </Link>
-              <Link to="/blog" className="text-gray-700 hover:text-[#8B5CF6] font-medium transition-colors">
+              <Link to="/blog" className="text-sm text-gray-600 hover:text-[#6047f5] font-semibold transition-colors">
                 Blog
               </Link>
             </div>
@@ -221,14 +258,14 @@ export function Navigation() {
                 <>
                   <button
                     onClick={() => navigate(isAdmin ? '/admin' : '/dashboard')}
-                    className="flex items-center gap-2 text-gray-700 hover:text-[#8B5CF6] font-medium transition-colors"
+                    className="flex items-center gap-2 text-gray-700 hover:text-[#6047f5] font-medium transition-colors"
                   >
                     {isAdmin ? <Shield className="w-4 h-4" /> : <LayoutDashboard className="w-4 h-4" />}
                     {isAdmin ? 'Admin' : 'Dashboard'}
                   </button>
                   <button
                     onClick={handleAuthAction}
-                    className="flex items-center gap-2 text-gray-700 hover:text-[#8B5CF6] font-medium transition-colors"
+                    className="flex items-center gap-2 text-gray-700 hover:text-[#6047f5] font-medium transition-colors"
                   >
                     <LogOut className="w-4 h-4" />
                     Logout
@@ -238,13 +275,13 @@ export function Navigation() {
                 <>
                   <button
                     onClick={handleAuthAction}
-                    className="text-gray-700 hover:text-[#8B5CF6] font-medium transition-colors"
+                    className="text-sm text-gray-600 hover:text-[#6047f5] font-semibold transition-colors"
                   >
                     Sign In
                   </button>
                   <button 
                     onClick={handleGetStarted}
-                    className="px-6 py-2.5 bg-gradient-to-r from-[#6366F1] via-[#8B5CF6] to-[#A855F7] text-white rounded-lg font-semibold hover:shadow-xl hover:scale-105 transition-all duration-200"
+                    className="min-h-[42px] px-[17px] bg-[#17142e] hover:bg-[#6047f5] text-white text-sm rounded-[10px] font-semibold hover:-translate-y-px transition-all duration-200"
                   >
                     Get Started
                   </button>
@@ -328,42 +365,42 @@ export function Navigation() {
 
                 <Link 
                   to="/how-it-works" 
-                  className="text-gray-700 hover:text-[#8B5CF6] font-medium transition-colors px-1"
+                  className="text-gray-700 hover:text-[#6047f5] font-medium transition-colors px-1"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   How It Works
                 </Link>
                 <Link 
                   to="/pricing" 
-                  className="text-gray-700 hover:text-[#8B5CF6] font-medium transition-colors px-1"
+                  className="text-gray-700 hover:text-[#6047f5] font-medium transition-colors px-1"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   Pricing
                 </Link>
                 <Link 
                   to="/roadmap" 
-                  className="text-gray-700 hover:text-[#8B5CF6] font-medium transition-colors px-1"
+                  className="text-gray-700 hover:text-[#6047f5] font-medium transition-colors px-1"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   Roadmap
                 </Link>
                 <Link 
                   to="/about" 
-                  className="text-gray-700 hover:text-[#8B5CF6] font-medium transition-colors px-1"
+                  className="text-gray-700 hover:text-[#6047f5] font-medium transition-colors px-1"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   About Us
                 </Link>
                 <Link 
                   to="/faq" 
-                  className="text-gray-700 hover:text-[#8B5CF6] font-medium transition-colors px-1"
+                  className="text-gray-700 hover:text-[#6047f5] font-medium transition-colors px-1"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   FAQ
                 </Link>
                 <Link 
                   to="/blog" 
-                  className="text-gray-700 hover:text-[#8B5CF6] font-medium transition-colors px-1"
+                  className="text-gray-700 hover:text-[#6047f5] font-medium transition-colors px-1"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   Blog
@@ -373,14 +410,14 @@ export function Navigation() {
                     <>
                       <button
                         onClick={() => navigate(isAdmin ? '/admin' : '/dashboard')}
-                        className="flex items-center gap-2 text-gray-700 hover:text-[#8B5CF6] font-medium transition-colors text-left"
+                        className="flex items-center gap-2 text-gray-700 hover:text-[#6047f5] font-medium transition-colors text-left"
                       >
                         {isAdmin ? <Shield className="w-4 h-4" /> : <LayoutDashboard className="w-4 h-4" />}
                         {isAdmin ? 'Admin' : 'Dashboard'}
                       </button>
                       <button
                         onClick={handleAuthAction}
-                        className="flex items-center gap-2 text-gray-700 hover:text-[#8B5CF6] font-medium transition-colors text-left"
+                        className="flex items-center gap-2 text-gray-700 hover:text-[#6047f5] font-medium transition-colors text-left"
                       >
                         <LogOut className="w-4 h-4" />
                         Logout
@@ -390,7 +427,7 @@ export function Navigation() {
                     <>
                       <button
                         onClick={handleAuthAction}
-                        className="text-gray-700 hover:text-[#8B5CF6] font-medium transition-colors text-left"
+                        className="text-gray-700 hover:text-[#6047f5] font-medium transition-colors text-left"
                       >
                         Sign In
                       </button>
@@ -399,7 +436,7 @@ export function Navigation() {
                           handleGetStarted();
                           setMobileMenuOpen(false);
                         }}
-                        className="px-6 py-2.5 bg-gradient-to-r from-[#6366F1] via-[#8B5CF6] to-[#A855F7] text-white rounded-lg font-semibold"
+                        className="min-h-[42px] px-[17px] bg-[#17142e] hover:bg-[#6047f5] text-white text-sm rounded-[10px] font-semibold"
                       >
                         Get Started
                       </button>

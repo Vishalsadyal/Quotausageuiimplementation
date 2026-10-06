@@ -43,7 +43,7 @@ export default function BlogLinkedInEasyApplyDoesItWork() {
             </p>
             <button
               onClick={() => navigate('/how-it-works')}
-              className="inline-flex items-center gap-2 px-7 py-3 bg-gradient-to-r from-[#6366F1] to-[#A855F7] text-white rounded-xl font-semibold"
+              className="inline-flex items-center gap-2 px-7 py-3 bg-[#6047f5] text-white rounded-xl font-semibold"
             >
               See how it works
               <ArrowRight className="w-4 h-4" />

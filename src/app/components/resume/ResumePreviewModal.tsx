@@ -23,7 +23,7 @@ export default function ResumePreviewModal({ open, onClose, html, templateName, 
             <button
               type="button"
               onClick={onDownload}
-              className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#6366F1] to-[#A855F7] text-white rounded-xl font-semibold hover:shadow-lg transition-all text-sm"
+              className="flex items-center gap-2 px-4 py-2 bg-[#6047f5] text-white rounded-xl font-semibold hover:shadow-lg transition-all text-sm"
             >
               <Download className="w-4 h-4" />
               Download

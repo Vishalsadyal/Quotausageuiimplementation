@@ -77,7 +77,7 @@ export function UpgradeModal({ isOpen, onClose }: UpgradeModalProps) {
 
                 <button
                   onClick={handleUpgrade}
-                  className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white py-3 rounded-lg font-bold hover:shadow-lg hover:scale-[1.02] transition-all duration-200 cursor-pointer"
+                  className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white py-3 rounded-lg font-bold hover:shadow-lg hover:-translate-y-px transition-all duration-200 cursor-pointer"
                 >
                   Get Pro Access for ₹49
                 </button>

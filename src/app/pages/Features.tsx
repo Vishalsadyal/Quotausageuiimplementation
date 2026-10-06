@@ -157,7 +157,7 @@ export default function Features() {
           
           <h1 className="text-5xl lg:text-6xl font-bold text-gray-900 mb-6">
             Powerful LinkedIn Auto Apply Bot &{' '}
-            <span className="bg-gradient-to-r from-[#6366F1] to-[#A855F7] bg-clip-text text-transparent">
+            <span className="bg-[#6047f5] bg-clip-text text-transparent">
               Job Search Automation
             </span>
           </h1>
@@ -177,10 +177,10 @@ export default function Features() {
                 key={index}
                 className="text-center p-6 rounded-2xl bg-gradient-to-br from-purple-50 to-blue-50 border border-purple-100"
               >
-                <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br from-[#6366F1] to-[#A855F7] flex items-center justify-center mx-auto mb-4 shadow-lg`}>
+                <div className={`w-16 h-16 rounded-2xl bg-[#6047f5] flex items-center justify-center mx-auto mb-4 shadow-lg`}>
                   <benefit.icon className="w-8 h-8 text-white" />
                 </div>
-                <div className="text-3xl font-bold bg-gradient-to-r from-[#6366F1] to-[#A855F7] bg-clip-text text-transparent mb-2">
+                <div className="text-3xl font-bold bg-[#6047f5] bg-clip-text text-transparent mb-2">
                   {benefit.stat}
                 </div>
                 <h3 className="font-bold text-gray-900 mb-2">{benefit.title}</h3>
@@ -219,7 +219,7 @@ export default function Features() {
 
                 <button 
                   onClick={() => navigate('/pricing')}
-                  className="px-8 py-4 bg-gradient-to-r from-[#6366F1] to-[#A855F7] text-white rounded-xl font-semibold hover:shadow-xl hover:scale-105 transition-all duration-200 inline-flex items-center gap-2"
+                  className="px-8 py-4 bg-[#6047f5] text-white rounded-xl font-semibold hover:shadow-xl hover:-translate-y-px transition-all duration-200 inline-flex items-center gap-2"
                 >
                   Get Started Free
                   <ArrowRight className="w-5 h-5" />
@@ -241,7 +241,7 @@ export default function Features() {
       ))}
 
       {/* CTA Section */}
-      <section className="py-24 bg-gradient-to-br from-[#6366F1] via-[#8B5CF6] to-[#A855F7] text-white">
+      <section className="py-24 bg-[#6047f5] text-white">
         <div className="max-w-4xl mx-auto px-6 lg:px-8 text-center">
           <h2 className="text-4xl lg:text-5xl font-bold mb-6">
             Ready to transform your job search?
@@ -254,7 +254,7 @@ export default function Features() {
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <button 
               onClick={() => navigate('/pricing')}
-              className="px-10 py-5 bg-white text-purple-700 rounded-xl font-bold text-lg hover:bg-gray-100 shadow-2xl hover:scale-105 transition-all duration-200"
+              className="px-10 py-5 bg-white text-purple-700 rounded-xl font-bold text-lg hover:bg-gray-100 shadow-2xl hover:-translate-y-px transition-all duration-200"
             >
               Start Free (Start Free Trial)
             </button>

@@ -14,6 +14,14 @@ export function middleware(req: NextRequest) {
   // don't spam the console when GA isn't configured.
   const allowGoogleAnalyticsEndpoints = hasGoogleAnalytics || hasGoogleTagManager || !isProd;
 
+  // One canonical URL per page: /Pricing -> /pricing (301). Skip API routes and
+  // anything that looks like a file so asset names keep their exact case.
+  if (!path.startsWith("/api/") && !/\.[a-z0-9]+$/i.test(path) && path !== path.toLowerCase()) {
+    const url = req.nextUrl.clone();
+    url.pathname = path.toLowerCase();
+    return NextResponse.redirect(url, 301);
+  }
+
   if (isProd && path.startsWith("/downloads/")) {
     return NextResponse.json({ success: false, message: "Not found" }, { status: 404 });
   }

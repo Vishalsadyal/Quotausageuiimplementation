@@ -41,6 +41,24 @@ export default function Careers() {
             },
           ],
         },
+        {
+          title: "What we look for",
+          bullets: [
+            "You have shipped real products and can show the work: links, repositories, or write-ups.",
+            "You care about the people using the product, not just the code or the metric.",
+            "You write clearly. Most decisions are made in writing in a remote-first team.",
+            "You are comfortable owning a problem end to end, from investigation to release.",
+          ],
+        },
+        {
+          title: "How to apply",
+          bullets: [
+            "Email the team through the contact page with the role name in the subject line.",
+            "Include your resume or LinkedIn profile and two or three links to work you are proud of.",
+            "Add a few sentences on the problem area you would want to own at AutoApply CV.",
+            "If there is no open role that fits, tell us anyway. We keep strong profiles on file.",
+          ],
+        },
       ]}
       ctaTitle="No matching role right now?"
       ctaDescription="Send a short note with your profile and the problem area you want to own."

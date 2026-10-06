@@ -25,6 +25,14 @@ export default function CookiePolicy() {
           ],
         },
         {
+          title: "Analytics cookies and consent",
+          bullets: [
+            "Analytics cookies are only used with your consent, to understand how the site is used and improve it.",
+            "Essential cookies for security and session management are always active.",
+            "Change your choice at any time with the Cookie settings link in the site footer.",
+          ],
+        },
+        {
           title: "How to control cookies",
           bullets: [
             "You can clear site data from browser settings at any time.",

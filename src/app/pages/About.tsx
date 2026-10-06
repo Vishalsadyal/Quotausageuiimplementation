@@ -32,27 +32,6 @@ export default function About() {
     }
   ];
 
-  const team = [
-    {
-      name: 'Alex Chen',
-      role: 'CEO & Founder',
-      image: 'https://images.unsplash.com/photo-1723537742563-15c3d351dbf2?w=400',
-      bio: 'Ex-Google SWE, built AutoApply CV after landing 15 offers'
-    },
-    {
-      name: 'Sarah Martinez',
-      role: 'Head of Product',
-      image: 'https://images.unsplash.com/photo-1689600944138-da3b150d9cb8?w=400',
-      bio: 'Former Meta PM, 10+ years in career tech'
-    },
-    {
-      name: 'James Wilson',
-      role: 'Head of Engineering',
-      image: 'https://images.unsplash.com/photo-1576558656222-ba66febe3dec?w=400',
-      bio: 'AI/ML expert from Amazon, Stanford CS PhD'
-    }
-  ];
-
   return (
     <div className="bg-white">
       {/* Hero */}
@@ -66,7 +45,7 @@ export default function About() {
               
               <h1 className="text-5xl lg:text-6xl font-bold text-gray-900 mb-6">
                 We're on a mission to help{' '}
-                <span className="bg-gradient-to-r from-[#6366F1] to-[#A855F7] bg-clip-text text-transparent">
+                <span className="bg-[#6047f5] bg-clip-text text-transparent">
                   every engineer
                 </span>{' '}
                 land their dream job
@@ -79,7 +58,7 @@ export default function About() {
               <div className="flex flex-col sm:flex-row gap-4">
                 <button 
                   onClick={() => navigate('/pricing')}
-                  className="px-8 py-4 bg-gradient-to-r from-[#6366F1] to-[#A855F7] text-white rounded-xl font-semibold hover:shadow-xl hover:scale-105 transition-all duration-200 inline-flex items-center justify-center gap-2"
+                  className="px-8 py-4 bg-[#6047f5] text-white rounded-xl font-semibold hover:shadow-xl hover:-translate-y-px transition-all duration-200 inline-flex items-center justify-center gap-2"
                 >
                   Join Our Mission
                   <ArrowRight className="w-5 h-5" />
@@ -109,7 +88,7 @@ export default function About() {
               { number: '95%', label: 'Satisfaction Rate' }
             ].map((stat, index) => (
               <div key={index} className="text-center p-6 rounded-2xl bg-gradient-to-br from-purple-50 to-blue-50">
-                <div className="text-4xl font-bold bg-gradient-to-r from-[#6366F1] to-[#A855F7] bg-clip-text text-transparent mb-2">
+                <div className="text-4xl font-bold bg-[#6047f5] bg-clip-text text-transparent mb-2">
                   {stat.number}
                 </div>
                 <div className="text-gray-600 font-medium">{stat.label}</div>
@@ -145,40 +124,51 @@ export default function About() {
         </div>
       </section>
 
-      {/* Team */}
+      {/* What we do */}
       <section className="py-24 bg-white">
-        <div className="max-w-7xl mx-auto px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">
-              Meet our leadership team
-            </h2>
-            <p className="text-xl text-gray-600">
-              Experienced engineers and product leaders from top tech companies
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-12">
-            {team.map((member, index) => (
-              <div key={index} className="text-center">
-                <div className="relative mb-6 group">
-                  <div className="absolute inset-0 bg-gradient-to-br from-[#6366F1] to-[#A855F7] rounded-3xl blur-xl opacity-30 group-hover:opacity-50 transition-opacity"></div>
-                  <ImageWithFallback
-                    src={member.image}
-                    alt={member.name}
-                    className="relative w-48 h-48 rounded-3xl object-cover mx-auto border-4 border-white shadow-xl"
-                  />
-                </div>
-                <h3 className="text-2xl font-bold text-gray-900 mb-1">{member.name}</h3>
-                <p className="text-purple-600 font-semibold mb-3">{member.role}</p>
-                <p className="text-gray-600">{member.bio}</p>
-              </div>
-            ))}
+        <div className="max-w-5xl mx-auto px-6 lg:px-8">
+          <div className="grid lg:grid-cols-2 gap-12">
+            <div>
+              <h2 className="text-4xl font-bold text-gray-900 mb-6">What AutoApply CV does</h2>
+              <p className="text-lg text-gray-600 leading-relaxed mb-4">
+                Job searching has become a numbers game, and most of the time goes into retyping the same details into
+                application forms. AutoApply CV takes that repetitive work off your plate without taking you out of
+                control.
+              </p>
+              <p className="text-lg text-gray-600 leading-relaxed">
+                Our Chrome extension fills LinkedIn Easy Apply forms with answers you have saved and checked once. It
+                skips jobs you have already applied to, and it pauses when a question needs a human answer. The dashboard
+                tailors your resume for applicant tracking systems and tracks every application from submission to
+                interview, so you can see what is actually working.
+              </p>
+            </div>
+            <div>
+              <h2 className="text-4xl font-bold text-gray-900 mb-6">How we build it</h2>
+              <ul className="space-y-4 text-lg text-gray-600 leading-relaxed">
+                <li>
+                  <strong className="text-gray-900">Quality over volume.</strong> Targeting filters and daily limits keep
+                  applications relevant, because a tailored application beats ten generic ones.
+                </li>
+                <li>
+                  <strong className="text-gray-900">Truthful automation.</strong> The extension only uses answers you
+                  provide. It never invents experience or fills a question it cannot answer honestly.
+                </li>
+                <li>
+                  <strong className="text-gray-900">Transparent results.</strong> Every job ends as submitted, skipped, or
+                  paused with a reason, and skipped jobs are never charged.
+                </li>
+                <li>
+                  <strong className="text-gray-900">Fair pricing.</strong> Start free with 3 applications a day, or go
+                  unlimited with Pro for ₹49 a month.
+                </li>
+              </ul>
+            </div>
           </div>
         </div>
       </section>
 
       {/* CTA */}
-      <section className="py-24 bg-gradient-to-br from-[#6366F1] via-[#8B5CF6] to-[#A855F7] text-white">
+      <section className="py-24 bg-[#6047f5] text-white">
         <div className="max-w-4xl mx-auto px-6 lg:px-8 text-center">
           <h2 className="text-4xl lg:text-5xl font-bold mb-6">
             Join our growing community
@@ -190,7 +180,7 @@ export default function About() {
 
           <button 
             onClick={() => navigate('/pricing')}
-            className="px-10 py-5 bg-white text-purple-700 rounded-xl font-bold text-lg hover:bg-gray-100 shadow-2xl hover:scale-105 transition-all duration-200"
+            className="px-10 py-5 bg-white text-purple-700 rounded-xl font-bold text-lg hover:bg-gray-100 shadow-2xl hover:-translate-y-px transition-all duration-200"
           >
             Get Started Today
           </button>

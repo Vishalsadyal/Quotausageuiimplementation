@@ -186,7 +186,7 @@ export default function RecruitmentAgency() {
           <div className="flex flex-wrap items-center justify-center gap-3.5 pt-4">
             <a
               href="#plans"
-              className="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-bold shadow-md transition-all hover:scale-[1.02] inline-flex items-center gap-2"
+              className="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-bold shadow-md transition-all hover:-translate-y-px inline-flex items-center gap-2"
             >
               <span>Explore Service Plans</span>
               <ChevronRight className="w-4 h-4" />

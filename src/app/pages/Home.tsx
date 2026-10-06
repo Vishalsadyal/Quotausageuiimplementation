@@ -271,36 +271,36 @@ export default function Home() {
   return (
     <div className="bg-white">
       {/* Hero Section */}
-      <section className="relative overflow-hidden gradient-mesh pt-20 pb-32">
-        <div className="absolute inset-0 bg-grid-pattern opacity-40"></div>
-        <div className="absolute inset-0 bg-dot-pattern opacity-20"></div>
+      <section className="relative overflow-hidden pt-20 pb-32 text-[#f8f7ff] bg-[radial-gradient(circle_at_8%_15%,rgba(114,87,255,.35),transparent_26%),radial-gradient(circle_at_92%_82%,rgba(200,255,98,.14),transparent_24%),linear-gradient(145deg,#17142e_0%,#211947_52%,#111025_100%)]">
+        <div className="absolute inset-0 opacity-[.08] bg-[linear-gradient(rgba(255,255,255,.22)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.22)_1px,transparent_1px)] bg-[size:52px_52px]"></div>
+        <div className="absolute w-[520px] h-[520px] rounded-full bg-[#8068ff] opacity-40 blur-[100px] -bottom-[370px] left-[43%] pointer-events-none"></div>
         
         <div className="max-w-7xl mx-auto px-6 lg:px-8 relative">
           <div className="grid lg:grid-cols-2 gap-12 items-stretch">
             {/* Left Column */}
             <div className="space-y-8 self-center">
-              <div className="inline-flex items-center gap-2 px-4 py-2 glass rounded-full text-purple-700 text-sm font-semibold shadow-premium">
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-[#c8ff62] bg-[rgba(200,255,98,.08)] border border-[rgba(200,255,98,.18)] text-sm font-semibold">
                 <Sparkles className="w-4 h-4" />
                 Trusted by 50,000+ Engineers
               </div>
               
-              <h1 className="text-5xl lg:text-7xl font-bold text-gray-900 leading-tight">
-                Free LinkedIn Auto Apply Bot
+              <h1 className="text-5xl lg:text-7xl font-bold text-white leading-[1.02]">
+                Free LinkedIn Auto Apply Bot{' '}
                 <br />
                 for Your{' '}
-                <span className="text-gradient-animated">
+                <span className="text-[#c8ff62]">
                   Tech Job
                 </span>{' '}
                 Faster
               </h1>
               
-              <p className="text-xl text-gray-600 leading-relaxed">
+              <p className="text-xl text-[#bdb8d4] leading-relaxed">
                 Free AI-powered job search automation to apply to LinkedIn jobs automatically, optimize your ATS resume, and manage everything in one job application tracker.
               </p>
 
               <button
                 onClick={() => document.getElementById('demo-video')?.scrollIntoView({ behavior: 'smooth' })}
-                className="text-sm font-semibold text-purple-700 hover:text-purple-900 underline-offset-4 hover:underline"
+                className="text-sm font-semibold text-[#c8ff62] hover:text-white underline-offset-4 hover:underline"
               >
                 See Auto Apply Demo ↓
               </button>
@@ -313,10 +313,10 @@ export default function Home() {
                   { value: '60%', label: 'Faster Results' }
                 ].map((stat, index) => (
                   <div key={index}>
-                    <div className="text-3xl font-bold text-gradient">
+                    <div className="text-3xl font-bold text-[#c8ff62]">
                       {stat.value}
                     </div>
-                    <div className="text-sm text-gray-600">{stat.label}</div>
+                    <div className="text-sm text-[#bdb8d4]">{stat.label}</div>
                   </div>
                 ))}
               </div>
@@ -326,14 +326,14 @@ export default function Home() {
             <div className="relative">
               <div className="relative z-10 h-full flex flex-col gap-4">
                 <div className="flex items-center justify-between gap-3">
-                  <h2 className="text-lg font-bold text-gray-900">Get your job matches in 30 seconds</h2>
-                  <span className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-xs font-semibold text-emerald-700">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                  <h2 className="text-lg font-bold text-white">Get your job matches in 30 seconds</h2>
+                  <span className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[rgba(200,255,98,.08)] border border-[rgba(200,255,98,.18)] text-xs font-semibold text-[#c8ff62]">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#c8ff62] animate-pulse" />
                     Free to start
                   </span>
                 </div>
 
-                <HeroQuickStart className="flex-1" />
+                <HeroQuickStart />
 
                 {/* What happens next */}
                 <div className="grid grid-cols-3 gap-3">
@@ -342,45 +342,47 @@ export default function Home() {
                     { icon: FileText, title: 'Tailors resume', text: 'ATS-ready for every job' },
                     { icon: Zap, title: 'Auto-applies', text: 'Easy Apply on autopilot' },
                   ].map((item) => (
-                    <div key={item.title} className="glass rounded-xl border border-white/60 p-3 shadow-sm">
-                      <item.icon className="w-5 h-5 text-purple-600 mb-1.5" />
-                      <div className="text-sm font-bold text-gray-900">{item.title}</div>
-                      <div className="text-xs text-gray-600 leading-snug">{item.text}</div>
+                    <div key={item.title} className="rounded-xl border border-white/10 bg-white/[0.06] backdrop-blur-md p-3 hover:border-[rgba(200,255,98,.3)] transition-colors">
+                      <span className="w-8 h-8 mb-2 rounded-lg bg-[#c8ff62] flex items-center justify-center">
+                        <item.icon className="w-4 h-4 text-[#17142e]" />
+                      </span>
+                      <div className="text-sm font-bold text-white">{item.title}</div>
+                      <div className="text-xs text-[#bdb8d4] leading-snug">{item.text}</div>
                     </div>
                   ))}
                 </div>
 
                 {/* Live activity */}
-                <div className="glass rounded-xl border border-white/60 px-4 py-3 shadow-sm">
+                <div className="rounded-xl border border-white/10 bg-white/[0.06] backdrop-blur-md px-4 py-3">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-bold uppercase tracking-wider text-gray-500">Recently applied by the agent</span>
+                    <span className="text-xs font-bold uppercase tracking-wider text-[#bdb8d4]">Recently applied by the agent</span>
                     <span className="relative flex h-2 w-2">
-                      <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75 animate-ping"></span>
-                      <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                      <span className="absolute inline-flex h-full w-full rounded-full bg-[#c8ff62] opacity-75 animate-ping"></span>
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-[#c8ff62]"></span>
                     </span>
                   </div>
                   <div className="space-y-1.5">
                     {extensionDemo.activity.map((item) => (
                       <div key={item.label} className="flex items-center justify-between gap-3 text-xs">
-                        <span className="flex items-center gap-2 min-w-0 font-semibold text-gray-800">
-                          <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                        <span className="flex items-center gap-2 min-w-0 font-semibold text-white">
+                          <Check className="w-3.5 h-3.5 text-[#c8ff62] shrink-0" />
                           <span className="truncate">{item.label}</span>
                         </span>
-                        <span className="text-gray-500 shrink-0">{item.time}</span>
+                        <span className="text-[#8f89a8] shrink-0">{item.time}</span>
                       </div>
                     ))}
                   </div>
                 </div>
 
-                <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-xs text-gray-500">
-                  <span className="flex items-center gap-1"><Shield className="w-3.5 h-3.5" /> No credit card</span>
-                  <span className="flex items-center gap-1"><Clock className="w-3.5 h-3.5" /> Takes 30 seconds</span>
-                  <span className="flex items-center gap-1"><Star className="w-3.5 h-3.5" /> 30 free Hires coins</span>
+                <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-xs text-[#bdb8d4]">
+                  <span className="flex items-center gap-1"><Shield className="w-3.5 h-3.5 text-[#c8ff62]" /> No credit card</span>
+                  <span className="flex items-center gap-1"><Clock className="w-3.5 h-3.5 text-[#c8ff62]" /> Takes 30 seconds</span>
+                  <span className="flex items-center gap-1"><Star className="w-3.5 h-3.5 text-[#c8ff62]" /> 30 free Hires coins</span>
                 </div>
               </div>
               {/* Decorative blurs */}
-              <div className="absolute -top-10 -right-10 w-40 h-40 bg-gradient-to-br from-purple-400 to-pink-400 rounded-full blur-3xl opacity-20 animate-pulse-slow"></div>
-              <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-gradient-to-br from-blue-400 to-cyan-400 rounded-full blur-3xl opacity-20 animate-float"></div>
+              <div className="absolute -top-10 -right-10 w-40 h-40 bg-[#8068ff] rounded-full blur-3xl opacity-30 animate-pulse-slow"></div>
+              <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-[#c8ff62] rounded-full blur-3xl opacity-15 animate-float"></div>
             </div>
           </div>
         </div>
@@ -415,9 +417,19 @@ export default function Home() {
           <p className="text-center text-sm text-gray-600 mb-8 font-semibold">
             ENGINEERS FROM TOP COMPANIES TRUST US
           </p>
-          <div className="flex flex-wrap justify-center items-center gap-12">
+          <div className="flex flex-wrap justify-center items-center gap-x-12 gap-y-8">
             {['Google', 'Meta', 'Amazon', 'Microsoft', 'Apple', 'Netflix'].map((company) => (
-              <div key={company} className="text-2xl font-bold text-gray-600">
+              <div key={company} className="flex items-center gap-2.5 text-2xl font-bold text-gray-800">
+                <img
+                  src={`/logos/companies/${company.toLowerCase()}.svg`}
+                  alt=""
+                  aria-hidden="true"
+                  width={28}
+                  height={28}
+                  loading="lazy"
+                  decoding="async"
+                  className="w-7 h-7 object-contain"
+                />
                 {company}
               </div>
             ))}
@@ -426,67 +438,75 @@ export default function Home() {
       </section>
 
       {/* Reliability Positioning */}
-      <section className="py-20 bg-gradient-to-br from-slate-50 via-white to-indigo-50">
-        <div className="max-w-7xl mx-auto px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <div className="inline-block px-4 py-2 bg-indigo-100 rounded-full text-indigo-700 font-semibold text-sm mb-4">
+      <section className="relative overflow-hidden py-24 text-white bg-[#151226]">
+        <div className="absolute inset-0 opacity-[.06] bg-[linear-gradient(rgba(255,255,255,.22)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.22)_1px,transparent_1px)] bg-[size:52px_52px] pointer-events-none"></div>
+        <div className="absolute w-[460px] h-[460px] rounded-full bg-[#6047f5] opacity-25 blur-[110px] -top-[260px] right-[8%] pointer-events-none"></div>
+        <div className="max-w-7xl mx-auto px-6 lg:px-8 relative">
+          <div className="text-center mb-14">
+            <div className="inline-block px-4 py-2 rounded-full text-[#c4b5fd] bg-[rgba(139,92,246,.12)] border border-[rgba(139,92,246,.22)] font-semibold text-sm mb-5">
               Why Users Switch
             </div>
-            <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
+            <h2 className="text-4xl lg:text-5xl font-bold text-white mb-4">
               Built for reliable runs, not blind mass apply
             </h2>
-            <p className="text-xl text-gray-600 max-w-4xl mx-auto">
+            <p className="text-xl text-[#bdb8d4] max-w-4xl mx-auto">
               If you are comparing LiftmyCV, LazyApply, and other auto apply tools, focus on control quality:
               page waits, duplicate protection, and clear error routing.
             </p>
           </div>
 
           <div className="grid md:grid-cols-3 gap-6 mb-10">
-            {switchReasons.map((item) => (
+            {switchReasons.map((item, index) => (
               <div
                 key={item.title}
-                className="rounded-2xl bg-white border border-gray-200 p-6 shadow-sm hover:shadow-lg transition-all duration-200"
+                className="rounded-2xl border border-white/10 bg-white/[0.05] p-7 backdrop-blur-sm hover:border-[rgba(200,255,98,.3)] hover:-translate-y-0.5 transition-all duration-200"
               >
-                <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-[#6366F1] to-[#A855F7] flex items-center justify-center mb-4">
-                  <item.icon className="w-5 h-5 text-white" />
+                <div
+                  className={`w-11 h-11 rounded-xl flex items-center justify-center mb-5 ${
+                    index === 1
+                      ? 'bg-[#c8ff62] text-[#17142e] shadow-[0_10px_24px_rgba(143,190,56,.2)]'
+                      : 'bg-[linear-gradient(135deg,#8b5cf6,#a855f7)] text-white shadow-[0_10px_24px_rgba(139,92,246,.25)]'
+                  }`}
+                >
+                  <item.icon className="w-5 h-5" />
                 </div>
-                <h3 className="text-lg font-bold text-gray-900 mb-2">{item.title}</h3>
-                <p className="text-gray-600 leading-relaxed">{item.description}</p>
+                <h3 className="text-lg font-bold text-white mb-2">{item.title}</h3>
+                <p className="text-[#bdb8d4] leading-relaxed">{item.description}</p>
               </div>
             ))}
           </div>
 
           <div className="md:hidden grid gap-4">
             {comparisonRows.map((row) => (
-              <div key={row.area} className="rounded-xl border border-gray-200 bg-white p-4">
-                <p className="font-semibold text-gray-900 mb-2">{row.area}</p>
-                <p className="text-sm text-gray-500 mb-1">Typical Mass-Apply</p>
-                <p className="text-sm text-gray-700 mb-3">{row.legacy}</p>
-                <p className="text-sm text-indigo-600 mb-1 font-medium">AutoApply CV</p>
-                <p className="text-sm text-gray-800">{row.modern}</p>
+              <div key={row.area} className="rounded-xl border border-white/10 bg-white/[0.05] p-4">
+                <p className="font-semibold text-white mb-2">{row.area}</p>
+                <p className="text-sm text-[#8f89a8] mb-1">Typical Mass-Apply</p>
+                <p className="text-sm text-[#bdb8d4] mb-3">{row.legacy}</p>
+                <p className="text-sm text-[#c8ff62] mb-1 font-semibold">AutoApply CV</p>
+                <p className="text-sm text-white">{row.modern}</p>
               </div>
             ))}
           </div>
 
-          <div className="hidden md:block rounded-2xl border border-gray-200 overflow-hidden bg-white">
-            <div className="grid grid-cols-3 bg-gray-50 border-b border-gray-200 text-sm font-semibold text-gray-700">
-              <div className="px-5 py-3">Decision Area</div>
-              <div className="px-5 py-3 border-l border-gray-200">Typical Mass-Apply</div>
-              <div className="px-5 py-3 border-l border-gray-200">AutoApply CV</div>
+          <div className="hidden md:block rounded-2xl border border-white/10 overflow-hidden bg-white/[0.03]">
+            <div className="grid grid-cols-3 bg-white/[0.06] border-b border-white/10 text-xs font-bold uppercase tracking-wider text-[#bdb8d4]">
+              <div className="px-5 py-3.5">Decision Area</div>
+              <div className="px-5 py-3.5 border-l border-white/10">Typical Mass-Apply</div>
+              <div className="px-5 py-3.5 border-l border-white/10 text-[#c8ff62]">AutoApply CV</div>
             </div>
             {comparisonRows.map((row) => (
               <div key={row.area} className="grid grid-cols-3 text-sm">
-                <div className="px-5 py-3 font-semibold text-gray-900 border-b border-gray-100">{row.area}</div>
-                <div className="px-5 py-3 text-gray-600 border-l border-b border-gray-100">{row.legacy}</div>
-                <div className="px-5 py-3 text-gray-700 border-l border-b border-gray-100">{row.modern}</div>
+                <div className="px-5 py-4 font-semibold text-white border-b border-white/5">{row.area}</div>
+                <div className="px-5 py-4 text-[#8f89a8] border-l border-b border-white/5">{row.legacy}</div>
+                <div className="px-5 py-4 text-white bg-[rgba(200,255,98,.04)] border-l border-b border-white/5">{row.modern}</div>
               </div>
             ))}
           </div>
 
-          <div className="mt-8 rounded-2xl overflow-hidden border border-purple-100/80 bg-white shadow-xl hover:shadow-2xl transition-all duration-300">
+          <div className="mt-8 rounded-2xl overflow-hidden border border-white/10 bg-white shadow-[0_30px_70px_rgba(4,3,14,.45)]">
             <MediaSlot
               imageSrc={mediaAssets.reliabilityEvidenceImageSrc}
-              className="w-full h-auto max-h-[540px] object-cover md:object-contain bg-slate-50"
+              className="w-full h-auto max-h-[540px] object-cover md:object-contain bg-[#f8f7fb]"
               alt="AutoApply CV Reliability, Modal Check and Duplicate Prevention Guardrails"
               placeholderTitle="Reliability evidence image"
               placeholderHint="Live verification logs showing modal check, duplicate prevention, and human pacing."
@@ -505,7 +525,7 @@ export default function Home() {
               </div>
               <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-6">
                 Great companies are built by{' '}
-                <span className="bg-gradient-to-r from-[#6366F1] to-[#A855F7] bg-clip-text text-transparent">
+                <span className="bg-[#6047f5] bg-clip-text text-transparent">
                   great people
                 </span>
               </h2>
@@ -529,7 +549,7 @@ export default function Home() {
               </div>
               <button 
                 onClick={() => navigate('/features')}
-                className="mt-8 px-8 py-4 bg-gradient-to-r from-[#6366F1] to-[#A855F7] text-white rounded-xl font-semibold hover:shadow-xl hover:scale-105 transition-all duration-200 inline-flex items-center gap-2"
+                className="mt-8 px-8 py-4 bg-[#6047f5] text-white rounded-xl font-semibold hover:shadow-xl hover:-translate-y-px transition-all duration-200 inline-flex items-center gap-2"
               >
                 Explore All Features
                 <ArrowRight className="w-5 h-5" />
@@ -543,13 +563,13 @@ export default function Home() {
       </section>
 
       {/* Features Grid */}
-      <section className="py-24 bg-white">
+      <section className="py-24 bg-[#f8f7fb] border-y border-[#e6e3ee]">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <div className="text-center mb-16">
-            <div className="inline-block px-4 py-2 bg-blue-100 rounded-full text-blue-700 font-semibold text-sm mb-6">
+            <div className="inline-block px-4 py-2 rounded-full bg-[#eeeaff] border border-[#ddd6fe] text-[#4932cf] font-semibold text-sm mb-6">
               Features
             </div>
-            <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
+            <h2 className="text-4xl lg:text-5xl font-bold text-[#17152b] mb-4">
               Job search automation tools that convert
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
@@ -557,16 +577,25 @@ export default function Home() {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {features.map((feature, index) => (
               <div
                 key={index}
-                className="group bg-gradient-to-br from-white to-gray-50 rounded-2xl p-8 border-2 border-gray-200 hover:border-purple-300 hover:shadow-xl transition-all duration-300"
+                className="group relative bg-white rounded-2xl p-7 border border-[#e6e3ee] hover:border-[#c9bfff] hover:-translate-y-1 hover:shadow-[0_24px_60px_rgba(35,27,66,.1)] transition-all duration-300"
               >
-                <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${feature.gradient} flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300 shadow-lg`}>
-                  <feature.icon className="w-7 h-7 text-white" />
+                <div
+                  className={`w-12 h-12 rounded-xl flex items-center justify-center mb-6 transition-transform duration-300 group-hover:scale-105 ${
+                    index % 2 === 1
+                      ? 'bg-[#c8ff62] text-[#17142e]'
+                      : 'bg-[linear-gradient(135deg,#8b5cf6,#a855f7)] text-white'
+                  }`}
+                >
+                  <feature.icon className="w-6 h-6" />
                 </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-3">{feature.title}</h3>
+                <span className="absolute top-7 right-7 text-sm font-extrabold text-[#d9d4ea]">
+                  {String(index + 1).padStart(2, '0')}
+                </span>
+                <h3 className="text-xl font-bold text-[#17152b] mb-3">{feature.title}</h3>
                 <p className="text-gray-600 leading-relaxed">{feature.description}</p>
               </div>
             ))}
@@ -578,10 +607,10 @@ export default function Home() {
       <section className="py-24 bg-white">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <div className="text-center mb-16">
-            <div className="inline-block px-4 py-2 bg-green-100 rounded-full text-green-700 font-semibold text-sm mb-6">
+            <div className="inline-block px-4 py-2 rounded-full bg-[#eeeaff] border border-[#ddd6fe] text-[#4932cf] font-semibold text-sm mb-6">
               Chrome Extensions
             </div>
-            <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
+            <h2 className="text-4xl lg:text-5xl font-bold text-[#17152b] mb-4">
               The #1 extensions for your hiring workflow
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
@@ -589,19 +618,20 @@ export default function Home() {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-8">
-            <div className="group bg-gradient-to-br from-blue-50 to-white rounded-2xl p-8 border-2 border-blue-200 hover:border-blue-400 hover:shadow-xl transition-all duration-300 flex flex-col">
-              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-sky-500 to-blue-600 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300 shadow-lg">
-                <Zap className="w-7 h-7 text-white" />
+          <div className="max-w-3xl mx-auto">
+            <div className="relative overflow-hidden rounded-[20px] p-8 sm:p-10 text-white bg-[linear-gradient(140deg,#17142e_0%,#261b52_58%,#131126_100%)] shadow-[0_24px_60px_rgba(35,27,66,.25)] flex flex-col">
+              <div className="absolute w-72 h-72 rounded-full bg-[#8068ff] opacity-30 blur-[90px] -top-24 -right-16 pointer-events-none"></div>
+              <div className="relative w-14 h-14 rounded-2xl bg-[#c8ff62] flex items-center justify-center mb-6 shadow-[0_0_24px_rgba(200,255,98,.25)]">
+                <Zap className="w-7 h-7 text-[#17142e]" />
               </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-2">AutoApply CV LinkedIn Copilot</h3>
-              <p className="text-gray-600 leading-relaxed flex-1 mb-6">
+              <h3 className="relative text-2xl font-bold text-white mb-2">AutoApply CV LinkedIn Copilot</h3>
+              <p className="relative text-[#bdb8d4] text-lg leading-relaxed flex-1 mb-8">
                 The #1 LinkedIn auto apply extension in Chrome. Fills Easy Apply forms, reuses your screening answers, and tracks every submission.
               </p>
-              <div className="flex flex-col sm:flex-row gap-3">
+              <div className="relative flex flex-col sm:flex-row gap-3">
                 <Link
                   to="/auto-apply-chrome-extension"
-                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#6366F1] to-[#A855F7] px-6 py-3 font-bold text-white hover:shadow-lg hover:scale-[1.02] transition-all duration-200"
+                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#c8ff62] px-6 py-3 font-bold text-[#17142e] hover:bg-[#baf34e] hover:shadow-[0_14px_30px_rgba(156,207,60,.28)] hover:-translate-y-px transition-all duration-200"
                 >
                   Extension page
                   <ArrowRight className="w-4 h-4" />
@@ -610,39 +640,11 @@ export default function Home() {
                   href="https://chromewebstore.google.com/detail/mcfmniiniaigfhhjlaegpmhecbdoikjd"
                   target="_blank"
                   rel="noreferrer"
-                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-white border-2 border-blue-200 px-6 py-3 font-bold text-blue-700 hover:border-blue-400 hover:shadow-lg transition-all duration-200"
+                  className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/25 bg-white/[0.06] px-6 py-3 font-bold text-white hover:bg-white/[0.12] hover:border-white/40 transition-all duration-200"
                 >
                   <Download className="w-4 h-4" />
                   Install from Web Store
                 </a>
-              </div>
-            </div>
-
-            <div className="group bg-gradient-to-br from-indigo-50 to-white rounded-2xl p-8 border-2 border-indigo-200 hover:border-indigo-400 hover:shadow-xl transition-all duration-300 flex flex-col">
-              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300 shadow-lg">
-                <Users className="w-7 h-7 text-white" />
-              </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-2">HR Direct Outreach</h3>
-              <p className="text-gray-600 leading-relaxed flex-1 mb-6">
-                The #1 HR outreach extension for Chrome. Scrapes name, title, company, email & phone from LinkedIn hiring posts and syncs up to 100 contacts to your dashboard.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-3">
-                <a
-                  href="https://chromewebstore.google.com/detail/cilkgachncgahbonpdcfjmjifingpnah"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 px-6 py-3 font-bold text-white hover:shadow-lg hover:scale-[1.02] transition-all duration-200"
-                >
-                  <Download className="w-4 h-4" />
-                  Install from Web Store
-                </a>
-                <Link
-                  to="/hr-outreach"
-                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-white border-2 border-indigo-200 px-6 py-3 font-bold text-indigo-700 hover:border-indigo-400 hover:shadow-lg transition-all duration-200"
-                >
-                  Outreach dashboard
-                  <ArrowRight className="w-4 h-4" />
-                </Link>
               </div>
             </div>
           </div>
@@ -650,13 +652,13 @@ export default function Home() {
       </section>
 
       {/* Blog Section */}
-      <section className="py-20 bg-gradient-to-br from-gray-50 to-purple-50">
+      <section className="py-24 bg-[#f8f7fb] border-y border-[#e6e3ee]">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <div className="text-center mb-12">
-            <div className="inline-block px-4 py-2 bg-purple-100 rounded-full text-purple-700 font-semibold text-sm mb-5">
+            <div className="inline-block px-4 py-2 rounded-full bg-[#eeeaff] border border-[#ddd6fe] text-[#4932cf] font-semibold text-sm mb-5">
               Blog
             </div>
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">
+            <h2 className="text-4xl font-bold text-[#17152b] mb-4">
               Free auto apply guides and SEO-friendly checklists
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
@@ -669,16 +671,29 @@ export default function Home() {
               { title: 'The #1 Auto Apply Extension in Chrome', to: '/blog/no-1-auto-apply-extension-available-in-chrome' },
               { title: 'Why AutoApply CV Is #1 for LinkedIn', to: '/blog/why-autoapply-cv-is-no-1-linkedin-extension' },
               { title: 'LinkedIn Auto Apply vs HR Outreach', to: '/blog/best-linkedin-extension-hr-outreach-vs-auto-apply' }
-            ].map((guide) => (
+            ].map((guide, index) => (
               <Link
                 key={guide.to}
                 to={guide.to}
-                className="bg-white rounded-2xl p-6 border-2 border-gray-200 hover:border-purple-300 hover:shadow-lg transition-all duration-200"
+                className="group flex flex-col p-[18px] bg-white rounded-2xl border border-[#e6e3ee] shadow-[0_8px_24px_rgba(17,24,39,.05)] hover:-translate-y-1 hover:shadow-[0_24px_60px_rgba(35,27,66,.12)] transition-all duration-200"
               >
-                <h3 className="text-lg font-bold text-gray-900 mb-3">{guide.title}</h3>
-                <p className="text-purple-700 font-semibold inline-flex items-center gap-2">
+                <div
+                  className={`h-32 rounded-xl mb-5 flex items-end p-4 ${
+                    [
+                      'bg-[linear-gradient(135deg,#6d28d9,#a855f7)]',
+                      'bg-[linear-gradient(135deg,#15803d,#84cc16)]',
+                      'bg-[linear-gradient(135deg,#111827,#4338ca)]',
+                    ][index % 3]
+                  }`}
+                >
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-white/90 bg-white/15 px-2.5 py-1 rounded-full">
+                    Guide {String(index + 1).padStart(2, '0')}
+                  </span>
+                </div>
+                <h3 className="text-lg font-bold text-[#17152b] mb-3 px-1">{guide.title}</h3>
+                <p className="mt-auto px-1 text-[#6047f5] font-semibold inline-flex items-center gap-2">
                   Read now
-                  <ArrowRight className="w-4 h-4" />
+                  <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
                 </p>
               </Link>
             ))}
@@ -687,7 +702,7 @@ export default function Home() {
           <div className="mt-10 flex justify-center">
             <Link
               to="/blog"
-              className="inline-flex items-center gap-2 rounded-xl bg-white px-6 py-3 font-bold text-purple-700 border-2 border-purple-200 hover:border-purple-300 hover:shadow-lg transition-all duration-200"
+              className="inline-flex items-center gap-2 rounded-xl bg-[#17142e] px-6 py-3 font-bold text-white hover:bg-[#6047f5] hover:-translate-y-px transition-all duration-200"
             >
               View all blogs
               <ArrowRight className="w-4 h-4" />
@@ -697,58 +712,58 @@ export default function Home() {
       </section>
 
       {/* Testimonials */}
-      <section className="py-24 bg-gradient-to-br from-[#6366F1] via-[#8B5CF6] to-[#A855F7] text-white">
+      <section className="py-24 bg-[#f7f9fc] border-y border-gray-200">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <div className="text-center mb-16">
-            <div className="inline-block px-4 py-2 bg-white/20 backdrop-blur-sm rounded-full text-white font-semibold text-sm mb-6">
+            <div className="inline-block px-4 py-2 bg-blue-50 rounded-full text-blue-700 font-semibold text-sm mb-6">
               Success Stories
             </div>
-            <h2 className="text-4xl lg:text-5xl font-bold mb-4">
+            <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
               Join thousands of successful engineers
             </h2>
-            <p className="text-xl text-purple-100">
+            <p className="text-xl text-gray-600">
               Real results from real people using AutoApply CV
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid md:grid-cols-3 gap-6">
             {testimonials.map((testimonial, index) => (
-              <div
+              <article
                 key={index}
-                className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20 hover:bg-white/15 transition-all duration-300"
+                className="bg-white rounded-xl p-6 border border-gray-200 shadow-[0_1px_2px_rgba(60,64,67,.15),0_1px_3px_1px_rgba(60,64,67,.08)] hover:shadow-[0_1px_3px_rgba(60,64,67,.2),0_4px_8px_3px_rgba(60,64,67,.1)] transition-shadow duration-200"
               >
-                <div className="flex gap-1 mb-6">
-                  {[...Array(5)].map((_, i) => (
-                    <Star key={i} className="w-5 h-5 fill-yellow-300 text-yellow-300" />
-                  ))}
-                </div>
-                <p className="text-lg text-white mb-6 leading-relaxed">
-                  "{testimonial.content}"
-                </p>
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-3">
                   {testimonial.image ? (
                     <ImageWithFallback
                       src={testimonial.image}
                       alt={testimonial.name}
-                      className="w-14 h-14 rounded-full object-cover border-2 border-white/30"
+                      className="w-10 h-10 rounded-full object-cover"
                     />
                   ) : (
-                    <div className="w-14 h-14 rounded-full border-2 border-white/30 bg-white/15 flex items-center justify-center text-sm font-bold text-white">
-                      {testimonial.name
-                        .split(' ')
-                        .map((part) => part[0] || '')
-                        .join('')
-                        .slice(0, 2)
-                        .toUpperCase()}
+                    <div
+                      className={`w-10 h-10 rounded-full flex items-center justify-center text-base font-medium text-white ${
+                        ['bg-[#1a73e8]', 'bg-[#e8710a]', 'bg-[#188038]', 'bg-[#a142f4]', 'bg-[#d93025]'][index % 5]
+                      }`}
+                    >
+                      {testimonial.name.charAt(0).toUpperCase()}
                     </div>
                   )}
-                  <div>
-                    <div className="font-semibold text-white">{testimonial.name}</div>
-                    <div className="text-sm text-purple-100">{testimonial.role}</div>
-                    <div className="text-sm text-purple-200">{testimonial.company}</div>
+                  <div className="min-w-0">
+                    <div className="text-[15px] font-medium text-gray-900 truncate">{testimonial.name}</div>
+                    <div className="text-xs text-gray-500 truncate">
+                      {testimonial.role} · {testimonial.company}
+                    </div>
                   </div>
                 </div>
-              </div>
+                <div className="flex gap-0.5 mt-4 mb-3" aria-label="Rated 5 out of 5">
+                  {[...Array(5)].map((_, i) => (
+                    <Star key={i} className="w-4 h-4 fill-[#fbbc04] text-[#fbbc04]" />
+                  ))}
+                </div>
+                <p className="text-[15px] text-gray-700 leading-relaxed">
+                  {testimonial.content}
+                </p>
+              </article>
             ))}
           </div>
         </div>
@@ -773,7 +788,7 @@ export default function Home() {
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <button 
               onClick={() => navigate('/auto-apply')}
-              className="px-10 py-5 bg-gradient-to-r from-[#6366F1] via-[#8B5CF6] to-[#A855F7] text-white rounded-xl font-bold text-lg hover:shadow-2xl hover:scale-105 transition-all duration-200 flex items-center justify-center gap-2"
+              className="px-10 py-5 bg-[#6047f5] text-white rounded-xl font-bold text-lg hover:shadow-2xl hover:-translate-y-px transition-all duration-200 flex items-center justify-center gap-2"
             >
               Start Free Auto Apply
               <ArrowRight className="w-5 h-5" />

@@ -75,7 +75,7 @@ export default function ResumeTemplateCard({ selected, onSelect, onPreview, onDo
                 <button
                   type="button"
                   onClick={(e) => { e.stopPropagation(); onDownload(tmpl.id); }}
-                  className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 bg-gradient-to-r from-[#6366F1] to-[#A855F7] hover:shadow-md text-white rounded-lg text-xs font-semibold transition-all"
+                  className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 bg-[#6047f5] hover:shadow-md text-white rounded-lg text-xs font-semibold transition-all"
                 >
                   <Download className="w-3.5 h-3.5" />
                   Download

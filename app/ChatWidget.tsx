@@ -50,8 +50,8 @@ export default function ChatWidget() {
 
   const title = String(process.env.NEXT_PUBLIC_CHATBOT_TITLE || "Ask me").trim();
   const position = String(process.env.NEXT_PUBLIC_CHATBOT_POSITION || "bottom-right").trim();
-  const primary = String(process.env.NEXT_PUBLIC_CHATBOT_PRIMARY || "").trim() || "#6366F1";
-  const accent = String(process.env.NEXT_PUBLIC_CHATBOT_ACCENT || "").trim() || "#A855F7";
+  const primary = String(process.env.NEXT_PUBLIC_CHATBOT_PRIMARY || "").trim() || "#6047f5";
+  const accent = String(process.env.NEXT_PUBLIC_CHATBOT_ACCENT || "").trim() || "#4932cf";
 
   useEffect(() => {
     if (!enabled) return;

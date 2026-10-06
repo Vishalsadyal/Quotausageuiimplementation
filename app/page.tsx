@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import App from "../src/app/App";
-import { canonicalForPath, resolveSeo } from "../src/app/seo/seoConfig";
+import { OG_IMAGE, canonicalForPath, resolveSeo } from "../src/app/seo/seoConfig";
 
 export function generateMetadata(): Metadata {
   const seo = resolveSeo("/");
@@ -15,6 +15,14 @@ export function generateMetadata(): Metadata {
       description: seo.description,
       url: canonical,
       type: "website",
+      siteName: "AutoApply CV",
+      images: [OG_IMAGE],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: seo.title,
+      description: seo.description,
+      images: [OG_IMAGE.url],
     },
   };
 }

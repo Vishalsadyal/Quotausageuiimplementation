@@ -9,7 +9,7 @@ export default function Roadmap() {
       metrics={[
         { label: "Cadence", value: "Weekly updates" },
         { label: "Focus", value: "Reliability + quality" },
-        { label: "Now", value: "v1.1.x hardening" },
+        { label: "Now", value: "v3.1.x hardening" },
       ]}
       sections={[
         {
@@ -58,6 +58,31 @@ export default function Roadmap() {
             "Team workspace improvements for coach-led workflows.",
             "Extended interview preparation module with targeted question packs.",
             "Public API endpoints for external reporting and automation hooks.",
+          ],
+        },
+        {
+          title: "Recently shipped",
+          cards: [
+            {
+              kicker: "September 2026",
+              title: "Chrome Web Store release (v3.1.x)",
+              description: "The LinkedIn Copilot installs directly from the Chrome Web Store, with tighter permissions and no manual package loading.",
+            },
+            {
+              kicker: "September 2026",
+              title: "Extension status in the jobs dashboard",
+              description: "The dashboard now shows whether the extension is installed and links straight to the install page when it is not.",
+            },
+            {
+              kicker: "September 2026",
+              title: "Pro plan and billing updates",
+              description: "A ₹49 per month Pro plan with unlimited auto-apply, plus clearer plan and billing screens.",
+            },
+            {
+              kicker: "August 2026",
+              title: "Rebuilt dashboard",
+              description: "A modular dashboard for profile, analytics, settings, and job management.",
+            },
           ],
         },
       ]}

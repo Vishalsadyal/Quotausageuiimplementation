@@ -3721,7 +3721,7 @@ export default function Jobs() {
                       <button
                         type="button"
                         onClick={() => openAiInterventionForJob(selectedJob)}
-                        className="px-2.5 py-1 rounded-lg bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-bold text-[10px] shadow-2xs hover:scale-105 transition-all flex items-center gap-1 shrink-0 cursor-pointer"
+                        className="px-2.5 py-1 rounded-lg bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-bold text-[10px] shadow-2xs hover:-translate-y-px transition-all flex items-center gap-1 shrink-0 cursor-pointer"
                       >
                         <Sparkles className="w-3 h-3 text-yellow-300" />
                         Resolve Conflict
@@ -3747,7 +3747,7 @@ export default function Jobs() {
                     <button
                       type="button"
                       onClick={() => openAiInterventionForJob(selectedJob)}
-                      className="px-3 py-1 bg-cyan-400 hover:bg-cyan-300 text-slate-950 font-extrabold text-[11px] rounded-lg shadow-md hover:scale-105 transition-all shrink-0 cursor-pointer flex items-center gap-1"
+                      className="px-3 py-1 bg-cyan-400 hover:bg-cyan-300 text-slate-950 font-extrabold text-[11px] rounded-lg shadow-md hover:-translate-y-px transition-all shrink-0 cursor-pointer flex items-center gap-1"
                     >
                       <Sparkles className="w-3 h-3 text-purple-900" />
                       AI Decision

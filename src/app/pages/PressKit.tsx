@@ -32,7 +32,7 @@ export default function PressKit() {
           bullets: [
             "Wordmark: AutoApply CV",
             "Primary logo files: PNG app icons in /public/logos",
-            "Recommended primary color: #6366F1",
+            "Recommended primary color: #6047f5",
             "Tagline: Apply smarter, not blindly.",
           ],
         },
@@ -44,6 +44,28 @@ export default function PressKit() {
               title: "press@autoapplycv.in",
               description: "Interview requests, product announcements, and launch coverage requests.",
             },
+          ],
+        },
+        {
+          title: "Boilerplate",
+          description: "AutoApply CV is an AI job search platform that helps software engineers and tech professionals apply to LinkedIn Easy Apply jobs faster without losing control. Its Chrome extension fills repetitive application forms with saved, truthful answers, skips jobs the user already applied to, and pauses when a question needs human input, while the dashboard tailors resumes for applicant tracking systems and tracks every application from submission to interview.",
+        },
+        {
+          title: "Product facts",
+          bullets: [
+            "Product: AutoApply CV, a web dashboard plus the AutoApply CV LinkedIn Copilot Chrome extension.",
+            "Distribution: Chrome Web Store.",
+            "Platforms: LinkedIn Easy Apply, with Indeed applications tracked in the same dashboard.",
+            "Pricing: Free plan with 3 auto-apply actions per day; Pro at ₹49 per month for unlimited auto-apply; pay-as-you-go Hires wallet.",
+            "Core features: Easy Apply automation, answer bank, duplicate prevention, AI resume tailoring, application tracker, interview preparation.",
+          ],
+        },
+        {
+          title: "Logo usage",
+          bullets: [
+            "Use the logo files as provided, without stretching, recoloring, or adding effects.",
+            "Leave clear space around the logo equal to at least half its height.",
+            "Write the name as AutoApply CV, with a space before CV.",
           ],
         },
       ]}

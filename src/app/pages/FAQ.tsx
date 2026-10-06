@@ -37,7 +37,7 @@ export default function FAQ() {
         },
         {
           q: 'How many applications can I send with the free plan?',
-          a: 'Free ($0) includes 3 Auto-Apply actions per day, and new accounts get a free 30 Hires coins signup bonus. If you need more volume, you can upgrade to Pro ($3/month) for unlimited applications or use Custom Hires top-up (1 Hire = 1 Apply, minimum top-up $0.54).'
+          a: 'Free (₹0) includes 3 Auto-Apply actions per day, and new accounts get a free 30 Hires coins signup bonus. If you need more volume, you can upgrade to Pro (₹49/month) for unlimited applications or use Custom Hires top-up (1 Hire = 1 Apply, minimum top-up $0.54).'
         },
         {
           q: 'Is AutoApply CV a LinkedIn auto apply bot?',
@@ -121,7 +121,7 @@ export default function FAQ() {
           
           <h1 className="text-5xl lg:text-6xl font-bold text-gray-900 mb-6">
             Frequently Asked{' '}
-            <span className="bg-gradient-to-r from-[#6366F1] to-[#A855F7] bg-clip-text text-transparent">
+            <span className="bg-[#6047f5] bg-clip-text text-transparent">
               Questions
             </span>
           </h1>
@@ -183,7 +183,7 @@ export default function FAQ() {
       <section className="py-24 bg-gradient-to-br from-purple-50 to-blue-50">
         <div className="max-w-4xl mx-auto px-6 lg:px-8">
           <div className="bg-white rounded-3xl shadow-2xl p-12 text-center border border-purple-100">
-            <div className="w-20 h-20 rounded-full bg-gradient-to-br from-[#6366F1] to-[#A855F7] flex items-center justify-center mx-auto mb-6 shadow-lg">
+            <div className="w-20 h-20 rounded-full bg-[#6047f5] flex items-center justify-center mx-auto mb-6 shadow-lg">
               <MessageCircle className="w-10 h-10 text-white" />
             </div>
             
@@ -196,7 +196,7 @@ export default function FAQ() {
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <button className="px-8 py-4 bg-gradient-to-r from-[#6366F1] to-[#A855F7] text-white rounded-xl font-semibold hover:shadow-xl hover:scale-105 transition-all duration-200">
+              <button className="px-8 py-4 bg-[#6047f5] text-white rounded-xl font-semibold hover:shadow-xl hover:-translate-y-px transition-all duration-200">
                 Contact Support
               </button>
               <button 

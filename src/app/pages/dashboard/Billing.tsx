@@ -349,7 +349,7 @@ export default function Billing() {
           emi: true,
           paylater: true,
         },
-        theme: { color: "#6366F1" },
+        theme: { color: "#6047f5" },
         handler: async (response: Record<string, string>) => {
           const verifyRes = await fetch("/api/wallet/topup/verify", {
             method: "POST",
@@ -549,7 +549,7 @@ export default function Billing() {
               className={`w-full py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-md ${
                 currentPlan === "pro"
                   ? "bg-purple-100 text-purple-700 cursor-default"
-                  : "bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white shadow-purple-500/20 hover:scale-[1.02] active:scale-[0.98]"
+                  : "bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white shadow-purple-500/20 hover:-translate-y-px active:scale-[0.98]"
               }`}
             >
               {upgradingPlan === "pro" ? (
@@ -622,7 +622,7 @@ export default function Billing() {
               className={`w-full py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
                 currentPlan === "coach"
                   ? "bg-indigo-100 text-indigo-700 cursor-default"
-                  : "bg-gray-900 hover:bg-black text-white hover:scale-[1.02]"
+                  : "bg-gray-900 hover:bg-black text-white hover:-translate-y-px"
               }`}
             >
               {upgradingPlan === "coach" ? (
@@ -732,7 +732,7 @@ export default function Billing() {
           <button
             onClick={() => void startTopup()}
             disabled={processingTopup || belowMinUsd}
-            className="px-4 py-2 rounded-lg bg-gradient-to-r from-[#6366F1] to-[#A855F7] hover:from-[#5558E6] hover:to-[#9647E3] text-white text-xs font-bold shadow-xs hover:shadow-sm transition-all disabled:opacity-60 cursor-pointer"
+            className="px-4 py-2 rounded-lg bg-[#6047f5] hover:from-[#5558E6] hover:to-[#9647E3] text-white text-xs font-bold shadow-xs hover:shadow-sm transition-all disabled:opacity-60 cursor-pointer"
           >
             {processingTopup ? "Processing..." : "Pay with Razorpay"}
           </button>

@@ -6,11 +6,11 @@ export default function MobileBlocker() {
       <div className="w-full max-w-md">
         <div className="bg-white rounded-3xl shadow-[0_20px_60px_rgba(15,23,42,0.12)] border border-gray-100 overflow-hidden">
           {/* Gradient top accent */}
-          <div className="h-2 bg-gradient-to-r from-[#6366F1] via-[#8B5CF6] to-[#A855F7]" />
+          <div className="h-2 bg-[#6047f5]" />
 
           <div className="px-8 py-10 text-center">
             {/* Icon */}
-            <div className="mx-auto mb-6 w-16 h-16 rounded-2xl bg-gradient-to-br from-[#6366F1] to-[#A855F7] flex items-center justify-center shadow-lg">
+            <div className="mx-auto mb-6 w-16 h-16 rounded-2xl bg-[#6047f5] flex items-center justify-center shadow-lg">
               <Monitor className="w-8 h-8 text-white" />
             </div>
 
@@ -49,7 +49,7 @@ export default function MobileBlocker() {
               href="https://recruitment.autoapplycv.in/index.html"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-[#6366F1] via-[#8B5CF6] to-[#A855F7] text-white rounded-xl font-semibold shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all duration-200"
+              className="inline-flex items-center gap-2 px-6 py-3 bg-[#6047f5] text-white rounded-xl font-semibold shadow-lg hover:shadow-xl hover:-translate-y-px transition-all duration-200"
             >
               Contact Recruitment Agency
               <ArrowRight className="w-4 h-4" />

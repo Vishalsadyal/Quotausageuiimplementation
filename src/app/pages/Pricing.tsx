@@ -41,15 +41,15 @@ export default function Pricing() {
         'Community support',
         'Email notifications'
       ],
-      cta: 'Start Free ($0)',
+      cta: 'Start Free (₹0)',
       popular: false,
       gradient: 'from-gray-600 to-gray-700'
     },
     {
       name: 'Pro',
       icon: Crown,
-      monthlyPrice: 0.59,
-      yearlyPrice: 5.9,
+      monthlyPrice: 49,
+      yearlyPrice: 588,
       customPriceLabel: '₹49 / month',
       description: 'Unlimited applications with premium automation',
       features: [
@@ -65,7 +65,7 @@ export default function Pricing() {
       ],
       cta: 'Start Pro (₹49/mo)',
       popular: true,
-      gradient: 'from-[#6366F1] via-[#8B5CF6] to-[#A855F7]',
+      gradient: 'from-[#6047f5] via-[#6047f5] to-[#4932cf]',
       badge: 'LIMITED OFFER • 90% OFF'
     },
     {
@@ -115,11 +115,11 @@ export default function Pricing() {
           </div>
 
           <h1 className="text-5xl lg:text-6xl font-bold text-gray-900 mb-6">
-            Clear pricing in <span className="bg-gradient-to-r from-[#6366F1] to-[#A855F7] bg-clip-text text-transparent">USD</span>
+            Clear pricing in <span className="bg-[#6047f5] bg-clip-text text-transparent">INR</span>
           </h1>
 
           <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-10">
-            Free ($0) with 3/day, Pro at $3/month unlimited, or Custom Hires top-up when you need flexibility.
+            Free (₹0) with 3/day, Pro at ₹49/month unlimited, or Custom Hires top-up when you need flexibility.
           </p>
 
           <div className="inline-flex items-center gap-3 bg-white rounded-full p-2 shadow-lg border border-gray-200">
@@ -127,7 +127,7 @@ export default function Pricing() {
               onClick={() => setBillingCycle('monthly')}
               className={`px-6 py-2.5 rounded-full font-semibold transition-all duration-200 ${
                 billingCycle === 'monthly'
-                  ? 'bg-gradient-to-r from-[#6366F1] to-[#A855F7] text-white shadow-md'
+                  ? 'bg-[#6047f5] text-white shadow-md'
                   : 'text-gray-600 hover:text-gray-900'
               }`}
             >
@@ -137,7 +137,7 @@ export default function Pricing() {
               onClick={() => setBillingCycle('yearly')}
               className={`px-6 py-2.5 rounded-full font-semibold transition-all duration-200 relative ${
                 billingCycle === 'yearly'
-                  ? 'bg-gradient-to-r from-[#6366F1] to-[#A855F7] text-white shadow-md'
+                  ? 'bg-[#6047f5] text-white shadow-md'
                   : 'text-gray-600 hover:text-gray-900'
               }`}
             >
@@ -155,7 +155,7 @@ export default function Pricing() {
                 key={index}
                 className={`relative rounded-3xl p-8 transition-all duration-300 ${
                   plan.popular
-                    ? 'bg-gradient-to-br from-[#6366F1] via-[#8B5CF6] to-[#A855F7] text-white shadow-2xl scale-105 border-4 border-purple-300'
+                    ? 'bg-[#6047f5] text-white shadow-2xl scale-105 border-4 border-purple-300'
                     : 'bg-gradient-to-br from-white to-gray-50 border-2 border-gray-200 hover:border-purple-300 hover:shadow-xl'
                 }`}
               >
@@ -179,7 +179,7 @@ export default function Pricing() {
                     ) : (
                       <>
                         <span className={`text-5xl font-bold ${plan.popular ? 'text-white' : 'text-gray-900'}`}>
-                          ${billingCycle === 'monthly' ? plan.monthlyPrice : plan.yearlyPrice}
+                          ₹{billingCycle === 'monthly' ? plan.monthlyPrice : plan.yearlyPrice}
                         </span>
                         <span className={plan.popular ? 'text-purple-100' : 'text-gray-600'}>
                           /{billingCycle === 'monthly' ? 'mo' : 'yr'}
@@ -207,7 +207,7 @@ export default function Pricing() {
                   className={`w-full py-4 rounded-xl font-bold transition-all duration-200 flex items-center justify-center gap-2 ${
                     plan.popular
                       ? 'bg-white text-purple-700 hover:bg-gray-100 shadow-lg'
-                      : 'bg-gradient-to-r from-[#6366F1] to-[#A855F7] text-white hover:shadow-xl hover:scale-105'
+                      : 'bg-[#6047f5] text-white hover:shadow-xl hover:scale-105'
                   }`}
                 >
                   {plan.cta}
@@ -269,7 +269,7 @@ export default function Pricing() {
         </div>
       </section>
 
-      <section className="py-24 bg-gradient-to-br from-[#6366F1] via-[#8B5CF6] to-[#A855F7] text-white">
+      <section className="py-24 bg-[#6047f5] text-white">
         <div className="max-w-4xl mx-auto px-6 lg:px-8 text-center">
           <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/20 backdrop-blur-sm rounded-full text-sm font-semibold mb-8">
             <Sparkles className="w-4 h-4" />
@@ -278,11 +278,11 @@ export default function Pricing() {
 
           <h2 className="text-4xl lg:text-5xl font-bold mb-6">Start your journey today</h2>
 
-          <p className="text-xl text-purple-100 mb-12">Free starts at $0 with 3/day. Pro is $3/month unlimited.</p>
+          <p className="text-xl text-purple-100 mb-12">Free starts at ₹0 with 3/day. Pro is ₹49/month unlimited.</p>
 
           <button
             onClick={() => handleSelectPlan('Free')}
-            className="px-10 py-5 bg-white text-purple-700 rounded-xl font-bold text-lg hover:bg-gray-100 shadow-2xl hover:scale-105 transition-all duration-200 inline-flex items-center gap-2"
+            className="px-10 py-5 bg-white text-purple-700 rounded-xl font-bold text-lg hover:bg-gray-100 shadow-2xl hover:-translate-y-px transition-all duration-200 inline-flex items-center gap-2"
           >
             Start Free ($0)
             <ArrowRight className="w-5 h-5" />

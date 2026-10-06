@@ -91,7 +91,7 @@ export default function Blog() {
           </div>
           <h1 className="text-5xl lg:text-6xl font-bold text-gray-900 mb-6">
             Job Search Automation{' '}
-            <span className="bg-gradient-to-r from-[#6366F1] to-[#A855F7] bg-clip-text text-transparent">
+            <span className="bg-[#6047f5] bg-clip-text text-transparent">
               Blog
             </span>
           </h1>
@@ -207,7 +207,7 @@ export default function Blog() {
           </p>
           <button
             onClick={() => navigate('/pricing')}
-            className="px-10 py-4 bg-gradient-to-r from-[#6366F1] to-[#A855F7] text-white rounded-xl font-bold text-lg hover:shadow-xl"
+            className="px-10 py-4 bg-[#6047f5] text-white rounded-xl font-bold text-lg hover:shadow-xl"
           >
             Start Free
           </button>

@@ -43,7 +43,7 @@ export default function BlogBestAiJobSearchTools() {
             </p>
             <button
               onClick={() => navigate('/features')}
-              className="inline-flex items-center gap-2 px-7 py-3 bg-gradient-to-r from-[#6366F1] to-[#A855F7] text-white rounded-xl font-semibold"
+              className="inline-flex items-center gap-2 px-7 py-3 bg-[#6047f5] text-white rounded-xl font-semibold"
             >
               Explore features
               <ArrowRight className="w-4 h-4" />

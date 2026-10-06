@@ -120,7 +120,7 @@ export default function MarketingInfoPage({
       {ctaTitle || ctaDescription || primaryAction || secondaryAction ? (
         <section className="pb-20">
           <div className="max-w-5xl mx-auto px-6 lg:px-8">
-            <div className="rounded-3xl bg-gradient-to-r from-[#6366F1] via-[#8B5CF6] to-[#A855F7] px-8 py-10 text-white shadow-premium-lg">
+            <div className="rounded-3xl bg-[#6047f5] px-8 py-10 text-white shadow-premium-lg">
               {ctaTitle ? <h2 className="text-3xl font-bold">{ctaTitle}</h2> : null}
               {ctaDescription ? <p className="mt-3 text-purple-100 text-lg">{ctaDescription}</p> : null}
               {(primaryAction || secondaryAction) ? (

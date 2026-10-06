@@ -41,6 +41,35 @@ export default function Contact() {
             "Whether the issue happened in jobs search or jobs view flow.",
           ],
         },
+        {
+          title: "Which channel should I use?",
+          cards: [
+            {
+              kicker: "Login or account",
+              title: "Email general support",
+              description: "Include the email you signed up with. Never send your password or one-time login codes.",
+            },
+            {
+              kicker: "Payments",
+              title: "Email billing",
+              description: "Include the payment date and the Razorpay order or payment ID shown on your receipt.",
+            },
+            {
+              kicker: "Extension",
+              title: "Check the Help Center first",
+              description: "Install, sync, and validation issues usually have a documented fix you can apply in minutes.",
+            },
+          ],
+        },
+        {
+          title: "What happens after you write to us",
+          bullets: [
+            "Your message is routed to the right team based on the address you used.",
+            "We may ask for a log export or screenshot if an automation issue cannot be reproduced.",
+            "Billing questions are checked against your payment record before any change is made.",
+            "You will hear back by email at the address you wrote from.",
+          ],
+        },
       ]}
       ctaTitle="Need quick self-service help first?"
       ctaDescription="Most setup and run-flow questions are already documented."

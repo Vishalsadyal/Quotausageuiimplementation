@@ -11,7 +11,7 @@ function nextUtcMidnight(baseDate: Date) {
 }
 
 export function getDailyHireCap(plan: "free" | "pro" | "coach") {
-  // Pro is a subscription tier (e.g. $3/month) intended to be effectively unlimited.
+  // Pro is a subscription tier (₹49/month) intended to be effectively unlimited.
   // Keep it as a very large daily cap to avoid edge cases and keep counters numeric.
   if (plan === "pro") return Number(process.env.QUOTA_PRO_DAILY || 1000000);
   if (plan === "coach") return Number(process.env.QUOTA_COACH_DAILY || 200);

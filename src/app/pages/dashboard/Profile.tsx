@@ -137,7 +137,7 @@ export default function Profile() {
                 className="w-18 h-18 rounded-full border-2 border-purple-200 shadow-xs object-cover"
               />
               {isEditing && (
-                <button className="absolute bottom-0 right-0 w-6 h-6 rounded-full bg-purple-600 text-white flex items-center justify-center shadow-xs hover:scale-105 transition-transform">
+                <button className="absolute bottom-0 right-0 w-6 h-6 rounded-full bg-purple-600 text-white flex items-center justify-center shadow-xs hover:-translate-y-px transition-transform">
                   <Camera className="w-3 h-3" />
                 </button>
               )}

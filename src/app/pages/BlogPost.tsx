@@ -74,7 +74,7 @@ export default function BlogPost() {
           <p className="text-gray-600 mb-6">{error || "The requested blog post is not available."}</p>
           <button
             onClick={() => navigate("/blog")}
-            className="px-5 py-3 rounded-xl bg-gradient-to-r from-[#6366F1] to-[#A855F7] text-white font-semibold"
+            className="px-5 py-3 rounded-xl bg-[#6047f5] text-white font-semibold"
           >
             Back to Blog
           </button>
