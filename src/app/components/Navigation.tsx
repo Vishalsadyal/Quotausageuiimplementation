@@ -76,7 +76,10 @@ export function Navigation() {
           <Clock className="w-3 h-3" /> Limited offer
         </strong>
         <p className="m-0 min-w-0 truncate text-[#496312]">
-          Pro is 90% off: unlimited auto-apply for ₹49/month.
+          Pro is 90% off: unlimited auto-apply for ₹49/month, plus a free{' '}
+          <strong className="font-extrabold italic text-[#17142e]">
+            WhatsApp &amp; email auto-sender to HR numbers and emails
+          </strong>
         </p>
         <Link to="/pricing" className="hidden sm:inline-flex shrink-0 items-center gap-1 font-extrabold hover:underline">
           View Pro plan <ArrowRight className="w-3 h-3" />

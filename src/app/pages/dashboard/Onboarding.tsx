@@ -19,7 +19,7 @@ import {
 import { useAuth } from "../../context/AuthContext";
 import { ExtensionInstallGuide, type ExtensionInstallGuideStep } from "../../components/ExtensionInstallGuide";
 import { getExtensionProviderConfig } from "src/lib/extension-providers";
-import { readHeroLead } from "src/lib/heroLead";
+import { clearPendingResume, readHeroLead, readPendingResume } from "src/lib/heroLead";
 import { collectExtensionBridgeSnapshot } from "src/lib/extension-bridge-client";
 import {
   DASHBOARD_TOUR_EVENT_NAME,
@@ -1354,12 +1354,12 @@ export default function Onboarding() {
       // Prefill empty fields from the home-page hero form (cleared once onboarding completes).
       const heroLead = readHeroLead();
       if (heroLead) {
-        if (!nextProfile.linkedinUrl) nextProfile.linkedinUrl = heroLead.linkedinUrl;
-        if (!nextProfile.yearsOfExperience) nextProfile.yearsOfExperience = heroLead.yearsOfExperience;
-        if (!nextPreferences.yearsOfExperience) nextPreferences.yearsOfExperience = heroLead.yearsOfExperience;
+        if (heroLead.linkedinUrl && !nextProfile.linkedinUrl) nextProfile.linkedinUrl = heroLead.linkedinUrl;
+        if (heroLead.yearsOfExperience && !nextProfile.yearsOfExperience) nextProfile.yearsOfExperience = heroLead.yearsOfExperience;
+        if (heroLead.yearsOfExperience && !nextPreferences.yearsOfExperience) nextPreferences.yearsOfExperience = heroLead.yearsOfExperience;
         if (heroLead.jobTitle && !nextProfile.preferredJobTitles.length) nextProfile.preferredJobTitles = [heroLead.jobTitle];
         if (heroLead.jobTitle && !nextPreferences.searchTerms.length) nextPreferences.searchTerms = [heroLead.jobTitle];
-        if (!readAnswer("work_mode_preference", "cp_pref_work_mode")) {
+        if (heroLead.workMode && !readAnswer("work_mode_preference", "cp_pref_work_mode")) {
           nextProfile.workModePreference = heroLead.workMode;
           nextPreferences.workMode = heroLead.workMode;
         }
@@ -2341,6 +2341,21 @@ export default function Onboarding() {
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // A resume uploaded in the home-page agent before signup is waiting in the
+  // browser: upload it to the new account once, so its fields fill in here.
+  const handleResumeUploadRef = useRef<((file: File) => Promise<void>) | null>(null);
+  const autoUploadStartedRef = useRef(false);
+  useEffect(() => {
+    if (loading || autoUploadStartedRef.current) return;
+    autoUploadStartedRef.current = true;
+    void (async () => {
+      const file = await readPendingResume();
+      if (!file) return;
+      await handleResumeUploadRef.current?.(file);
+      await clearPendingResume();
+    })();
+  }, [loading]);
+
   if (loading) {
     return (
       <div className="min-h-screen w-full bg-gradient-to-b from-slate-50 via-white to-indigo-50/40 flex items-center justify-center">
@@ -2458,6 +2473,7 @@ export default function Onboarding() {
       setUploading(false);
     }
   };
+  handleResumeUploadRef.current = handleResumeUpload;
 
   return (
     <div className="min-h-screen w-full bg-gradient-to-b from-slate-50 via-white to-indigo-50/40 flex flex-col">
