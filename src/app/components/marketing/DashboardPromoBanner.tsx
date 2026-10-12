@@ -100,7 +100,7 @@ export function DashboardPromoBanner() {
         amount: orderData.amount,
         currency: orderData.currency,
         name: "AutoApply CV",
-        description: "Pro Upgrade - ₹49 Flash Offer",
+        description: "Pro Upgrade - ₹99 Flash Offer",
         order_id: orderData.orderId,
         prefill: {
           name: user?.name || "",
@@ -168,7 +168,7 @@ export function DashboardPromoBanner() {
           <div className="flex flex-wrap items-center gap-2">
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-400/20 border border-amber-300/30 text-amber-300 font-bold text-xs tracking-wide">
               <Flame className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
-              EXCLUSIVE FLASH OFFER • 90% OFF
+              EXCLUSIVE FLASH OFFER • 80% OFF
             </span>
             <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-white/10 text-purple-100 text-xs font-medium">
               <Sparkles className="w-3 h-3 text-purple-300" />
@@ -180,7 +180,7 @@ export function DashboardPromoBanner() {
             <h2 className="text-xl md:text-2xl font-black text-white tracking-tight leading-snug">
               Boost Your Interviews: Get Pro Auto-Apply for only{" "}
               <span className="text-amber-300 underline decoration-amber-400 decoration-wavy underline-offset-4">
-                ₹49
+                ₹99
               </span>{" "}
               <span className="text-sm md:text-base line-through text-purple-300 font-normal ml-1">
                 ₹499
@@ -255,7 +255,7 @@ export function DashboardPromoBanner() {
               ) : (
                 <>
                   <Zap className="w-4 h-4 fill-gray-950 text-gray-950" />
-                  <span>Upgrade to Pro for ₹49</span>
+                  <span>Upgrade to Pro for ₹99</span>
                   <ArrowRight className="w-4 h-4" />
                 </>
               )}

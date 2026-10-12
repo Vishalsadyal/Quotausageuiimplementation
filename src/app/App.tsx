@@ -68,6 +68,7 @@ const Onboarding = lazy(() => import('./pages/dashboard/Onboarding'));
 const Marketing = lazy(() => import('./pages/dashboard/Marketing'));
 const HROutreach = lazy(() => import('./pages/dashboard/HROutreach'));
 const ColdEmails = lazy(() => import('./pages/dashboard/ColdEmails'));
+const Assistant = lazy(() => import('./pages/dashboard/Assistant'));
 
 // Admin Pages (lazy load)
 const AdminOverview = lazy(() => import('./pages/admin/Overview'));
@@ -202,6 +203,7 @@ const routes = createRoutesFromElements(
       <Route path="hr-outreach" element={<Suspense fallback={<PageLoader />}><HROutreach /></Suspense>} />
       <Route path="cold-emails" element={<Suspense fallback={<PageLoader />}><ColdEmails /></Suspense>} />
       <Route path="onboarding" element={<Suspense fallback={<PageLoader />}><Onboarding /></Suspense>} />
+      <Route path="assistant" element={<Suspense fallback={<PageLoader />}><Assistant /></Suspense>} />
     </Route>
 
     {/* Admin */}

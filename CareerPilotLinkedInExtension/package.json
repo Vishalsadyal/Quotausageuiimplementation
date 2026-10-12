@@ -4,7 +4,8 @@
   "private": true,
   "description": "AutoApply CV LinkedIn extension.",
   "scripts": {
-    "build": "vite build",
+    "build": "node tools/build-probe.mjs && vite build",
+    "probe": "node tools/build-probe.mjs",
     "dev": "vite build --watch",
     "test:e2e": "playwright test",
     "test:e2e:headed": "playwright test --headed"

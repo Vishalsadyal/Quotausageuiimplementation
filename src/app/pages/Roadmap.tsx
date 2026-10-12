@@ -76,7 +76,7 @@ export default function Roadmap() {
             {
               kicker: "September 2026",
               title: "Pro plan and billing updates",
-              description: "A ₹49 per month Pro plan with unlimited auto-apply, plus clearer plan and billing screens.",
+              description: "A ₹99 per month Pro plan with unlimited auto-apply, plus clearer plan and billing screens.",
             },
             {
               kicker: "August 2026",

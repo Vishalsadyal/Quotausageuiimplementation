@@ -9,7 +9,6 @@
   if (window.__linkedInWhatsAppOutreachInjected) return;
   window.__linkedInWhatsAppOutreachInjected = true;
 
-  console.log('%c[LinkedIn-WA] Content script initialized on ' + window.location.href, 'color: #25D366; font-weight: bold; font-size: 13px;');
 
   let settings = {
     targetKeywords: [
@@ -919,7 +918,6 @@ Parveen`,
     expandAllSeeMoreButtons();
     const posts = findAllPostElements();
     logTerminal(`[Diagnostics] Found ${posts.length} post containers on screen.`, 'info');
-    console.log('%c[LinkedIn-WA] Diagnostics Report - Posts on screen: ' + posts.length, 'color: #38bdf8; font-weight: bold;');
 
     posts.forEach((post, i) => {
       const fullText = getAllTextFromPost(post).trim();
@@ -928,7 +926,6 @@ Parveen`,
       const isSeeker = settings.filterJobSeekers && isJobSeekerPost(post, fullText);
       const matchedKw = matchTargetKeywords(fullText);
 
-      console.log(`[Post #${i + 1}] Author: ${author} | Phones: [${phones.join(', ')}] | Seeker: ${isSeeker} | Keyword: ${matchedKw || 'None'}`);
       
       if (phones.length > 0) {
         logTerminal(`Card #${i+1} (${author}): Phone +${phones.join(', +')} | Role: ${matchedKw || 'Hiring'}`, 'success');
@@ -999,7 +996,6 @@ Parveen`,
         extractedLeads.unshift(lead);
         newCount++;
 
-        console.log('%c[LinkedIn-WA] Extracted Lead: ' + author + ' (' + jobTitle + ') -> +' + cleanPhone + (isContacted ? ' [Already Sent]' : ''), 'color: #25D366; font-weight: bold;');
 
         // Save to background
         chrome.runtime.sendMessage({
@@ -1018,7 +1014,6 @@ Parveen`,
         duplicateStats: { skippedCount: duplicateCount }
       });
       updateStatsBar();
-      console.log(`%c[LinkedIn-WA] Scanned ${postElements.length} posts | Found ${newCount} new WhatsApp lead(s)!`, 'color: #25D366; font-weight: bold;');
     }
 
     return newCount;
@@ -1799,7 +1794,6 @@ Parveen`,
       }
       if (window.location.href !== lastUrl) {
         lastUrl = window.location.href;
-        console.log('[LinkedIn-WA] URL changed to:', lastUrl);
         logTerminal(`Navigated to: ${window.location.pathname}`, 'info');
         setTimeout(() => {
           expandAllSeeMoreButtons();
@@ -1821,7 +1815,6 @@ Parveen`,
 
       if (request.type === 'LEAD_MESSAGE_SENT') {
         const { phone, urn } = request.payload || {};
-        console.log('[LinkedIn-WA] Received notification of sent message for +', phone);
         if (phone) {
           contactedPhones.add(phone);
           extractedLeads = extractedLeads.map(l => {

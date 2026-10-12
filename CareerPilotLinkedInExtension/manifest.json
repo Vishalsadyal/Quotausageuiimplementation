@@ -12,7 +12,8 @@
   "permissions": [
     "storage",
     "tabs",
-    "alarms"
+    "alarms",
+    "declarativeNetRequestWithHostAccess"
   ],
   "host_permissions": [
     "https://www.linkedin.com/*",
@@ -63,6 +64,7 @@
         "https://*.linkedin.com/jobs/*"
       ],
       "js": [
+        "src/linkedin-dom.js",
         "src/content.js"
       ],
       "css": [
@@ -159,5 +161,28 @@
       "48": "icons/icon48.png",
       "128": "icons/icon128.png"
     }
-  }
+  },
+  "declarative_net_request": {
+    "rule_resources": [
+      {
+        "id": "linkedin_trackers",
+        "enabled": true,
+        "path": "src/rules/block-linkedin-trackers.json"
+      }
+    ]
+  },
+  "optional_host_permissions": [
+    "https://*.doubleclick.net/*",
+    "https://*.googletagmanager.com/*",
+    "https://*.google-analytics.com/*",
+    "https://*.googleadservices.com/*",
+    "https://*.googlesyndication.com/*",
+    "https://*.demdex.net/*",
+    "https://bat.bing.com/*",
+    "https://*.trkn.us/*",
+    "https://trkn.us/*",
+    "https://*.tiqcdn.com/*",
+    "https://*.facebook.com/*",
+    "https://connect.facebook.net/*"
+  ]
 }

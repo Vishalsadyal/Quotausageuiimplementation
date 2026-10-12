@@ -1591,26 +1591,96 @@ function isAppliedStatusText(text) {
   return false;
 }
 
-function isAlreadyAppliedCard(card) {
-  const footerNodes = Array.from(
-    card?.querySelectorAll?.(
-      ".job-card-container__footer-job-state, .job-card-list__footer-wrapper, .jobs-card__listdate, .job-card-list__footer-wrapper *"
-    ) || []
+// A whole status line such as "Applied", "Applied 3 days ago", "Applied on company website",
+// "Application submitted". Must match the full text so titles like "Applied Scientist" don't count.
+const APPLIED_STATUS_LINE_RE =
+  /^(you )?(applied|application (submitted|sent|viewed))( (\d+|a|an) (second|minute|hour|day|week|month|year)s? ago| on [a-z ]+| [·•].*)?$/;
+
+function isAppliedStatusLine(text) {
+  const t = String(text || "").toLowerCase().replace(/\s+/g, " ").trim();
+  return t.length > 0 && t.length <= 60 && APPLIED_STATUS_LINE_RE.test(t);
+}
+
+/**
+ * Returns which detection method found an "Applied" marker on a search card, or "" if none.
+ * Several fallbacks because LinkedIn renames its card classes frequently.
+ */
+function detectAppliedCardMethod(card) {
+  if (!card?.querySelectorAll) return "";
+  const titleAnchor = getCardAnchor(card);
+  const outsideTitle = (node) => !titleAnchor || !titleAnchor.contains(node);
+
+  // 1. Known footer/state classes (classic LinkedIn layout).
+  const footerNodes = card.querySelectorAll(
+    ".job-card-container__footer-job-state, .job-card-container__footer-item, .job-card-list__footer-wrapper li, .job-card-container__footer-wrapper li, .jobs-card__listdate"
   );
   for (const node of footerNodes) {
-    if (isAppliedStatusText(node?.textContent || "")) return true;
+    if (outsideTitle(node) && isAppliedStatusLine(node.textContent)) return "footer-class";
   }
 
-  const stateBadgeNodes = Array.from(
-    card?.querySelectorAll?.("[aria-label], [data-test-id*='appl'], [class*='appl']") || []
-  );
-  for (const node of stateBadgeNodes) {
-    const aria = String(node?.getAttribute?.("aria-label") || "");
-    if (isAppliedStatusText(aria)) return true;
-    if (isAppliedStatusText(node?.textContent || "")) return true;
+  // 2. Any short leaf element (li/span/time/strong/p/div with no child elements) whose text is a status line.
+  for (const node of card.querySelectorAll("li, span, time, strong, p, div")) {
+    if (node.childElementCount > 0 || !outsideTitle(node)) continue;
+    if (isAppliedStatusLine(node.textContent)) return "leaf-text";
   }
 
-  return false;
+  // 3. Rendered text lines of the card (covers new layouts with obfuscated class names).
+  const lines = String(card.innerText || "").split(/\n+/);
+  if (lines.some((line) => isAppliedStatusLine(line))) return "card-lines";
+
+  // 4. Accessibility labels, e.g. aria-label="Applied" on a status icon.
+  for (const node of card.querySelectorAll("[aria-label]")) {
+    if (outsideTitle(node) && isAppliedStatusLine(node.getAttribute("aria-label"))) return "aria-label";
+  }
+
+  // 5. Legacy loose check on footer wrappers (kept for older LinkedIn markup).
+  for (const node of card.querySelectorAll(".job-card-list__footer-wrapper, .job-card-container__footer-wrapper")) {
+    if (isAppliedStatusText(node.textContent || "")) return "footer-legacy";
+  }
+
+  // 6. Shared fallback chain (adds status attributes and any future strategies).
+  return globalThis.CPLinkedInDom?.appliedMethodOf(card) || "";
+}
+
+function isAlreadyAppliedCard(card) {
+  return Boolean(detectAppliedCardMethod(card));
+}
+
+const JOB_DETAIL_ROOT_SELECTORS = [
+  ".jobs-search__job-details",
+  ".jobs-details",
+  ".job-details-jobs-unified-top-card",
+  ".jobs-unified-top-card",
+  ".jobs-details-top-card",
+  ".scaffold-layout__detail",
+  "[data-view-name*='job-details']"
+];
+
+/** Returns which method found "Applied" in the open job's detail pane, or "". */
+function detectAppliedInDetailPane() {
+  const root = getBySelectorList(JOB_DETAIL_ROOT_SELECTORS) || globalThis.CPLinkedInDom?.findDetailPane().element;
+  if (!root) return "";
+
+  // 1. LinkedIn's applied banner / feedback ("Applied 2 days ago", "Application submitted").
+  if (root.querySelector(".jobs-apply-button--applied, .post-apply-timeline")) return "detail-applied-class";
+  for (const node of root.querySelectorAll(".artdeco-inline-feedback__message, .jobs-s-apply__application-link")) {
+    if (isAppliedStatusLine(node.textContent)) return "detail-feedback";
+  }
+
+  // 2. "See application" / "Application status" controls only show after applying.
+  for (const node of root.querySelectorAll("a, button")) {
+    const label = `${node.getAttribute("aria-label") || ""} ${node.textContent || ""}`.toLowerCase().replace(/\s+/g, " ").trim();
+    if (/^(see|view) (your )?application\b/.test(label) || /^application status\b/.test(label)) return "detail-see-application";
+  }
+
+  // 3. Short leaf text that is a status line.
+  for (const node of root.querySelectorAll("span, li, p, div, time")) {
+    if (node.childElementCount > 0) continue;
+    if (isAppliedStatusLine(node.textContent)) return "detail-leaf-text";
+  }
+
+  // 4. Shared fallback chain (e.g. an "Applied" state on the apply button itself).
+  return globalThis.CPLinkedInDom?.detailAppliedMethod(root) || "";
 }
 
 function extractLinkedInJobIdFromUrl(url) {
@@ -1691,7 +1761,9 @@ function getJobKeyFromCard(card) {
     if (fromHref) return fromHref;
   }
 
-  return "";
+  // Shared fallback chain (job-id attributes, numeric attributes, selected tile URL, text fingerprint).
+  // A text fingerprint is replaced by the real id from the URL once the card is opened.
+  return globalThis.CPLinkedInDom?.jobIdOf(card)?.id || "";
 }
 
 function parseListSetting(value) {
@@ -1776,7 +1848,7 @@ function extractCardMeta(card) {
 function getCardElementContainer(card) {
   if (!card) return null;
   return (
-    card.closest(".job-card-container, li.jobs-search-results__list-item, .jobs-search-results-list__list-item, div[data-job-id], [data-occludable-job-id]") ||
+    card.closest(".job-card-container, li.jobs-search-results__list-item, .jobs-search-results-list__list-item, div[data-job-id], [data-occludable-job-id], [data-view-name='job-card']") ||
     card
   );
 }
@@ -1836,7 +1908,7 @@ function formatFriendlySkipReason(label) {
   return label.length > 25 ? `${label.slice(0, 22)}...` : label;
 }
 
-function markJobCardStatus(card, status = "applied", label = "") {
+function markJobCardStatus(card, status = "applied", label = "", options = {}) {
   try {
     const container = getCardElementContainer(card);
     if (!container) return;
@@ -1855,6 +1927,10 @@ function markJobCardStatus(card, status = "applied", label = "") {
     if (status === "applied") {
       container.classList.add("cp-card-completed-applied");
       tag.innerHTML = `<span>✅</span><span>APPLIED</span>`;
+    } else if (formatFriendlySkipReason(label) === "Already Applied") {
+      container.classList.add("cp-card-completed-applied");
+      tag.className = "cp-card-outcome-tag cp-tag-applied";
+      tag.innerHTML = `<span>✅</span><span>ALREADY APPLIED</span>`;
     } else {
       container.classList.add("cp-card-completed-skipped");
       const reasonText = formatFriendlySkipReason(label);
@@ -1866,11 +1942,56 @@ function markJobCardStatus(card, status = "applied", label = "") {
       container.querySelector(".artdeco-entity-lockup__content") ||
       container.querySelector(".job-card-list__entity-lockup") ||
       container.querySelector(".job-card-container__primary-description")?.parentElement ||
+      getCardAnchor(container)?.parentElement ||
       container;
     targetArea.appendChild(tag);
+
+    // Remember the outcome so the tag can be redrawn when LinkedIn re-renders the list.
+    const key = getJobKeyFromCard(container) || getJobKeyFromCard(card);
+    if (key && !options.fromRepaint) cardStatusByJobKey.set(key, { status, label });
   } catch {
     // ignore
   }
+}
+
+// Job key → last outcome tag shown on its card during this page session.
+const cardStatusByJobKey = new Map();
+
+/** Tags every visible card that we already know about; safe to call repeatedly. */
+function paintJobCardStatuses() {
+  if (!isJobsSearchPage()) return;
+  for (const card of collectJobCards()) {
+    const container = getCardElementContainer(card);
+    if (!container || container.querySelector(".cp-card-outcome-tag, .cp-card-live-badge")) continue;
+    const key = getJobKeyFromCard(card);
+    const known = key ? cardStatusByJobKey.get(key) : null;
+    if (known) {
+      markJobCardStatus(card, known.status, known.label, { fromRepaint: true });
+    } else if ((key && knownAppliedJobIds.has(key)) || isAlreadyAppliedCard(card)) {
+      markJobCardStatus(card, "skipped", "Already Applied", { fromRepaint: true });
+    }
+  }
+}
+
+let cardPaintObserver = null;
+let cardPaintTimer = 0;
+
+/** LinkedIn virtualizes the results list and drops our tags; repaint them after DOM changes. */
+function startCardPaintObserver() {
+  if (cardPaintObserver || !document.body) return;
+  cardPaintObserver = new MutationObserver(() => {
+    if (cardPaintTimer) return;
+    cardPaintTimer = window.setTimeout(() => {
+      cardPaintTimer = 0;
+      try {
+        paintJobCardStatuses();
+      } catch {
+        // ignore paint failures
+      }
+    }, 600);
+  });
+  cardPaintObserver.observe(document.body, { childList: true, subtree: true });
+  paintJobCardStatuses();
 }
 
 function highlightDetailPane(jobTitle = "") {
@@ -3401,7 +3522,47 @@ function isSameSearchUrl(urlA, urlB) {
   }
 }
 
-let lastSearchRedirectTimestamp = 0;
+// Redirect guard kept in sessionStorage: each redirect reloads the page and resets in-memory state,
+// so an in-memory timestamp could never stop LinkedIn rewriting the URL → we redirect → repeat loops.
+const SEARCH_REDIRECT_GUARD_KEY = "cpSearchRedirectGuard";
+const SEARCH_REDIRECT_GUARD_WINDOW_MS = 2 * 60 * 1000;
+
+function readSearchRedirectGuard() {
+  try {
+    const parsed = JSON.parse(sessionStorage.getItem(SEARCH_REDIRECT_GUARD_KEY) || "null");
+    return parsed && typeof parsed === "object" ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
+function noteSearchRedirect(target) {
+  try {
+    sessionStorage.setItem(SEARCH_REDIRECT_GUARD_KEY, JSON.stringify({ target: String(target), at: Date.now() }));
+  } catch {
+    // storage unavailable: fall back to allowing redirects
+  }
+}
+
+/** True if we already redirected to this same search recently (LinkedIn rewrote it after load). */
+function wasRecentlyRedirectedTo(target) {
+  const guard = readSearchRedirectGuard();
+  if (!guard?.target || Date.now() - Number(guard.at || 0) > SEARCH_REDIRECT_GUARD_WINDOW_MS) return false;
+  return guard.target === String(target) || isSameSearchUrl(guard.target, target);
+}
+
+function diffSearchUrlKeys(urlA, urlB) {
+  try {
+    const a = new URL(String(urlA));
+    const b = new URL(String(urlB));
+    const keys = new Set([...a.searchParams.keys(), ...b.searchParams.keys()]);
+    TRANSIENT_SEARCH_QUERY_PARAM_KEYS.forEach((k) => keys.delete(k));
+    return [...keys].filter((k) => (a.searchParams.get(k) || "") !== (b.searchParams.get(k) || ""))
+      .map((k) => `${k}: "${a.searchParams.get(k) || ""}" → "${b.searchParams.get(k) || ""}"`);
+  } catch {
+    return [];
+  }
+}
 
 async function ensureSearchQueryParams(settings) {
   if (!isJobsSearchPage()) return true;
@@ -3420,13 +3581,15 @@ async function ensureSearchQueryParams(settings) {
         return true;
       }
 
-      const now = Date.now();
-      if (now - lastSearchRedirectTimestamp < 4000) {
-        window.history.replaceState(null, "", after);
-        writeStoredSearchResultsUrl(after);
+      if (wasRecentlyRedirectedTo(after)) {
+        // LinkedIn changed our URL again after the reload; continue on the current results instead of looping.
+        const changed = diffSearchUrlKeys(after, before);
+        captureDebugEvent("search", "SEARCH_REDIRECT_LOOP_PREVENTED", { before, after, changed });
+        await logLine(`LinkedIn adjusted the search URL (${changed.join(", ") || "params"}); continuing with current results.`, "warn");
+        writeStoredSearchResultsUrl(before);
         return true;
       }
-      lastSearchRedirectTimestamp = now;
+      noteSearchRedirect(after);
 
       writeStoredSearchResultsUrl(after);
       await logLine("Applied search query preferences (date/sort/work mode)", "info");
@@ -3487,15 +3650,16 @@ async function ensureSearchTermIfNeeded(settings) {
   const selected = terms[runSearchTermCursor];
   if (currentNorm === normalizeLabel(selected)) return true;
 
-  const now = Date.now();
-  if (now - lastSearchRedirectTimestamp < 4000) {
+  const target = getActiveRunSearchUrl(settings);
+  if (wasRecentlyRedirectedTo(target)) {
+    captureDebugEvent("search", "SEARCH_TERM_REDIRECT_LOOP_PREVENTED", { selected, currentKeyword, target });
     return true;
   }
-  lastSearchRedirectTimestamp = now;
+  noteSearchRedirect(target);
 
   await logLine(`Switching search term: ${selected}`);
   resetRemoteLocationKeywordCursor();
-  window.location.href = getActiveRunSearchUrl(settings);
+  window.location.href = target;
   return false;
 }
 
@@ -3507,7 +3671,7 @@ async function rotateSearchTerm(settings) {
   runSearchTermSuccessCount = 0;
   resetRemoteLocationKeywordCursor();
   const nextTerm = terms[runSearchTermCursor];
-  lastSearchRedirectTimestamp = Date.now();
+  noteSearchRedirect(getActiveRunSearchUrl(settings));
   captureDebugEvent("search", "TERM_ROTATED", { from: terms[prevCursor], to: nextTerm, cursor: runSearchTermCursor, totalTerms: terms.length });
   await logLine(`Switching to alternative keyword: "${nextTerm}"`, "info");
   await botChat(`Switching search to related keyword: "${nextTerm}"...`);
@@ -5067,24 +5231,78 @@ function getEasyApplyButton() {
   return null;
 }
 
-function collectJobCards() {
-  const directCards = getAllBySelectorList([
-    ".job-card-container",
-    "[data-occludable-job-id]",
-    "li.jobs-search-results__list-item",
-    ".jobs-search-results-list__list-item",
-    "li.scaffold-layout__list-item"
-  ]);
-  if (directCards.length) return directCards;
+const JOB_CARD_SELECTORS = [
+  ".job-card-container",
+  "[data-occludable-job-id]",
+  "li.jobs-search-results__list-item",
+  ".jobs-search-results-list__list-item",
+  "li.scaffold-layout__list-item",
+  "[data-job-id]",
+  "[data-view-name='job-card']",
+  "[data-view-name*='job-search-card']"
+];
 
-  const anchors = Array.from(document.querySelectorAll("a[href*='/jobs/view/']"));
+/** Climbs from a job link to the largest ancestor that still holds only this one job. */
+function cardRootFromJobAnchor(anchor) {
+  const jobId = extractLinkedInJobIdFromUrl(anchor?.href || "");
+  let node = anchor;
+  let best = anchor.closest("li") || anchor.parentElement;
+  while (node?.parentElement && node.parentElement !== document.body) {
+    const parent = node.parentElement;
+    // Never grow past page chrome or into something far bigger than a job tile.
+    if (parent.matches("main, header, nav, [role='main']") || parent.querySelector("header, nav")) break;
+    if (String(parent.innerText || "").length > 1500) break;
+    const ids = new Set(
+      Array.from(parent.querySelectorAll("a[href*='/jobs/view/'], a[href*='currentJobId=']"))
+        .map((a) => extractLinkedInJobIdFromUrl(a.href))
+        .filter(Boolean)
+    );
+    if (ids.size > 1 || (jobId && ids.size === 1 && !ids.has(jobId))) break;
+    best = parent;
+    node = parent;
+  }
+  return best;
+}
+
+let lastJobCardStrategy = "";
+
+function collectJobCards() {
+  // Preferred: the shared fallback chain in linkedin-dom.js (known classes → data attributes →
+  // job-id attributes → job links → repeated list structure → tile words).
+  const Dom = globalThis.CPLinkedInDom;
+  if (Dom) {
+    const found = Dom.findJobTiles();
+    lastJobCardStrategy = found.strategy;
+    return found.tiles;
+  }
+
+  // Strategy 1: known card selectors (outermost match only, so nested matches don't double count).
+  const detailRootSelector = JOB_DETAIL_ROOT_SELECTORS.join(", ");
+  const directCards = getAllBySelectorList(JOB_CARD_SELECTORS).filter((card) => !card.closest(detailRootSelector));
+  if (directCards.length) {
+    const outermost = directCards.filter(
+      (card) => !directCards.some((other) => other !== card && other.contains(card))
+    );
+    lastJobCardStrategy = "selectors";
+    return outermost;
+  }
+
+  // Strategy 2: walk up from job links (works when LinkedIn obfuscates class names).
+  const anchors = Array.from(
+    document.querySelectorAll("a[href*='/jobs/view/'], a[href*='currentJobId=']")
+  ).filter((a) => !a.closest(detailRootSelector));
+  // Links to a single job are the open job's own links, not a results list.
+  const distinctIds = new Set(anchors.map((a) => extractLinkedInJobIdFromUrl(a.href)).filter(Boolean));
+  if (distinctIds.size < 2) {
+    lastJobCardStrategy = "none";
+    return [];
+  }
   const cardSet = new Set();
   for (const a of anchors) {
-    const card = a.closest(
-      "li.jobs-search-results__list-item, li.scaffold-layout__list-item, .jobs-search-results-list__list-item, .job-card-container, li, article, div"
-    );
+    const card = cardRootFromJobAnchor(a);
     if (card) cardSet.add(card);
   }
+  lastJobCardStrategy = cardSet.size ? "anchor-walk" : "none";
   return Array.from(cardSet);
 }
 
@@ -7713,12 +7931,12 @@ async function runCycle(settings) {
       await recordOutcome("SKIPPED", {
         reasonCode: "ALREADY_APPLIED",
         reason: "LinkedIn card marked as already applied",
+        detection: detectAppliedCardMethod(card),
         jobId: stableJobId,
         ...cardMeta
       });
       recordOutcomeCacheForAliases("SKIPPED", "ALREADY_APPLIED");
       markAppliedForAliases();
-      await dismissJobCard(card);
       await reportProgress();
       markSeenForAliases();
       continue;
@@ -7777,6 +7995,25 @@ async function runCycle(settings) {
       jobUrl: canonicalJobUrl
     };
 
+    const detailAppliedMethod = detectAppliedInDetailPane();
+    if (detailAppliedMethod) {
+      classifyExhaustedCandidate();
+      runStats.skipped += 1;
+      markJobCardStatus(card, "skipped", "Already Applied");
+      await logOutcome("info", "Skipped (already applied)", "ALREADY_APPLIED");
+      await recordOutcome("SKIPPED", {
+        reasonCode: "ALREADY_APPLIED",
+        reason: "Job detail pane shows the job as already applied",
+        detection: detailAppliedMethod,
+        ...currentJobContext
+      });
+      recordOutcomeCacheForAliases("SKIPPED", "ALREADY_APPLIED");
+      markAppliedForAliases();
+      await reportProgress();
+      markSeenForAliases();
+      continue;
+    }
+
     const aboutCompanyDecision = shouldSkipByAboutCompany(aboutCompany, settings);
     if (aboutCompanyDecision.skip) {
       classifyActionableCandidate();
@@ -7788,6 +8025,7 @@ async function runCycle(settings) {
         ...currentJobContext
       });
       recordOutcomeCacheForAliases("SKIPPED", aboutCompanyDecision.reasonCode);
+      markJobCardStatus(card, "skipped", aboutCompanyDecision.reasonCode);
       await dismissJobCard(card);
       await reportProgress();
       markSeenForAliases();
@@ -7805,6 +8043,7 @@ async function runCycle(settings) {
         ...currentJobContext
       });
       recordOutcomeCacheForAliases("SKIPPED", descriptionDecision.reasonCode);
+      markJobCardStatus(card, "skipped", descriptionDecision.reasonCode);
       await dismissJobCard(card);
       await reportProgress();
       markSeenForAliases();
@@ -7836,7 +8075,8 @@ async function runCycle(settings) {
     }
     if (!applyAction.button) {
       await refreshKnownAppliedJobIds(true);
-      const appliedAlias = Array.from(jobAliasKeys).find((alias) => knownAppliedJobIds.has(alias));
+      const appliedAlias =
+        Array.from(jobAliasKeys).find((alias) => knownAppliedJobIds.has(alias)) || detectAppliedInDetailPane();
       if (appliedAlias) {
         classifyExhaustedCandidate();
         runStats.skipped += 1;
@@ -7848,7 +8088,7 @@ async function runCycle(settings) {
         });
         recordOutcomeCacheForAliases("SKIPPED", "ALREADY_APPLIED");
         markAppliedForAliases();
-        await dismissJobCard(card);
+        markJobCardStatus(card, "skipped", "Already Applied");
         await reportProgress();
         markSeenForAliases();
         continue;
@@ -7870,6 +8110,7 @@ async function runCycle(settings) {
         ...currentJobContext
       });
       recordOutcomeCacheForAliases("SKIPPED", "NO_APPLY_BUTTON");
+      markJobCardStatus(card, "skipped", "No Easy Apply");
       await dismissJobCard(card);
       await reportProgress();
       markSeenForAliases();
@@ -7886,6 +8127,7 @@ async function runCycle(settings) {
           ...currentJobContext
         });
         recordOutcomeCacheForAliases("SKIPPED", "EXTERNAL_APPLY_ONLY");
+        markJobCardStatus(card, "skipped", "External Apply");
         await dismissJobCard(card);
       } else {
         classifyActionableCandidate();
@@ -7930,6 +8172,7 @@ async function runCycle(settings) {
         ...currentJobContext
       });
       recordOutcomeCacheForAliases("SKIPPED", "MODAL_NOT_FOUND");
+      markJobCardStatus(card, "skipped", "MODAL_NOT_FOUND");
       await dismissJobCard(card);
       await reportProgress();
       markSeenForAliases();
@@ -8073,6 +8316,7 @@ async function runAutomationLoop() {
     let noProgressRecoveries = 0;
     let lastProgressMarker = `${runStats.applied}|${runStats.skipped}|${runStats.failed}`;
     await logLine("Automation engine initialized");
+    startCardPaintObserver();
     await botChat("AI Copilot engaged. Scanning for opportunities...");
 
     let guard = 0;
@@ -8314,6 +8558,8 @@ if (!window.__CP_COPILOT_ACTIVE__) {
     }
   });
   loadRemoteSelectors().catch(() => {});
+  // Show "Already applied" tags on job tiles even before a run starts.
+  refreshKnownAppliedJobIds(false).catch(() => {}).finally(() => startCardPaintObserver());
   startStatePolling().catch((err) => {
     console.error("[CP] State polling crashed:", err);
   });

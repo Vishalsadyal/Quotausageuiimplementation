@@ -204,7 +204,7 @@ export default function Billing() {
         amount: order.amount,
         currency: order.currency,
         name: "AutoApply CV",
-        description: targetPlan === "pro" ? "Pro Plan Upgrade - ₹49" : "Coach Plan Upgrade - ₹1,849",
+        description: targetPlan === "pro" ? "Pro Plan Upgrade - ₹99" : "Coach Plan Upgrade - ₹1,849",
         order_id: order.orderId,
         prefill: {
           name: user?.name || "",
@@ -481,7 +481,7 @@ export default function Billing() {
             </button>
           </div>
 
-          {/* Plan 2: Pro Plan (HERO / ₹49) */}
+          {/* Plan 2: Pro Plan (HERO / ₹99) */}
           <div
             className={`rounded-2xl border-2 p-5 bg-gradient-to-b from-purple-50/60 via-white to-indigo-50/40 relative flex flex-col justify-between shadow-md transition-all ${
               currentPlan === "pro"
@@ -491,7 +491,7 @@ export default function Billing() {
           >
             <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-to-r from-amber-400 to-amber-500 text-gray-950 text-[10px] font-black px-3 py-0.5 rounded-full uppercase tracking-wider flex items-center gap-1 shadow-xs">
               <Flame className="w-3 h-3 fill-gray-950" />
-              BEST VALUE • 90% OFF
+              BEST VALUE • 80% OFF
             </div>
 
             {currentPlan === "pro" && (
@@ -512,7 +512,7 @@ export default function Billing() {
 
               <div className="my-4">
                 <div className="flex items-baseline gap-1.5">
-                  <span className="text-3xl font-black text-purple-700">₹49</span>
+                  <span className="text-3xl font-black text-purple-700">₹99</span>
                   <span className="text-xs text-gray-500 font-medium">/month</span>
                   <span className="text-xs line-through text-gray-400 ml-1">₹499</span>
                 </div>
@@ -527,6 +527,14 @@ export default function Billing() {
                 <li className="flex items-start gap-2 font-semibold text-gray-900">
                   <Check className="w-3.5 h-3.5 text-purple-600 shrink-0 mt-0.5" />
                   <span>HR Recruiter Emails & Phones Extractor</span>
+                </li>
+                <li className="flex items-start gap-2 font-semibold text-gray-900">
+                  <Check className="w-3.5 h-3.5 text-purple-600 shrink-0 mt-0.5" />
+                  <span>Personal AI Assistant that knows your account</span>
+                </li>
+                <li className="flex items-start gap-2 font-semibold text-gray-900">
+                  <Check className="w-3.5 h-3.5 text-purple-600 shrink-0 mt-0.5" />
+                  <span>Direct WhatsApp Support</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <Check className="w-3.5 h-3.5 text-purple-600 shrink-0 mt-0.5" />
@@ -561,7 +569,7 @@ export default function Billing() {
                 <span>Active Plan</span>
               ) : (
                 <>
-                  <span>Upgrade to Pro for ₹49</span>
+                  <span>Upgrade to Pro for ₹99</span>
                   <ArrowRight className="w-3.5 h-3.5" />
                 </>
               )}

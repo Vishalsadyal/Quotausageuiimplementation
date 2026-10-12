@@ -24,7 +24,7 @@ export function getPlanRazorpayId(plan: "pro" | "coach") {
 }
 
 const PLAN_CONFIG: Record<"pro" | "coach", { amountPaise: number; name: string }> = {
-  pro: { amountPaise: Number(process.env.PLAN_PRO_PAISE || 4900), name: "AutoApply CV Pro Monthly" },
+  pro: { amountPaise: Number(process.env.PLAN_PRO_PAISE || 9900), name: "AutoApply CV Pro Monthly" },
   coach: { amountPaise: Number(process.env.PLAN_COACH_PAISE || 184900), name: "AutoApply CV Coach Monthly" },
 };
 

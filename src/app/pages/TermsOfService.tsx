@@ -36,7 +36,7 @@ export default function TermsOfService() {
           title: "Free plan, Pro and Hires credits",
           bullets: [
             "The Free plan includes 3 auto-apply actions per day.",
-            "Pro costs ₹49 per month for unlimited auto-apply, paid through Razorpay at checkout.",
+            "Pro costs ₹99 per month for unlimited auto-apply, paid through Razorpay at checkout.",
             "Hires credits are pay as you go: 1 Hire is used for 1 successfully submitted application.",
             "Jobs that are skipped (external apply, already applied, validation errors) or runs you stop before submitting do not use an apply action or Hire credit.",
           ],

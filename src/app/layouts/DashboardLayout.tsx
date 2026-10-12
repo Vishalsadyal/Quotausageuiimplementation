@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router';
 import {
   LayoutDashboard,
@@ -21,6 +21,9 @@ import {
   Mail,
   Users,
   ExternalLink,
+  Bot,
+  Sparkles,
+  Loader2,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { hasCompletedRequiredOnboarding } from 'src/lib/onboarding';
@@ -32,10 +35,15 @@ import {
 } from 'src/lib/dashboard-tour';
 import { JOBS_SECTIONS, jobsSectionPath, type JobsProvider } from '../pages/dashboard/jobsSections';
 
+const AssistantPanel = lazy(() =>
+  import('../pages/dashboard/Assistant').then((m) => ({ default: m.AssistantChat })),
+);
+
 export default function DashboardLayout() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
+  const [assistantOpen, setAssistantOpen] = useState(false);
 
   const profileRef = useRef<HTMLDivElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -72,6 +80,26 @@ export default function DashboardLayout() {
   const primaryTourId = onboardingComplete ? DASHBOARD_TOUR_JOBS_EXTENSION : DASHBOARD_TOUR_ONBOARDING_EXTENSION;
   const primaryTourRoute = onboardingComplete ? '/dashboard/jobs' : '/dashboard/onboarding';
 
+  // The slide-in assistant is redundant on the full assistant page; Esc closes it.
+  const onAssistantPage = location.pathname === '/dashboard/assistant';
+  useEffect(() => {
+    if (onAssistantPage) setAssistantOpen(false);
+  }, [onAssistantPage]);
+  useEffect(() => {
+    if (!assistantOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setAssistantOpen(false);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [assistantOpen]);
+
+  // Hide the public "Ask me" chat widget while inside the dashboard.
+  useEffect(() => {
+    document.body.classList.add('cp-in-dashboard');
+    return () => document.body.classList.remove('cp-in-dashboard');
+  }, []);
+
   useEffect(() => {
     const handler = () => {
       refreshUser().catch(() => {});
@@ -103,6 +131,7 @@ export default function DashboardLayout() {
   // Top navigation menu items
   const navigation = [
     { name: 'Overview', href: '/dashboard', icon: LayoutDashboard },
+    { name: 'AI Assistant', href: '/dashboard/assistant', icon: Bot, badge: 'NEW' },
     { name: 'Auto Apply', href: '/dashboard/jobs/linkedin', icon: Target, matchPrefix: '/dashboard/jobs' },
     { name: 'Apply Email', href: '/dashboard/cold-emails', icon: Mail, matchPrefix: '/dashboard/cold-emails' },
     {
@@ -222,6 +251,7 @@ export default function DashboardLayout() {
               <div key={item.name}>
                 <Link
                   to={item.href}
+                  state={item.href === '/dashboard/assistant' && !isActive ? { from: location.pathname } : undefined}
                   onClick={() => setMobileMenuOpen(false)}
                   className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all duration-200 group ${
                     isActive
@@ -315,7 +345,7 @@ export default function DashboardLayout() {
                   className="w-full flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-lg text-xs font-bold text-white bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 shadow-xs hover:shadow-purple-500/20 transition-all cursor-pointer"
                 >
                   <Zap className="w-3.5 h-3.5 fill-white text-white" />
-                  <span>Upgrade to Pro (₹49)</span>
+                  <span>Upgrade to Pro (₹99)</span>
                 </Link>
                 <Link
                   to="/dashboard/billing"
@@ -415,6 +445,24 @@ export default function DashboardLayout() {
                   </span>
                 </Link>
 
+                {/* AI Assistant panel toggle */}
+                {!onAssistantPage && (
+                  <button
+                    type="button"
+                    onClick={() => setAssistantOpen((v) => !v)}
+                    aria-label="Ask AI assistant"
+                    aria-expanded={assistantOpen}
+                    className={`flex items-center gap-1.5 px-2 sm:px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 ${
+                      assistantOpen
+                        ? 'gradient-primary text-white shadow-xs'
+                        : 'text-purple-700 bg-purple-50 border border-purple-200/60 hover:bg-purple-100'
+                    }`}
+                  >
+                    <Sparkles className="w-3.5 h-3.5" />
+                    <span className="hidden sm:inline">Ask AI</span>
+                  </button>
+                )}
+
                 {/* Notifications Bell */}
                 <button
                   type="button"
@@ -501,6 +549,31 @@ export default function DashboardLayout() {
           <Outlet />
         </main>
       </div>
+
+      {/* AI Assistant slide-in panel */}
+      {assistantOpen && (
+        <>
+          <div
+            className="fixed inset-0 z-50 bg-slate-900/20 backdrop-blur-[1px] sm:hidden"
+            onClick={() => setAssistantOpen(false)}
+            aria-hidden="true"
+          />
+          <aside
+            className="fixed inset-y-0 right-0 z-50 w-full sm:w-[420px] border-l border-gray-200 bg-white shadow-2xl animate-in slide-in-from-right duration-200"
+            aria-label="AI Assistant"
+          >
+            <Suspense
+              fallback={
+                <div className="flex h-full items-center justify-center">
+                  <Loader2 className="w-5 h-5 animate-spin text-purple-500" />
+                </div>
+              }
+            >
+              <AssistantPanel variant="panel" page={location.pathname} onClose={() => setAssistantOpen(false)} />
+            </Suspense>
+          </aside>
+        </>
+      )}
     </div>
   );
 }

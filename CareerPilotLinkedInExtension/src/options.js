@@ -278,5 +278,43 @@ document.getElementById("settings-form").addEventListener("submit", async (e) =>
   setStatus(saved.error || "Failed to save settings", false);
 });
 
+// Ad-tracker blocking on LinkedIn: the block rules (src/rules/block-linkedin-trackers.json) only
+// take effect once the user grants these optional host permissions, so the toggle mirrors that grant.
+function trackerOrigins() {
+  return chrome.runtime.getManifest().optional_host_permissions || [];
+}
+
+async function syncTrackerToggle() {
+  const box = document.getElementById("blockLinkedInTrackers");
+  if (!box || !chrome.permissions) return;
+  try {
+    box.checked = await chrome.permissions.contains({ origins: trackerOrigins() });
+  } catch {
+    box.checked = false;
+  }
+}
+
+function installTrackerToggle() {
+  const box = document.getElementById("blockLinkedInTrackers");
+  if (!box || !chrome.permissions) return;
+  box.addEventListener("change", async () => {
+    try {
+      if (box.checked) {
+        // Must run inside the click handler: Chrome only shows the permission prompt for a user gesture.
+        const granted = await chrome.permissions.request({ origins: trackerOrigins() });
+        setStatus(granted ? "Ad trackers blocked on LinkedIn" : "Permission not granted; trackers not blocked", granted);
+      } else {
+        await chrome.permissions.remove({ origins: trackerOrigins() });
+        setStatus("Ad trackers allowed again on LinkedIn");
+      }
+    } catch (err) {
+      setStatus(err?.message || "Could not change tracker blocking", false);
+    }
+    await syncTrackerToggle();
+  });
+  void syncTrackerToggle();
+}
+
 init().catch(() => setStatus("Failed to load settings", false));
 installAutoRefresh();
+installTrackerToggle();

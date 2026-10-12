@@ -159,7 +159,7 @@ export default function About() {
                 </li>
                 <li>
                   <strong className="text-gray-900">Fair pricing.</strong> Start free with 3 applications a day, or go
-                  unlimited with Pro for ₹49 a month.
+                  unlimited with Pro for ₹99 a month.
                 </li>
               </ul>
             </div>

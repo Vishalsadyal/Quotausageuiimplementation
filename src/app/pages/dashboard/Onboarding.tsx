@@ -1537,12 +1537,25 @@ export default function Onboarding() {
     });
   }, [profile.fullName]);
 
+  // Prefill from profile only once; afterwards an empty list means the user cleared it on purpose.
+  const prefillDoneRef = useRef({ terms: false, locations: false });
   useEffect(() => {
-    if (profile.preferredJobTitles.length && !preferences.searchTerms.length) {
-      setPreferences((prev) => ({ ...prev, searchTerms: [...profile.preferredJobTitles] }));
+    const done = prefillDoneRef.current;
+    if (!done.terms) {
+      if (preferences.searchTerms.length) {
+        done.terms = true;
+      } else if (profile.preferredJobTitles.length) {
+        setPreferences((prev) => ({ ...prev, searchTerms: [...profile.preferredJobTitles] }));
+        done.terms = true;
+      }
     }
-    if (profile.preferredLocations.length && !preferences.searchLocations.length) {
-      setPreferences((prev) => ({ ...prev, searchLocations: [...profile.preferredLocations] }));
+    if (!done.locations) {
+      if (preferences.searchLocations.length) {
+        done.locations = true;
+      } else if (profile.preferredLocations.length) {
+        setPreferences((prev) => ({ ...prev, searchLocations: [...profile.preferredLocations] }));
+        done.locations = true;
+      }
     }
   }, [profile.preferredJobTitles, profile.preferredLocations, preferences.searchTerms.length, preferences.searchLocations.length]);
 
@@ -2676,7 +2689,7 @@ export default function Onboarding() {
 
                 {/* Right: Profile Card */}
                 <div className="flex-1 min-w-0">
-                  {parsingStatus === "idle" && !profile.fullName && !profile.linkedinUrl ? (
+                  {parsingStatus === "idle" && !resumeViewerData ? (
                     <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50/40 p-6 text-center">
                       <div className="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center mx-auto mb-3">
                         <CheckCircle2 className="h-5 w-5 text-slate-300" />
@@ -2685,7 +2698,9 @@ export default function Onboarding() {
                         Parsed data will appear here
                       </p>
                       <p className="text-xs text-slate-300 mt-1">
-                        Upload your resume to get started
+                        {user?.resumeFileName
+                          ? `Previously uploaded: ${user.resumeFileName} · upload again to view extracted data`
+                          : "Upload your resume to get started"}
                       </p>
                     </div>
                   ) : (
@@ -3058,6 +3073,36 @@ export default function Onboarding() {
                 <div className="space-y-2 lg:col-span-2">
                   <label className="text-sm font-semibold text-slate-700 flex items-center justify-between">
                     <span>Perfect Job Match / Target Roles <span className="text-red-500">*</span></span>
+                    <span className="flex items-center gap-3">
+                      {preferences.searchTerms.length > 0 && (
+                        <button
+                          type="button"
+                          onClick={() => setPreferences((p) => ({ ...p, searchTerms: [] }))}
+                          className="text-xs font-medium text-slate-400 hover:text-red-500 cursor-pointer"
+                        >
+                          Clear all
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        disabled={isGeneratingAiProfile}
+                        onClick={() => {
+                          if (profile.preferredJobTitles.length) {
+                            setPreferences((p) => ({
+                              ...p,
+                              searchTerms: Array.from(new Set([...p.searchTerms, ...profile.preferredJobTitles])),
+                            }));
+                            clearFieldError("searchTerms");
+                          } else {
+                            void handleAutoGenerateProfileWithGroq();
+                          }
+                        }}
+                        className="inline-flex items-center gap-1 text-xs font-semibold text-indigo-600 hover:text-indigo-800 disabled:opacity-50 cursor-pointer"
+                      >
+                        {isGeneratingAiProfile ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
+                        Auto-fill
+                      </button>
+                    </span>
                   </label>
                   <div className="relative">
                     <div
@@ -3123,6 +3168,7 @@ export default function Onboarding() {
                     </div>
                     {showSuggestions && (
                       <div
+                        data-tag-input
                         className="absolute z-20 mt-1 w-full bg-white border border-slate-200 rounded-lg shadow-lg max-h-48 overflow-y-auto"
                         onMouseLeave={() => setShowSuggestions(false)}
                       >

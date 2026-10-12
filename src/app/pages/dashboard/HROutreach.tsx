@@ -489,7 +489,6 @@ export default function HROutreach() {
 
   useEffect(() => {
     let mounted = true;
-    console.log('[HRO] useEffect: detection flow starting');
 
     // Initial check with timeout — if extension not found after 6s, show not-installed state
     detectTimeoutRef.current = setTimeout(() => {
@@ -503,13 +502,11 @@ export default function HROutreach() {
     const handler = (event: MessageEvent) => {
       if (event.data?._src !== 'hro_bridge') return;
       if (event.data?.type === 'HRO_BRIDGE_READY') {
-        console.log('[HRO] BRIDGE_READY — waiting 1.5s for service worker...');
         clearTimeout(detectTimeoutRef.current);
         setTimeout(() => {
           if (mounted) syncFromExtension();
         }, 1500);
       } else if (event.data?.type === 'HRO_BRIDGE_DISCONNECTED') {
-        console.log('[HRO] BRIDGE_DISCONNECTED — extension was reloaded');
         setExtensionConnected(false);
         setExtensionChecking(true);
       }

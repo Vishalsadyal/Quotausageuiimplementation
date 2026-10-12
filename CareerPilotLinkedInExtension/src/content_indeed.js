@@ -166,12 +166,6 @@ function safeRedirectToSmartApply(url) {
     }
 
     // Log safe redirect
-    console.log("[Indeed Debug] ✅ Safe redirect to SmartApply:", {
-      domain: urlObj.hostname,
-      path: pathname,
-      hasJobId: params.has('indeedApplyableJobId'),
-      hasIaUid: params.has('iaUid'),
-    });
 
     // Perform the redirect
     window.location.href = url;
@@ -270,23 +264,18 @@ function isRemoteOnlyWorkMode(configuredValues) {
 
 function workModeMatches(text, configuredValues) {
   const values = uniqueNormalizedValues(configuredValues);
-  console.log(`[Indeed Debug] 🏢 Work mode check - Configured values:`, values);
-  console.log(`[Indeed Debug] 🏢 Work mode check - Job text:`, text);
   
   // If no filters configured, accept all
   if (!values.length) {
-    console.log(`[Indeed Debug] ✅ Work mode: No filter configured, accepting`);
     return true;
   }
   
   const normalized = normalizeLabel(text);
-  console.log(`[Indeed Debug] 🏢 Work mode check - Normalized:`, normalized);
   
   // If job has no work mode info and all modes are allowed, accept it
   if (!normalized || normalized.length < 5) {
     const hasAllModes = values.includes("on site") && values.includes("remote") && values.includes("hybrid");
     if (hasAllModes) {
-      console.log(`[Indeed Debug] ✅ Work mode: No work mode in job, all modes configured, accepting`);
       return true;
     }
   }
@@ -307,7 +296,6 @@ function workModeMatches(text, configuredValues) {
     return normalized.includes(value);
   });
   
-  console.log(`[Indeed Debug] ${matches ? '✅' : '❌'} Work mode match result: ${matches}`);
   return matches;
 }
 
@@ -592,7 +580,6 @@ async function handleIndeedAuthPage() {
     emailInput.value = userEmail;
     emailInput.dispatchEvent(new Event("input", { bubbles: true }));
     emailInput.dispatchEvent(new Event("change", { bubbles: true }));
-    console.log("[Indeed Auth] Auto-filled Indeed login email:", userEmail);
     await pushLog(`Auto-filled Indeed sign-in email: ${userEmail}`, "info");
   }
 }
@@ -1621,14 +1608,6 @@ function shouldSkipByConfiguredFilters(detail, settings) {
     combinedText.toLowerCase().includes("remote") ||
     combinedText.toLowerCase().includes("100% remote");
 
-  console.log(`[Indeed Debug] 🔍 Checking filters for job:`, {
-    title: detail?.title,
-    company: detail?.company,
-    workLocation: detail?.workLocation,
-    isJobRemote,
-    filterLocations: settings?.filterLocations,
-    onSite: settings?.onSite
-  });
 
   // Location filter check
   if (settings?.filterLocations) {
@@ -1754,19 +1733,16 @@ function classifyApplyButton(button) {
   } else if (label.includes("apply")) {
     classification = "direct";
   }
-  console.log(`[Indeed Debug] 🏷️ Classified apply button as "${classification}" for label: "${label}"`);
   return classification;
 }
 
 function findApplyButton() {
-  console.log("[Indeed Debug] 🔍 Searching for apply button...");
 
   // 1. Direct Indeed Desktop Header Test IDs (exact match from live DOM)
   const directButton = document.querySelector(
     "[data-testid='viewjob-indeed-apply'], [data-testid='primary-apply-action'] a, [data-testid='primary-apply-action'] button, a[href*='smartapply.indeed.com'], [data-testid='job-header-actions'] a[href*='apply'], [data-testid='job-header-actions'] button, [data-testid='indeedApplyButton'], #indeedApplyButton"
   );
   if (directButton && isVisible(directButton)) {
-    console.log("[Indeed Debug] ✅ Found apply button via direct testid:", directButton);
     return directButton;
   }
 
@@ -1779,7 +1755,6 @@ function findApplyButton() {
     "a[role='button']",
     "a[href]",
   ]);
-  console.log(`[Indeed Debug] Found ${candidates.length} button candidates`);
   for (const node of candidates) {
     const label = normalizeLabel(node.textContent || node.getAttribute("aria-label") || "");
     if (!label) continue;
@@ -1791,11 +1766,9 @@ function findApplyButton() {
       label.includes("apply on company site") ||
       label.includes("company site")
     ) {
-      console.log(`[Indeed Debug] ✅ Found apply button: "${label}"`, node);
       return node;
     }
   }
-  console.log("[Indeed Debug] ❌ No apply button found");
   return null;
 }
 
@@ -2158,34 +2131,28 @@ function findApplySurface() {
     document.querySelector("form") ||
     document.body;
   
-  console.log("[Indeed Debug] 🎯 Apply surface found:", surface?.tagName, surface?.className || surface?.id || '', "aria-label:", surface?.getAttribute?.("aria-label") || 'none');
   
   // If we found a form, also log its action
   if (surface?.tagName === 'FORM') {
-    console.log("[Indeed Debug] 📋 Form action:", surface.action);
   }
   
   // If it's an iframe, we might need to access its content
   if (surface?.tagName === 'IFRAME') {
-    console.log("[Indeed Debug] 🖼️ Found iframe, may need to access iframe content");
   }
   
   return surface;
 }
 
 function findPrimaryApplyAction(root) {
-  console.log("[Indeed Debug] 🔍 Looking for primary action button in:", root);
   
   const candidates = Array.from(root.querySelectorAll("button, a[role='button'], input[type='submit']"))
     .filter((node) => node instanceof HTMLElement && isVisible(node));
   
-  console.log(`[Indeed Debug] Found ${candidates.length} visible button candidates`);
   
   // Log all candidate buttons for debugging
   candidates.slice(0, 10).forEach((btn, idx) => {
     const label = normalizeLabel(btn.textContent || btn.getAttribute("value") || btn.getAttribute("aria-label") || "");
     const classes = btn.className;
-    console.log(`[Indeed Debug]   Candidate ${idx + 1}: "${label}" (${classes})`);
   });
   
   for (const node of candidates) {
@@ -2200,12 +2167,10 @@ function findPrimaryApplyAction(root) {
       label === "send" ||
       label === "finish"
     ) {
-      console.log(`[Indeed Debug] ✅ Found primary action: "${label}"`, node);
       return node;
     }
   }
   
-  console.log("[Indeed Debug] ❌ No matching primary action button found");
   return null;
 }
 
@@ -2231,18 +2196,15 @@ function closeApplySurface() {
 }
 
 async function runIndeedApplyFlow(applyButton, settings, token) {
-  console.log("[Indeed Debug] 🖱️ Clicking apply button...", applyButton);
   
   const target = applyButton.getAttribute("target");
   const href = applyButton.getAttribute("href");
   const ariaLabel = applyButton.getAttribute("aria-label") || "";
   
-  console.log("[Indeed Debug] 🔍 Button details - target:", target, "href:", href, "aria-label:", ariaLabel);
   
   // Click the apply button directly
   applyButton.click();
   
-  console.log("[Indeed Debug] ⏳ Waiting for Indeed to load apply interface...");
   
   // Wait for the apply modal to appear (retry up to 5 times)
   let applyModalFound = false;
@@ -2259,17 +2221,14 @@ async function runIndeedApplyFlow(applyButton, settings, token) {
            className.includes("apply") || 
            className.includes("IndeedApply") ||
            className.includes("modal"))) {
-        console.log("[Indeed Debug] ✅ Apply modal detected!");
         applyModalFound = true;
         break;
       }
     }
-    console.log(`[Indeed Debug] ⏳ Waiting for apply modal... (attempt ${attempt + 1}/5)`);
   }
   
   if (!applyModalFound) {
     if (href && href.includes('smartapply.indeed.com')) {
-      console.log("[Indeed Debug] ℹ️ Application launched via SmartApply");
       await pushLog("SmartApply application initiated.", "info");
       return { 
         status: "applied", 
@@ -2277,7 +2236,6 @@ async function runIndeedApplyFlow(applyButton, settings, token) {
         message: "SmartApply application initiated"
       };
     }
-    console.log("[Indeed Debug] ⚠️ Apply modal did not appear on page");
     await pushLog("Application initiated - proceeding to next opportunity", "info");
     return { 
       status: "applied", 
@@ -2286,24 +2244,18 @@ async function runIndeedApplyFlow(applyButton, settings, token) {
     };
   }
   
-  console.log(`[Indeed Debug] ⏳ Starting apply flow (max ${MAX_APPLY_STEPS} steps)`);
 
   for (let step = 0; step < MAX_APPLY_STEPS; step += 1) {
-    console.log(`[Indeed Debug] 📋 Apply step ${step + 1}/${MAX_APPLY_STEPS}`);
     if (!engineRunning || token !== engineToken) {
-      console.log("[Indeed Debug] 🛑 Apply flow aborted (engine stopped)");
       return { status: "aborted" };
     }
     if (hasSubmissionSuccess()) {
-      console.log("[Indeed Debug] ✅ Application submitted successfully!");
       return { status: "applied" };
     }
 
     const surface = findApplySurface();
     const pendingQuestions = fillBasicFields(surface, settings);
-    console.log(`[Indeed Debug] 📝 Found ${pendingQuestions.length} pending questions`);
     if (pendingQuestions.length) {
-      console.log("[Indeed Debug] ⏸️ Pausing for manual questions:", pendingQuestions);
       await sendMessage({ type: "CP_REGISTER_PENDING_QUESTIONS", questions: pendingQuestions });
       await pushLog("Paused: manual Indeed questions need answers.", "warn", {
         questionCount: pendingQuestions.length,
@@ -2318,19 +2270,15 @@ async function runIndeedApplyFlow(applyButton, settings, token) {
 
     const action = findPrimaryApplyAction(surface);
     if (!action) {
-      console.log("[Indeed Debug] ⚠️ No primary action button found");
       break;
     }
-    console.log(`[Indeed Debug] 🖱️ Clicking action: "${action.textContent}"`, action);
     action.click();
     await sleep(APPLY_STEP_DELAY_MS);
   }
 
   if (hasSubmissionSuccess()) {
-    console.log("[Indeed Debug] ✅ Final check: Application submitted!");
     return { status: "applied" };
   }
-  console.log("[Indeed Debug] ❌ Apply flow incomplete, closing surface");
   closeApplySurface();
   return {
     status: "failed",
@@ -2340,13 +2288,10 @@ async function runIndeedApplyFlow(applyButton, settings, token) {
 
 async function handleJobCard(card, settings, state) {
   const snapshot = extractCardSnapshot(card);
-  console.log("[Indeed Debug] 🎯 Processing job card:", snapshot.title, snapshot.jobId);
   if (!snapshot.jobId) {
-    console.log("[Indeed Debug] ⚠️ No job ID found, skipping");
     return false;
   }
   if (processedJobIds.has(snapshot.jobId)) {
-    console.log("[Indeed Debug] ⏭️ Already processed, skipping");
     return false;
   }
   processedJobIds.add(snapshot.jobId);
@@ -2396,7 +2341,6 @@ async function handleJobCard(card, settings, state) {
 
   const detailRule = shouldSkipByConfiguredFilters(detail, settings);
   if (detailRule.skip) {
-    console.log(`[Indeed Debug] ⛔ Skipped by filter: ${detailRule.reason}`, detailRule.reasonCode);
     setInPageLiveHud("Skipped", `${detail.title}: ${detailRule.reason}`, "skipped");
     setCardVisualState(card, "skipped", "Skipped");
     await pushLog(`Skipped (${detailRule.reason})`, "info", { reasonCode: detailRule.reasonCode });
@@ -2419,7 +2363,6 @@ async function handleJobCard(card, settings, state) {
   }
 
   if (!applyButton) {
-    console.log("[Indeed Debug] ❌ No apply button found for this job");
     setInPageLiveHud("Skipped", `${detail.title}: No apply button`, "skipped");
     setCardVisualState(card, "skipped", "No Apply");
     await pushLog("Skipped (no apply button)", "warn", { reasonCode: "NO_APPLY_BUTTON" });
@@ -2437,7 +2380,6 @@ async function handleJobCard(card, settings, state) {
 
   const applyKind = classifyApplyButton(applyButton);
   if (applyKind === "external") {
-    console.log("[Indeed Debug] 🌐 External apply detected, skipping");
     setInPageLiveHud("Skipped", `${detail.title}: External Apply`, "skipped");
     setCardVisualState(card, "skipped", "External Apply");
     const reasonCode = "EXTERNAL_APPLY_ONLY";
@@ -2451,7 +2393,6 @@ async function handleJobCard(card, settings, state) {
   }
 
   if (settings?.dryRun) {
-    console.log("[Indeed Debug] 🏃 Dry run mode - not submitting");
     setInPageLiveHud("Dry Run", `Verified Easy Apply for ${detail.title}`, "verified");
     await pushLog("Dry run: detected Indeed apply flow.", "info", { reasonCode: "DRY_RUN_ONLY" });
     await recordOutcome("SKIPPED", {
@@ -2463,7 +2404,6 @@ async function handleJobCard(card, settings, state) {
   }
 
   if (!settings?.autoSubmit) {
-    console.log("[Indeed Debug] ⏸️ Auto-submit disabled - manual review required");
     setInPageLiveHud("Manual Review", `Ready for review: ${detail.title}`, "verified");
     await pushLog("Manual mode: Indeed apply flow requires review.", "info", {
       reasonCode: "MANUAL_REVIEW_REQUIRED",
@@ -2481,7 +2421,6 @@ async function handleJobCard(card, settings, state) {
   const applyResult = await runIndeedApplyFlow(applyButton, settings, state?.engineToken || 0);
 
   if (applyResult.status === "applied") {
-    console.log("[Indeed Debug] ✅ Application submitted successfully!");
     appliedJobIdsCache.add(detail.jobId);
     setInPageLiveHud("Applied Successfully", `${detail.title}!`, "applied");
     setCardVisualState(card, "applied", "Applied ✅");
@@ -2681,7 +2620,6 @@ chrome.runtime.onMessage.addListener((msg) => {
 
 // ======================== Debug Helper ========================
 window.cpDebugCapture = async function() {
-  console.log("📸 Capturing debug information...");
   
   const debugInfo = {
     timestamp: new Date().toISOString(),
@@ -2738,16 +2676,11 @@ window.cpDebugCapture = async function() {
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
   
-  console.log("✅ Debug info downloaded!");
-  console.log("📋 You can also copy from console:");
-  console.log(debugInfo);
   
   // Also copy to clipboard
   try {
     await navigator.clipboard.writeText(JSON.stringify(debugInfo, null, 2));
-    console.log("📋 Debug info copied to clipboard!");
   } catch (err) {
-    console.log("⚠️ Could not copy to clipboard, use the downloaded file");
   }
   
   return debugInfo;
@@ -2782,7 +2715,6 @@ console.log = function(...args) {
 };
 
 window.cpGetLogs = function() {
-  console.log("📋 Captured logs:", capturedLogs.length);
   return capturedLogs;
 };
 
@@ -2797,7 +2729,6 @@ window.cpCopyLogs = async function() {
   }
 };
 
-console.log("🔧 Debug helpers loaded! Use cpDebugCapture(), cpGetLogs(), or cpCopyLogs() in console");
 
 // ======================== SmartApply Form Handler ========================
 const SMARTAPPLY_ACTIVE_JOB_KEY = "cpSmartApplyActiveJob";
@@ -2872,10 +2803,6 @@ async function releaseSmartApplyJobLock(reason) {
     const active = snap?.[SMARTAPPLY_ACTIVE_JOB_KEY];
     if (!active) return;
     await chrome.storage.local.remove(SMARTAPPLY_ACTIVE_JOB_KEY);
-    console.log("[Indeed SmartApply] 🔓 Released active job lock", {
-      reason: reason || "unknown",
-      jobId: active?.jobId || "",
-    });
   } catch {
     // no-op
   }
@@ -2899,15 +2826,6 @@ function detectSmartApplyPageType(currentUrl, doc = document) {
   const allInputs = doc.querySelectorAll('input, textarea, select');
   const buttons = doc.querySelectorAll('button');
   
-  console.log("[Indeed SmartApply] 📊 Form inventory:", {
-    radios: radios.length,
-    textInputs: textInputs.length,
-    selects: selects.length,
-    checkboxes: checkboxes.length,
-    totalInputs: allInputs.length,
-    buttons: buttons.length,
-    path: path
-  });
 
   const hasResumeSignals =
     !!doc.querySelector('input[type="radio"], [role="radio"], [data-testid*="resume" i], [class*="resume" i]') ||
@@ -2922,42 +2840,29 @@ function detectSmartApplyPageType(currentUrl, doc = document) {
     (doc.body?.textContent || "").toLowerCase()
   );
 
-  console.log("[Indeed SmartApply] 🔍 Page signals detected:", {
-    hasResumeSignals,
-    hasQuestionsSignals,
-    hasReviewSignals,
-    hasSubmittedSignals
-  });
 
   // applybyapplyablejobid can be either resume picker or full details/questions form.
   // Prefer questions when form inputs exist so we actually fill user details.
   if (path.includes("/applybyapplyablejobid")) {
     const pageType = hasQuestionsSignals || textInputs.length > 0 || selects.length > 0 ? "questions" : "resume-selection";
-    console.log("[Indeed SmartApply] ✅ Page type for applybyapplyablejobid:", pageType);
     return pageType;
   }
 
   if (path.includes("/resume-selection") || hasResumeSignals) {
-    console.log("[Indeed SmartApply] ✅ Page type: resume-selection");
     return "resume-selection";
   }
   if (path.includes("/questions") || path.includes("qualification-questions") || hasQuestionsSignals) {
-    console.log("[Indeed SmartApply] ✅ Page type: questions");
     return "questions";
   }
   if (path.includes("/contact-info") || path.includes("/contact-information")) {
-    console.log("[Indeed SmartApply] ✅ Page type: contact-info");
     return "contact-info";
   }
   if (path.includes("/review") || hasReviewSignals) {
-    console.log("[Indeed SmartApply] ✅ Page type: review");
     return "review";
   }
   if (path.includes("/confirmation") || hasSubmittedSignals) {
-    console.log("[Indeed SmartApply] ✅ Page type: submitted");
     return "submitted";
   }
-  console.log("[Indeed SmartApply] ⚠️ Page type: unknown");
   return "unknown";
 }
 
@@ -2969,37 +2874,22 @@ async function handleSmartApplyForm() {
     return;
   }
   
-  console.log("[Indeed SmartApply] 🎯 Detected SmartApply form page");
-  console.log("[Indeed SmartApply] 📍 URL:", currentUrl);
-  console.log("[Indeed SmartApply] 📍 Full URL with params:", currentUrl);
 
   const smartApplyJobId = getSmartApplyJobIdFromUrl(currentUrl);
-  console.log("[Indeed SmartApply] 🆔 Job ID:", smartApplyJobId || "unknown");
 
   const lock = await acquireSmartApplyJobLock(smartApplyJobId);
   if (!lock.ok) {
-    console.log("[Indeed SmartApply] ⛔ Another job already in progress, focusing on one active job", {
-      activeJobId: lock.activeJobId,
-      incomingJobId: smartApplyJobId || "unknown",
-      reason: lock.reason,
-    });
     return;
   }
-  console.log(
-    `[Indeed SmartApply] 🔒 Active job lock ${lock.reused ? "reused" : "acquired"}:`,
-    lock.activeJobId || "unknown"
-  );
   
   const settings = await loadSettings();
   
   // If auto-submit is disabled, don't auto-fill
   if (!settings.autoSubmit) {
-    console.log("[Indeed SmartApply] ⏸️ Auto-submit disabled, skipping auto-fill");
     return;
   }
   
   // Wait for page to fully load - check multiple times
-  console.log("[Indeed SmartApply] ⏳ Waiting for page to fully load...");
   
   let loadAttempts = 0;
   const maxLoadAttempts = 25; // 25 seconds max wait
@@ -3020,62 +2910,39 @@ async function handleSmartApplyForm() {
     const hasContent = bodyText.length > 100;
     const hasFormIndicators = hasRadios || hasResumeText || hasInputFields;
     
-    console.log(`[Indeed SmartApply] ⏳ Load check ${loadAttempts}s - buttons: ${hasButtons}, inputs: ${hasInputFields}, form: ${hasFormIndicators}`);
     
     // applybyapplyablejobid can have either resume UI or form fields
     if (currentUrl.includes('/applybyapplyablejobid')) {
       if (hasFormIndicators && hasButtons && hasContent) {
-        console.log(`[Indeed SmartApply] ✅ ApplyByApplyableJobId page loaded after ${loadAttempts}s`);
         pageContentReady = true;
         break;
       }
     } else if (currentUrl.includes('/resume-selection')) {
       if (hasRadios || hasResumeText) {
-        console.log(`[Indeed SmartApply] ✅ Resume selection UI loaded after ${loadAttempts}s`);
         pageContentReady = true;
         break;
       }
     } else if (hasButtons && hasContent) {
-      console.log(`[Indeed SmartApply] ✅ Page content loaded after ${loadAttempts}s`);
       pageContentReady = true;
       break;
     }
   }
   
   if (!pageContentReady) {
-    console.log("[Indeed SmartApply] ⚠️ Page did not fully load after 25 seconds");
-    console.log("[Indeed SmartApply] 📊 Current page state:", {
-      hasButtons: document.querySelectorAll('button').length,
-      hasInputs: document.querySelectorAll('input, textarea, select').length,
-      bodyTextLength: (document.body.textContent || '').length,
-      textSample: document.body.textContent.substring(0, 300)
-    });
   }
   
   // Extra stabilization wait
   await sleep(2000);
-  console.log("[Indeed SmartApply] ✅ Page fully stabilized, proceeding with automation");
   
   // Diagnostic: Log current page structure before detection
-  console.log("[Indeed SmartApply] 📊 PRE-DETECTION PAGE STATE:");
-  console.log("[Indeed SmartApply]   - URL:", currentUrl);
-  console.log("[Indeed SmartApply]   - Buttons:", document.querySelectorAll('button').length);
-  console.log("[Indeed SmartApply]   - Text inputs:", document.querySelectorAll('input[type="text"], textarea').length);
-  console.log("[Indeed SmartApply]   - Selects:", document.querySelectorAll('select').length);
-  console.log("[Indeed SmartApply]   - Radios:", document.querySelectorAll('input[type="radio"]').length);
-  console.log("[Indeed SmartApply]   - Total form elements:", document.querySelectorAll('input, textarea, select').length);
-  console.log("[Indeed SmartApply]   - Body text length:", (document.body.textContent || '').length);
 
   const pageType = detectSmartApplyPageType(currentUrl, document);
-  console.log("[Indeed SmartApply] 🧭 Detected page type:", pageType);
   
   // Step 1: Handle resume selection page
   if (pageType === 'resume-selection') {
-    console.log("[Indeed SmartApply] 📄 Resume selection page detected");
     
     // Check for iframes first
     const iframes = document.querySelectorAll('iframe');
-    console.log(`[Indeed SmartApply] 🖼️ Found ${iframes.length} iframes on page`);
     
     // Try to access iframe content (if same-origin)
     let workingDocument = document;
@@ -3084,21 +2951,17 @@ async function handleSmartApplyForm() {
         const mainIframe = iframes[0];
         const iframeDoc = mainIframe.contentDocument || mainIframe.contentWindow?.document;
         if (iframeDoc) {
-          console.log("[Indeed SmartApply] ✅ Accessing iframe content");
           workingDocument = iframeDoc;
         }
       } catch (err) {
-        console.log("[Indeed SmartApply] ⚠️ Cannot access iframe (cross-origin):", err.message);
       }
     }
     
     // Look for resume cards/sections (Indeed might use divs instead of radio buttons)
     const resumeCards = Array.from(workingDocument.querySelectorAll('[class*="resume" i], [data-testid*="resume" i], [role="radio"], [role="radiogroup"] > *'));
-    console.log(`[Indeed SmartApply] 📋 Found ${resumeCards.length} resume card elements`);
     
     // Log all button-like elements for debugging
     const allButtons = workingDocument.querySelectorAll('button, [role="button"], input[type="radio"], label, a, div[role="button"], [class*="button" i]');
-    console.log(`[Indeed SmartApply] 🔍 Total interactive elements found: ${allButtons.length}`);
     
     // Log first 15 for debugging (increased from 10)
     Array.from(allButtons).slice(0, 15).forEach((el, idx) => {
@@ -3106,12 +2969,10 @@ async function handleSmartApplyForm() {
       const ariaLabel = el.getAttribute('aria-label') || '';
       const type = el.tagName + (el.type ? `[${el.type}]` : '');
       const role = el.getAttribute('role') || '';
-      console.log(`[Indeed SmartApply]   ${idx + 1}. ${type}${role ? ` role="${role}"` : ''}: "${text}" / aria: "${ariaLabel}"`);
     });
     
     // Look for the recommended resume (Indeed Resume or uploaded PDF)
     const resumeButtons = Array.from(workingDocument.querySelectorAll('button, [role="button"], input[type="radio"], label, div[role="button"], [class*="selectable" i]'));
-    console.log(`[Indeed SmartApply] Found ${resumeButtons.length} potential resume buttons`);
     
     // Try to find and click a resume option
     let resumeClicked = false;
@@ -3123,7 +2984,6 @@ async function handleSmartApplyForm() {
           label.includes('resume') ||
           label.includes('use your') ||
           label.includes('upload')) {
-        console.log(`[Indeed SmartApply] ✅ Clicking resume option: "${label}"`);
         
         // Simulate user interaction to avoid beforeunload block
         btn.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, cancelable: true, view: window }));
@@ -3137,29 +2997,22 @@ async function handleSmartApplyForm() {
     }
     
     if (!resumeClicked) {
-      console.log("[Indeed SmartApply] ⚠️ No resume option found by label, checking for checked/selected states");
       
       // Maybe resume is already selected?
       const checkedRadio = workingDocument.querySelector('input[type="radio"]:checked');
       const selectedCard = workingDocument.querySelector('[class*="selected" i], [aria-selected="true"], [aria-checked="true"]');
       
       if (checkedRadio || selectedCard) {
-        console.log("[Indeed SmartApply] ℹ️ Resume already selected");
         resumeClicked = true; // Consider it clicked since one is selected
       } else {
-        console.log("[Indeed SmartApply] ⚠️ No selected resume found, trying first clickable resume element");
         const firstClickable = workingDocument.querySelector('input[type="radio"], [role="radio"], div[class*="resume" i][class*="card" i], [data-testid*="resume" i]');
         if (firstClickable) {
-          console.log("[Indeed SmartApply] 🔘 Clicking first resume element:", firstClickable.tagName, firstClickable.className);
           firstClickable.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, cancelable: true, view: window }));
           firstClickable.dispatchEvent(new MouseEvent('mouseup', { bubbles: true, cancelable: true, view: window }));
           firstClickable.click();
           resumeClicked = true;
           await sleep(1500);
         } else {
-          console.log("[Indeed SmartApply] ❌ No radio buttons or resume cards found");
-          console.log("[Indeed SmartApply] 📊 Page structure - main elements:", 
-            Array.from(workingDocument.querySelectorAll('main, [role="main"], #main')).map(el => el.tagName + '.' + el.className).join(', '));
         }
       }
     }
@@ -3167,14 +3020,11 @@ async function handleSmartApplyForm() {
     // Find and click Continue/Next button with proper user gesture
     await sleep(1500);
     
-    console.log("[Indeed SmartApply] 🔍 Looking for Continue/Next button...");
     const allButtonsForContinue = Array.from(workingDocument.querySelectorAll('button, [role="button"], input[type="submit"], a[class*="button" i]'));
-    console.log(`[Indeed SmartApply] Found ${allButtonsForContinue.length} button elements`);
     
     // Log all buttons to see what's available
     allButtonsForContinue.forEach((btn, idx) => {
       const text = normalizeLabel(btn.textContent || '');
-      console.log(`[Indeed SmartApply]   Button ${idx + 1}: "${text}"`);
     });
     
     const continueBtn = allButtonsForContinue.find(btn => {
@@ -3184,7 +3034,6 @@ async function handleSmartApplyForm() {
     
     if (continueBtn) {
       const btnText = normalizeLabel(continueBtn.textContent || '');
-      console.log(`[Indeed SmartApply] ➡️ Clicking Continue button: "${btnText}"`);
       
       // Simulate full click sequence to establish user gesture
       continueBtn.dispatchEvent(new MouseEvent('mouseenter', { bubbles: true, cancelable: true, view: window }));
@@ -3195,36 +3044,26 @@ async function handleSmartApplyForm() {
       continueBtn.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
       continueBtn.click(); // Also use regular click as fallback
       
-      console.log("[Indeed SmartApply] ✅ Continue button clicked");
     } else {
-      console.log("[Indeed SmartApply] ⚠️ Continue button not found - check button labels above");
-      console.log("[Indeed SmartApply] 💡 TIP: You may need to manually click Continue to proceed");
     }
     
-    console.log("[Indeed SmartApply] ✅ Resume selection handling complete");
     return; // Exit after handling resume page
   }
   
   // Step 2: Handle questions page (both types)
   if (pageType === 'questions') {
-    console.log("[Indeed SmartApply] ❓ Questions page detected");
-    console.log("[Indeed SmartApply] 📋 URL type:", currentUrl.includes('qualification-questions') ? 'Qualification Questions' : 'General Questions');
     
     // Count questions
     const textInputs = document.querySelectorAll('textarea, input[type="text"]:not([type="hidden"])');
     const selects = document.querySelectorAll('select');
     const radios = document.querySelectorAll('input[type="radio"]');
     
-    console.log(`[Indeed SmartApply] 📊 Found: ${textInputs.length} text fields, ${selects.length} dropdowns, ${radios.length} radio buttons`);
     
     // Auto-fill known profile answers from settings and pause only for unresolved required questions.
     const pendingQuestions = fillBasicFields(document, settings);
-    console.log(`[Indeed SmartApply] 📝 Auto-fill complete. Pending required questions: ${pendingQuestions.length}`);
 
     if (pendingQuestions.length) {
       await sendMessage({ type: "CP_REGISTER_PENDING_QUESTIONS", questions: pendingQuestions }).catch(() => {});
-      console.log("[Indeed SmartApply] ⏸️ Manual input still required for unresolved fields");
-      console.log("[Indeed SmartApply] 📌 Pending:", pendingQuestions);
       return;
     }
 
@@ -3232,57 +3071,46 @@ async function handleSmartApplyForm() {
     const continueBtn = findPrimaryActionButton(document);
     if (continueBtn) {
       const text = normalizeText(continueBtn.textContent || continueBtn.getAttribute('aria-label') || 'Continue');
-      console.log(`[Indeed SmartApply] ➡️ Clicking action after auto-fill: "${text}"`);
       continueBtn.click();
       return;
     }
 
-    console.log("[Indeed SmartApply] ⚠️ No action button found after auto-fill. Manual continue may be required.");
     return; // Stay on this page - don't navigate away
   }
   
   // Step 3: Handle contact info page
   if (pageType === 'contact-info') {
-    console.log("[Indeed SmartApply] 📱 Contact info page detected");
     const pendingContactFields = fillBasicFields(document, settings);
-    console.log(`[Indeed SmartApply] 🧾 Contact auto-fill complete. Pending required fields: ${pendingContactFields.length}`);
 
     if (!pendingContactFields.length) {
       const continueBtn = findPrimaryActionButton(document);
       if (continueBtn) {
         const text = normalizeText(continueBtn.textContent || continueBtn.getAttribute('aria-label') || 'Continue');
-        console.log(`[Indeed SmartApply] ➡️ Clicking contact action: "${text}"`);
         continueBtn.click();
         return;
       }
     }
 
-    console.log("[Indeed SmartApply] ℹ️ Verify your contact information and click Continue");
     
     return; // Let user verify contact info
   }
   
   // Step 4: Handle review page
   if (pageType === 'review') {
-    console.log("[Indeed SmartApply] 👀 Review page detected");
     if (settings?.autoSubmit) {
-      console.log("[Indeed SmartApply] 🚀 Auto-submitting reviewed application...");
       const submitBtn = findPrimaryApplyAction(document);
       if (submitBtn) {
         submitBtn.click();
         await sleep(2000);
       } else {
-        console.log("[Indeed SmartApply] ⚠️ Submit button not found on review page");
       }
     } else {
-      console.log("[Indeed SmartApply] ⚠️ Review application before submitting (manual submit mode)");
     }
     return;
   }
 
   // Step 5: Handle confirmation/submitted page
   if (pageType === 'submitted') {
-    console.log("[Indeed SmartApply] 🎉 Application submitted page detected");
     await releaseSmartApplyJobLock("submitted");
     const safeJobId = smartApplyJobId || "indeed_smartapply_job";
     await recordOutcome("APPLIED", {
@@ -3297,7 +3125,6 @@ async function handleSmartApplyForm() {
   }
   
   // Unknown page type
-  console.log("[Indeed SmartApply] ❓ Unknown SmartApply page type");
   const signature = {
     pathname: (() => {
       try {
@@ -3313,8 +3140,6 @@ async function handleSmartApplyForm() {
       .slice(0, 8)
       .map((b) => normalizeText(b.textContent || b.getAttribute('aria-label') || '')),
   };
-  console.log("[Indeed SmartApply] 🧪 Unknown page signature:", signature);
-  console.log("[Indeed SmartApply] ℹ️ Manual interaction required");
 }
 
 // Run SmartApply handler if we're on that page
@@ -3330,7 +3155,6 @@ if (window.location.href.includes('smartapply.indeed.com')) {
     // no-op
   }
 
-  console.log("[Indeed SmartApply] 🚀 SmartApply page detected, initializing handler");
   
   // Prevent beforeunload dialogs from blocking navigation
   window.addEventListener('beforeunload', (e) => {
@@ -3340,7 +3164,6 @@ if (window.location.href.includes('smartapply.indeed.com')) {
   
   // Run with error handling
   handleSmartApplyForm().then(() => {
-    console.log("[Indeed SmartApply] ✅ Handler completed successfully");
   }).catch(err => {
     console.error("[Indeed SmartApply] ❌ Error handling SmartApply form:", err);
     console.error("[Indeed SmartApply] ❌ Error stack:", err.stack);

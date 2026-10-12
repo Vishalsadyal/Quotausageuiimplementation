@@ -5,7 +5,6 @@
  */
 
 (function () {
-  console.log('[WA-Helper] WhatsApp Web automation script loaded.');
 
   const urlParams = new URLSearchParams(window.location.search);
   const targetPhone = urlParams.get('phone') || '';
@@ -65,7 +64,6 @@
     // Check if phone exists in storage history
     if (cleanPhone && contactedPhonesList.includes(cleanPhone)) {
       isDuplicate = true;
-      console.log(`[WA-Helper] Phone ${cleanPhone} already found in extension contact history.`);
     }
 
     initWhatsAppAutomation();
@@ -220,7 +218,6 @@
         const text = (row.innerText || '').trim();
         // Ignore empty containers or system notices
         if (text.length > 0 && !text.toLowerCase().includes('end-to-end encrypted')) {
-          console.log('[WA-Helper] Verified existing outbound message in chat:', text.slice(0, 40));
           return true;
         }
       }
@@ -510,14 +507,12 @@
       messageInput.dispatchEvent(new Event('change', { bubbles: true }));
       messageInput.dispatchEvent(new Event('blur', { bubbles: true }));
 
-      console.log('[WA-Helper] Leftover draft successfully cleared from input box.');
     } catch (e) {
       console.warn('[WA-Helper] Error clearing draft box:', e);
     }
   }
 
   function handleAlreadySentState(domDetected) {
-    console.log(`[WA-Helper] ⚠️ Message already sent detected for ${cleanPhone || targetPhone} (Storage: ${isDuplicate}, DOM: ${domDetected})`);
 
     // Cleanly clear/empty the draft textbox so no leftover draft remains in chat
     clearMessageDraftBox();
@@ -696,7 +691,6 @@
       // If text has already cleared (e.g. sent by Enter), we are done!
       if (currentText.length === 0) {
         isDispatched = true;
-        console.log(`[WA-Helper] Message is cleared / sent!`);
         break;
       }
 
@@ -712,7 +706,6 @@
       const textAfterEnter = (messageInput ? (messageInput.innerText || messageInput.textContent || '') : '').trim();
       if (textAfterEnter.length === 0) {
         isDispatched = true;
-        console.log(`[WA-Helper] Message sent successfully via Enter key on attempt ${attempt}!`);
         break;
       }
 
@@ -727,11 +720,9 @@
       const textAfterClick = (messageInput ? (messageInput.innerText || messageInput.textContent || '') : '').trim();
       if (textAfterClick.length === 0) {
         isDispatched = true;
-        console.log(`[WA-Helper] Message sent successfully via Send button on attempt ${attempt}!`);
         break;
       }
 
-      console.log(`[WA-Helper] Attempt ${attempt}: Retrying dispatch...`);
       await sleep(350);
     }
 

@@ -14,7 +14,7 @@ const ADVANTAGES = [
   'Skips jobs you already applied to, never twice',
   'ATS-ready resume tailored for every role',
   'Free WhatsApp & email auto-sender to HR contacts',
-  'Free plan with 3 applies a day · Pro at ₹49/month',
+  'Free plan with 3 applies a day · Pro at ₹99/month',
 ];
 
 const QUOTES = [

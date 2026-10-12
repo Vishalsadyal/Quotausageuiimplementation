@@ -10,7 +10,6 @@
   if (window.__linkedInEmailOutreachInjected) return;
   window.__linkedInEmailOutreachInjected = true;
 
-  console.log('%c[LinkedIn-Email] Content script initialized on ' + window.location.href, 'color: #6366f1; font-weight: bold; font-size: 13px;');
 
   let settings = {
     targetKeywords: [
@@ -987,7 +986,6 @@ Parveen`,
         extractedLeads.unshift(lead);
         newCount++;
 
-        console.log('%c[LinkedIn-Email] Extracted Lead: ' + author + ' (' + jobTitle + ') -> ' + cleanEmail + (isContacted ? ' [Already Sent]' : ''), 'color: #6366f1; font-weight: bold;');
 
         // Save to background
         chrome.runtime.sendMessage({

@@ -370,6 +370,11 @@ html {
 }
 
 /* Chat widget: render above all page chrome and avoid clipping. */
+/* Dashboard has its own AI Assistant page, so hide the floating widget there. */
+body.cp-in-dashboard .cp-chat-widget {
+  display: none !important;
+}
+
 .cp-chat-widget {
   position: fixed;
   bottom: 1rem;

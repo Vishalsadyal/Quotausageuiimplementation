@@ -56,7 +56,7 @@ export default function PressKit() {
             "Product: AutoApply CV, a web dashboard plus the AutoApply CV LinkedIn Copilot Chrome extension.",
             "Distribution: Chrome Web Store.",
             "Platforms: LinkedIn Easy Apply, with Indeed applications tracked in the same dashboard.",
-            "Pricing: Free plan with 3 auto-apply actions per day; Pro at ₹49 per month for unlimited auto-apply; pay-as-you-go Hires wallet.",
+            "Pricing: Free plan with 3 auto-apply actions per day; Pro at ₹99 per month for unlimited auto-apply; pay-as-you-go Hires wallet.",
             "Core features: Easy Apply automation, answer bank, duplicate prevention, AI resume tailoring, application tracker, interview preparation.",
           ],
         },

@@ -48,13 +48,15 @@ export default function Pricing() {
     {
       name: 'Pro',
       icon: Crown,
-      monthlyPrice: 49,
+      monthlyPrice: 99,
       yearlyPrice: 588,
-      customPriceLabel: '₹49 / month',
+      customPriceLabel: '₹99 / month',
       description: 'Unlimited applications with premium automation',
       features: [
         'Unlimited Auto-Apply',
         'HR Recruiter Direct Email & Phone Extractor',
+        'Personal AI assistant that knows your account',
+        'Direct WhatsApp support',
         'Advanced AI job matching',
         'AI resume builder and optimization',
         'Interview preparation AI tools',
@@ -63,10 +65,10 @@ export default function Pricing() {
         'Cover letter generator',
         'LinkedIn & Indeed automation'
       ],
-      cta: 'Start Pro (₹49/mo)',
+      cta: 'Start Pro (₹99/mo)',
       popular: true,
       gradient: 'from-[#6047f5] via-[#6047f5] to-[#4932cf]',
-      badge: 'LIMITED OFFER • 90% OFF'
+      badge: 'LIMITED OFFER • 80% OFF'
     },
     {
       name: 'Custom Hires',
@@ -119,7 +121,7 @@ export default function Pricing() {
           </h1>
 
           <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-10">
-            Free (₹0) with 3/day, Pro at ₹49/month unlimited, or Custom Hires top-up when you need flexibility.
+            Free (₹0) with 3/day, Pro at ₹99/month unlimited, or Custom Hires top-up when you need flexibility.
           </p>
 
           <div className="inline-flex items-center gap-3 bg-white rounded-full p-2 shadow-lg border border-gray-200">
@@ -280,7 +282,7 @@ export default function Pricing() {
 
           <h2 className="text-4xl lg:text-5xl font-bold mb-6">Start your journey today</h2>
 
-          <p className="text-xl text-purple-100 mb-12">Free starts at ₹0 with 3/day. Pro is ₹49/month unlimited.</p>
+          <p className="text-xl text-purple-100 mb-12">Free starts at ₹0 with 3/day. Pro is ₹99/month unlimited.</p>
 
           <button
             onClick={() => handleSelectPlan('Free')}

@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { STATIC_BLOG_POSTS } from "src/content/blogPosts";
+import { ASSISTANT_SITE_KNOWLEDGE } from "src/content/assistantKnowledge";
+import { enforceRateLimit, rateLimitKey } from "src/lib/rate-limit";
 
 type ChatMessage = {
   role: "user" | "assistant";
@@ -120,16 +122,16 @@ function buildAssistantInstructions() {
     "Be concise and action-oriented; ask one clarifying question when needed.",
     "If the user asks for credentials/OTPs/passwords, refuse and provide safe guidance.",
     "",
-    "Known product facts (use these when relevant):",
-    "- Site name: AutoApply CV (autoapplycv.in).",
-    "- Signup includes a free bonus of 30 Hires coins (wallet credit).",
-    "- Free plan has a daily apply/quota limit configured server-side.",
-    "- Pro plan is intended to be effectively unlimited.",
+    "Answer product questions only from the site knowledge below; if it isn't covered, suggest contacting support.",
+    "Use plain text (no Markdown tables or headings). Keep replies under 120 words.",
     "- Cookie consent banner exists; tracking may depend on consent settings.",
     "",
     "Support guidance:",
     "- For OTP issues: verify email, resend OTP, check spam/junk, try again after a minute.",
     "- For billing: explain that checkout may redirect and that webhooks can take a short time to sync.",
+    "",
+    "=== SITE KNOWLEDGE ===",
+    ASSISTANT_SITE_KNOWLEDGE,
   ].join("\n");
 }
 
@@ -147,7 +149,7 @@ export async function POST(req: NextRequest) {
     const latestUser = [...messages].reverse().find((m) => m.role === "user")?.content || "";
     const actions = suggestActions(latestUser);
 
-    const apiKey = getEnv("OPENAI_API_KEY");
+    const apiKey = getEnv("GROQ_API_KEY");
     if (!apiKey) {
       return NextResponse.json({
         success: true,
@@ -156,10 +158,12 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    const model = getEnv("OPENAI_MODEL") || "gpt-4.1-mini";
-    const instructions = buildAssistantInstructions();
+    const limited = await enforceRateLimit({ key: rateLimitKey(req, "public-chat"), limit: 30, windowMs: 60 * 60 * 1000 });
+    if (limited) return limited;
 
-    const upstream = await fetch("https://api.openai.com/v1/responses", {
+    const model = getEnv("CHAT_GROQ_MODEL") || "openai/gpt-oss-20b";
+
+    const upstream = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
       headers: {
         "content-type": "application/json",
@@ -167,28 +171,25 @@ export async function POST(req: NextRequest) {
       },
       body: JSON.stringify({
         model,
-        instructions,
-        input: messages.map((m) => ({
-          role: m.role,
-          content: [{ type: "input_text", text: m.content }],
-        })),
-        max_output_tokens: 400,
+        messages: [{ role: "system", content: buildAssistantInstructions() }, ...messages],
+        temperature: 0.3,
+        max_tokens: 600,
+        include_reasoning: false,
       }),
     });
 
-    const json = (await upstream.json()) as { output_text?: string; error?: { message?: string } };
-    if (!upstream.ok) {
-      return NextResponse.json(
-        { success: false, message: json?.error?.message || "Chat provider error" },
-        { status: 502 }
-      );
+    const json = (await upstream.json().catch(() => null)) as {
+      choices?: Array<{ message?: { content?: string } }>;
+      error?: { message?: string };
+    } | null;
+    const reply = String(json?.choices?.[0]?.message?.content || "").trim();
+    if (!upstream.ok || !reply) {
+      console.error("chat provider error:", upstream.status, json?.error?.message);
+      // Fall back to canned answers rather than leaving the visitor with an error.
+      return NextResponse.json({ success: true, reply: offlineReply(latestUser), actions });
     }
 
-    return NextResponse.json({
-      success: true,
-      reply: String(json.output_text || "").trim(),
-      actions,
-    });
+    return NextResponse.json({ success: true, reply, actions });
   } catch (error) {
     console.error("chat error:", error);
     return NextResponse.json({ success: false, message: "Chat failed" }, { status: 500 });

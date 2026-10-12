@@ -111,11 +111,11 @@ export const SEO_BY_PATH: Record<string, SeoEntry> = {
           "@type": "Offer",
           name: "Pro",
           description: "Unlimited auto-apply with premium automation, billed monthly.",
-          price: "49",
+          price: "99",
           priceCurrency: "INR",
           priceSpecification: {
             "@type": "UnitPriceSpecification",
-            price: "49",
+            price: "99",
             priceCurrency: "INR",
             unitText: "MONTH",
           },

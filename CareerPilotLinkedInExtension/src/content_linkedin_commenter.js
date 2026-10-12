@@ -9,7 +9,6 @@
   if (window.__linkedInAutoCommenterInjected) return;
   window.__linkedInAutoCommenterInjected = true;
 
-  console.log('[AutoCommenter] Content script initialized on', window.location.href);
 
   // State
   let isRunning = false;
@@ -37,7 +36,6 @@
   // Logging & Debug
   function logMessage(text, type = 'info') {
     const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-    console.log(`[AutoCommenter][${type.toUpperCase()}] ${text}`);
     appendWidgetLog(text, type, time);
     chrome.runtime.sendMessage({
       type: 'EVENT_LOG',
@@ -52,7 +50,6 @@
     if (debugLogList.length > 100) debugLogList.pop();
 
     if (currentSettings.debugMode) {
-      console.log(`%c[AutoCommenter DEBUG][${category}] ${text}`, 'color: #38bdf8; font-weight: bold;', details || '');
       appendDebugLog(logObj);
     }
 

@@ -47,7 +47,6 @@ function isAllowedDashboardOrigin(origin, allowlist) {
 
 let dynamicAllowlist = [...DEFAULT_ALLOWLIST];
 let BRIDGE_ENABLED = isAllowedDashboardOrigin(window.location.origin, dynamicAllowlist);
-console.log('[CP Bridge] BRIDGE_ENABLED =', BRIDGE_ENABLED, '| origin =', window.location.origin);
 let bridgeHeartbeatTimer = null;
 
 function nowIso() {
@@ -197,9 +196,7 @@ if (BRIDGE_ENABLED) {
 try {
   chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     if (!message) return;
-    console.log('[CP Bridge] onMessage:', message.type, message);
     if (message.type === "CP_PORTAL_SYNCED") {
-      console.log('[CP Bridge] CP_PORTAL_SYNCED:', message);
       try {
         // Trigger React listeners (DashboardLayout listens for this to refresh the user wallet immediately).
         window.dispatchEvent(new CustomEvent("cp:extensionImported", { detail: message }));
@@ -221,16 +218,13 @@ try {
       return;
     }
     if (message.type === "CP_WEB_IMPORT_OUTCOMES") {
-      console.log('[CP Bridge] CP_WEB_IMPORT_OUTCOMES received, entries:', message.entries?.length || 0);
       (async () => {
         try {
           const entries = Array.isArray(message.entries) ? message.entries : [];
           if (!entries.length) {
-            console.log('[CP Bridge] No entries to import');
             sendResponse({ attempted: true, status: 400, body: { success: false, message: "No entries to import" } });
             return;
           }
-          console.log('[CP Bridge] Importing entries:', JSON.stringify(entries.slice(0, 3)), '... total:', entries.length);
           const res = await fetch(`${window.location.origin}/api/extension/import`, {
             method: "POST",
             cache: "no-store",
@@ -239,7 +233,6 @@ try {
             body: JSON.stringify({ entries }),
           });
           const body = await res.json().catch(() => null);
-          console.log('[CP Bridge] Import response:', res.status, body);
           if (res.ok && body?.success) {
             try {
               window.dispatchEvent(new Event("cp:extensionImported"));

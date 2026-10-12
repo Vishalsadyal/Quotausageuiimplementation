@@ -7,7 +7,6 @@
 (function () {
   'use strict';
 
-  console.log('%c[Email-Helper] Gmail automation content script initialized on ' + window.location.href, 'color: #6366f1; font-weight: bold;');
 
   const urlParams = new URLSearchParams(window.location.search);
   const targetEmail = (urlParams.get('to') || '').toLowerCase().trim();
@@ -197,7 +196,6 @@
       const bodyEl = findGmailComposeBody();
 
       if (sendBtn) {
-        console.log('[Email-Helper] Gmail compose window and Send button detected!');
         onComposeReady(sendBtn, bodyEl);
         return;
       }
@@ -264,7 +262,6 @@
         sendBtn.dispatchEvent(new MouseEvent('mouseup', { bubbles: true, cancelable: true }));
         sendBtn.click();
         sendSuccess = true;
-        console.log('[Email-Helper] Dispatched click on Gmail Send button.');
       } catch (e) {
         console.warn('[Email-Helper] Direct click failed:', e);
       }
@@ -283,7 +280,6 @@
           bubbles: true
         }));
         sendSuccess = true;
-        console.log('[Email-Helper] Dispatched Ctrl+Enter shortcut.');
       } catch (e) {
         console.warn('[Email-Helper] Keyboard shortcut failed:', e);
       }

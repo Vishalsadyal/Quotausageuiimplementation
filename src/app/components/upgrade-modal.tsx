@@ -38,20 +38,20 @@ export function UpgradeModal({ isOpen, onClose }: UpgradeModalProps) {
               </div>
 
               <Dialog.Description className="text-gray-600 text-base">
-                You reached the Free daily limit. Upgrade to Pro for just ₹49 to unlock unlimited auto-apply & recruiter contacts.
+                You reached the Free daily limit. Upgrade to Pro for just ₹99 to unlock unlimited auto-apply & recruiter contacts.
               </Dialog.Description>
             </div>
 
             <div className="px-8 py-6 space-y-6">
               <div className="relative rounded-xl border-2 border-purple-600 bg-gradient-to-br from-purple-50/60 to-indigo-50/60 p-6">
                 <div className="absolute -top-3 left-6 bg-gradient-to-r from-purple-600 to-indigo-600 text-white text-xs font-semibold px-3 py-1 rounded-full">
-                  MOST POPULAR • 90% OFF
+                  MOST POPULAR • 80% OFF
                 </div>
 
                 <div className="mb-4">
                   <h3 className="text-xl font-semibold text-[#030213] mb-1">Pro Plan</h3>
                   <div className="flex items-baseline gap-1">
-                    <span className="text-4xl font-bold text-[#030213]">₹49</span>
+                    <span className="text-4xl font-bold text-[#030213]">₹99</span>
                     <span className="text-gray-600">/month</span>
                     <span className="text-sm line-through text-gray-400 ml-2">₹499</span>
                   </div>
@@ -60,6 +60,7 @@ export function UpgradeModal({ isOpen, onClose }: UpgradeModalProps) {
                 <ul className="space-y-3 mb-6">
                   {[
                     'Unlimited Auto-Apply actions',
+                    'Personal AI assistant + WhatsApp support',
                     'Advanced job matching algorithm',
                     'Priority application processing',
                     'AI-powered resume optimization',
@@ -79,7 +80,7 @@ export function UpgradeModal({ isOpen, onClose }: UpgradeModalProps) {
                   onClick={handleUpgrade}
                   className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white py-3 rounded-lg font-bold hover:shadow-lg hover:-translate-y-px transition-all duration-200 cursor-pointer"
                 >
-                  Get Pro Access for ₹49
+                  Get Pro Access for ₹99
                 </button>
               </div>
 

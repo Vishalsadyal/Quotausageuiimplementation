@@ -202,7 +202,6 @@ export async function POST(req: NextRequest) {
 
     // If Google CSE not configured, return mock data for testing
     if (!apiKey || !cseId) {
-      console.log("[hr-outreach/search] Google CSE not configured, returning mock data for query:", query);
       const mockResults: SearchResult[] = [
         {
           name: "Alice Johnson",

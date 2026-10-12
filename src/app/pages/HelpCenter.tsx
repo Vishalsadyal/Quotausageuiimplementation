@@ -88,7 +88,7 @@ export default function HelpCenter() {
           title: "Plans and limits",
           bullets: [
             "Free plan: 3 auto-apply actions per day plus a 30 Hires coin signup bonus.",
-            "Pro plan: unlimited auto-apply for ₹49 per month, with advanced job matching and priority support.",
+            "Pro plan: unlimited auto-apply for ₹99 per month, with advanced job matching and priority support.",
             "Hires wallet: pay as you go, where 1 Hire equals 1 submitted application, with no monthly subscription.",
             "Skipped, paused, or stopped jobs are never charged.",
           ],
