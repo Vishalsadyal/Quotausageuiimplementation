@@ -66,13 +66,54 @@ function extractCity(text: string) {
   return cityLine;
 }
 
+async function parsePdfBuffer(bytes: Buffer): Promise<string> {
+  // Strategy 1: Standard parse with modern PDFJS version
+  try {
+    const parsed = await pdfParse(bytes, { max: 0, version: "v2.0.550" });
+    if (parsed.text && parsed.text.trim()) return parsed.text;
+  } catch (err1) {
+    const msg = err1 instanceof Error ? err1.message : String(err1);
+    // If it failed with bad XRef entry, repair CRLF/LF line ending offsets caused by Windows file handling
+    if (/xref/i.test(msg)) {
+      try {
+        const fixedLf = Buffer.from(bytes.toString("binary").replace(/\r\n/g, "\n"), "binary");
+        const parsed = await pdfParse(fixedLf, { max: 0, version: "v2.0.550" });
+        if (parsed.text && parsed.text.trim()) return parsed.text;
+      } catch {
+        try {
+          const fixedCrlf = Buffer.from(bytes.toString("binary").replace(/(?<!\r)\n/g, "\r\n"), "binary");
+          const parsed = await pdfParse(fixedCrlf, { max: 0, version: "v2.0.550" });
+          if (parsed.text && parsed.text.trim()) return parsed.text;
+        } catch {
+          // Fall through to Strategy 2
+        }
+      }
+    }
+  }
+
+  // Strategy 2: Fallback to default PDFJS version with both original and LF-normalized buffers
+  try {
+    const parsed = await pdfParse(bytes);
+    if (parsed.text && parsed.text.trim()) return parsed.text;
+  } catch {
+    try {
+      const fixedLf = Buffer.from(bytes.toString("binary").replace(/\r\n/g, "\n"), "binary");
+      const parsed = await pdfParse(fixedLf);
+      if (parsed.text && parsed.text.trim()) return parsed.text;
+    } catch {
+      // Fall through
+    }
+  }
+
+  throw new Error("This PDF could not be read (corrupted XRef table). Please open and re-save it as PDF or DOCX.");
+}
+
 export async function parseResumeFile(fileName: string, bytes: Buffer): Promise<ParsedResume> {
   const lower = fileName.toLowerCase();
   let text = "";
 
   if (lower.endsWith(".pdf")) {
-    const parsed = await pdfParse(bytes, { max: 0, version: "v2.0.550" });
-    text = parsed.text || "";
+    text = await parsePdfBuffer(bytes);
   } else if (lower.endsWith(".docx")) {
     const parsed = await mammoth.extractRawText({ buffer: bytes });
     text = parsed.value || "";
