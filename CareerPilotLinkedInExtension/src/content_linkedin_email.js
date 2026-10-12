@@ -123,6 +123,8 @@ Parveen`,
 
   // Load storage
   async function loadStorage() {
+    // Disconnected after an extension reload: storage is gone until the tab is refreshed.
+    if (!chrome?.runtime?.id) return;
     try {
       const data = await chrome.storage.local.get(['emailSettings', 'emailLeads', 'contactedEmails', 'duplicateEmailStats']);
       if (data.emailSettings) settings = { ...settings, ...data.emailSettings };
@@ -649,6 +651,10 @@ Parveen`,
 
     let scrollCounter = 0;
     scanInterval = setInterval(() => {
+      if (!chrome?.runtime?.id) {
+        clearInterval(scanInterval);
+        return;
+      }
       if (!isScanning || isPaused) return;
 
       scanCurrentDOMForLeads();

@@ -3,8 +3,7 @@ import bcrypt from "bcryptjs";
 import { prisma } from "src/lib/prisma";
 import { signupSchema } from "src/lib/schemas";
 import { createSessionAndTokens, setAuthCookies, toClientUser } from "src/lib/auth";
-import { getPlanQuota } from "src/lib/quota";
-import { creditBonusHires, getDailyHireCap } from "src/lib/hires";
+import { createUserAccount } from "src/lib/account";
 import { writeAuditLog } from "src/lib/audit";
 import { fail, handleApiError } from "src/lib/api";
 
@@ -19,40 +18,7 @@ export async function POST(req: NextRequest) {
     }
 
     const passwordHash = await bcrypt.hash(password, 10);
-    const now = new Date();
-    const nextReset = new Date(now);
-    nextReset.setUTCDate(nextReset.getUTCDate() + 1);
-    nextReset.setUTCHours(0, 0, 0, 0);
-
-    const user = await prisma.user.create({
-      data: {
-        name,
-        email,
-        phone,
-        passwordHash,
-        role: "user",
-        plan: "free",
-        onboardingCompleted: false,
-        quotaUsed: 0,
-        quotaTotal: getPlanQuota("free"),
-        quotaResetTime: nextReset,
-        dailyHireUsed: 0,
-        dailyHireCap: getDailyHireCap("free"),
-        dailyHireResetTime: nextReset,
-      },
-    });
-
-    const signupBonus = Math.max(0, Math.floor(Number(process.env.SIGNUP_BONUS_HIRES || 30)));
-    if (signupBonus > 0) {
-      await creditBonusHires({
-        userId: user.id,
-        hires: signupBonus,
-        referenceType: "signup",
-        referenceId: user.id,
-        idempotencyKey: `signup_bonus:${user.id}`,
-        metadataJson: { email },
-      });
-    }
+    const user = await createUserAccount({ name, email, phone, passwordHash });
 
     const { accessToken, refreshToken } = await createSessionAndTokens({
       id: user.id,

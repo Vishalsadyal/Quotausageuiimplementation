@@ -3,6 +3,8 @@ import { Link, useNavigate } from 'react-router';
 import { AnimatePresence, motion } from 'motion/react';
 import { FileText, Loader2, Sparkles, Upload } from 'lucide-react';
 import { normalizeLinkedinInput, saveHeroLead, savePendingResume } from 'src/lib/heroLead';
+import { useAuth } from '../context/AuthContext';
+import { AuthPanel } from './DashboardAuthGate';
 
 const MAX_MB = 5;
 const ACCEPTED = '.pdf,.docx,.txt';
@@ -38,6 +40,9 @@ function summaryLine(profile: ReadResult) {
 
 export function HeroQuickStart({ className = '' }: { className?: string }) {
   const navigate = useNavigate();
+  const { isAuthenticated, refreshUser } = useAuth();
+  // After the upload, the card swaps the chat for the sign up / log in form instead of leaving the page.
+  const [showAuth, setShowAuth] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [isTyping, setIsTyping] = useState(true);
   const [status, setStatus] = useState<Status>('idle');
@@ -83,16 +88,44 @@ export function HeroQuickStart({ className = '' }: { className?: string }) {
     setStatus('reading');
     setIsTyping(true);
     let profile: ReadResult = {};
+    let next: 'dashboard' | 'login' | 'signup' = 'signup';
+    let existingEmail = '';
     try {
       const formData = new FormData();
       formData.append('resume', file);
-      const res = await fetch('/api/public/resume/parse', { method: 'POST', body: formData });
+      // Reads the resume and, for a new email, creates the account and logs the visitor in.
+      const res = await fetch('/api/public/resume/quick-start', { method: 'POST', body: formData });
       const data = await res.json().catch(() => null);
       if (!res.ok || !data?.success) throw new Error(data?.message || 'Could not read this file.');
       profile = (data?.data?.profile || {}) as ReadResult;
+      next = data?.data?.next || 'signup';
+      existingEmail = data?.data?.email || '';
     } catch (error) {
       setStatus('error');
       await aiSay(`${error instanceof Error ? error.message : 'Could not read this file.'} Try another file.`, 300);
+      return;
+    }
+
+    const firstName = String(profile.name || '').trim().split(/\s+/)[0];
+    const found = summaryLine(profile);
+    const greeting = `${firstName ? `Got it, ${firstName}!` : 'Got it!'}${found ? ` I found: ${found}.` : ''}`;
+
+    if (next === 'dashboard') {
+      // The resume is already saved to the new account, so nothing waits in the browser.
+      setStatus('done');
+      await refreshUser();
+      await aiSay(`${greeting} Your account is ready and your profile is filled in. Opening your dashboard…`, 500);
+      window.setTimeout(() => navigate('/dashboard'), 1200);
+      return;
+    }
+
+    if (next === 'login') {
+      setStatus('done');
+      await aiSay(`${greeting} You already have an account with this email. Taking you to log in…`, 500);
+      window.setTimeout(
+        () => navigate(`/login?existing=1&email=${encodeURIComponent(existingEmail || profile.email || '')}`),
+        1200,
+      );
       return;
     }
 
@@ -108,14 +141,13 @@ export function HeroQuickStart({ className = '' }: { className?: string }) {
     });
     await savePendingResume(file);
 
+    // No email in the resume: the signup form opens in this card, pre-filled with everything else.
     setStatus('done');
-    const firstName = String(profile.name || '').trim().split(/\s+/)[0];
-    const found = summaryLine(profile);
-    await aiSay(
-      `${firstName ? `Got it, ${firstName}!` : 'Got it!'}${found ? ` I found: ${found}.` : ''} Your profile is ready. Create your account and I'll start applying for you…`,
-      500,
-    );
-    window.setTimeout(() => navigate('/dashboard'), 1400);
+    await aiSay(`${greeting} Your profile is ready. Create your account below and I'll start applying for you.`, 500);
+    window.setTimeout(() => {
+      if (isAuthenticated) navigate('/dashboard');
+      else setShowAuth(true);
+    }, 1200);
   };
 
   const onDrop = (event: React.DragEvent) => {
@@ -167,6 +199,17 @@ export function HeroQuickStart({ className = '' }: { className?: string }) {
               </div>
             </div>
 
+            {showAuth ? (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3 }}
+                className="px-5 py-4 bg-white max-h-[560px] overflow-y-auto"
+              >
+                <AuthPanel showBackLink={false} />
+              </motion.div>
+            ) : (
+            <>
             <div ref={scrollRef} className="flex-1 min-h-48 max-h-60 overflow-y-auto px-4 py-3 space-y-2.5 bg-[#f8f8fc]" aria-live="polite">
               <AnimatePresence initial={false}>
                 {messages.map((m, i) => (
@@ -251,7 +294,10 @@ export function HeroQuickStart({ className = '' }: { className?: string }) {
               </div>
             </div>
 
-            {isDragging && (
+            </>
+            )}
+
+            {isDragging && !showAuth && (
               <div className="absolute inset-0 z-10 m-2 rounded-xl border-2 border-dashed border-[#6047f5] bg-[#eeeaff]/90 flex flex-col items-center justify-center gap-2 text-[#4932cf] pointer-events-none">
                 <Upload className="w-7 h-7" />
                 <span className="text-sm font-bold">Drop your resume here</span>

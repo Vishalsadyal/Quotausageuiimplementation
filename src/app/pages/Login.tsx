@@ -21,6 +21,13 @@ export default function Login() {
   const [searchParams] = useSearchParams();
   const { login, refreshUser } = useAuth();
 
+  // Sent here by the home-page resume upload when the resume's email already has an account.
+  const existingAccount = searchParams.get('existing') === '1';
+  useEffect(() => {
+    const prefill = searchParams.get('email');
+    if (prefill) setEmail(prefill);
+  }, [searchParams]);
+
   useEffect(() => {
     const err = searchParams.get('error');
     if (err === 'oauth_cancelled') {
@@ -167,6 +174,12 @@ export default function Login() {
                 <h2 className="text-3xl font-bold text-gray-900 mb-2">Sign In</h2>
                 <p className="text-gray-600">User account login</p>
               </div>
+
+              {existingAccount && (
+                <div className="mb-6 rounded-xl border border-purple-200 bg-purple-50 px-4 py-3 text-sm text-purple-900">
+                  <b>You already have an account.</b> Please log in. Forgot your password? Use the <b>OTP Code</b> tab to log in with a code sent to your email.
+                </div>
+              )}
 
               {/* Google Sign In Button */}
               <a

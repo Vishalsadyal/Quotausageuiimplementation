@@ -30,6 +30,7 @@ import {
   DASHBOARD_TOUR_ONBOARDING_EXTENSION,
   queueDashboardTourRequest,
 } from 'src/lib/dashboard-tour';
+import { JOBS_SECTIONS, jobsSectionPath, type JobsProvider } from '../pages/dashboard/jobsSections';
 
 export default function DashboardLayout() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -120,6 +121,13 @@ export default function DashboardLayout() {
     { name: 'Settings', href: '/dashboard/settings', icon: Settings },
   ];
 
+  // Auto Apply sections open as sub-items under the menu entry, on the provider in use.
+  const jobsProvider: JobsProvider = location.pathname.startsWith('/dashboard/jobs/indeed') ? 'indeed' : 'linkedin';
+  const jobsSubItems = JOBS_SECTIONS.map((section) => ({
+    ...section,
+    href: jobsSectionPath(jobsProvider, section.id),
+  }));
+
   const handleLogout = () => {
     logout();
     navigate('/');
@@ -133,7 +141,7 @@ export default function DashboardLayout() {
   };
 
   return (
-    <div className="min-h-screen bg-[#FAFBFC] relative overflow-hidden flex">
+    <div className="dashboard-theme min-h-screen bg-[#FAFBFC] relative overflow-hidden flex">
       {/* Ambient background */}
       <div
         aria-hidden="true"
@@ -208,36 +216,61 @@ export default function DashboardLayout() {
               );
             }
 
+            const showJobsSubItems = item.href === '/dashboard/jobs/linkedin' && isActive;
+
             return (
-              <Link
-                key={item.name}
-                to={item.href}
-                onClick={() => setMobileMenuOpen(false)}
-                className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all duration-200 group ${
-                  isActive
-                    ? 'gradient-primary text-white shadow-xs font-bold'
-                    : 'text-gray-600 hover:text-gray-900 hover:bg-purple-50/60'
-                }`}
-              >
-                <div className="flex items-center gap-2.5">
-                  <item.icon className={`w-4 h-4 transition-transform group-hover:scale-110 ${isActive ? 'text-white' : 'text-gray-400 group-hover:text-purple-600'}`} />
-                  <span>{item.name}</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  {(item as any).badge && (
-                    <span
-                      className={`text-[9px] font-black uppercase px-1.5 py-0.5 rounded-md border tracking-wider ${
-                        isActive
-                          ? 'bg-white/25 text-white border-white/40'
-                          : 'bg-amber-100 text-amber-800 border-amber-300'
-                      }`}
-                    >
-                      {(item as any).badge}
-                    </span>
-                  )}
-                  {isActive && <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />}
-                </div>
-              </Link>
+              <div key={item.name}>
+                <Link
+                  to={item.href}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all duration-200 group ${
+                    isActive
+                      ? 'gradient-primary text-white shadow-xs font-bold'
+                      : 'text-gray-600 hover:text-gray-900 hover:bg-purple-50/60'
+                  }`}
+                >
+                  <div className="flex items-center gap-2.5">
+                    <item.icon className={`w-4 h-4 transition-transform group-hover:scale-110 ${isActive ? 'text-white' : 'text-gray-400 group-hover:text-purple-600'}`} />
+                    <span>{item.name}</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    {(item as any).badge && (
+                      <span
+                        className={`text-[9px] font-black uppercase px-1.5 py-0.5 rounded-md border tracking-wider ${
+                          isActive
+                            ? 'bg-white/25 text-white border-white/40'
+                            : 'bg-amber-100 text-amber-800 border-amber-300'
+                        }`}
+                      >
+                        {(item as any).badge}
+                      </span>
+                    )}
+                    {isActive && <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />}
+                  </div>
+                </Link>
+                {showJobsSubItems && (
+                  <div className="mt-1 ml-5 pl-3 border-l border-purple-100 space-y-0.5">
+                    {jobsSubItems.map((sub) => {
+                      const isSubActive = location.pathname === sub.href;
+                      return (
+                        <Link
+                          key={sub.id}
+                          to={sub.href}
+                          onClick={() => setMobileMenuOpen(false)}
+                          className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-colors ${
+                            isSubActive
+                              ? 'bg-purple-50 text-purple-700 font-bold'
+                              : 'text-gray-500 font-medium hover:text-gray-900 hover:bg-gray-50'
+                          }`}
+                        >
+                          <sub.icon className={`w-3.5 h-3.5 ${isSubActive ? 'text-purple-600' : 'text-gray-400'}`} />
+                          <span>{sub.label}</span>
+                        </Link>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
             );
           })}
         </nav>

@@ -42,7 +42,8 @@ import {
   Smartphone,
   Target,
 } from "lucide-react";
-import { useParams, Link, useNavigate } from "react-router";
+import { useParams, Link, Navigate } from "react-router";
+import { JOBS_SECTIONS, jobsSectionFromSlug, jobsSectionPath } from "./jobsSections";
 import { useAuth } from "../../context/AuthContext";
 import { ExtensionInstallGuide, type ExtensionInstallGuideStep } from "../../components/ExtensionInstallGuide";
 import MagicAiDecisionModal from "../../components/jobs/MagicAiDecisionModal";
@@ -706,9 +707,10 @@ export default function Jobs() {
   const [aiKeywordsList, setAiKeywordsList] = useState<string[]>([]);
   const [newSearchTagInput, setNewSearchTagInput] = useState("");
 
-  type JobsTab = "autopilot" | "dictionary" | "screening" | "queue" | "settings";
-  const [activeJobsTab, setActiveJobsTab] = useState<JobsTab>("autopilot");
-  
+  // The section comes from the URL so each one has its own sidebar entry and link.
+  const activeJobsTab = jobsSectionFromSlug(params.section);
+  const activeSection = JOBS_SECTIONS.find((section) => section.id === activeJobsTab) ?? JOBS_SECTIONS[0];
+
   // Keywords Dictionary State (Applier Filter & Search Engine)
   const [dictionaryFilterQuery, setDictionaryFilterQuery] = useState("");
   const [newTitleTermInput, setNewTitleTermInput] = useState("");
@@ -2264,38 +2266,6 @@ export default function Jobs() {
       .filter((sec) => sec.fields.length > 0);
   }, [screeningSections, screeningSearchQuery, answerDrafts]);
 
-  const jobsTabs = [
-    {
-      id: "autopilot" as const,
-      label: "Magic AI Autopilot",
-      icon: Sparkles,
-      countBadge: linkedInInstalled ? "Ready" : "Setup",
-    },
-    {
-      id: "dictionary" as const,
-      label: "Keywords Dictionary",
-      icon: BookOpen,
-      countBadge: `${activeSearchTermsList.length + activeOneWordList.length + activeTwoWordsList.length + activeSkillsList.length} Terms`,
-    },
-    {
-      id: "screening" as const,
-      label: "AI Screening Copilot",
-      icon: Sparkles,
-      countBadge: pendingCount > 0 ? `${pendingCount} Missing` : `${totalScreeningAnswers} Synced`,
-    },
-    {
-      id: "queue" as const,
-      label: "Applications Queue",
-      icon: Briefcase,
-      countBadge: `${jobs.length}`,
-    },
-    {
-      id: "settings" as const,
-      label: "Preferences & Targets",
-      icon: SlidersHorizontal,
-    },
-  ];
-
   // Comprehensive Extension Copilot Suite
   const extensionSuiteModules = [
     {
@@ -2392,6 +2362,10 @@ export default function Jobs() {
   const currentProviderZipUrl = showLinkedIn ? linkedInExtensionZipUrl : indeedExtensionZipUrl;
   const currentProviderName = showLinkedIn ? "LinkedIn Auto-Apply Copilot" : "Indeed Auto-Apply Copilot";
 
+  if (!activeJobsTab) {
+    return <Navigate to={`/dashboard/jobs/${selectedProvider}`} replace />;
+  }
+
   return (
     <>
       {/* Mobile Blocker ONLY for this Desktop Browser Extension Page (< 768px) */}
@@ -2401,61 +2375,72 @@ export default function Jobs() {
 
       {/* Desktop Extension View (≥ 768px) */}
       <div className="hidden md:block space-y-4">
-        {/* Sleek Top Header Bar */}
-        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="bg-white/90 backdrop-blur-md rounded-2xl border border-gray-200/80 p-4 shadow-xs flex flex-wrap items-center justify-between gap-4">
-          <div className="space-y-1">
-            <div className="flex items-center gap-2.5">
-              <div className="p-2 rounded-xl bg-purple-600 text-white shadow-xs">
-                <Target className="w-5 h-5" />
-              </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <h1 className="text-base font-bold text-gray-900 leading-none">
-                    {showLinkedIn ? "LinkedIn Auto-Apply Copilot" : "Indeed Auto-Apply Copilot"}
-                  </h1>
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-purple-50 text-purple-700 text-[10px] font-bold border border-purple-200">
-                    <Sparkles className="w-3 h-3 text-purple-600" />
-                    Magic AI Active
-                  </span>
-                  <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${
-                    isCurrentProviderInstalled ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-amber-50 text-amber-800 border-amber-300"
-                  }`}>
-                    <span className={`w-1.5 h-1.5 rounded-full ${isCurrentProviderInstalled ? "bg-emerald-500" : "bg-amber-500"}`} />
-                    {isCurrentProviderInstalled ? "Extension Connected" : "Extension Not Detected"}
-                  </span>
-                </div>
-                <p className="text-xs text-gray-500 mt-1">
-                  {jobs.length} applications queued · AI automated screening enabled · 6 multi-platform copilots active
-                </p>
-              </div>
+        {/* Compact Header Bar: section, provider, status, stats and actions in one row */}
+        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="bg-white/90 backdrop-blur-md rounded-xl border border-gray-200/80 px-3 py-2 shadow-2xs flex flex-wrap items-center gap-x-3 gap-y-2">
+          <div className="flex items-center gap-2">
+            <div className="p-1.5 rounded-lg bg-purple-600 text-white">
+              <activeSection.icon className="w-4 h-4" />
             </div>
+            <h1 className="text-sm font-bold text-gray-900 leading-none">{activeSection.label}</h1>
           </div>
 
-          {/* Top Quick Actions */}
-          <div className="flex items-center gap-2 shrink-0">
-            {!isCurrentProviderInstalled && (
-              currentProviderStoreUrl ? (
-                <a
-                  ref={storeLinkButtonRef}
-                  href={currentProviderStoreUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="px-3.5 py-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white rounded-xl text-xs font-bold transition-all shadow-xs hover:shadow-sm inline-flex items-center gap-1.5"
-                >
-                  <Download className="w-3.5 h-3.5" />
-                  <span>Install Extension</span>
-                </a>
+          {/* LinkedIn / Indeed switch keeps you on the same section */}
+          <div className="bg-gray-100 p-0.5 rounded-lg flex items-center gap-0.5 border border-gray-200/70">
+            {(["linkedin", "indeed"] as const).map((provider) => (
+              <Link
+                key={provider}
+                to={jobsSectionPath(provider, activeJobsTab)}
+                className={`px-2 py-0.5 rounded-md text-[11px] font-semibold transition-colors ${
+                  selectedProvider === provider ? "bg-white text-purple-700 shadow-2xs" : "text-gray-500 hover:text-gray-900"
+                }`}
+              >
+                {provider === "linkedin" ? "LinkedIn" : "Indeed"}
+              </Link>
+            ))}
+          </div>
+
+          {/* Status + stats; clicking the status re-checks the extension bridge */}
+          <div className="flex items-center gap-3 text-[11px] text-gray-600">
+            <button
+              ref={checkExtensionButtonRef}
+              type="button"
+              onClick={() => void checkExtensionStatus()}
+              disabled={checkingExtension}
+              title="Re-check extension"
+              className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full font-bold border ${
+                isCurrentProviderInstalled ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-amber-50 text-amber-800 border-amber-300"
+              }`}
+            >
+              {checkingExtension ? (
+                <RefreshCw className="w-3 h-3 animate-spin" />
               ) : (
-                <a
-                  ref={storeLinkButtonRef}
-                  href={currentProviderZipUrl}
-                  download={`${showLinkedIn ? "LinkedIn" : "Indeed"}_Extension.zip`}
-                  className="px-3.5 py-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white rounded-xl text-xs font-bold transition-all shadow-xs hover:shadow-sm inline-flex items-center gap-1.5"
-                >
-                  <Download className="w-3.5 h-3.5" />
-                  <span>Download .ZIP</span>
-                </a>
-              )
+                <span className={`w-1.5 h-1.5 rounded-full ${isCurrentProviderInstalled ? "bg-emerald-500" : "bg-amber-500"}`} />
+              )}
+              {isCurrentProviderInstalled ? "Connected" : "Not detected"}
+            </button>
+            <span>
+              Answers <b className="text-gray-800">{totalScreeningAnswers}</b>
+              {pendingCount > 0 && <span className="text-amber-700"> ({pendingCount} missing)</span>}
+            </span>
+            <span>
+              Keywords <b className="text-gray-800">{activeSearchTermsList.length + activeSkillsList.length}</b>
+            </span>
+          </div>
+
+          {/* Actions */}
+          <div className="ml-auto flex items-center gap-1.5 shrink-0">
+            {!isCurrentProviderInstalled && (
+              <a
+                ref={storeLinkButtonRef}
+                href={currentProviderStoreUrl || currentProviderZipUrl}
+                {...(currentProviderStoreUrl
+                  ? { target: "_blank", rel: "noreferrer" }
+                  : { download: `${showLinkedIn ? "LinkedIn" : "Indeed"}_Extension.zip` })}
+                className="px-2.5 py-1.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white rounded-lg text-[11px] font-bold inline-flex items-center gap-1"
+              >
+                <Download className="w-3 h-3" />
+                <span>{currentProviderStoreUrl ? "Install" : "Download .ZIP"}</span>
+              </a>
             )}
 
             <a
@@ -2463,43 +2448,53 @@ export default function Jobs() {
               href={showLinkedIn ? "https://www.linkedin.com/jobs/search/?f_AL=true&f_TPR=r604800" : "https://www.indeed.com/jobs?q=engineer"}
               target="_blank"
               rel="noreferrer"
-              className="px-3.5 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white rounded-xl text-xs font-bold transition-all shadow-xs hover:shadow-sm inline-flex items-center gap-1.5"
+              className="px-2.5 py-1.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white rounded-lg text-[11px] font-bold inline-flex items-center gap-1"
             >
-              <ExternalLink className="w-3.5 h-3.5" />
+              <ExternalLink className="w-3 h-3" />
               <span>{showLinkedIn ? "Open LinkedIn Jobs" : "Open Indeed Jobs"}</span>
             </a>
 
             <button
               type="button"
-              onClick={() => void syncProfileToExtension()}
-              className="px-3 py-2 bg-white hover:bg-purple-50 text-purple-700 border border-purple-200 rounded-xl text-xs font-bold transition-colors inline-flex items-center gap-1.5 shadow-2xs"
+              onClick={() => void autoFillAllWithAI()}
+              disabled={isAutoFillingAI}
+              className="px-2.5 py-1.5 bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 rounded-lg text-[11px] font-bold inline-flex items-center gap-1 disabled:opacity-60"
             >
-              <Sparkles className="w-3.5 h-3.5 text-purple-600" />
-              <span>Sync All Copilots</span>
+              {isAutoFillingAI ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
+              <span>{isAutoFillingAI ? "Filling..." : "Auto-Fill Answers"}</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => void syncProfileToExtension()}
+              title="Sync all copilots"
+              className="p-1.5 bg-white hover:bg-purple-50 text-purple-700 border border-purple-200 rounded-lg"
+            >
+              <Link2 className="w-3.5 h-3.5" />
             </button>
 
             <button
               type="button"
               onClick={() => setAiDecisionModalOpen(true)}
-              className="px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-xs font-semibold transition-colors inline-flex items-center gap-1.5"
+              title="AI Agent Fleet"
+              className="p-1.5 bg-gray-50 hover:bg-gray-100 text-gray-600 border border-gray-200 rounded-lg"
             >
-              <Bot className="w-3.5 h-3.5 text-gray-600" />
-              <span>AI Agent Fleet</span>
+              <Bot className="w-3.5 h-3.5" />
             </button>
 
             <button
               type="button"
               onClick={() => openInstallGuide()}
-              className="px-2.5 py-2 bg-gray-50 hover:bg-gray-100 text-gray-600 hover:text-gray-900 border border-gray-200 rounded-xl text-xs font-semibold transition-colors inline-flex items-center gap-1"
-              title="Install Browser Extension Guide"
+              title="Install guide"
+              className="p-1.5 bg-gray-50 hover:bg-gray-100 text-gray-600 border border-gray-200 rounded-lg"
             >
-              <Download className="w-3.5 h-3.5" />
+              <BookOpen className="w-3.5 h-3.5" />
             </button>
           </div>
         </motion.div>
 
-        {/* Extension Not Installed Notice Banner */}
-        {!isCurrentProviderInstalled && (
+        {/* Extension Not Installed Notice Banner (other sections rely on the header badge and Install button) */}
+        {!isCurrentProviderInstalled && activeJobsTab === "autopilot" && (
           <motion.div
             initial={{ opacity: 0, y: -6 }}
             animate={{ opacity: 1, y: 0 }}
@@ -2557,7 +2552,6 @@ export default function Jobs() {
                 </button>
 
                 <button
-                  ref={checkExtensionButtonRef}
                   type="button"
                   onClick={() => void checkExtensionStatus()}
                   disabled={checkingExtension}
@@ -2570,35 +2564,6 @@ export default function Jobs() {
             </div>
           </motion.div>
         )}
-
-        {/* Extension Fleet Quick Platform Switcher Bar */}
-        <div className="bg-gray-100/70 p-1 rounded-xl flex items-center gap-1 overflow-x-auto border border-gray-200/60">
-          <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider px-2 shrink-0 flex items-center gap-1">
-            <Layers className="w-3 h-3 text-purple-600" />
-            <span>Copilot Fleet:</span>
-          </span>
-          {extensionSuiteModules.map((module) => {
-            const Icon = module.icon;
-            const isSelected = module.isCurrent;
-            return (
-              <Link
-                key={module.id}
-                to={module.activeRoute}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all shrink-0 ${
-                  isSelected
-                    ? "bg-white text-purple-700 shadow-2xs font-bold border border-purple-200/60"
-                    : "text-gray-600 hover:text-gray-900 hover:bg-white/60"
-                }`}
-              >
-                <Icon className="w-3.5 h-3.5 shrink-0" />
-                <span>{module.name.replace(" Auto-Apply Copilot", "").replace(" Direct", "").replace(" Copilot", "")}</span>
-                {isSelected && (
-                  <span className="w-1.5 h-1.5 rounded-full bg-purple-600" />
-                )}
-              </Link>
-            );
-          })}
-        </div>
 
         {/* AI Progress / Success Banners */}
         {isAutoFillingAI && (
@@ -2625,147 +2590,11 @@ export default function Jobs() {
           </div>
         )}
 
-        {/* Primary Page Navigation Tabs */}
-        <div className="bg-white rounded-xl p-1 flex flex-wrap gap-1 border border-gray-200/80 shadow-2xs">
-          {jobsTabs.map((tab) => {
-            const isActive = activeJobsTab === tab.id;
-            const Icon = tab.icon;
-            return (
-              <button
-                key={tab.id}
-                type="button"
-                onClick={() => setActiveJobsTab(tab.id)}
-                className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all duration-150 ${
-                  isActive
-                    ? "bg-purple-600 text-white shadow-2xs"
-                    : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
-                }`}
-              >
-                <Icon className="w-3.5 h-3.5 shrink-0" />
-                <span>{tab.label}</span>
-                {tab.countBadge && (
-                  <span
-                    className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${
-                      isActive ? "bg-white/20 text-white" : "bg-gray-100 text-gray-600"
-                    }`}
-                  >
-                    {tab.countBadge}
-                  </span>
-                )}
-              </button>
-            );
-          })}
-        </div>
-
         {/* TAB 1: Magic AI Autopilot & Fleet Hub */}
         {activeJobsTab === "autopilot" && (
           <div className="space-y-4 animate-in fade-in duration-150">
-            {/* Quick Overview Card */}
-            <div className="rounded-2xl border border-purple-100 bg-gradient-to-br from-purple-50/90 via-indigo-50/50 to-blue-50/40 p-5 shadow-xs">
-              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2">
-                    <span className="p-1.5 rounded-lg bg-purple-600 text-white shadow-2xs">
-                      <Sparkles className="w-4 h-4" />
-                    </span>
-                    <h2 className="text-sm font-bold text-gray-900">
-                      {isCurrentProviderInstalled ? "Magic AI Autopilot is Active" : "Magic AI Autopilot Ready"}
-                    </h2>
-                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${
-                      isCurrentProviderInstalled
-                        ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-                        : "bg-amber-50 text-amber-800 border-amber-300"
-                    }`}>
-                      {isCurrentProviderInstalled ? "Auto-Applying Enabled" : "Extension Setup Required"}
-                    </span>
-                  </div>
-                  <p className="text-xs text-gray-600 max-w-xl">
-                    AI matches your target roles, automatically answers screening questions from your profile bank, and submits Easy Apply applications.
-                  </p>
-                </div>
-
-                <div className="flex items-center gap-2 shrink-0 flex-wrap">
-                  {!isCurrentProviderInstalled && (
-                    <button
-                      type="button"
-                      onClick={() => openInstallGuide()}
-                      className="px-3.5 py-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white rounded-xl text-xs font-bold transition-all shadow-2xs inline-flex items-center gap-1.5"
-                    >
-                      <Download className="w-3.5 h-3.5" />
-                      <span>Install Extension</span>
-                    </button>
-                  )}
-
-                  <button
-                    type="button"
-                    onClick={() => void autoFillAllWithAI()}
-                    disabled={isAutoFillingAI}
-                    className="px-3.5 py-2 bg-white hover:bg-purple-50 text-purple-700 border border-purple-200 rounded-xl text-xs font-bold transition-all shadow-2xs inline-flex items-center gap-1.5 disabled:opacity-60"
-                  >
-                    {isAutoFillingAI ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5 text-purple-600" />}
-                    <span>{isAutoFillingAI ? "Auto-Filling..." : "Auto-Fill Screening Answers"}</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => void checkExtensionStatus()}
-                    disabled={checkingExtension}
-                    className="px-3 py-2 bg-white hover:bg-gray-50 text-gray-700 border border-gray-200 rounded-xl text-xs font-semibold transition-colors inline-flex items-center gap-1.5 shadow-2xs"
-                  >
-                    <RefreshCw className={`w-3.5 h-3.5 ${checkingExtension ? "animate-spin" : ""}`} />
-                    <span>Check Bridge</span>
-                  </button>
-                </div>
-              </div>
-
-              {/* Status Chips Row */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-4 mt-4 border-t border-purple-100/80">
-                <button
-                  type="button"
-                  onClick={() => !isCurrentProviderInstalled && openInstallGuide()}
-                  className={`p-3 rounded-xl bg-white/90 border flex items-center justify-between shadow-2xs text-left transition-colors ${
-                    !isCurrentProviderInstalled ? "border-amber-300 hover:bg-amber-50/50 cursor-pointer" : "border-gray-200/70"
-                  }`}
-                >
-                  <div>
-                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Extension Bridge</span>
-                    <span className={`text-xs font-bold ${isCurrentProviderInstalled ? "text-gray-800" : "text-amber-700"}`}>
-                      {isCurrentProviderInstalled ? "Connected & Ready" : "Not Detected (Click to Install)"}
-                    </span>
-                  </div>
-                  <span className={`w-2 h-2 rounded-full ${isCurrentProviderInstalled ? "bg-emerald-500" : "bg-amber-500"}`} />
-                </button>
-                <div className="p-3 rounded-xl bg-white/90 border border-gray-200/70 flex items-center justify-between shadow-2xs">
-                  <div>
-                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Screening Answers</span>
-                    <span className="text-xs font-bold text-gray-800">{totalScreeningAnswers} Synced ({pendingCount} missing)</span>
-                  </div>
-                  <span className="w-2 h-2 rounded-full bg-purple-500" />
-                </div>
-                <div className="p-3 rounded-xl bg-white/90 border border-gray-200/70 flex items-center justify-between shadow-2xs">
-                  <div>
-                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Target Keywords</span>
-                    <span className="text-xs font-bold text-gray-800">{activeSearchTermsList.length + activeSkillsList.length} Terms Synced</span>
-                  </div>
-                  <span className="w-2 h-2 rounded-full bg-blue-500" />
-                </div>
-              </div>
-            </div>
-
             {/* Unified Extension Fleet Grid */}
-            <div className="space-y-3 pt-1">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-xs font-bold text-gray-900 uppercase tracking-wider flex items-center gap-1.5">
-                    <Layers className="w-3.5 h-3.5 text-purple-600" />
-                    <span>Multi-Platform Copilot Fleet (6 Active Modules)</span>
-                  </h3>
-                  <p className="text-xs text-gray-500">
-                    Switch between platform copilots or launch direct actions.
-                  </p>
-                </div>
-              </div>
-
+            <div className="space-y-3">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                 {extensionSuiteModules.map((module) => {
                   const Icon = module.icon;
@@ -2894,61 +2723,6 @@ export default function Jobs() {
       {/* TAB 2: Keywords Dictionary (Applier Filter & Search Engine) */}
       {activeJobsTab === "dictionary" && (
         <div className="space-y-4 animate-in fade-in duration-150">
-          
-          {/* Top Dictionary HUD & Action Banner */}
-          <div className="rounded-2xl border border-indigo-200 bg-gradient-to-r from-purple-50 via-indigo-50 to-blue-50 p-4 sm:p-5 shadow-xs flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div className="space-y-1">
-              <div className="flex items-center gap-2">
-                <span className="p-1.5 rounded-lg bg-indigo-600 text-white shadow-xs">
-                  <BookOpen className="w-4 h-4" />
-                </span>
-                <span className="px-2.5 py-0.5 rounded-full bg-indigo-100 border border-indigo-200 text-indigo-700 text-[10px] font-bold font-mono">
-                  Applier Filter Engine
-                </span>
-                <span className="px-2.5 py-0.5 rounded-full bg-emerald-100 border border-emerald-200 text-emerald-800 text-[10px] font-mono font-semibold">
-                  {activeSearchTermsList.length + activeSkillsList.length} Total Terms
-                </span>
-              </div>
-              <h2 className="text-base sm:text-lg font-bold text-gray-900 leading-tight">
-                Keywords &amp; Search Terms Dictionary
-              </h2>
-              <p className="text-xs text-gray-600 max-w-xl leading-relaxed">
-                The AI Autopilot and Chrome Extension use this dictionary to filter matching jobs, verify requirements, 
-                and automatically Easy Apply to relevant roles on LinkedIn &amp; Indeed.
-              </p>
-            </div>
-
-            {/* Top Action Buttons */}
-            <div className="flex flex-wrap items-center gap-2 shrink-0">
-              <button
-                type="button"
-                onClick={() => void handleGenerate100Keywords()}
-                disabled={isGeneratingAiProfile}
-                className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white text-xs font-bold shadow-xs hover:shadow-sm transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-60"
-              >
-                {isGeneratingAiProfile ? (
-                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                ) : (
-                  <Sparkles className="w-3.5 h-3.5 text-yellow-300" />
-                )}
-                <span>{isGeneratingAiProfile ? "Analyzing Resume..." : "✨ Generate 100 AI Keywords"}</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={async () => {
-                  await syncProfileToExtension();
-                  setDictionaryToast("⚡ Dictionary synced with Extension & AI Fleet!");
-                  setTimeout(() => setDictionaryToast(null), 3000);
-                }}
-                className="px-3.5 py-2 rounded-xl bg-white hover:bg-gray-50 text-gray-700 border border-gray-200 text-xs font-semibold shadow-xs transition-colors flex items-center gap-1.5 cursor-pointer"
-              >
-                <Link2 className="w-3.5 h-3.5 text-indigo-600" />
-                <span>Sync to Extension</span>
-              </button>
-            </div>
-          </div>
-
           {/* Toast Notification */}
           {dictionaryToast && (
             <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold flex items-center justify-between shadow-xs animate-in fade-in">
@@ -2960,25 +2734,36 @@ export default function Jobs() {
             </div>
           )}
 
-          {/* Quick Filter Search Bar */}
-          <div className="relative">
-            <Search className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-            <input
-              type="text"
-              value={dictionaryFilterQuery}
-              onChange={(e) => setDictionaryFilterQuery(e.target.value)}
-              placeholder="Search or filter dictionary keywords (e.g. React, Fullstack, Python, Liquid)..."
-              className="w-full pl-9 pr-4 py-2.5 rounded-xl bg-white border border-gray-200 text-xs text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-purple-500 shadow-2xs"
-            />
-            {dictionaryFilterQuery && (
-              <button
-                type="button"
-                onClick={() => setDictionaryFilterQuery("")}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 text-xs"
-              >
-                Clear
-              </button>
-            )}
+          {/* Search + AI keyword generation */}
+          <div className="flex items-center gap-2">
+            <div className="relative flex-1">
+              <Search className="w-3.5 h-3.5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+              <input
+                type="text"
+                value={dictionaryFilterQuery}
+                onChange={(e) => setDictionaryFilterQuery(e.target.value)}
+                placeholder="Filter keywords (e.g. React, Python)..."
+                className="w-full pl-8 pr-12 py-1.5 rounded-lg bg-white border border-gray-200 text-xs text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-purple-500 shadow-2xs"
+              />
+              {dictionaryFilterQuery && (
+                <button
+                  type="button"
+                  onClick={() => setDictionaryFilterQuery("")}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 text-xs"
+                >
+                  Clear
+                </button>
+              )}
+            </div>
+            <button
+              type="button"
+              onClick={() => void handleGenerate100Keywords()}
+              disabled={isGeneratingAiProfile}
+              className="px-2.5 py-1.5 rounded-lg bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white text-[11px] font-bold inline-flex items-center gap-1 shrink-0 disabled:opacity-60"
+            >
+              {isGeneratingAiProfile ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
+              <span>{isGeneratingAiProfile ? "Analyzing Resume..." : "Generate AI Keywords"}</span>
+            </button>
           </div>
 
           {/* ── SECTION 1: Target Job Titles & Search Queries (Applier Filter Engine) ── */}
@@ -3372,34 +3157,6 @@ export default function Jobs() {
       {/* TAB 3: AI Screening Copilot */}
       {activeJobsTab === "screening" && (
         <div className="space-y-4 animate-in fade-in duration-150">
-          {/* AI Resolver Banner */}
-          <div className="rounded-xl border border-indigo-200 bg-gradient-to-r from-purple-50 via-indigo-50 to-blue-50 p-4 shadow-xs flex flex-wrap items-center justify-between gap-3">
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="p-1.5 rounded-lg bg-indigo-600 text-white shadow-xs">
-                  <Sparkles className="w-4 h-4" />
-                </span>
-                <h3 className="text-xs font-bold text-gray-900 uppercase tracking-wider">AI Screening Question Copilot</h3>
-              </div>
-              <p className="text-xs text-gray-600 mt-1">
-                Auto-answers Easy Apply screening questions using your resume background and tailored AI models.
-              </p>
-            </div>
-            <button
-              type="button"
-              onClick={() => void autoFillAllWithAI()}
-              disabled={isAutoFillingAI}
-              className="px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white rounded-lg text-xs font-bold shadow-xs transition-all flex items-center gap-1.5 disabled:opacity-60"
-            >
-              {isAutoFillingAI ? (
-                <Loader2 className="w-3.5 h-3.5 animate-spin" />
-              ) : (
-                <Sparkles className="w-3.5 h-3.5" />
-              )}
-              <span>{isAutoFillingAI ? "AI Auto-Filling..." : "✨ Auto-Fill All Required Fields with AI"}</span>
-            </button>
-          </div>
-
           {/* Action Needed (Pending Fields) */}
           {pendingQuestionsList.length > 0 ? (
             <div className="rounded-xl border border-amber-200 bg-amber-50/40 p-4 shadow-xs space-y-3">
@@ -3793,21 +3550,6 @@ export default function Jobs() {
       {activeJobsTab === "settings" && (
         <div className="space-y-4 animate-in fade-in duration-150">
           <div className="bg-white rounded-xl p-4 border border-gray-200/80 shadow-xs space-y-3">
-            <div className="flex items-center justify-between pb-2 border-b border-gray-100">
-              <div>
-                <h3 className="text-xs font-bold text-gray-900 uppercase tracking-wider">Search & Targeting Preferences</h3>
-                <p className="text-xs text-gray-500 mt-0.5">Parameters synced to the LinkedIn extension for automatic filtering.</p>
-              </div>
-              <button
-                type="button"
-                onClick={() => void syncProfileToExtension()}
-                className="px-3 py-1.5 bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 rounded-lg text-xs font-semibold flex items-center gap-1.5"
-              >
-                <Link2 className="w-3.5 h-3.5" />
-                Sync Extension
-              </button>
-            </div>
-
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
               <div>
                 <label className="block text-[11px] font-semibold text-gray-700 mb-1">Preferred Locations</label>

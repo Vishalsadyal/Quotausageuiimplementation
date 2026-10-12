@@ -457,3 +457,17 @@ html {
   border: 2px solid transparent;
   background-clip: padding-box;
 }
+
+/* Dashboard: darker text. Grey 400-700 is used almost only for text there, so
+   redefining the shades keeps every class and hover state working. */
+.dashboard-theme {
+  --color-gray-400: #374151;
+  --color-gray-500: #111827;
+  --color-gray-600: #0b0f17;
+  --color-gray-700: #000000;
+}
+
+/* Keep placeholders light so they don't look like typed text. */
+.dashboard-theme ::placeholder {
+  color: #9ca3af;
+}

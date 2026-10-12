@@ -108,6 +108,8 @@ Parveen`,
 
   // Load storage
   async function loadStorage() {
+    // Disconnected after an extension reload: storage is gone until the tab is refreshed.
+    if (!chrome?.runtime?.id) return;
     try {
       const data = await chrome.storage.local.get(['waSettings', 'waLeads', 'contactedPhones', 'duplicateStats']);
       if (data.waSettings) settings = { ...settings, ...data.waSettings };
@@ -1790,7 +1792,11 @@ Parveen`,
   // SPA navigation detector
   function setupHistoryListener() {
     let lastUrl = window.location.href;
-    setInterval(() => {
+    const historyTimer = setInterval(() => {
+      if (!chrome?.runtime?.id) {
+        clearInterval(historyTimer);
+        return;
+      }
       if (window.location.href !== lastUrl) {
         lastUrl = window.location.href;
         console.log('[LinkedIn-WA] URL changed to:', lastUrl);

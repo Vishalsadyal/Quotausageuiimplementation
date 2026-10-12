@@ -761,7 +761,7 @@ function createPanelDOM() {
   toggle.title = "AutoApply CV Indeed Copilot";
   try {
     const img = document.createElement("img");
-    img.src = chrome.runtime.getURL("icons/icon32.png");
+    if (chrome?.runtime?.id) img.src = chrome.runtime.getURL("icons/icon32.png");
     img.alt = "";
     img.width = 26;
     img.height = 26;
@@ -779,7 +779,7 @@ function createPanelDOM() {
     <div class="cp-head">
       <div class="cp-brand">
         <div class="cp-orb">
-          <img class="cp-orb-img" src="${chrome.runtime.getURL("icons/icon48.png")}" alt="AutoApply CV" />
+          <img class="cp-orb-img" src="${chrome?.runtime?.id ? chrome.runtime.getURL("icons/icon48.png") : ""}" alt="AutoApply CV" />
         </div>
         <div>
           <div class="cp-title">AutoApply CV <span class="cp-ai-sparkle">${ICONS.sparkle}</span></div>

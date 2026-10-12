@@ -408,8 +408,39 @@ function logPanelDebug(reason = "state") {
   }
 }
 
+// After the extension is reloaded or updated, scripts already running in an open tab lose
+// their connection: chrome.runtime.id goes away and getURL() returns "chrome-extension://invalid/".
+function isExtensionContextValid() {
+  try {
+    return Boolean(chrome?.runtime?.id);
+  } catch {
+    return false;
+  }
+}
+
+function extensionAssetUrl(path) {
+  return isExtensionContextValid() ? chrome.runtime.getURL(path) : "";
+}
+
 function markContextInvalidated() {
+  const wasAlive = extensionContextAlive;
   extensionContextAlive = false;
+  if (!wasAlive) return;
+  // Broken icon links make the page retry loading chrome-extension://invalid/ over and over.
+  document.querySelectorAll("img[src^='chrome-extension://invalid']").forEach((img) => img.removeAttribute("src"));
+  console.warn("[CP] Extension was reloaded or updated. Refresh this LinkedIn tab to reconnect AutoApply CV.");
+  try {
+    const log = document.querySelector(`#${PANEL_ID} #cp-log`);
+    if (log && !log.querySelector(".cp-context-lost")) {
+      const note = document.createElement("div");
+      note.className = "cp-context-lost";
+      note.style.cssText = "margin:8px;padding:8px 10px;border-radius:8px;background:#fef3c7;color:#92400e;font-size:12px;font-weight:600";
+      note.textContent = "Extension was updated. Refresh this page (F5) to reconnect.";
+      log.prepend(note);
+    }
+  } catch {
+    // panel may not exist
+  }
 }
 
 function sleep(ms) {
@@ -4393,7 +4424,7 @@ function ensurePanel() {
   toggle.setAttribute("aria-label", "AutoApply CV Copilot");
   try {
     const img = document.createElement("img");
-    img.src = chrome.runtime.getURL("icons/icon32.png");
+    img.src = extensionAssetUrl("icons/icon32.png");
     img.alt = "";
     img.width = 26;
     img.height = 26;
@@ -4488,7 +4519,7 @@ function ensurePanel() {
 
   try {
     const orbImg = panel.querySelector(".cp-orb-img");
-    if (orbImg) orbImg.src = chrome.runtime.getURL("icons/icon48.png");
+    if (orbImg) orbImg.src = extensionAssetUrl("icons/icon48.png");
   } catch {
     // ignore
   }
@@ -5202,17 +5233,141 @@ async function dismissJobCard(card) {
   return false;
 }
 
+const ACTIVE_MODAL_SELECTORS = [
+  ".jobs-easy-apply-modal",
+  ".artdeco-modal[role='dialog']",
+  ".artdeco-modal",
+  "div[data-test-modal]",
+  "div[data-view-name*='easy-apply-modal']",
+  "div[role='dialog'][aria-labelledby*='easy-apply']",
+  "div[role='dialog'][aria-label*='Easy Apply']",
+  "div[role='dialog']"
+];
+
+// The Easy Apply form. LinkedIn's "Application sent" screen and the "Save this application?"
+// prompt match the same selectors, so they are skipped here; treating them as the form made
+// the next job look like it had no Next button.
 function getActiveModal() {
-  return getBySelectorList([
-    ".jobs-easy-apply-modal",
-    ".artdeco-modal[role='dialog']",
-    ".artdeco-modal",
-    "div[data-test-modal]",
-    "div[data-view-name*='easy-apply-modal']",
-    "div[role='dialog'][aria-labelledby*='easy-apply']",
-    "div[role='dialog'][aria-label*='Easy Apply']",
-    "div[role='dialog']"
-  ]);
+  for (const selector of ACTIVE_MODAL_SELECTORS) {
+    for (const el of document.querySelectorAll(selector)) {
+      if (!isSaveApplicationPrompt(el) && !isPostApplyDialog(el)) return el;
+    }
+  }
+  return null;
+}
+
+// LinkedIn's confirmation after a submit ("Application sent" / "Applied to <company>").
+function isPostApplyDialog(el) {
+  if (!el) return false;
+  const heading = normalizeLabel(el.querySelector("h2, h3")?.textContent || "");
+  if (heading.startsWith("applied to") || heading.includes("application sent") || heading.includes("application was sent")) return true;
+  const text = normalizeLabel(el.textContent || "").slice(0, 400);
+  return text.includes("your application was sent") || (text.includes("application sent") && !findSubmitButton(el));
+}
+
+function findPostApplyDialog() {
+  const dialogs = Array.from(document.querySelectorAll(".artdeco-modal, div[data-test-modal], div[role='dialog']"));
+  return dialogs.find((d) => isVisibleElement(d) && isPostApplyDialog(d)) || null;
+}
+
+async function waitUntil(check, timeoutMs, intervalMs = 200) {
+  const start = Date.now();
+  while (Date.now() - start < timeoutMs) {
+    const value = check();
+    if (value) return value;
+    await sleep(intervalMs);
+  }
+  return check();
+}
+
+// Compact picture of the form for logs: why did we skip or stall here?
+function describeModalState(modal) {
+  if (!modal) return { modalPresent: false, postApplyDialog: Boolean(findPostApplyDialog()), savePrompt: Boolean(findSaveApplicationPromptModal()) };
+  return {
+    modalPresent: true,
+    heading: truncateDebugText(normalizeLabel(modal.querySelector("h2, h3")?.textContent || ""), 80),
+    loading: isModalLoading(modal),
+    questionBlocks: collectQuestionBlocks(modal).length,
+    nextEnabled: Boolean(findNextOrReviewButton(modal)),
+    nextAny: Boolean(findNextOrReviewButton(modal, { includeDisabled: true })),
+    submit: Boolean(findSubmitButton(modal)),
+    validation: truncateDebugText(getModalValidationMessageRaw(modal) || "", 120),
+    postApplyDialog: Boolean(findPostApplyDialog()),
+    savePrompt: Boolean(findSaveApplicationPromptModal()),
+  };
+}
+
+function summarizeModalState(state) {
+  if (!state.modalPresent) {
+    return `form closed${state.postApplyDialog ? ", 'Application sent' screen open" : ""}${state.savePrompt ? ", Save/Discard prompt open" : ""}`;
+  }
+  return [
+    `step "${state.heading || "?"}"`,
+    state.loading ? "spinner showing" : "no spinner",
+    state.nextEnabled ? "Next enabled" : state.nextAny ? "Next disabled" : "no Next",
+    state.submit ? "Submit visible" : "",
+    state.validation ? `error: ${state.validation}` : "",
+    state.savePrompt ? "Save/Discard prompt open" : "",
+  ].filter(Boolean).join(", ");
+}
+
+// Like a person after submitting: wait for the "Application sent" screen to finish loading,
+// then click Done (or its X). Returns true when no confirmation screen is left open.
+async function finishPostApplyDialog(settings, appearTimeoutMs = 10000) {
+  const dialog = appearTimeoutMs > 0 ? await waitUntil(findPostApplyDialog, appearTimeoutMs, 250) : findPostApplyDialog();
+  if (!dialog) return true;
+  await waitUntil(() => !isModalLoading(findPostApplyDialog()), 10000, 250);
+  const current = findPostApplyDialog();
+  if (!current) return true;
+  const doneBtn =
+    findModalButtonByIncludes(current, ["done"]) ||
+    current.querySelector("button[aria-label*='Dismiss'], button.artdeco-modal__dismiss");
+  if (doneBtn) {
+    await resilientClick(doneBtn, "Done (application sent)");
+    captureDebugEvent("modal", "POST_APPLY_DONE_CLICKED", {});
+    await debugLog(settings, "Closed 'Application sent' screen with Done");
+  }
+  const gone = await waitUntil(() => !findPostApplyDialog(), 5000, 250);
+  if (!gone) captureDebugEvent("modal", "POST_APPLY_DIALOG_STUCK", { ...capturePageSnapshot() });
+  return Boolean(gone);
+}
+
+// Before opening the next job, make sure nothing from the previous one is still on screen.
+async function clearLeftoverDialogs(settings) {
+  if (findPostApplyDialog()) {
+    await logLine("Closing the previous 'Application sent' screen before the next job.", "info");
+    await finishPostApplyDialog(settings, 0);
+  }
+  const prompt = findSaveApplicationPromptModal();
+  if (prompt) {
+    captureDebugEvent("modal", "LEFTOVER_SAVE_PROMPT", {});
+    await dismissSaveApplicationPrompt(prompt);
+  }
+}
+
+// After clicking Next, LinkedIn shows a spinner while it saves the step. Wait for it like a
+// person would, then return the (possibly re-rendered) form.
+async function waitForModalStepSettled(previousSignature, timeoutMs = 15000) {
+  const start = Date.now();
+  let sawLoading = false;
+  while (Date.now() - start < timeoutMs) {
+    if (findSaveApplicationPromptModal()) {
+      return { modal: getActiveModal(), waitedMs: Date.now() - start, sawLoading, savePrompt: true, timedOut: false };
+    }
+    const modal = getActiveModal();
+    if (!modal || !isVisibleElement(modal)) {
+      return { modal: null, waitedMs: Date.now() - start, sawLoading, savePrompt: false, timedOut: false };
+    }
+    const loading = isModalLoading(modal);
+    if (loading) sawLoading = true;
+    const hasAction = Boolean(findNextOrReviewButton(modal, { includeDisabled: true }) || findSubmitButton(modal) || findDoneOrCloseButton(modal));
+    const changed = getModalSignature(modal) !== previousSignature;
+    if (!loading && hasAction && (changed || Date.now() - start >= STEP_DELAY_MS)) {
+      return { modal, waitedMs: Date.now() - start, sawLoading, savePrompt: false, timedOut: false };
+    }
+    await sleep(200);
+  }
+  return { modal: getActiveModal(), waitedMs: Date.now() - start, sawLoading, savePrompt: false, timedOut: true };
 }
 
 function isModalLoading(modal) {
@@ -5824,90 +5979,64 @@ function isSaveApplicationPrompt(modal) {
   );
 }
 
-let lastDismissPromptTime = 0;
-
+// "Save this application?" -> click Discard once, like a person. If LinkedIn's Discard
+// handler fails (it throws when the form never finished loading) the prompt stays; then
+// close the prompt with its X and move on instead of retrying in a loop.
 async function dismissSaveApplicationPrompt(modal) {
-  const now = Date.now();
-  if (now - lastDismissPromptTime < 1400) {
-    return true;
-  }
-  lastDismissPromptTime = now;
-
-  const targetScope = (modal && isSaveApplicationPrompt(modal)) ? modal : (findSaveApplicationPromptModal() || document);
+  const prompt = (modal && isSaveApplicationPrompt(modal)) ? modal : findSaveApplicationPromptModal();
+  if (!prompt) return true;
   const discardBtn =
-    findModalButtonByIncludes(targetScope, ["discard"]) ||
-    findModalButtonByIncludes(targetScope, ["don't save", "dont save"]) ||
-    document.querySelector("button[data-control-name='discard_application_confirm_btn']") ||
-    document.querySelector("button[data-test-dialog-secondary-action]") ||
-    document.querySelector(".artdeco-modal__action-bar button:first-child");
+    findModalButtonByIncludes(prompt, ["discard"]) ||
+    findModalButtonByIncludes(prompt, ["don't save", "dont save"]) ||
+    prompt.querySelector("button[data-control-name='discard_application_confirm_btn']") ||
+    prompt.querySelector("button[data-test-dialog-secondary-action]");
   if (!discardBtn) return false;
 
   await resilientClick(discardBtn, "Discard draft application");
-  await logLine("Dismissed 'Save this application?' prompt by discarding draft.");
-
-  // Wait safely for LinkedIn to process the discard and remove the dialog from DOM
-  for (let wait = 0; wait < 6; wait++) {
-    await sleep(350);
-    const stillThere = findSaveApplicationPromptModal();
-    if (!stillThere || !isVisibleElement(stillThere)) {
-      return true;
-    }
+  if (await waitUntil(() => !findSaveApplicationPromptModal(), 2500, 250)) {
+    await logLine("Dismissed 'Save this application?' prompt by discarding draft.");
+    return true;
   }
 
-  // Fallback: If LinkedIn API threw an error or dialog is hung, close via 'X' button or Escape
-  const closeBtn = targetScope.querySelector?.("button[aria-label*='Dismiss'], button[data-test-modal-close-btn], button.artdeco-modal__dismiss");
+  captureDebugEvent("modal", "DISCARD_DID_NOT_CLOSE_PROMPT", { ...capturePageSnapshot() });
+  await logLine("LinkedIn did not close the Save/Discard prompt after Discard; closing it and moving on.", "warn");
+  const stillOpen = findSaveApplicationPromptModal();
+  const closeBtn = stillOpen?.querySelector("button[aria-label*='Dismiss'], button[data-test-modal-close-btn], button.artdeco-modal__dismiss");
   if (closeBtn && isVisibleElement(closeBtn)) {
-    await resilientClick(closeBtn, "Close prompt modal");
-    await sleep(300);
-  } else {
-    document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
-    await sleep(200);
+    await resilientClick(closeBtn, "Close Save/Discard prompt");
+    await waitUntil(() => !findSaveApplicationPromptModal(), 1500, 250);
   }
-  return true;
+  return !findSaveApplicationPromptModal();
 }
 
+// Close whatever is left of an application, the way a person would, in one pass:
+// "Application sent" -> Done; open form -> its X; "Save this application?" -> Discard.
 async function closePostSubmitUi(settings, options = {}) {
   const preferDiscardDraft = Boolean(options.discardDraft);
   try {
-    for (let i = 0; i < 4; i += 1) {
-      if (preferDiscardDraft) {
-        const promptModal = findSaveApplicationPromptModal();
-        if (promptModal) {
-          await dismissSaveApplicationPrompt(promptModal);
-          await sleep(400);
-        }
-      }
-      const modal = getActiveModal();
-      if (!modal || !isVisibleElement(modal)) break;
-      if (preferDiscardDraft && isSaveApplicationPrompt(modal)) {
-        await dismissSaveApplicationPrompt(modal);
-        await sleep(400);
-        continue;
-      }
-      const doneBtn = findDoneOrCloseButton(modal);
-      if (doneBtn) {
-        await resilientClick(doneBtn, "Done/Close");
-        await sleep(450);
-        if (preferDiscardDraft) {
-          const promptAfter = findSaveApplicationPromptModal();
-          if (promptAfter) {
-            await dismissSaveApplicationPrompt(promptAfter);
-            await sleep(400);
-          }
-        }
+    await finishPostApplyDialog(settings, 0);
+
+    const modal = getActiveModal();
+    if (modal && isVisibleElement(modal)) {
+      const closeBtn = findDoneOrCloseButton(modal);
+      if (closeBtn) {
+        await resilientClick(closeBtn, "Close application form");
       } else {
-        document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
-        await sleep(250);
+        captureDebugEvent("modal", "NO_CLOSE_BUTTON", describeModalState(modal));
       }
     }
-    if (preferDiscardDraft) {
-      const promptAfter = findSaveApplicationPromptModal();
-      if (promptAfter) {
-        await dismissSaveApplicationPrompt(promptAfter);
+
+    const prompt = await waitUntil(findSaveApplicationPromptModal, 1500, 200);
+    if (prompt) {
+      if (preferDiscardDraft) {
+        await dismissSaveApplicationPrompt(prompt);
+      } else {
+        // Not discarding: cancel the close and leave the form as it is.
+        const cancelBtn = prompt.querySelector("button[aria-label*='Dismiss'], button.artdeco-modal__dismiss");
+        if (cancelBtn) await resilientClick(cancelBtn, "Close Save/Discard prompt");
       }
     }
-    document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
-    await sleep(150);
+    await waitUntil(() => !findSaveApplicationPromptModal() && !(getActiveModal() && isVisibleElement(getActiveModal())), 2000, 200);
   } catch {
     // best effort
   }
@@ -6685,15 +6814,18 @@ async function forceAnswerModalQuestions(modal, settings) {
 async function processEasyApplyModal(settings) {
   startTimer("processEasyApplyModal");
   await botChat("Processing application form. Filling in your details...");
-  const modal = getActiveModal();
+  // "let": LinkedIn can re-render the form between steps, so it is looked up again each step.
+  let modal = getActiveModal();
   if (!modal) {
     captureDebugEvent("modal", "MODAL_NOT_FOUND", { page: capturePageSnapshot() });
     return { submitted: false, skipped: true, reason: "No apply modal found" };
   }
 
-  const isReady = await waitForModalReady(modal, 4500);
+  // The first load regularly takes 5-6 seconds; give it time like a person would.
+  const isReady = await waitForModalReady(modal, 15000);
   if (!isReady) {
-    await logLine("⚠️ Easy Apply modal stuck loading form fields (network/spinner hang). Skipping job...", "warn");
+    captureDebugEvent("modal", "MODAL_STUCK_LOADING", describeModalState(getActiveModal()));
+    await logLine("⚠️ Easy Apply form still loading after 15s. Skipping job...", "warn");
     return { submitted: false, skipped: true, reachedSubmit: false, reason: "Modal stuck loading (spinner timeout)" };
   }
 
@@ -6717,6 +6849,11 @@ async function processEasyApplyModal(settings) {
       return { submitted: false, skipped: true, reachedSubmit: false, reason: "LinkedIn daily Easy Apply limit reached" };
     }
     safety += 1;
+    const freshModal = getActiveModal();
+    if (freshModal && freshModal !== modal) {
+      captureDebugEvent("modal", "MODAL_NODE_REPLACED", { stepAttempt: safety });
+      modal = freshModal;
+    }
     const questionBlocks = collectQuestionBlocks(modal);
     let changedAny = false;
     const filledThisStep = [];
@@ -6930,11 +7067,15 @@ async function processEasyApplyModal(settings) {
         activeSubmitPaceDelayMs = 0;
         activeSubmitPaceStartMs = 0;
         await sleep(STEP_DELAY_MS);
+        // Submitting shows a spinner too; wait for it before judging the result.
+        await waitUntil(() => didSubmitComplete(modal) || !isModalLoading(getActiveModal()), 15000, 250);
         const submitCompleted = didSubmitComplete(modal);
         if (submitCompleted) {
           await logLine("Application submitted", "info");
           await botChat("Application submitted successfully! Moving to next opportunity...");
           captureDebugEvent("modal", "SUBMIT_SUCCESS", { stepAttempt: safety, durationMs: endTimer("processEasyApplyModal") });
+          // LinkedIn shows "Application sent" a second or two later; close it with Done before moving on.
+          await finishPostApplyDialog(settings, 10000);
           await closePostSubmitUi(settings, { discardDraft: false });
           return { submitted: true, skipped: false, reachedSubmit: true };
         }
@@ -6971,7 +7112,14 @@ async function processEasyApplyModal(settings) {
       return { submitted: false, skipped: false, reachedSubmit: true };
     }
 
-    const nextBtn = findNextOrReviewButton(modal);
+    let nextBtn = findNextOrReviewButton(modal);
+    if (!nextBtn && isModalLoading(modal)) {
+      // Buttons are hidden while LinkedIn is loading; wait instead of giving up on the job.
+      const settledAgain = await waitForModalStepSettled(getModalSignature(modal));
+      captureDebugEvent("modal", "WAITED_FOR_SPINNER_BEFORE_NEXT", { stepAttempt: safety, waitedMs: settledAgain.waitedMs, timedOut: settledAgain.timedOut });
+      if (settledAgain.modal) modal = settledAgain.modal;
+      nextBtn = findNextOrReviewButton(modal);
+    }
     if (!nextBtn) {
       const blockedNextBtn = findNextOrReviewButton(modal, { includeDisabled: true });
       if (blockedNextBtn) {
@@ -6992,7 +7140,9 @@ async function processEasyApplyModal(settings) {
           reason: validationRaw || "Next/review button is disabled"
         };
       }
-      const doneBtn = findDoneOrCloseButton(modal);
+      // Only a real "Done" button means the application finished. The form's X ("Dismiss")
+      // is always present; clicking it here closed live forms and counted them as submitted.
+      const doneBtn = findModalButtonByIncludes(modal, ["done"]);
       if (doneBtn) {
         captureDebugEvent("modal", "DONE_CLOSE_CLICKED", { stepAttempt: safety, durationMs: endTimer("processEasyApplyModal") });
         await resilientClick(doneBtn, "Done/Close");
@@ -7008,6 +7158,8 @@ async function processEasyApplyModal(settings) {
         hasVisibleSubmit: Boolean(findSubmitButton(modal)),
         validation: validationRaw || "",
         durationMs: endTimer("processEasyApplyModal"),
+        modalState: describeModalState(modal),
+        buttons: Array.from(modal.querySelectorAll("button")).filter((b) => isVisibleElement(b)).map((b) => normalizeLabel(b.textContent || b.getAttribute("aria-label") || "").slice(0, 30)),
         ...capturePageSnapshot()
       });
       return {
@@ -7026,7 +7178,20 @@ async function processEasyApplyModal(settings) {
     stepState.nextClicks += 1;
     stepStateBySignature.set(stepSignature, stepState);
     if (!await resilientClick(nextBtn, "Next/Review")) break;
-    await sleep(STEP_DELAY_MS);
+    // Like a person: wait for LinkedIn's spinner to finish before looking at the next step.
+    const settled = await waitForModalStepSettled(previousSignature);
+    captureDebugEvent("modal", "NEXT_CLICK_SETTLED", {
+      stepAttempt: safety,
+      waitedMs: settled.waitedMs,
+      sawSpinner: settled.sawLoading,
+      timedOut: settled.timedOut,
+      savePrompt: settled.savePrompt,
+      formClosed: !settled.modal,
+    });
+    if (settled.sawLoading || settled.timedOut) {
+      await debugLog(settings, "Waited for LinkedIn after Next", { waitedMs: settled.waitedMs, timedOut: settled.timedOut });
+    }
+    if (settled.modal) modal = settled.modal;
 
     const currentSignature = getModalSignature(modal);
     const autoFixed = await attemptValidationAutoFix(modal, activeSettings);
@@ -7323,6 +7488,7 @@ async function runCycle(settings) {
       markJobSeen(viewJobKey);
       return true;
     }
+    await clearLeftoverDialogs(settings);
     await resilientClick(applyAction.button, "Easy Apply");
     const modal = await waitForModalOpen(4500);
     if (!modal) {
@@ -7740,6 +7906,7 @@ async function runCycle(settings) {
     }
 
     classifyActionableCandidate();
+    await clearLeftoverDialogs(settings);
     await resilientClick(applyAction.button, "Easy Apply");
     await botChat("Easy Apply form opened. Analyzing fields...");
     await sleep(300);
@@ -7806,6 +7973,10 @@ async function runCycle(settings) {
           : "SUBMIT_NOT_REACHED";
       markJobCardStatus(card, "skipped", reasonCode);
       await logOutcome("warn", `Skipped: ${skipReason}`, reasonCode);
+      // Exactly where the form was when we gave up, so every skip can be explained.
+      const skipState = describeModalState(getActiveModal());
+      captureDebugEvent("cycle", "SKIP_DETAILS", { jobKey, reason: skipReason, reasonCode, ...skipState });
+      await logLine(`Skip details: ${summarizeModalState(skipState)}`, "info");
       await recordOutcome("SKIPPED", {
         reasonCode,
         reason: skipReason,
@@ -8084,9 +8255,9 @@ async function runAutomationLoop() {
     await sendMessage({ type: "CP_SET_ERROR", error: error?.message || String(error) });
   } finally {
     try {
-      const modal = getActiveModal();
-      if (modal && isSaveApplicationPrompt(modal)) {
-        await dismissSaveApplicationPrompt(modal);
+      const prompt = findSaveApplicationPromptModal();
+      if (prompt) {
+        await dismissSaveApplicationPrompt(prompt);
       }
     } catch {
       // best-effort modal cleanup
