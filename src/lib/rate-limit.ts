@@ -59,19 +59,23 @@ export async function enforceRateLimit(input: {
   limit: number;
   windowMs: number;
 }) {
+  const isDev = process.env.NODE_ENV !== "production";
+  const effectiveLimit = isDev ? Math.max(input.limit * 10, 100) : input.limit;
+  const effectiveWindowMs = isDev ? Math.min(input.windowMs, 60_000) : input.windowMs;
+
   const redis = getRedisClient();
   if (!redis) {
-    return checkMemoryRateLimit(input.key, input.limit, input.windowMs);
+    return checkMemoryRateLimit(input.key, effectiveLimit, effectiveWindowMs);
   }
 
   try {
-    const windowSec = Math.max(1, Math.ceil(input.windowMs / 1000));
+    const windowSec = Math.max(1, Math.ceil(effectiveWindowMs / 1000));
     const key = `cp:rl:${input.key}`;
     const count = Number(await redis.incr(key));
     if (count === 1) {
       await redis.expire(key, windowSec);
     }
-    if (count > input.limit) {
+    if (count > effectiveLimit) {
       let retryAfterSec = Number(await redis.ttl(key));
       if (!Number.isFinite(retryAfterSec) || retryAfterSec < 1) retryAfterSec = windowSec;
       const res = fail("Too many requests. Try again shortly.", 429, "RATE_LIMITED");
@@ -81,6 +85,6 @@ export async function enforceRateLimit(input: {
     return null;
   } catch (error) {
     console.error("[CP] rate-limit redis error, using memory fallback:", error);
-    return checkMemoryRateLimit(input.key, input.limit, input.windowMs);
+    return checkMemoryRateLimit(input.key, effectiveLimit, effectiveWindowMs);
   }
 }

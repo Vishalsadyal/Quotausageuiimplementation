@@ -56,7 +56,7 @@ export async function POST(req: NextRequest) {
   try {
     const rl = await enforceRateLimit({
       key: rateLimitKey(req, "public.resume.quick_start"),
-      limit: 5,
+      limit: 15,
       windowMs: 600_000,
     });
     if (rl) return rl;
