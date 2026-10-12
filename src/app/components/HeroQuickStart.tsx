@@ -204,7 +204,7 @@ export function HeroQuickStart({ className = '' }: { className?: string }) {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3 }}
-                className="px-5 py-4 bg-white max-h-[560px] overflow-y-auto"
+                className="px-5 py-4 bg-white text-gray-900 max-h-[560px] overflow-y-auto"
               >
                 <AuthPanel showBackLink={false} />
               </motion.div>

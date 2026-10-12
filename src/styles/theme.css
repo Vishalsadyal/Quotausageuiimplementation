@@ -293,10 +293,11 @@
     line-height: 1.5;
   }
 
-  input {
+  input, select, textarea {
     font-size: var(--text-base);
     font-weight: var(--font-weight-normal);
     line-height: 1.5;
+    color: var(--ink, #17152b);
   }
 }
 

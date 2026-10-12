@@ -155,7 +155,7 @@ export function AuthPanel({ showBackLink = true }: { showBackLink?: boolean }) {
   };
 
   const inputClass =
-    'w-full pl-12 pr-4 py-2 rounded-xl border-2 border-gray-200 focus:border-purple-400 focus:ring-4 focus:ring-purple-100 transition-all outline-none';
+    'w-full pl-12 pr-4 py-2 rounded-xl border-2 border-gray-200 bg-white text-gray-900 placeholder:text-gray-400 focus:border-purple-400 focus:ring-4 focus:ring-purple-100 transition-all outline-none';
 
   return (
     <>
