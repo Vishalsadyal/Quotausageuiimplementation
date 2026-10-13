@@ -10,6 +10,10 @@ const requestSchema = z.object({
   questionType: z.string().trim().optional().default("text"),
   options: z.array(z.string()).optional().default([]),
   validationMessage: z.string().trim().optional().default(""),
+  // answers LinkedIn already rejected for this field (the extension retries with the next-ranked one)
+  avoid: z.array(z.string().max(500)).max(10).optional().default([]),
+  // also return up to 3 other plausible answers, best first
+  wantAlternatives: z.boolean().optional().default(false),
   jobContext: z
     .object({
       title: z.string().optional().default(""),
@@ -103,12 +107,15 @@ Instructions:
 2. For yes/no or multiple choice questions: You MUST select the single best option from the provided options list.
 3. For text/textarea questions: Write a direct, professional, first-person response based on the candidate's actual resume (1-3 sentences max).
 4. For salary or compensation: Provide a standard competitive expectation or "Negotiable".
-5. Return strictly a JSON object: { "answer": "exact answer string" }`;
+5. Return strictly a JSON object: { "answer": "exact answer string", "alternatives": ["second best", "third best"] }
+   "alternatives" are other plausible answers in the same format (options must come from the list); use [] if there are none.
+6. Never return an answer listed under "Rejected answers": the form already refused it.`;
 
     const userPrompt = `Screening Question: "${payload.question}"
 Question Type: ${payload.questionType}
 ${optionsText}
 ${payload.validationMessage ? `Validation Constraint: ${payload.validationMessage}` : ""}
+${payload.avoid.length ? `Rejected answers (do not repeat): ${payload.avoid.map((a) => JSON.stringify(a)).join(", ")}` : ""}
 
 Provide the best answer JSON:`;
 
@@ -138,8 +145,12 @@ Provide the best answer JSON:`;
     const groqData = await groqRes.json();
     const rawContent = groqData?.choices?.[0]?.message?.content || "";
     let answer = "";
+    let alternatives: string[] = [];
     try {
       const parsedJson = JSON.parse(rawContent);
+      if (Array.isArray(parsedJson?.alternatives)) {
+        alternatives = parsedJson.alternatives.map((a: unknown) => String(a ?? "").trim()).filter(Boolean);
+      }
       answer = String(
         parsedJson.answer ||
         parsedJson.response ||
@@ -177,8 +188,14 @@ Provide the best answer JSON:`;
       },
     }).catch(() => null);
 
+    const rejected = new Set(payload.avoid.map((a) => a.trim().toLowerCase()));
+    const uniqueAlternatives = [...new Set(alternatives)]
+      .filter((a) => a.toLowerCase() !== answer.toLowerCase() && !rejected.has(a.toLowerCase()))
+      .slice(0, 3);
+
     return ok("AI screening answer generated", {
       answer,
+      alternatives: payload.wantAlternatives ? uniqueAlternatives : [],
       source: "ai_resume",
     });
   } catch (error) {

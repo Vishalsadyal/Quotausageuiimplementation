@@ -34,6 +34,8 @@ import {
   queueDashboardTourRequest,
 } from 'src/lib/dashboard-tour';
 import { JOBS_SECTIONS, jobsSectionPath, type JobsProvider } from '../pages/dashboard/jobsSections';
+import { usePendingQuestions } from '../hooks/usePendingQuestions';
+import PendingQuestionsPrompt from '../components/PendingQuestionsPrompt';
 
 const AssistantPanel = lazy(() =>
   import('../pages/dashboard/Assistant').then((m) => ({ default: m.AssistantChat })),
@@ -51,6 +53,9 @@ export default function DashboardLayout() {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, logout, refreshUser, stopImpersonation } = useAuth();
+  // Questions the extension is waiting on: popup + bell badge (components/PendingQuestionsPrompt.tsx).
+  const { questions: pendingQuestions } = usePendingQuestions(Boolean(user));
+  const [pendingPromptSignal, setPendingPromptSignal] = useState(0);
   const [stoppingImpersonation, setStoppingImpersonation] = useState(false);
 
   const handleStopImpersonation = async () => {
@@ -466,11 +471,16 @@ export default function DashboardLayout() {
                 {/* Notifications Bell */}
                 <button
                   type="button"
-                  aria-label="Notifications"
+                  aria-label={pendingQuestions.length ? `${pendingQuestions.length} questions need your answer` : 'Notifications'}
+                  onClick={() => setPendingPromptSignal((n) => n + 1)}
                   className="relative p-1.5 sm:p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-xl transition-colors shrink-0"
                 >
                   <Bell className="w-4 h-4" />
-                  <span className="absolute top-1 right-1 sm:top-1.5 sm:right-1.5 w-2 h-2 bg-red-500 rounded-full ring-2 ring-white"></span>
+                  {pendingQuestions.length > 0 && (
+                    <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 px-1 rounded-full bg-red-500 text-[10px] font-semibold leading-4 text-white text-center ring-2 ring-white">
+                      {pendingQuestions.length > 9 ? '9+' : pendingQuestions.length}
+                    </span>
+                  )}
                 </button>
 
                 {/* User Account Dropdown */}
@@ -574,6 +584,8 @@ export default function DashboardLayout() {
           </aside>
         </>
       )}
+
+      {user && <PendingQuestionsPrompt userId={String(user.id)} questions={pendingQuestions} openSignal={pendingPromptSignal} />}
     </div>
   );
 }

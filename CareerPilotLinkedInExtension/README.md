@@ -7,6 +7,24 @@ Chrome extension scaffold for battle-tested LinkedIn auto-apply behavior with:
 - Resilient selector strategy for Easy Apply flow
 - Common question auto-answering (visa, city, marketing consent)
 
+## Project structure
+```
+src/
+  background/        service worker (settings, portal API, message hub)
+  linkedin/core/     shared class-free detection: dom.js (cards, ids, applied, pane, apply button), pages.js (pagination)
+  linkedin/jobs/     LinkedIn auto-apply, split into 01-config.js … 29-init.js (load in order, one shared scope)
+  linkedin/outreach/ WhatsApp / email / commenter / HR lead widgets
+  indeed/ whatsapp/ gmail/ meet/ dashboard/   other content scripts
+  ui/                popup + options page
+  rules/ assets/     tracker-blocking rules, fonts, images
+tools/
+  probes/            console test scripts: bodies/ (tests) + out/ (generated, paste into DevTools)
+  console/           standalone console helpers
+  codemap.mjs        generates docs/CODE_MAP.md
+docs/CODE_MAP.md     every file, its purpose and every function with line links (generated)
+```
+`npm run build` regenerates the probes and the code map. Find any function in `docs/CODE_MAP.md`.
+
 ## Load in Chrome
 1. Open `chrome://extensions`
 2. Enable `Developer mode`

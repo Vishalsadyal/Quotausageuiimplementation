@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "AutoApply CV - All-in-One Job Copilot & Outreach Suite",
-  "version": "3.2.0",
+  "version": "3.3.0",
   "description": "All-in-one job copilot: LinkedIn Easy Apply, Indeed automation, WhatsApp outreach, and a live client-call copilot for Google Meet.",
   "icons": {
     "16": "icons/icon16.png",
@@ -38,7 +38,7 @@
     "https://meet.google.com/*"
   ],
   "background": {
-    "service_worker": "src/background.js"
+    "service_worker": "src/background/background.js"
   },
   "web_accessible_resources": [
     {
@@ -54,7 +54,8 @@
         "https://*.indeed.com/*",
         "https://web.whatsapp.com/*",
         "https://mail.google.com/*"
-      ]
+      ],
+      "use_dynamic_url": true
     }
   ],
   "content_scripts": [
@@ -64,11 +65,43 @@
         "https://*.linkedin.com/jobs/*"
       ],
       "js": [
-        "src/linkedin-dom.js",
-        "src/content.js"
+        "src/linkedin/core/dom.js",
+        "src/linkedin/core/wait.js",
+        "src/linkedin/core/pages.js",
+        "src/linkedin/core/job.js",
+        "src/linkedin/jobs/01-config.js",
+        "src/linkedin/jobs/02-debug-log.js",
+        "src/linkedin/jobs/03-submit-pace.js",
+        "src/linkedin/jobs/04-debug-badge.js",
+        "src/linkedin/jobs/05-job-memory.js",
+        "src/linkedin/jobs/06-panel-layout.js",
+        "src/linkedin/jobs/07-messaging.js",
+        "src/linkedin/jobs/08-answers.js",
+        "src/linkedin/jobs/09-apply-button.js",
+        "src/linkedin/jobs/10-applied-detection.js",
+        "src/linkedin/jobs/11-card-tags.js",
+        "src/linkedin/jobs/12-keywords.js",
+        "src/linkedin/jobs/13-skip-rules.js",
+        "src/linkedin/jobs/14-option-choice.js",
+        "src/linkedin/jobs/15-search-url.js",
+        "src/linkedin/jobs/16-search-nav.js",
+        "src/linkedin/jobs/17-filters.js",
+        "src/linkedin/jobs/18-run-control.js",
+        "src/linkedin/jobs/19-panel-ui.js",
+        "src/linkedin/jobs/20-panel-render.js",
+        "src/linkedin/jobs/21-job-cards.js",
+        "src/linkedin/jobs/22-modal.js",
+        "src/linkedin/jobs/23-question-blocks.js",
+        "src/linkedin/jobs/24-modal-buttons.js",
+        "src/linkedin/jobs/24a-answer-engine.js",
+        "src/linkedin/jobs/25-form-fill.js",
+        "src/linkedin/jobs/26-easy-apply-flow.js",
+        "src/linkedin/jobs/27-run-cycle.js",
+        "src/linkedin/jobs/28-run-loop.js",
+        "src/linkedin/jobs/29-init.js"
       ],
       "css": [
-        "src/panel.css"
+        "src/linkedin/jobs/panel.css"
       ],
       "run_at": "document_idle"
     },
@@ -78,13 +111,13 @@
         "https://*.linkedin.com/*"
       ],
       "js": [
-        "src/content_linkedin_wa.js",
-        "src/content_linkedin_email.js",
-        "src/content_linkedin_commenter.js",
-        "src/content_linkedin_hr.js"
+        "src/linkedin/outreach/content_linkedin_wa.js",
+        "src/linkedin/outreach/content_linkedin_email.js",
+        "src/linkedin/outreach/content_linkedin_commenter.js",
+        "src/linkedin/outreach/content_linkedin_hr.js"
       ],
       "css": [
-        "src/panel_outreach.css"
+        "src/linkedin/outreach/panel_outreach.css"
       ],
       "run_at": "document_idle"
     },
@@ -94,10 +127,10 @@
         "https://*.indeed.com/*"
       ],
       "js": [
-        "src/content_indeed.js"
+        "src/indeed/content_indeed.js"
       ],
       "css": [
-        "src/panel_indeed.css"
+        "src/indeed/panel_indeed.css"
       ],
       "run_at": "document_idle"
     },
@@ -106,7 +139,7 @@
         "https://web.whatsapp.com/*"
       ],
       "js": [
-        "src/content_whatsapp.js"
+        "src/whatsapp/content_whatsapp.js"
       ],
       "run_at": "document_idle"
     },
@@ -115,7 +148,7 @@
         "https://mail.google.com/*"
       ],
       "js": [
-        "src/content_gmail.js"
+        "src/gmail/content_gmail.js"
       ],
       "run_at": "document_idle"
     },
@@ -134,7 +167,7 @@
         "https://127.0.0.1/*"
       ],
       "js": [
-        "src/dashboard-bridge.js"
+        "src/dashboard/dashboard-bridge.js"
       ],
       "run_at": "document_idle"
     },
@@ -143,18 +176,18 @@
         "https://meet.google.com/*"
       ],
       "js": [
-        "src/content_meet_copilot.js"
+        "src/meet/content_meet_copilot.js"
       ],
       "css": [
-        "src/panel_meet.css"
+        "src/meet/panel_meet.css"
       ],
       "run_at": "document_idle"
     }
   ],
-  "options_page": "src/options.html",
+  "options_page": "src/ui/options.html",
   "action": {
     "default_title": "AutoApply CV Suite",
-    "default_popup": "src/popup.html",
+    "default_popup": "src/ui/popup.html",
     "default_icon": {
       "16": "icons/icon16.png",
       "32": "icons/icon32.png",

@@ -1,11 +1,12 @@
 {
   "name": "careerpilot-linkedin-extension",
-  "version": "3.2.0",
+  "version": "3.3.0",
   "private": true,
   "description": "AutoApply CV LinkedIn extension.",
   "scripts": {
-    "build": "node tools/build-probe.mjs && vite build",
-    "probe": "node tools/build-probe.mjs",
+    "build": "node tools/probes/build.mjs && node tools/codemap.mjs && vite build",
+    "codemap": "node tools/codemap.mjs",
+    "probe": "node tools/probes/build.mjs",
     "dev": "vite build --watch",
     "test:e2e": "playwright test",
     "test:e2e:headed": "playwright test --headed"

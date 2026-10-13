@@ -40,7 +40,7 @@ export default defineConfig({
     emptyDir: true,
     rollupOptions: {
       input: {
-        background: resolve(__dirname, "src/background.js"),
+        background: resolve(__dirname, "src/background/background.js"),
       },
       output: {
         entryFileNames: "[name].js",
