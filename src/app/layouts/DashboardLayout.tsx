@@ -18,7 +18,8 @@ import {
   ChevronDown,
   Zap,
   PlayCircle,
-  Mail,
+  Contact,
+  Gift,
   Users,
   ExternalLink,
   Bot,
@@ -80,7 +81,7 @@ export default function DashboardLayout() {
   );
   const hireBalance = user?.hireBalance ?? 0;
   const freeLeft = user?.plan === 'free' ? Math.max(0, 3 - mergedDailyUsed) : 0;
-  const spendableNow = user?.plan === 'pro' ? Number.MAX_SAFE_INTEGER : Math.max(0, hireBalance + freeLeft);
+  const spendableNow = (user?.plan === 'pro' || user?.plan === 'connect') ? Number.MAX_SAFE_INTEGER : Math.max(0, hireBalance + freeLeft);
   const needsHires = spendableNow <= 0;
   const primaryTourId = onboardingComplete ? DASHBOARD_TOUR_JOBS_EXTENSION : DASHBOARD_TOUR_ONBOARDING_EXTENSION;
   const primaryTourRoute = onboardingComplete ? '/dashboard/jobs' : '/dashboard/onboarding';
@@ -138,7 +139,7 @@ export default function DashboardLayout() {
     { name: 'Overview', href: '/dashboard', icon: LayoutDashboard },
     { name: 'AI Assistant', href: '/dashboard/assistant', icon: Bot, badge: 'NEW' },
     { name: 'Auto Apply', href: '/dashboard/jobs/linkedin', icon: Target, matchPrefix: '/dashboard/jobs' },
-    { name: 'Apply Email', href: '/dashboard/cold-emails', icon: Mail, matchPrefix: '/dashboard/cold-emails' },
+    { name: 'HR Contacts', href: '/dashboard/hr-contacts', icon: Contact, badge: 'NEW', matchPrefix: '/dashboard/hr-contacts' },
     {
       name: 'Recruitment Agency',
       href: 'https://recruitment.autoapplycv.in/index.html',
@@ -152,6 +153,7 @@ export default function DashboardLayout() {
     onboardingComplete
       ? { name: 'Billing', href: '/dashboard/billing', icon: CreditCard }
       : { name: 'Onboarding', href: '/dashboard/onboarding', icon: FileText },
+    { name: 'Refer & Earn', href: '/dashboard/referrals', icon: Gift },
     { name: 'Settings', href: '/dashboard/settings', icon: Settings },
   ];
 
@@ -319,7 +321,7 @@ export default function DashboardLayout() {
                 <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500">Plan:</span>
                 <span
                   className={`text-[10px] font-extrabold uppercase px-1.5 py-0.5 rounded-md border tracking-wider ${
-                    user?.plan === 'pro'
+                    (user?.plan === 'pro' || user?.plan === 'connect')
                       ? 'bg-purple-100 text-purple-800 border-purple-300'
                       : user?.plan === 'coach'
                       ? 'bg-indigo-100 text-indigo-800 border-indigo-300'
@@ -330,7 +332,7 @@ export default function DashboardLayout() {
                 </span>
               </div>
               <span className="text-[11px] font-bold text-purple-700">
-                {user?.plan === 'pro' ? 'Unlimited' : `${hireBalance.toLocaleString()} Hires`}
+                {(user?.plan === 'pro' || user?.plan === 'connect') ? 'Unlimited' : `${hireBalance.toLocaleString()} Hires`}
               </span>
             </div>
 
@@ -338,12 +340,12 @@ export default function DashboardLayout() {
             <div className="text-[10px] text-gray-500 flex justify-between items-center bg-gray-50/80 px-2 py-1 rounded-lg border border-gray-100">
               <span>Today:</span>
               <span className="font-semibold text-gray-800">
-                {user?.plan === 'pro' ? `${mergedDailyUsed} (Unlimited)` : `${mergedDailyUsed} / ${dailyCap} free`}
+                {(user?.plan === 'pro' || user?.plan === 'connect') ? `${mergedDailyUsed} (Unlimited)` : `${mergedDailyUsed} / ${dailyCap} free`}
               </span>
             </div>
 
             {/* Upgrade or Manage Billing */}
-            {user?.plan !== 'pro' && user?.plan !== 'coach' ? (
+            {user?.plan !== 'pro' && user?.plan !== 'coach' && user?.plan !== 'connect' ? (
               <div className="space-y-1.5 pt-0.5">
                 <Link
                   to="/dashboard/billing"
@@ -446,7 +448,7 @@ export default function DashboardLayout() {
                 >
                   <Zap className="w-3.5 h-3.5 text-purple-600 shrink-0" />
                   <span className="text-xs font-bold text-purple-700">
-                    {user?.plan === 'pro' ? 'Unlimited' : `${hireBalance} Hires`}
+                    {(user?.plan === 'pro' || user?.plan === 'connect') ? 'Unlimited' : `${hireBalance} Hires`}
                   </span>
                 </Link>
 

@@ -1,5 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 
+// POST routes the Chrome extension's service worker calls from its chrome-extension:// origin.
+// Each still requires the signed-in user's session.
+const EXTENSION_WRITE_PATHS = new Set([
+  "/api/ai/call-copilot",
+  "/api/ai/answer", // screening-question answers while applying
+  "/api/user/outreach/charge", // 1 Hire per WhatsApp / email / comment
+  "/api/user/hr-contacts/wa-status", // "on WhatsApp" result of a real send
+]);
+
 function createRequestId() {
   return `req_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
 }
@@ -47,7 +56,7 @@ export function middleware(req: NextRequest) {
       // The Chrome extension's service worker calls these with its own
       // chrome-extension:// origin; they still require the user's auth.
       const allowExtensionOrigin =
-        path === "/api/ai/call-copilot" && Boolean(origin?.startsWith("chrome-extension://"));
+        EXTENSION_WRITE_PATHS.has(path) && Boolean(origin?.startsWith("chrome-extension://"));
       if (!sameOrigin && !allowExtensionOrigin && !(allowNoOrigin && !origin)) {
         return NextResponse.json({ success: false, message: "Not found" }, { status: 404 });
       }
@@ -59,6 +68,20 @@ export function middleware(req: NextRequest) {
   const allowAdSense = hasAdSense || !isProd;
 
   const res = NextResponse.next();
+
+  // Referral links (/?ref=CODE on any page): remember the code for 30 days so signup can credit
+  // the referrer. Format-checked here; the code itself is validated at signup.
+  const ref = req.nextUrl.searchParams.get("ref");
+  if (ref && !path.startsWith("/api/") && /^[A-Za-z2-9]{6,12}$/.test(ref)) {
+    res.cookies.set("cp_ref", ref.toUpperCase(), {
+      maxAge: 30 * 24 * 60 * 60,
+      httpOnly: true,
+      sameSite: "lax",
+      secure: isProd,
+      path: "/",
+    });
+  }
+
   const csp = [
     "default-src 'self'",
     "base-uri 'self'",

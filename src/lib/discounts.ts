@@ -1,7 +1,12 @@
 import { DiscountCodeTarget, DiscountCodeType } from "@prisma/client";
 import { prisma } from "./prisma";
 
-export type DiscountContext = "wallet_topup" | "plan_pro" | "plan_coach";
+export type DiscountContext = "wallet_topup" | "plan_pro" | "plan_coach" | "plan_connect";
+
+/** Discount context for buying a plan. */
+export function planDiscountContext(plan: "pro" | "coach" | "connect"): DiscountContext {
+  return `plan_${plan}`;
+}
 
 export type AppliedDiscount = {
   discountCodeId: string;
@@ -11,6 +16,7 @@ export type AppliedDiscount = {
   target: DiscountCodeTarget;
   percentOff: number | null;
   flatAmountRupees: number | null;
+  fixedPriceRupees: number | null;
   baseRupees: number;
   discountRupees: number;
   finalRupees: number;
@@ -43,6 +49,7 @@ function targetMatches(target: DiscountCodeTarget, context: DiscountContext) {
   if (context === "wallet_topup") return target === "wallet_topup";
   if (context === "plan_pro") return target === "plan_pro";
   if (context === "plan_coach") return target === "plan_coach";
+  if (context === "plan_connect") return target === "plan_connect";
   return false;
 }
 
@@ -56,6 +63,7 @@ function computeDiscountRupees(input: {
   type: DiscountCodeType;
   percentOff: number | null;
   flatAmountRupees: number | null;
+  fixedPriceRupees: number | null;
   maxDiscountRupees: number | null;
   baseRupees: number;
 }) {
@@ -65,6 +73,10 @@ function computeDiscountRupees(input: {
   if (input.type === "percent") {
     const percent = Math.max(0, Math.min(100, Math.floor(input.percentOff || 0)));
     discount = Math.floor((base * percent) / 100);
+  } else if (input.type === "fixed_price") {
+    // "Pay ₹99": the discount is whatever brings the regular price down to the fixed price.
+    const price = Math.floor(input.fixedPriceRupees ?? -1);
+    discount = price >= 1 ? base - price : 0;
   } else {
     discount = Math.max(0, Math.floor(input.flatAmountRupees || 0));
   }
@@ -108,6 +120,7 @@ export async function evaluateDiscountForOrder(input: {
       target: true,
       percentOff: true,
       flatAmountRupees: true,
+      fixedPriceRupees: true,
       maxDiscountRupees: true,
       minOrderRupees: true,
       usageLimitTotal: true,
@@ -168,6 +181,7 @@ export async function evaluateDiscountForOrder(input: {
     type: discountCode.type,
     percentOff: discountCode.percentOff,
     flatAmountRupees: discountCode.flatAmountRupees,
+    fixedPriceRupees: discountCode.fixedPriceRupees,
     maxDiscountRupees: discountCode.maxDiscountRupees,
     baseRupees,
   });
@@ -188,6 +202,7 @@ export async function evaluateDiscountForOrder(input: {
     target: discountCode.target,
     percentOff: discountCode.percentOff,
     flatAmountRupees: discountCode.flatAmountRupees,
+    fixedPriceRupees: discountCode.fixedPriceRupees,
     baseRupees,
     discountRupees,
     finalRupees: baseRupees - discountRupees,

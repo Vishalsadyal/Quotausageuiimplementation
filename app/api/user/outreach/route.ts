@@ -3,6 +3,7 @@ import { ok, handleApiError } from "src/lib/api";
 import { prisma } from "src/lib/prisma";
 import { getWalletSummary } from "src/lib/hires";
 import { OUTREACH_ACTIONS, type OutreachChannel } from "src/lib/outreach";
+import { isUnlimitedPlan } from "src/lib/plans";
 
 /**
  * GET /api/user/outreach
@@ -37,7 +38,7 @@ export async function GET() {
       sent: Object.fromEntries(counts) as Record<OutreachChannel, { total: number; today: number }>,
       costPerMessage: 1,
       plan: wallet.user.plan,
-      unlimited: wallet.user.plan === "pro",
+      unlimited: isUnlimitedPlan(wallet.user.plan),
       spendable: wallet.spendable,
       freeRemaining: wallet.freeRemaining,
       hireBalance: wallet.user.hireBalance,

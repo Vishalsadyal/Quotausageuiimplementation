@@ -65,7 +65,7 @@ export function DashboardPromoBanner() {
   }, []);
 
   // Don't show banner if user is already pro or coach
-  if (user?.plan === "pro" || user?.plan === "coach") {
+  if (user?.plan === "pro" || user?.plan === "coach" || user?.plan === "connect") {
     return null;
   }
 

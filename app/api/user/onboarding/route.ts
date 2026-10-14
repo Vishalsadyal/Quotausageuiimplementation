@@ -1,5 +1,6 @@
 import { NextRequest } from "next/server";
 import { prisma } from "src/lib/prisma";
+import { qualifyReferral } from "src/lib/referrals";
 import { requireAuth } from "src/lib/guards";
 import { fail, handleApiError, ok } from "src/lib/api";
 import { onboardingSchema } from "src/lib/schemas";
@@ -167,6 +168,8 @@ export async function POST(req: NextRequest) {
           data: { onboardingCompleted: true },
         })
       : user;
+    // A referred friend who finishes onboarding counts toward their referrer's reward.
+    if (completed) await qualifyReferral(user.id);
 
     await writeAuditLog({
       actorUserId: userId,

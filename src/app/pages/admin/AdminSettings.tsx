@@ -14,10 +14,11 @@ type AdminDiscountCode = {
   id: string;
   code: string;
   description?: string | null;
-  type: "percent" | "flat_rupees";
-  target: "all" | "wallet_topup" | "plan_pro" | "plan_coach";
+  type: "percent" | "flat_rupees" | "fixed_price";
+  target: "all" | "wallet_topup" | "plan_pro" | "plan_coach" | "plan_connect";
   percentOff?: number | null;
   flatAmountRupees?: number | null;
+  fixedPriceRupees?: number | null;
   maxDiscountRupees?: number | null;
   minOrderRupees?: number | null;
   usageLimitTotal?: number | null;
@@ -33,8 +34,8 @@ type AdminDiscountCode = {
 type DiscountForm = {
   code: string;
   description: string;
-  type: "percent" | "flat_rupees";
-  target: "all" | "wallet_topup" | "plan_pro" | "plan_coach";
+  type: "percent" | "flat_rupees" | "fixed_price";
+  target: "all" | "wallet_topup" | "plan_pro" | "plan_coach" | "plan_connect";
   percentOff: string;
   flatAmountRupees: string;
   maxDiscountRupees: string;
@@ -463,6 +464,9 @@ export default function AdminSettings() {
 
       if (discountForm.type === "percent") {
         payload.percentOff = parseNumber(discountForm.percentOff);
+      } else if (discountForm.type === "fixed_price") {
+        // Same input box: for fixed-price coupons it holds the price the buyer pays.
+        payload.fixedPriceRupees = parseNumber(discountForm.flatAmountRupees);
       } else {
         payload.flatAmountRupees = parseNumber(discountForm.flatAmountRupees);
       }
@@ -957,6 +961,7 @@ export default function AdminSettings() {
             >
               <option value="percent">Percent (%)</option>
               <option value="flat_rupees">Flat (INR)</option>
+              <option value="fixed_price">Fixed final price (INR)</option>
             </select>
           </div>
           <div>
@@ -972,6 +977,7 @@ export default function AdminSettings() {
               <option value="all">All</option>
               <option value="plan_pro">Plan Pro</option>
               <option value="plan_coach">Plan Coach</option>
+              <option value="plan_connect">Plan Pro Connect</option>
             </select>
           </div>
           {discountForm.type === "percent" ? (
@@ -988,7 +994,9 @@ export default function AdminSettings() {
             </div>
           ) : (
             <div>
-              <label className="block text-xs font-semibold text-gray-600 mb-1">Flat Amount (INR)</label>
+              <label className="block text-xs font-semibold text-gray-600 mb-1">
+                {discountForm.type === "fixed_price" ? "Buyer pays (INR)" : "Flat Amount (INR)"}
+              </label>
               <input
                 type="number"
                 min={1}
@@ -1098,7 +1106,11 @@ export default function AdminSettings() {
                     {item.description ? <div className="text-xs text-gray-500 font-normal mt-0.5">{item.description}</div> : null}
                   </td>
                   <td className="px-3 py-2 text-gray-700">
-                    {item.type === "percent" ? `${item.percentOff || 0}%` : `INR ${item.flatAmountRupees || 0}`}
+                    {item.type === "percent"
+                      ? `${item.percentOff || 0}%`
+                      : item.type === "fixed_price"
+                        ? `Pay INR ${item.fixedPriceRupees || 0}`
+                        : `INR ${item.flatAmountRupees || 0}`}
                     {item.maxDiscountRupees ? <div className="text-xs text-gray-500">max INR {item.maxDiscountRupees}</div> : null}
                     {item.minOrderRupees ? <div className="text-xs text-gray-500">min INR {item.minOrderRupees}</div> : null}
                   </td>

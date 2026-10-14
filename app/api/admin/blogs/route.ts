@@ -3,7 +3,7 @@ import { prisma } from "src/lib/prisma";
 import { requireAdmin } from "src/lib/guards";
 import { fail, handleApiError, ok, parsePagination } from "src/lib/api";
 import { writeAuditLog } from "src/lib/audit";
-import { normalizeBlogKeywords, slugifyBlogTitle, stripHtmlToText } from "src/lib/blog";
+import { normalizeBlogKeywords, slugifyBlogTitle, stripHtmlToText, blogSeoData, blogSeoFieldsSchema, resolvePublishedAt } from "src/lib/blog";
 import { syncFacebookPublishState } from "src/lib/facebook";
 
 const createBlogSchema = z.object({
@@ -15,7 +15,7 @@ const createBlogSchema = z.object({
   keywords: z.array(z.string().trim().max(80)).optional().default([]),
   status: z.enum(["draft", "published"]).default("draft"),
   socialAutoPostEnabled: z.boolean().optional().default(false),
-});
+}).merge(blogSeoFieldsSchema);
 
 async function resolveUniqueSlug(baseSlug: string, excludeId = "") {
   const base = slugifyBlogTitle(baseSlug);
@@ -57,6 +57,8 @@ export async function GET(req: Request) {
           facebookPostedAt: true,
           facebookPostError: true,
           publishedAt: true,
+          noindex: true,
+          category: true,
           createdAt: true,
           updatedAt: true,
           author: {
@@ -104,7 +106,7 @@ export async function POST(req: Request) {
     const keywords = normalizeBlogKeywords(payload.keywords);
     const status = payload.status;
     const socialAutoPostEnabled = payload.socialAutoPostEnabled;
-    const publishedAt = status === "published" ? new Date() : null;
+    const publishedAt = resolvePublishedAt(status, payload.publishAt, null);
 
     let post = await prisma.blogPost.create({
       data: {
@@ -117,6 +119,7 @@ export async function POST(req: Request) {
         status,
         socialAutoPostEnabled,
         publishedAt,
+        ...blogSeoData(payload),
         authorId: authResult.auth.user.id,
       },
     });

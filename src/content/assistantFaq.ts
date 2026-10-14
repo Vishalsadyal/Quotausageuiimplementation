@@ -29,7 +29,7 @@ export const ASSISTANT_FAQ: FaqEntry[] = [
     q: "How many applies do I have left today?",
     keywords: ["left", "remaining", "quota", "limit", "applies", "today", "how many", "balance"],
     answer: (f) =>
-      f.plan === "pro"
+      f.plan === "pro" || f.plan === "connect"
         ? "You're on **Pro**, so auto-apply is **unlimited**."
         : `You have **${f.freeRemaining} free applies** left today and **${f.hireBalance} Hires** in your wallet, so **${f.spendable}** applications in total right now.\n\nYour free applies reset daily at ${resetTimeIst(f.resetAt)} IST. Need more? [Upgrade to Pro](/dashboard/billing) for unlimited, or top up Hires.`,
   },

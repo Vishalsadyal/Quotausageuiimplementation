@@ -6,7 +6,7 @@ export default function PrivacyPolicy() {
       eyebrow="Privacy Policy"
       title="How AutoApply CV handles your data"
       description="This summary explains what we collect, why we collect it, and the controls you have over your account data."
-      metrics={[{ label: "Last updated", value: "October 6, 2026" }]}
+      metrics={[{ label: "Last updated", value: "October 14, 2026" }]}
       sections={[
         {
           title: "Data we collect",
@@ -40,6 +40,17 @@ export default function PrivacyPolicy() {
             "Resumes you upload and profile details you enter are stored with your account.",
             "To parse resumes, tailor them for applicant tracking systems, and suggest answers to screening questions, the relevant text is sent to AI service providers (currently Groq and OpenAI) for processing.",
             "AI features only use the information you provide. They do not invent experience on your behalf.",
+          ],
+        },
+        {
+          title: "HR Contacts (recruiter contact details)",
+          bullets: [
+            "When you send a WhatsApp message or email to a recruiter with the AutoApply CV extension, the recruiter's name, phone number or email, company, the role they posted and a link to their public LinkedIn post are added to a shared HR Contacts list.",
+            "We only add contact details that a recruiter published in a public hiring post, and only after a user actually messaged them.",
+            "Pro Connect members receive up to 20 of these contacts a day, matched to their target roles. We limit how many members receive the same contact each week, and contacts that are not seen again within 90 days stop being shared.",
+            "Whether a number is on WhatsApp is recorded only from real messages users sent. We never send test messages.",
+            "You can stop the recruiters you message from being added at any time with the \"Share recruiters I message\" switch on the HR Contacts page of your dashboard. It is on by default.",
+            "Recruiters can have their phone number or email removed and blocked from being added again at autoapplycv.in/remove-my-contact. We keep only a one-way hash of removed details so they are not re-added.",
           ],
         },
         {

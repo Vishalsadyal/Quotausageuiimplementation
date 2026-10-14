@@ -3,7 +3,7 @@ import { prisma } from "src/lib/prisma";
 import { requireAdmin } from "src/lib/guards";
 import { fail, handleApiError, ok } from "src/lib/api";
 import { writeAuditLog } from "src/lib/audit";
-import { normalizeBlogKeywords, slugifyBlogTitle, stripHtmlToText } from "src/lib/blog";
+import { normalizeBlogKeywords, slugifyBlogTitle, stripHtmlToText, blogSeoData, blogSeoFieldsSchema, resolvePublishedAt } from "src/lib/blog";
 import { syncFacebookPublishState } from "src/lib/facebook";
 
 type RouteParams = {
@@ -20,6 +20,7 @@ const updateBlogSchema = z
     keywords: z.array(z.string().trim().max(80)).optional(),
     status: z.enum(["draft", "published"]).optional(),
     socialAutoPostEnabled: z.boolean().optional(),
+    ...blogSeoFieldsSchema.shape,
   })
   .refine((value) => Object.keys(value).length > 0, {
     message: "At least one field is required",
@@ -86,10 +87,7 @@ export async function PATCH(req: Request, { params }: RouteParams) {
       payload.socialAutoPostEnabled !== undefined
         ? payload.socialAutoPostEnabled
         : existing.socialAutoPostEnabled;
-    const publishedAt =
-      status === "published"
-        ? existing.publishedAt || new Date()
-        : null;
+    const publishedAt = resolvePublishedAt(status, payload.publishAt, existing.publishedAt);
     const excerpt =
       payload.excerpt !== undefined
         ? payload.excerpt.trim() || stripHtmlToText(nextContent).slice(0, 220)
@@ -116,6 +114,7 @@ export async function PATCH(req: Request, { params }: RouteParams) {
         status,
         socialAutoPostEnabled,
         publishedAt,
+        ...blogSeoData(payload),
       },
     });
 

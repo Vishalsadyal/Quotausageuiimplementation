@@ -2,8 +2,9 @@ import { prisma } from "src/lib/prisma";
 import { requireAdmin } from "src/lib/guards";
 import { ok, handleApiError, parsePagination } from "src/lib/api";
 
-const PLAN_PRICE_MONTHLY: Record<"free" | "pro" | "coach", number> = {
+const PLAN_PRICE_MONTHLY: Record<"free" | "pro" | "coach" | "connect", number> = {
   free: 0,
+  connect: 500,
   pro: 999,
   coach: 2999,
 };

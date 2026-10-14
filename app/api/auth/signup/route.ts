@@ -6,6 +6,7 @@ import { createSessionAndTokens, setAuthCookies, toClientUser } from "src/lib/au
 import { createUserAccount } from "src/lib/account";
 import { writeAuditLog } from "src/lib/audit";
 import { fail, handleApiError } from "src/lib/api";
+import { attributeReferralFromCookie } from "src/lib/referrals";
 
 export async function POST(req: NextRequest) {
   try {
@@ -19,6 +20,7 @@ export async function POST(req: NextRequest) {
 
     const passwordHash = await bcrypt.hash(password, 10);
     const user = await createUserAccount({ name, email, phone, passwordHash });
+    await attributeReferralFromCookie(user.id);
 
     const { accessToken, refreshToken } = await createSessionAndTokens({
       id: user.id,

@@ -1,7 +1,8 @@
 import { prisma } from "./prisma";
+import { isUnlimitedPlan, type UserPlanName } from "./plans";
 
-export function getPlanQuota(plan: "free" | "pro" | "coach") {
-  if (plan === "pro") return Number(process.env.QUOTA_PRO_DAILY || 50);
+export function getPlanQuota(plan: UserPlanName) {
+  if (isUnlimitedPlan(plan)) return Number(process.env.QUOTA_PRO_DAILY || 50);
   if (plan === "coach") return Number(process.env.QUOTA_COACH_DAILY || 200);
   return Number(process.env.QUOTA_FREE_DAILY || 3);
 }

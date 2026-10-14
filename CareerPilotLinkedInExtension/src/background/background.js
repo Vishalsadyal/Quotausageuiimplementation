@@ -368,28 +368,40 @@ function portalAuthHeaders(settings) {
   return token ? { Authorization: token.startsWith("Bearer ") ? token : `Bearer ${token}` } : {};
 }
 
+// Where to reach the portal, best first: the last portal that worked, open portal tabs, the
+// configured API base, then every known address (autoapplycv.in and localhost:3000 / 3001), so a
+// local dev server and the live site both work whichever one the user is signed in to.
 async function portalTargetOrigins(settings) {
-  const preferred = getPortalOrigin();
-  const found = await detectPortalOriginsFromTabs();
-  const candidates = preferred ? [preferred, ...found.filter((o) => o !== preferred)] : found;
-  return candidates.length ? candidates : [settings?.apiBaseUrl ? new URL(settings.apiBaseUrl).origin : "http://localhost:3000"];
+  const configured = (() => {
+    try {
+      return settings?.apiBaseUrl ? new URL(settings.apiBaseUrl).origin : "";
+    } catch {
+      return "";
+    }
+  })();
+  const all = [getPortalOrigin(), ...(await detectPortalOriginsFromTabs()), configured, ...PORTAL_FALLBACK_ORIGINS];
+  return [...new Set(all.map((o) => String(o || "").trim()).filter(Boolean))];
 }
 
-function reasonForStatus(status, fallback) {
-  if (status === 401 || status === 403) return "NOT_SIGNED_IN";
-  if (status === 429) return "RATE_LIMITED";
-  return fallback;
+// Most useful failure wins when several portals were tried.
+const OUTREACH_REASON_RANK = { PORTAL_UNREACHABLE: 0, RATE_LIMITED: 1, NOT_SIGNED_IN: 2 };
+function reasonForStatus(status, current) {
+  const next = status === 401 || status === 403 ? "NOT_SIGNED_IN" : status === 429 ? "RATE_LIMITED" : "PORTAL_UNREACHABLE";
+  return OUTREACH_REASON_RANK[next] > OUTREACH_REASON_RANK[current] ? next : current;
 }
+
+const portalFetch = (url, init) => fetch(url, { ...init, signal: AbortSignal.timeout(8000) });
 
 const OUTREACH_REASON_TEXT = {
-  NOT_SIGNED_IN: "Sign in to AutoApply CV to send outreach",
+  NOT_SIGNED_IN: "Sign in to AutoApply CV (autoapplycv.in or localhost:3000) to send outreach",
   RATE_LIMITED: "Too many messages this hour, try again later",
-  PORTAL_UNREACHABLE: "Could not reach AutoApply CV to confirm Hires",
+  PORTAL_UNREACHABLE: "Could not reach AutoApply CV to confirm Hires (tried autoapplycv.in and localhost:3000)",
   INSUFFICIENT_HIRES: "Out of Hires: each message costs 1 Hire"
 };
 
-// Charges 1 Hire for one message (the portal charges each recipient / post once).
-async function chargeOutreachViaPortal(channel, rawTargetId) {
+// Charges 1 Hire for one message (the portal charges each recipient / post once). contact = the
+// hiring post's details; the portal adds WhatsApp / email recipients to the HR Contacts pool.
+async function chargeOutreachViaPortal(channel, rawTargetId, contact = null) {
   const targetId = String(rawTargetId || "").trim().toLowerCase().slice(0, 300);
   if (!OUTREACH_CHANNELS.includes(String(channel)) || targetId.length < 3) {
     return { ok: false, reason: "BAD_REQUEST", error: "Missing outreach channel or recipient" };
@@ -398,11 +410,11 @@ async function chargeOutreachViaPortal(channel, rawTargetId) {
   let reason = "PORTAL_UNREACHABLE";
   for (const origin of await portalTargetOrigins(settings)) {
     try {
-      const res = await fetch(`${origin}/api/user/outreach/charge`, {
+      const res = await portalFetch(`${origin}/api/user/outreach/charge`, {
         method: "POST",
         headers: { "Content-Type": "application/json", ...portalAuthHeaders(settings) },
         credentials: "include",
-        body: JSON.stringify({ channel, targetId })
+        body: JSON.stringify({ channel, targetId, ...(contact ? { contact } : {}) })
       });
       const body = await res.json().catch(() => null);
       if (res.ok && body?.success) {
@@ -419,6 +431,40 @@ async function chargeOutreachViaPortal(channel, rawTargetId) {
   return { ok: false, reason, error: OUTREACH_REASON_TEXT[reason] };
 }
 
+// Post details of the lead being sent, from the WhatsApp / email task the panel started.
+function outreachContactFrom(task) {
+  if (!task) return null;
+  const pick = (v, max) => String(v || "").replace(/\s+/g, " ").trim().slice(0, max);
+  return {
+    recruiterName: pick(task.recruiterName, 120),
+    company: pick(task.company, 160),
+    jobTitle: pick(task.jobTitle, 160),
+    urn: pick(task.urn, 300),
+    postSnippet: pick(task.postSnippet, 400)
+  };
+}
+
+const digitsOf = (v) => String(v || "").replace(/\D/g, "");
+
+// Tells the portal what a real WhatsApp send showed about a number (best effort, never blocks).
+async function reportWhatsAppStatus(phone, status) {
+  if (!digitsOf(phone)) return;
+  const settings = await getSettings();
+  for (const origin of await portalTargetOrigins(settings)) {
+    try {
+      const res = await portalFetch(`${origin}/api/user/hr-contacts/wa-status`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...portalAuthHeaders(settings) },
+        credentials: "include",
+        body: JSON.stringify({ phone: digitsOf(phone), status })
+      });
+      if (res.ok) return;
+    } catch {
+      // try next origin
+    }
+  }
+}
+
 // Pre-check before opening a WhatsApp / Gmail tab, so a batch stops instead of opening tabs that
 // will be refused. { allowed, spendable, unlimited, sent, topUpUrl } or { allowed:false, reason, error }.
 async function checkOutreachAllowance() {
@@ -426,7 +472,7 @@ async function checkOutreachAllowance() {
   let reason = "PORTAL_UNREACHABLE";
   for (const origin of await portalTargetOrigins(settings)) {
     try {
-      const res = await fetch(`${origin}/api/user/outreach`, { headers: portalAuthHeaders(settings), credentials: "include" });
+      const res = await portalFetch(`${origin}/api/user/outreach`, { headers: portalAuthHeaders(settings), credentials: "include" });
       const body = await res.json().catch(() => null);
       if (res.ok && body?.success && body.data) {
         const d = body.data;
@@ -2160,6 +2206,7 @@ async function handleDispatchWhatsApp(lead) {
     recruiterName: lead.recruiterName,
     jobTitle: lead.jobTitle,
     company: lead.company,
+    postSnippet: lead.postSnippet || '',
     autoSend: shouldAutoSend,
     autoClose: shouldAutoClose,
     startTime: Date.now()
@@ -2308,6 +2355,7 @@ async function handleDispatchEmail(payload) {
     recruiterName: lead.recruiterName,
     jobTitle: lead.jobTitle,
     company: lead.company,
+    postSnippet: lead.postSnippet || '',
     autoClose: settings.autoCloseTab,
     startTime: Date.now()
   };
@@ -3092,7 +3140,11 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     // content script sends. Fails closed: nothing is sent unless the portal confirmed the charge.
     // The portal charges each recipient once, so retries for the same target are free.
     if (message.type === "CP_OUTREACH_CHARGE") {
-      sendResponse(await chargeOutreachViaPortal(message.channel, message.targetId));
+      const target = String(message.targetId || "").trim().toLowerCase();
+      let task = null;
+      if (message.channel === "whatsapp" && activeOutreachTask && digitsOf(activeOutreachTask.phone) === digitsOf(target)) task = activeOutreachTask;
+      if (message.channel === "email" && activeEmailOutreachTask && String(activeEmailOutreachTask.email || "").toLowerCase() === target) task = activeEmailOutreachTask;
+      sendResponse(await chargeOutreachViaPortal(message.channel, message.targetId, outreachContactFrom(task)));
       return;
     }
 
@@ -3162,6 +3214,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     }
 
     if (message.type === "WHATSAPP_MESSAGE_SENT") {
+      reportWhatsAppStatus(message.payload?.phone || activeOutreachTask?.phone, "valid").catch(() => {});
       const result = await handleMessageSent(message.payload, sender);
       sendResponse(result);
       return;
@@ -3169,6 +3222,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
     if (message.type === "WA_NUMBER_INVALID") {
       const phone = message.payload?.phone || '';
+      reportWhatsAppStatus(phone, "invalid").catch(() => {});
       const data = await chrome.storage.local.get(['invalidPhones']);
       const invalidPhones = data.invalidPhones || [];
       if (phone && !invalidPhones.includes(phone)) {
@@ -3251,7 +3305,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     // ── Email Outreach Pro Message Handlers ──
     if (message.type === "DISPATCH_EMAIL_MESSAGE") {
       if (message.payload?.client === "mailto") {
-        const charge = await chargeOutreachViaPortal("email", message.payload?.lead?.email);
+        const charge = await chargeOutreachViaPortal("email", message.payload?.lead?.email, outreachContactFrom(message.payload?.lead));
         if (!charge.ok) {
           sendResponse({ success: false, reason: charge.reason, error: charge.error, topUpUrl: charge.topUpUrl });
           return;

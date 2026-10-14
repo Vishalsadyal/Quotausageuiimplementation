@@ -352,6 +352,9 @@ Parveen`,
               <input type="checkbox" id="check-email-auto-scroll" ${settings.autoScroll ? 'checked' : ''} />
               <span>📜 Auto-Scroll feed during active scan</span>
             </label>
+            <p style="margin:6px 0 0; font-size:11px; color:#94a3b8; line-height:1.4;">
+              Recruiters you email (name, address, role) are added to AutoApply CV's shared HR Contacts list. You can turn this off on the HR Contacts page of your dashboard.
+            </p>
           </div>
 
           <button class="li-email-btn li-email-btn-primary" id="btn-email-save-settings" style="width:100%; margin-top:10px;">

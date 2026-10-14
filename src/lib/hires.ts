@@ -1,5 +1,7 @@
 import { Prisma } from "@prisma/client";
 import { prisma } from "./prisma";
+import { isUnlimitedPlan, type UserPlanName } from "./plans";
+import { expirePlanIfDue } from "./plan-access";
 
 export const MIN_TOPUP_RUPEES = 49;
 
@@ -10,15 +12,15 @@ function nextUtcMidnight(baseDate: Date) {
   return next;
 }
 
-export function getDailyHireCap(plan: "free" | "pro" | "coach") {
+export function getDailyHireCap(plan: UserPlanName) {
   // Pro is a subscription tier (₹99/month) intended to be effectively unlimited.
   // Keep it as a very large daily cap to avoid edge cases and keep counters numeric.
-  if (plan === "pro") return Number(process.env.QUOTA_PRO_DAILY || 1000000);
+  if (isUnlimitedPlan(plan)) return Number(process.env.QUOTA_PRO_DAILY || 1000000);
   if (plan === "coach") return Number(process.env.QUOTA_COACH_DAILY || 200);
   return Number(process.env.QUOTA_FREE_DAILY || 3);
 }
 
-export function getDailyFreeHires(plan: "free" | "pro" | "coach") {
+export function getDailyFreeHires(plan: UserPlanName) {
   if (plan !== "free") return 0;
   return Number(process.env.FREE_HIRES_DAILY || 3);
 }
@@ -28,8 +30,10 @@ export function hiresFromRupees(rupees: number) {
 }
 
 export async function ensureHireWindow(userId: string) {
-  const user = await prisma.user.findUnique({ where: { id: userId } });
-  if (!user) throw new Error("User not found");
+  const found = await prisma.user.findUnique({ where: { id: userId } });
+  if (!found) throw new Error("User not found");
+  // A timed plan that ran out goes back to the previous plan before anything is charged.
+  const user = await expirePlanIfDue(found);
 
   const now = new Date();
   const targetCap = getDailyHireCap(user.plan);
@@ -66,7 +70,7 @@ function getRemainingDailyCap(user: {
 }
 
 function getFreeRemaining(user: {
-  plan: "free" | "pro" | "coach";
+  plan: UserPlanName;
   dailyHireUsed: number;
 }) {
   const free = getDailyFreeHires(user.plan);
@@ -79,7 +83,7 @@ export async function getWalletSummary(userId: string) {
   // Daily cap applies only to free credits; paid Hires can be used beyond the free daily cap.
   const dailyRemaining = getRemainingDailyCap(user);
   const spendable =
-    user.plan === "pro"
+    isUnlimitedPlan(user.plan)
       ? 1000000
       : Math.max(0, user.hireBalance + freeRemaining);
   return {
@@ -239,7 +243,7 @@ export async function consumeHiresForApplies(input: {
   if (input.count <= 0) return { ok: true as const, consumed: 0, sourceBreakdown: { free: 0, paid: 0 } };
 
   const user = await ensureHireWindow(input.userId);
-  if (user.plan === "pro") {
+  if (isUnlimitedPlan(user.plan)) {
     await prisma.user.update({
       where: { id: user.id },
       data: {

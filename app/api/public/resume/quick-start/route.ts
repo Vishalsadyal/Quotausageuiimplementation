@@ -3,6 +3,7 @@ import { randomBytes } from "crypto";
 import bcrypt from "bcryptjs";
 import { Prisma } from "@prisma/client";
 import { prisma } from "src/lib/prisma";
+import { attributeReferralFromCookie, qualifyReferral } from "src/lib/referrals";
 import { fail, handleApiError, ok } from "src/lib/api";
 import { emailSchema } from "src/lib/schemas";
 import { parseResumeFile } from "src/lib/resume-parser";
@@ -140,6 +141,7 @@ export async function POST(req: NextRequest) {
     }
 
     await saveResumeForUser(user.id, file, parsed, merged);
+    if (await attributeReferralFromCookie(user.id)) await qualifyReferral(user.id);
 
     const { accessToken, refreshToken } = await createSessionAndTokens({ id: user.id, email: user.email, role: user.role });
     await setAuthCookies(accessToken, refreshToken);

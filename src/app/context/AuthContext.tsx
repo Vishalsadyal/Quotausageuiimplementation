@@ -7,7 +7,7 @@ interface User {
   email: string;
   role: 'user' | 'admin';
   avatar?: string;
-  plan: 'free' | 'pro' | 'coach';
+  plan: 'free' | 'pro' | 'coach' | 'connect';
   createdAt: string;
   quotaUsed: number;
   quotaTotal: number;

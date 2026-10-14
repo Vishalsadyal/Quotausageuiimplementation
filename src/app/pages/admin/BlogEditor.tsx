@@ -21,6 +21,12 @@ import {
   parseKeywordsInput,
 } from "./blogs/shared";
 
+// ISO -> value for <input type="datetime-local"> (local time).
+function toLocalDateTime(iso: string) {
+  const d = new Date(iso);
+  return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+}
+
 type FlashState = {
   message?: string;
 } | null;
@@ -54,6 +60,15 @@ export default function AdminBlogEditor() {
       keywords: keywordsFromJson(post.keywordsJson),
       status: post.status || "draft",
       socialAutoPostEnabled: Boolean(post.socialAutoPostEnabled),
+      metaTitle: post.metaTitle || "",
+      metaDescription: post.metaDescription || "",
+      canonicalUrl: post.canonicalUrl || "",
+      category: post.category || "",
+      ctaLabel: post.ctaLabel || "",
+      ctaHref: post.ctaHref || "",
+      noindex: Boolean(post.noindex),
+      // Show a future publish date so it can be changed; past dates are just "published".
+      publishAt: post.publishedAt && new Date(post.publishedAt) > new Date() ? toLocalDateTime(post.publishedAt) : "",
     });
     setPostMeta({
       createdAt: post.createdAt,
@@ -136,6 +151,15 @@ export default function AdminBlogEditor() {
         keywords: parseKeywordsInput(form.keywords),
         status: form.status,
         socialAutoPostEnabled: form.socialAutoPostEnabled,
+        metaTitle: form.metaTitle.trim(),
+        metaDescription: form.metaDescription.trim(),
+        canonicalUrl: form.canonicalUrl.trim(),
+        category: form.category.trim(),
+        ctaLabel: form.ctaLabel.trim(),
+        ctaHref: form.ctaHref.trim(),
+        noindex: form.noindex,
+        // Only sent when scheduling; otherwise the server keeps the original publish date.
+        ...(form.status === "published" && form.publishAt ? { publishAt: new Date(form.publishAt).toISOString() } : {}),
       };
 
       const endpoint = isEdit ? `/api/admin/blogs/${id}` : "/api/admin/blogs";
@@ -370,8 +394,24 @@ export default function AdminBlogEditor() {
                 </select>
               </div>
 
+              {form.status === "published" ? (
+                <div>
+                  <label className="mb-1.5 block text-sm font-semibold text-slate-700" htmlFor="blog-publish-at">Publish at (optional)</label>
+                  <input
+                    id="blog-publish-at"
+                    type="datetime-local"
+                    value={form.publishAt}
+                    onChange={(e) => setForm((prev) => ({ ...prev, publishAt: e.target.value }))}
+                    className="w-full rounded-2xl border border-slate-300 px-3 py-2.5 outline-none transition focus:border-indigo-400 focus:ring-4 focus:ring-indigo-100"
+                  />
+                  <p className="mt-1 text-xs text-slate-500">Pick a future time to schedule. Hidden from the blog and Google until then.</p>
+                </div>
+              ) : null}
+
               <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
-                {publishLabel}
+                {form.status === "published" && form.publishAt && new Date(form.publishAt) > new Date()
+                  ? `Scheduled for ${new Date(form.publishAt).toLocaleString()}`
+                  : publishLabel}
               </div>
 
               <div>
@@ -384,6 +424,17 @@ export default function AdminBlogEditor() {
                 />
               </div>
 
+              <div>
+                <label className="mb-1.5 block text-sm font-semibold text-slate-700" htmlFor="blog-category">Category</label>
+                <input
+                  id="blog-category"
+                  value={form.category}
+                  onChange={(e) => setForm((prev) => ({ ...prev, category: e.target.value.slice(0, 60) }))}
+                  placeholder="e.g. Data Engineering"
+                  className="w-full rounded-2xl border border-slate-300 px-3 py-2.5 outline-none transition focus:border-indigo-400 focus:ring-4 focus:ring-indigo-100"
+                />
+              </div>
+
               {postMeta ? (
                 <div className="space-y-2 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
                   <div>Created: {formatBlogDate(postMeta.createdAt)}</div>
@@ -391,6 +442,72 @@ export default function AdminBlogEditor() {
                   <div>{postMeta.publishedAt ? `Published: ${formatBlogDate(postMeta.publishedAt)}` : "Not published yet"}</div>
                 </div>
               ) : null}
+            </div>
+          </div>
+
+          <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+            <div className="text-sm font-semibold text-slate-800">Search engines (SEO)</div>
+            <div className="mt-4 space-y-4">
+              <div>
+                <label className="mb-1.5 flex justify-between text-sm font-semibold text-slate-700" htmlFor="blog-meta-title">
+                  Meta title <span className="font-normal text-slate-400">{form.metaTitle.length}/60</span>
+                </label>
+                <input
+                  id="blog-meta-title"
+                  value={form.metaTitle}
+                  onChange={(e) => setForm((prev) => ({ ...prev, metaTitle: e.target.value.slice(0, 70) }))}
+                  placeholder={form.title || "Defaults to the post title"}
+                  className="w-full rounded-2xl border border-slate-300 px-3 py-2.5 outline-none transition focus:border-indigo-400 focus:ring-4 focus:ring-indigo-100"
+                />
+              </div>
+              <div>
+                <label className="mb-1.5 flex justify-between text-sm font-semibold text-slate-700" htmlFor="blog-meta-desc">
+                  Meta description <span className="font-normal text-slate-400">{form.metaDescription.length}/160</span>
+                </label>
+                <textarea
+                  id="blog-meta-desc"
+                  value={form.metaDescription}
+                  onChange={(e) => setForm((prev) => ({ ...prev, metaDescription: e.target.value.slice(0, 170) }))}
+                  rows={3}
+                  placeholder={form.excerpt || "Defaults to the excerpt"}
+                  className="w-full rounded-2xl border border-slate-300 px-3 py-2.5 outline-none transition focus:border-indigo-400 focus:ring-4 focus:ring-indigo-100"
+                />
+              </div>
+              <div>
+                <label className="mb-1.5 block text-sm font-semibold text-slate-700" htmlFor="blog-canonical">Canonical URL (optional)</label>
+                <input
+                  id="blog-canonical"
+                  value={form.canonicalUrl}
+                  onChange={(e) => setForm((prev) => ({ ...prev, canonicalUrl: e.target.value }))}
+                  placeholder="Only if this article first appeared elsewhere"
+                  className="w-full rounded-2xl border border-slate-300 px-3 py-2.5 outline-none transition focus:border-indigo-400 focus:ring-4 focus:ring-indigo-100"
+                />
+              </div>
+              <label className="flex items-center gap-2 text-sm text-slate-700">
+                <input type="checkbox" checked={form.noindex} onChange={(e) => setForm((prev) => ({ ...prev, noindex: e.target.checked }))} />
+                Hide from Google (noindex, leave out of the sitemap)
+              </label>
+            </div>
+          </div>
+
+          <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+            <div className="text-sm font-semibold text-slate-800">Call to action</div>
+            <p className="mt-1 text-xs text-slate-500">Button under the article. Empty = "Explore Pro Connect".</p>
+            <div className="mt-3 grid grid-cols-1 gap-3">
+              <input
+                value={form.ctaLabel}
+                onChange={(e) => setForm((prev) => ({ ...prev, ctaLabel: e.target.value.slice(0, 40) }))}
+                placeholder="Button text, e.g. See Data Engineer jobs"
+                aria-label="Call to action text"
+                className="w-full rounded-2xl border border-slate-300 px-3 py-2.5 outline-none transition focus:border-indigo-400 focus:ring-4 focus:ring-indigo-100"
+              />
+              <input
+                value={form.ctaHref}
+                onChange={(e) => setForm((prev) => ({ ...prev, ctaHref: e.target.value }))}
+                placeholder="/pricing or https://..."
+                aria-label="Call to action link"
+                className="w-full rounded-2xl border border-slate-300 px-3 py-2.5 outline-none transition focus:border-indigo-400 focus:ring-4 focus:ring-indigo-100"
+              />
             </div>
           </div>
 

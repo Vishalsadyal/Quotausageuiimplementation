@@ -27,6 +27,14 @@ export async function GET(_req: Request, { params }: RouteParams) {
         keywordsJson: true,
         publishedAt: true,
         createdAt: true,
+        updatedAt: true,
+        category: true,
+        ctaLabel: true,
+        ctaHref: true,
+        metaTitle: true,
+        metaDescription: true,
+        canonicalUrl: true,
+        noindex: true,
         author: {
           select: {
             name: true,
@@ -58,6 +66,8 @@ export async function GET(_req: Request, { params }: RouteParams) {
       return fail("Blog post not found", 404, "NOT_FOUND");
     }
     if (post.status !== "published") return fail("Blog post not found", 404, "NOT_FOUND");
+    // Scheduled posts stay hidden until their publish time.
+    if (post.publishedAt && post.publishedAt > now) return fail("Blog post not found", 404, "NOT_FOUND");
     if (post.publishedAt && post.publishedAt > now) return fail("Blog post not found", 404, "NOT_FOUND");
 
     return ok("Public blog post fetched", { post });

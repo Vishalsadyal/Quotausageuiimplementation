@@ -6,12 +6,14 @@ import { fail, handleApiError, ok } from "src/lib/api";
 import { getRazorpayClient } from "src/lib/billing";
 import { prisma } from "src/lib/prisma";
 import { enforceRateLimit, rateLimitKey } from "src/lib/rate-limit";
+import { planAmountPaise } from "src/lib/plans";
+import { DiscountValidationError, evaluateDiscountForOrder, planDiscountContext } from "src/lib/discounts";
 
-const PLAN_AMOUNT_PAISE: Record<"pro" | "coach", number> = {
-  pro: Number(process.env.PLAN_PRO_PAISE || 9900),
-  coach: Number(process.env.PLAN_COACH_PAISE || 184900),
-};
-
+/**
+ * POST /api/billing/order  { plan, discountCode? }  (header x-idempotency-key)
+ * Creates a one-time Razorpay order for a plan. A coupon is validated here, on the server, and the
+ * plan, buyer and discount are written into the order's notes: /verify trusts only those.
+ */
 export async function POST(req: NextRequest) {
   try {
     const rl = await enforceRateLimit({
@@ -41,7 +43,16 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    const amount = PLAN_AMOUNT_PAISE[body.plan];
+    const baseRupees = Math.round(planAmountPaise(body.plan) / 100);
+    const applied = body.discountCode
+      ? await evaluateDiscountForOrder({
+          codeInput: body.discountCode,
+          userId: authResult.auth.user.id,
+          context: planDiscountContext(body.plan),
+          baseRupees,
+        })
+      : null;
+    const amount = applied ? applied.finalRupees * 100 : planAmountPaise(body.plan);
     const razorpay = getRazorpayClient();
 
     const order = await razorpay.orders.create({
@@ -53,6 +64,14 @@ export async function POST(req: NextRequest) {
         userEmail: authResult.auth.user.email,
         plan: body.plan,
         mode: "one_time",
+        baseRupees: String(baseRupees),
+        ...(applied
+          ? {
+              discountCode: applied.code,
+              discountCodeId: applied.discountCodeId,
+              discountRupees: String(applied.discountRupees),
+            }
+          : {}),
       },
     });
 
@@ -62,6 +81,9 @@ export async function POST(req: NextRequest) {
       amount: order.amount,
       currency: order.currency,
       plan: body.plan,
+      baseRupees,
+      finalRupees: Math.round(Number(order.amount) / 100),
+      discountCode: applied?.code || null,
       keyId: process.env.RZP_KEY_ID || "",
     };
 
@@ -85,6 +107,7 @@ export async function POST(req: NextRequest) {
 
     return ok("Order created", orderData);
   } catch (error) {
+    if (error instanceof DiscountValidationError) return fail(error.message, error.status, error.errorCode);
     return handleApiError(error, "Failed to create order");
   }
 }

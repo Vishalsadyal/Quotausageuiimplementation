@@ -1,5 +1,6 @@
 import crypto from "crypto";
 import Razorpay from "razorpay";
+import { PLAN_RAZORPAY_ENV, PLAN_RAZORPAY_NAME, planAmountPaise, type PaidPlan } from "./plans";
 
 export function getRazorpayClient() {
   const keyId = process.env.RZP_KEY_ID;
@@ -13,27 +14,19 @@ export function getRazorpayClient() {
   });
 }
 
-export function getPlanRazorpayId(plan: "pro" | "coach") {
-  const map: Record<"pro" | "coach", string | undefined> = {
-    pro: process.env.RZP_PLAN_PRO,
-    coach: process.env.RZP_PLAN_COACH,
-  };
-  const planId = map[plan];
+export function getPlanRazorpayId(plan: PaidPlan) {
+  const planId = process.env[PLAN_RAZORPAY_ENV[plan]];
   if (!planId) throw new Error(`Razorpay plan id missing for ${plan}`);
   return planId;
 }
 
-const PLAN_CONFIG: Record<"pro" | "coach", { amountPaise: number; name: string }> = {
-  pro: { amountPaise: Number(process.env.PLAN_PRO_PAISE || 9900), name: "AutoApply CV Pro Monthly" },
-  coach: { amountPaise: Number(process.env.PLAN_COACH_PAISE || 184900), name: "AutoApply CV Coach Monthly" },
-};
-
-export async function getOrCreatePlanRazorpayId(plan: "pro" | "coach") {
-  const configured = process.env[plan === "pro" ? "RZP_PLAN_PRO" : "RZP_PLAN_COACH"];
+// Uses the configured plan id, else finds (or creates) the Razorpay plan by name.
+export async function getOrCreatePlanRazorpayId(plan: PaidPlan) {
+  const configured = process.env[PLAN_RAZORPAY_ENV[plan]];
   if (configured) return configured;
 
   const razorpay = getRazorpayClient();
-  const desired = PLAN_CONFIG[plan];
+  const desired = { amountPaise: planAmountPaise(plan), name: PLAN_RAZORPAY_NAME[plan] };
 
   const existing = await razorpay.plans.all({ count: 100 });
   const found = (existing.items || []).find((p: any) => p?.item?.name === desired.name);

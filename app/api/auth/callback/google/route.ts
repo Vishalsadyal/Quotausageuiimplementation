@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { randomBytes } from "crypto";
 import bcrypt from "bcryptjs";
 import { prisma } from "src/lib/prisma";
+import { attributeReferralFromCookie } from "src/lib/referrals";
 import { createSessionAndTokens, setAuthCookies } from "src/lib/auth";
 import { getPlanQuota } from "src/lib/quota";
 import { creditBonusHires, ensureHireWindow, getDailyHireCap } from "src/lib/hires";
@@ -150,6 +151,8 @@ export async function GET(req: NextRequest) {
           dailyHireResetTime: nextReset,
         },
       });
+
+      await attributeReferralFromCookie(existingUser.id);
 
       // Credit 30 bonus coins on signup
       const signupBonus = Math.max(0, Math.floor(Number(process.env.SIGNUP_BONUS_HIRES || 30)));

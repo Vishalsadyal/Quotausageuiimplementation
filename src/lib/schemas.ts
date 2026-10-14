@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { PAID_PLANS } from "src/lib/plans";
 
 export const emailSchema = z.string().trim().email().transform((value) => value.toLowerCase());
 export const passwordSchema = z.string().min(8).max(128);
@@ -64,7 +65,8 @@ export const cancelJobSchema = z.object({
 });
 
 export const checkoutSchema = z.object({
-  plan: z.enum(["pro", "coach"]),
+  plan: z.enum(PAID_PLANS),
+  discountCode: z.string().trim().max(32).optional(),
 });
 
 export const onboardingSchema = z.object({

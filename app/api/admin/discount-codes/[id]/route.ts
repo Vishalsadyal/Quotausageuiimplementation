@@ -13,10 +13,11 @@ const updateDiscountSchema = z
   .object({
     code: z.string().trim().min(3).max(32).optional(),
     description: z.string().trim().max(240).optional(),
-    type: z.enum(["percent", "flat_rupees"]).optional(),
-    target: z.enum(["all", "wallet_topup", "plan_pro", "plan_coach"]).optional(),
+    type: z.enum(["percent", "flat_rupees", "fixed_price"]).optional(),
+    target: z.enum(["all", "wallet_topup", "plan_pro", "plan_coach", "plan_connect"]).optional(),
     percentOff: z.number().int().min(1).max(95).optional(),
     flatAmountRupees: z.number().int().min(1).max(200000).optional(),
+    fixedPriceRupees: z.number().int().min(1).max(200000).optional(),
     maxDiscountRupees: z.number().int().min(1).max(200000).optional().nullable(),
     minOrderRupees: z.number().int().min(1).max(200000).optional().nullable(),
     usageLimitTotal: z.number().int().min(1).max(100000).optional().nullable(),
@@ -80,6 +81,16 @@ export async function PATCH(req: Request, { params }: RouteParams) {
           : existing.flatAmountRupees
         : null;
 
+    const nextFixedPrice =
+      nextType === "fixed_price"
+        ? payload.fixedPriceRupees !== undefined
+          ? payload.fixedPriceRupees
+          : existing.fixedPriceRupees
+        : null;
+    if (nextType === "fixed_price" && !nextFixedPrice) {
+      return fail("fixedPriceRupees is required for fixed-price coupons", 400, "VALIDATION_ERROR");
+    }
+
     if (nextType === "percent" && !nextPercentOff) {
       return fail("percentOff is required for percent discounts", 400, "VALIDATION_ERROR");
     }
@@ -96,6 +107,7 @@ export async function PATCH(req: Request, { params }: RouteParams) {
         target: payload.target || existing.target,
         percentOff: nextPercentOff || null,
         flatAmountRupees: nextFlatAmount || null,
+        fixedPriceRupees: nextFixedPrice || null,
         maxDiscountRupees:
           payload.maxDiscountRupees !== undefined ? payload.maxDiscountRupees : existing.maxDiscountRupees,
         minOrderRupees: payload.minOrderRupees !== undefined ? payload.minOrderRupees : existing.minOrderRupees,

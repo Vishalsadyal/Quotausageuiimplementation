@@ -17,6 +17,7 @@ enum UserPlan {
   free
   pro
   coach
+  connect // Pro Connect: Pro + HR Contacts
 }
 
 enum OtpPurpose {
@@ -91,6 +92,7 @@ enum BlogPostStatus {
 enum DiscountCodeType {
   percent
   flat_rupees
+  fixed_price // buyer pays fixedPriceRupees whatever the regular price
 }
 
 enum DiscountCodeTarget {
@@ -98,6 +100,7 @@ enum DiscountCodeTarget {
   wallet_topup
   plan_pro
   plan_coach
+  plan_connect
 }
 
 enum SupportConversationStatus {
@@ -137,6 +140,16 @@ model User {
   dailyHireUsed Int      @default(0)
   dailyHireCap  Int      @default(3)
   dailyHireResetTime DateTime @default(now())
+  shareOutreachContacts Boolean @default(true) // add contacts I message to the HR Contacts pool
+  hrContactsDailyEmail  Boolean @default(true) // email my 20 daily HR contacts
+  // Timed plans (purchases from Oct 2026 and referral rewards). null = no expiry (older purchases).
+  planExpiresAt   DateTime?
+  planAfterExpiry UserPlan? // plan to return to when the timed plan ends (null = free)
+  // Referrals
+  referralCode        String?   @unique
+  referredById        String?
+  referredAt          DateTime?
+  referralQualifiedAt DateTime? // when this (referred) user completed onboarding
   updatedAt     DateTime @updatedAt
 
   sessions      Session[]
@@ -155,6 +168,13 @@ model User {
   supportConversations SupportConversation[]
   resume              UserResume?
   hrOutreachContacts  HROutreachContact[]
+  hrContactSightings  HrContactSighting[]
+  hrContactDeliveries HrContactDelivery[]
+  referredBy          User?     @relation("userReferrals", fields: [referredById], references: [id], onDelete: SetNull)
+  referrals           User[]    @relation("userReferrals")
+  referralRewards     ReferralReward[]
+
+  @@index([referredById])
 }
 
 model UserResume {
@@ -416,8 +436,16 @@ model BlogPost {
   excerpt      String?
   coverImage   String?
   contentHtml  String         @db.Text
-  keywordsJson Json?
+  keywordsJson Json?          // tags
   status       BlogPostStatus @default(draft)
+  // SEO + call to action (all optional; empty = derived from title / excerpt)
+  metaTitle       String?
+  metaDescription String?
+  canonicalUrl    String?
+  category        String?
+  ctaLabel        String?
+  ctaHref         String?
+  noindex         Boolean @default(false) // keep out of Google and the sitemap
   socialAutoPostEnabled Boolean @default(false)
   facebookPostId String?
   facebookPostedAt DateTime?
@@ -441,6 +469,7 @@ model DiscountCode {
   target            DiscountCodeTarget @default(wallet_topup)
   percentOff        Int?
   flatAmountRupees  Int?
+  fixedPriceRupees  Int?
   maxDiscountRupees Int?
   minOrderRupees    Int?
   usageLimitTotal   Int?
@@ -564,4 +593,96 @@ model HROutreachContact {
   @@index([userId, email])
   @@index([userId, company])
   @@index([userId, createdAt])
+}
+
+// ── HR Contacts ─────────────────────────────────────────────────────────────
+// Shared pool of recruiter contacts, filled from WhatsApp / email outreach that users actually sent
+// on public LinkedIn hiring posts. One row per contact point (a phone number or an email address).
+model HrContact {
+  id               String   @id @default(cuid())
+  kind             String   // "phone" | "email"
+  value            String   // phone: digits with country code; email: lowercase
+  recruiterName    String   @default("")
+  company          String   @default("")
+  jobTitle         String   @default("") // latest role they were hiring for
+  location         String   @default("")
+  postUrl          String   @default("") // public post the contact was published in
+  postSnippet      String   @default("")
+  keywords         String   @default("") // lowercase words from job titles, for role matching
+  waStatus         String   @default("unknown") // "valid" | "invalid" | "unknown" (from real sends)
+  emailStatus      String   @default("unknown") // "valid" | "invalid" | "unknown" (MX check)
+  seenCount        Int      @default(1)
+  contributorCount Int      @default(1)
+  firstSeenAt      DateTime @default(now())
+  lastSeenAt       DateTime @default(now())
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  sightings        HrContactSighting[]
+  deliveries       HrContactDelivery[]
+
+  @@unique([kind, value])
+  @@index([lastSeenAt])
+}
+
+// Which user found a contact (one row per user per contact).
+model HrContactSighting {
+  id        String   @id @default(cuid())
+  contactId String
+  userId    String
+  jobTitle  String   @default("")
+  postUrl   String   @default("")
+  createdAt DateTime @default(now())
+
+  contact   HrContact @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([contactId, userId])
+  @@index([userId])
+}
+
+// A contact handed to a Pro Connect user (20 per day, never the same contact twice).
+model HrContactDelivery {
+  id        String    @id @default(cuid())
+  userId    String
+  contactId String
+  day       String    // YYYY-MM-DD in IST
+  sentAt    DateTime? // when the user messaged it
+  emailedAt DateTime? // when it went out in the daily email
+  createdAt DateTime  @default(now())
+
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  contact   HrContact @relation(fields: [contactId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, contactId])
+  @@index([userId, day])
+  @@index([contactId, createdAt])
+}
+
+// Recruiters who asked to be removed. Only a hash is kept, so the number/email itself is gone.
+model HrContactRemoval {
+  id        String   @id @default(cuid())
+  valueHash String   @unique // sha256 of "kind:value"
+  createdAt DateTime @default(now())
+}
+
+// ── Referrals ───────────────────────────────────────────────────────────────
+// One row per reward earned (every N qualified friends). batch makes it idempotent: the 1st reward
+// is batch 1, the 2nd batch 2, ... so duplicate events can never grant the same reward twice.
+model ReferralReward {
+  id        String    @id @default(cuid())
+  userId    String
+  batch     Int
+  plan      UserPlan  @default(pro)
+  days      Int       @default(30)
+  status    String    @default("pending") // pending | applied | not_needed | revoked
+  appliedAt DateTime?
+  expiresAt DateTime?
+  note      String    @default("")
+  createdAt DateTime  @default(now())
+
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, batch])
+  @@index([status])
 }

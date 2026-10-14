@@ -63,7 +63,7 @@ export async function buildUserContext(userId: string) {
       ? `Subscription: ${subscription.plan} / ${subscription.status}, renews or ends ${fmtDate(subscription.currentPeriodEnd)}${subscription.cancelAtPeriodEnd ? " (set to cancel)" : ""}`
       : "Subscription: none",
     `Hires wallet balance: ${user.hireBalance} (purchased ${user.hirePurchased}, spent ${user.hireSpent})`,
-    user.plan === "pro"
+    user.plan === "pro" || user.plan === "connect"
       ? "Applies left today: unlimited"
       : `Free applies used today: ${user.dailyHireUsed} of ${user.dailyHireCap}; free left today: ${wallet.freeRemaining}; total spendable now: ${wallet.spendable}`,
     `Daily allowance resets at: ${user.dailyHireResetTime.toISOString()}`,

@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { useLocation } from "react-router";
 import { canonicalForPath, normalizeCanonicalBaseUrl, resolveSeo } from "../seo/seoConfig";
+import { STATIC_BLOG_POSTS_BY_SLUG } from "../../content/blogPosts";
 
 function upsertMetaByName(name: string, content: string) {
   let tag = document.head.querySelector(`meta[name="${name}"]`);
@@ -52,10 +53,30 @@ function upsertStructuredData(data?: Record<string, unknown> | Array<Record<stri
   }
 }
 
+/** Sets the page's title / description / canonical / robots tags (used by admin-written blog posts). */
+export function applyPageSeo(seo: { title: string; description: string; canonical: string; index: boolean; image?: string | null }) {
+  document.title = seo.title;
+  upsertMetaByName("description", seo.description);
+  upsertMetaByName("robots", seo.index ? "index,follow" : "noindex,nofollow");
+  upsertMetaByProperty("og:type", "article");
+  upsertMetaByProperty("og:title", seo.title);
+  upsertMetaByProperty("og:description", seo.description);
+  upsertMetaByProperty("og:url", seo.canonical);
+  if (seo.image) upsertMetaByProperty("og:image", seo.image);
+  upsertMetaByName("twitter:card", "summary_large_image");
+  upsertMetaByName("twitter:title", seo.title);
+  upsertMetaByName("twitter:description", seo.description);
+  upsertCanonical(seo.canonical);
+}
+
 export function SeoManager() {
   const location = useLocation();
 
   useEffect(() => {
+    // Admin-written blog posts set their own tags (BlogPost page + server render); bundled posts
+    // and every other page come from the static SEO table.
+    const blogSlug = location.pathname.startsWith("/blog/") ? location.pathname.slice(6).replace(/\/$/, "").toLowerCase() : "";
+    if (blogSlug && !STATIC_BLOG_POSTS_BY_SLUG[blogSlug]) return;
     const seo = resolveSeo(location.pathname);
     const baseUrl = normalizeCanonicalBaseUrl(
       (process.env.NEXT_PUBLIC_SITE_URL as string | undefined) ||

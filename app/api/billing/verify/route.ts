@@ -1,5 +1,6 @@
 import { NextRequest } from "next/server";
 import { z } from "zod";
+import { PAID_PLANS } from "src/lib/plans";
 import { requireAuth } from "src/lib/guards";
 import { fail, handleApiError, ok } from "src/lib/api";
 import { prisma } from "src/lib/prisma";
@@ -7,7 +8,7 @@ import { verifyRazorpaySubscriptionPaymentSignature } from "src/lib/billing";
 import { getPlanQuota } from "src/lib/quota";
 
 const verifySchema = z.object({
-  plan: z.enum(["pro", "coach"]),
+  plan: z.enum(PAID_PLANS),
   razorpay_payment_id: z.string().min(1),
   razorpay_subscription_id: z.string().min(1),
   razorpay_signature: z.string().min(1),

@@ -38,6 +38,69 @@ async function routeExists(pathname: string): Promise<boolean> {
   return slug ? isPublishedBlogSlug(slug) : false;
 }
 
+type PageSeo = ReturnType<typeof resolveSeo> & { canonical?: string; image?: string };
+
+/**
+ * SEO for a blog post written in the admin CMS (bundled posts come from resolveSeo): its own meta
+ * title / description, canonical URL, cover image, "hide from Google" switch and Article data.
+ */
+async function databaseBlogSeo(pathname: string): Promise<PageSeo | null> {
+  const slug = blogSlugFromPath(pathname);
+  if (!slug || STATIC_BLOG_POSTS_BY_SLUG[slug]) return null;
+  try {
+    const post = await prisma.blogPost.findUnique({
+      where: { slug },
+      select: {
+        title: true,
+        excerpt: true,
+        coverImage: true,
+        metaTitle: true,
+        metaDescription: true,
+        canonicalUrl: true,
+        category: true,
+        keywordsJson: true,
+        noindex: true,
+        publishedAt: true,
+        updatedAt: true,
+        author: { select: { name: true } },
+      },
+    });
+    if (!post) return null;
+    const title = `${(post.metaTitle || post.title).trim()} | AutoApply CV`;
+    const description = (post.metaDescription || post.excerpt || post.title).trim().slice(0, 170);
+    const canonical = post.canonicalUrl || canonicalForPath(pathname);
+    const image = post.coverImage ? new URL(post.coverImage, "https://www.autoapplycv.in").toString() : undefined;
+    const keywords = Array.isArray(post.keywordsJson) ? post.keywordsJson.map(String) : [];
+    return {
+      title,
+      description,
+      index: !post.noindex,
+      canonical,
+      image,
+      structuredData: {
+        "@context": "https://schema.org",
+        "@type": "Article",
+        headline: post.metaTitle || post.title,
+        description,
+        ...(image ? { image } : {}),
+        datePublished: (post.publishedAt || post.updatedAt).toISOString(),
+        dateModified: post.updatedAt.toISOString(),
+        mainEntityOfPage: canonical,
+        ...(post.category ? { articleSection: post.category } : {}),
+        ...(keywords.length ? { keywords: keywords.join(", ") } : {}),
+        author: post.author?.name ? { "@type": "Person", name: post.author.name } : { "@type": "Organization", name: "AutoApply CV" },
+        publisher: { "@type": "Organization", name: "AutoApply CV" },
+      },
+    };
+  } catch {
+    return null; // database unreachable: fall back to the generic page SEO
+  }
+}
+
+async function pageSeo(pathname: string): Promise<PageSeo> {
+  return (await databaseBlogSeo(pathname)) || resolveSeo(pathname === "/" ? "/" : pathname);
+}
+
 function breadcrumbsFor(pathname: string, pageTitle: string) {
   const crumbs = [{ name: "Home", url: canonicalForPath("/") }];
   if (pathname.startsWith("/blog/")) crumbs.push({ name: "Blog", url: canonicalForPath("/blog") });
@@ -63,8 +126,9 @@ async function pathnameFromParams(params?: Promise<{ slug?: string[] }>) {
 export async function generateMetadata({ params }: { params?: Promise<{ slug?: string[] }> }): Promise<Metadata> {
   const pathname = await pathnameFromParams(params);
   if (!(await routeExists(pathname))) notFound();
-  const seo = resolveSeo(pathname === "/" ? "/" : pathname);
-  const canonical = canonicalForPath(pathname);
+  const seo = await pageSeo(pathname);
+  const canonical = seo.canonical || canonicalForPath(pathname);
+  const image = seo.image ? { url: seo.image } : OG_IMAGE;
 
   return {
     title: seo.title,
@@ -75,15 +139,15 @@ export async function generateMetadata({ params }: { params?: Promise<{ slug?: s
       title: seo.title,
       description: seo.description,
       url: canonical,
-      type: "website",
+      type: seo.image || pathname.startsWith("/blog/") ? "article" : "website",
       siteName: "AutoApply CV",
-      images: [OG_IMAGE],
+      images: [image],
     },
     twitter: {
       card: "summary_large_image",
       title: seo.title,
       description: seo.description,
-      images: [OG_IMAGE.url],
+      images: [image.url],
     },
   };
 }
@@ -91,7 +155,7 @@ export async function generateMetadata({ params }: { params?: Promise<{ slug?: s
 export default async function CatchAllPage({ params }: { params?: Promise<{ slug?: string[] }> }) {
   const pathname = await pathnameFromParams(params);
   if (!(await routeExists(pathname))) notFound();
-  const seo = resolveSeo(pathname === "/" ? "/" : pathname);
+  const seo = await pageSeo(pathname);
   const pageData = seo.structuredData ? (Array.isArray(seo.structuredData) ? seo.structuredData : [seo.structuredData]) : [];
   const structuredData = seo.index ? [...pageData, breadcrumbsFor(pathname, seo.title)] : pageData;
 

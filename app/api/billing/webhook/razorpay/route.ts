@@ -4,10 +4,10 @@ import { fail, handleApiError, ok } from "src/lib/api";
 import { prisma } from "src/lib/prisma";
 import { verifyRazorpayWebhook } from "src/lib/billing";
 import { getPlanQuota } from "src/lib/quota";
+import { isPaidPlan } from "src/lib/plans";
 
 function toPlan(value: string | undefined) {
-  if (value === "pro" || value === "coach") return value;
-  return "free";
+  return isPaidPlan(value) ? value : "free";
 }
 
 export async function POST(req: NextRequest) {

@@ -4,6 +4,7 @@ import { requireAuth } from "src/lib/guards";
 import { fail, handleApiError, ok } from "src/lib/api";
 import { getOrCreatePlanRazorpayId, getRazorpayClient } from "src/lib/billing";
 import { prisma } from "src/lib/prisma";
+import { PLAN_RAZORPAY_ENV } from "src/lib/plans";
 
 export async function POST(req: NextRequest) {
   try {
@@ -22,7 +23,7 @@ export async function POST(req: NextRequest) {
 
     let planId: string;
     if (devMockEnabled) {
-      const configured = process.env[body.plan === "pro" ? "RZP_PLAN_PRO" : "RZP_PLAN_COACH"];
+      const configured = process.env[PLAN_RAZORPAY_ENV[body.plan]];
       if (!configured) {
         const now = Date.now();
         const mockSubscriptionId = `mock_sub_${now}`;

@@ -24,6 +24,13 @@ export type BlogSummary = {
 export type BlogDetail = BlogSummary & {
   contentHtml: string;
   keywordsJson?: unknown;
+  metaTitle?: string | null;
+  metaDescription?: string | null;
+  canonicalUrl?: string | null;
+  category?: string | null;
+  ctaLabel?: string | null;
+  ctaHref?: string | null;
+  noindex?: boolean;
 };
 
 export type BlogForm = {
@@ -35,6 +42,16 @@ export type BlogForm = {
   keywords: string;
   status: BlogStatus;
   socialAutoPostEnabled: boolean;
+  // SEO, call to action, scheduling
+  metaTitle: string;
+  metaDescription: string;
+  canonicalUrl: string;
+  category: string;
+  ctaLabel: string;
+  ctaHref: string;
+  noindex: boolean;
+  /** datetime-local value; empty = publish now */
+  publishAt: string;
 };
 
 export const EMPTY_FORM: BlogForm = {
@@ -46,6 +63,14 @@ export const EMPTY_FORM: BlogForm = {
   keywords: "",
   status: "draft",
   socialAutoPostEnabled: false,
+  metaTitle: "",
+  metaDescription: "",
+  canonicalUrl: "",
+  category: "",
+  ctaLabel: "",
+  ctaHref: "",
+  noindex: false,
+  publishAt: "",
 };
 
 export function keywordsFromJson(value: unknown) {

@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router';
+import { SiteAnnouncementBar } from './marketing/SiteAnnouncementBar';
 import {
   Menu,
   X,
@@ -14,7 +15,6 @@ import {
   Star,
   ExternalLink,
   ArrowRight,
-  Clock,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
@@ -70,21 +70,8 @@ export function Navigation() {
         </Link>
       </div>
 
-      {/* Urgency Bar */}
-      <div className="w-full h-8 px-3 sm:px-6 flex items-center justify-center gap-2.5 bg-[#c8ff62] text-[#3b2600] text-xs">
-        <strong className="shrink-0 inline-flex items-center gap-1.5 font-extrabold">
-          <Clock className="w-3 h-3" /> Limited offer
-        </strong>
-        <p className="m-0 min-w-0 truncate text-[#496312]">
-          Pro is 80% off: unlimited auto-apply for ₹99/month, plus a free{' '}
-          <strong className="font-extrabold italic text-[#17142e]">
-            WhatsApp &amp; email auto-sender to HR numbers and emails
-          </strong>
-        </p>
-        <Link to="/pricing" className="hidden sm:inline-flex shrink-0 items-center gap-1 font-extrabold hover:underline">
-          View Pro plan <ArrowRight className="w-3 h-3" />
-        </Link>
-      </div>
+      {/* Offer bar: the admin promotion (Admin > Growth) when active, else the Pro offer */}
+      <SiteAnnouncementBar />
 
       {/* Navigation */}
       <nav className="sticky top-0 z-50 bg-white/90 backdrop-blur-[14px] border-b border-gray-200/75">

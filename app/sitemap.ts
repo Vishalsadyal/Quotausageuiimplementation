@@ -41,7 +41,8 @@ export const revalidate = 3600;
 async function publishedDatabasePosts(): Promise<Array<{ slug: string; updatedAt: Date }>> {
   try {
     return await prisma.blogPost.findMany({
-      where: { status: "published", OR: [{ publishedAt: null }, { publishedAt: { lte: new Date() } }] },
+      // Posts marked "hide from Google" (noindex) stay out of the sitemap.
+      where: { status: "published", noindex: false, OR: [{ publishedAt: null }, { publishedAt: { lte: new Date() } }] },
       select: { slug: true, updatedAt: true },
     });
   } catch {

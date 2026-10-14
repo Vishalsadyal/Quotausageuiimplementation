@@ -22,16 +22,16 @@ export function QuotaUsage({ quotaResetTime, onUpgradeClick }: QuotaUsageProps) 
   const balance = user?.hireBalance ?? 0;
   const dailyRemaining = Math.max(0, total - used);
   const freeLeft = user?.plan === 'free' ? Math.max(0, 3 - used) : 0;
-  const spendableNow = user?.plan === 'pro' ? Number.MAX_SAFE_INTEGER : Math.max(0, balance + freeLeft);
+  const spendableNow = (user?.plan === 'pro' || user?.plan === 'connect') ? Number.MAX_SAFE_INTEGER : Math.max(0, balance + freeLeft);
   const isLocked = spendableNow <= 0;
   const lockReason =
     user?.plan === 'free' && freeLeft <= 0
       ? 'daily_cap'
       : 'wallet_empty';
-  const percentage = user?.plan === 'pro' ? 0 : Math.min(100, (used / total) * 100);
-  const totalLabel = user?.plan === 'pro' ? 'Unlimited' : String(total);
+  const percentage = (user?.plan === 'pro' || user?.plan === 'connect') ? 0 : Math.min(100, (used / total) * 100);
+  const totalLabel = (user?.plan === 'pro' || user?.plan === 'connect') ? 'Unlimited' : String(total);
   const planLabel =
-    user?.plan === 'pro'
+    (user?.plan === 'pro' || user?.plan === 'connect')
       ? 'Pro (₹99/mo)'
       : balance > 0
       ? 'Custom (Top-up)'
@@ -90,7 +90,7 @@ export function QuotaUsage({ quotaResetTime, onUpgradeClick }: QuotaUsageProps) 
                   <span className="text-2xl text-gray-400">/</span>
                   <span className="text-2xl font-semibold text-gray-600">{totalLabel}</span>
                 </div>
-                <p className="text-sm text-gray-600 mt-1">{user?.plan === 'pro' ? 'applies today' : 'free used today'}</p>
+                <p className="text-sm text-gray-600 mt-1">{(user?.plan === 'pro' || user?.plan === 'connect') ? 'applies today' : 'free used today'}</p>
               </div>
 
               {isLocked && (
@@ -161,7 +161,7 @@ export function QuotaUsage({ quotaResetTime, onUpgradeClick }: QuotaUsageProps) 
                   <div>
                     <p className="text-sm text-gray-700">
                       <span className="font-medium text-[#030213]">{spendableNow} spendable now</span>.
-                      Free left today: {freeLeft}. Wallet balance: {user?.plan === 'pro' ? 'Unlimited' : `${balance} Hires`}.
+                      Free left today: {freeLeft}. Wallet balance: {(user?.plan === 'pro' || user?.plan === 'connect') ? 'Unlimited' : `${balance} Hires`}.
                     </p>
                   </div>
                 </div>

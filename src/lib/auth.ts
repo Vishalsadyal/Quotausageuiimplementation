@@ -237,7 +237,7 @@ export function toClientUser(user: {
   portfolioUrl?: string | null;
   resumeFileName?: string | null;
   onboardingCompleted?: boolean;
-  plan: "free" | "pro" | "coach";
+  plan: "free" | "pro" | "coach" | "connect";
   createdAt: Date;
   quotaUsed: number;
   quotaTotal: number;

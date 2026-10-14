@@ -11,6 +11,7 @@ type FacebookPublishCandidate = {
   facebookPostId?: string | null;
   facebookPostedAt?: Date | null;
   facebookPostError?: string | null;
+  publishedAt?: Date | null;
 };
 
 export type FacebookPublishResult = {
@@ -53,6 +54,10 @@ function buildFacebookMessage(post: FacebookPublishCandidate, absoluteUrl: strin
 export async function publishBlogToFacebookPage(req: Request, post: FacebookPublishCandidate): Promise<FacebookPublishResult> {
   if (post.status !== "published") {
     return { attempted: false, ok: false, skippedReason: "post_not_published" };
+  }
+  if (post.publishedAt && post.publishedAt > new Date()) {
+    // Scheduled for later: the link would 404 until then.
+    return { attempted: false, ok: false, skippedReason: "scheduled" };
   }
   if (!post.socialAutoPostEnabled) {
     return { attempted: false, ok: false, skippedReason: "autopost_disabled" };

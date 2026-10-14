@@ -7,6 +7,7 @@ import { writeAuditLog } from "src/lib/audit";
 import { consumeHiresForApplies, getWalletSummary } from "src/lib/hires";
 import { enforceRateLimit } from "src/lib/rate-limit";
 import { OUTREACH_ACTIONS } from "src/lib/outreach";
+import { postUrlFromUrn, recordContactFromOutreach } from "src/lib/hr-contacts";
 
 /**
  * POST /api/user/outreach/charge
@@ -16,13 +17,37 @@ import { OUTREACH_ACTIONS } from "src/lib/outreach";
  * unlimited). The same recipient / post is charged once: a retry of a send that already went
  * through (or failed after charging) costs nothing.
  *
- * Body: { channel: "whatsapp" | "email" | "comment", targetId: phone / email / post URN }
+ * Body: { channel: "whatsapp" | "email" | "comment", targetId: phone / email / post URN, contact? }
+ * contact = the hiring post's details (recruiter, company, job title, post id) for WhatsApp / email:
+ * the recipient is added to the shared HR Contacts pool unless the user turned sharing off.
  * 200 { charged: 0 | 1, alreadyCharged, spendable } | 402 INSUFFICIENT_HIRES
  */
 const schema = z.object({
   channel: z.enum(["whatsapp", "email", "comment"]),
   targetId: z.string().trim().min(3).max(300),
+  contact: z
+    .object({
+      recruiterName: z.string().max(300).optional(),
+      company: z.string().max(300).optional(),
+      jobTitle: z.string().max(300).optional(),
+      location: z.string().max(300).optional(),
+      urn: z.string().max(300).optional(),
+      postUrl: z.string().max(500).optional(),
+      postSnippet: z.string().max(2000).optional(),
+    })
+    .optional(),
 });
+
+// WhatsApp / email recipients go to the HR Contacts pool (comments are posts, not contacts).
+function capture(userId: string, channel: string, target: string, contact: z.infer<typeof schema>["contact"]) {
+  if (channel === "comment") return Promise.resolve(null);
+  return recordContactFromOutreach({
+    userId,
+    kind: channel === "whatsapp" ? "phone" : "email",
+    rawValue: target,
+    meta: { ...contact, postUrl: contact?.postUrl || postUrlFromUrn(contact?.urn || "") },
+  });
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -39,7 +64,7 @@ export async function POST(req: NextRequest) {
     } catch {
       return fail("Invalid JSON payload", 400);
     }
-    const { channel, targetId } = schema.parse(body);
+    const { channel, targetId, contact } = schema.parse(body);
     const target = targetId.toLowerCase();
     const action = OUTREACH_ACTIONS[channel];
 
@@ -48,6 +73,7 @@ export async function POST(req: NextRequest) {
       select: { id: true },
     });
     if (already) {
+      await capture(userId, channel, target, contact);
       const wallet = await getWalletSummary(userId);
       return ok("Already charged for this recipient", { charged: 0, alreadyCharged: true, spendable: wallet.spendable });
     }
@@ -72,6 +98,7 @@ export async function POST(req: NextRequest) {
       metadataJson: { channel, free: charge.sourceBreakdown.free, paid: charge.sourceBreakdown.paid },
     });
 
+    await capture(userId, channel, target, contact);
     const wallet = await getWalletSummary(userId);
     return ok("Charged 1 Hire", { charged: 1, alreadyCharged: false, spendable: wallet.spendable });
   } catch (error) {

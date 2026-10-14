@@ -46,6 +46,7 @@ const PressKit = lazy(() => import('./pages/PressKit'));
 const HelpCenter = lazy(() => import('./pages/HelpCenter'));
 const Community = lazy(() => import('./pages/Community'));
 const PrivacyPolicy = lazy(() => import('./pages/PrivacyPolicy'));
+const RemoveMyContact = lazy(() => import('./pages/RemoveMyContact'));
 const TermsOfService = lazy(() => import('./pages/TermsOfService'));
 const CookiePolicy = lazy(() => import('./pages/CookiePolicy'));
 const Blog = lazy(() => import('./pages/Blog'));
@@ -67,7 +68,8 @@ const Billing = lazy(() => import('./pages/dashboard/Billing'));
 const Onboarding = lazy(() => import('./pages/dashboard/Onboarding'));
 const Marketing = lazy(() => import('./pages/dashboard/Marketing'));
 const HROutreach = lazy(() => import('./pages/dashboard/HROutreach'));
-const ColdEmails = lazy(() => import('./pages/dashboard/ColdEmails'));
+const HrContacts = lazy(() => import('./pages/dashboard/HrContacts'));
+const Referrals = lazy(() => import('./pages/dashboard/Referrals'));
 const Assistant = lazy(() => import('./pages/dashboard/Assistant'));
 
 // Admin Pages (lazy load)
@@ -80,6 +82,7 @@ const Revenue = lazy(() => import('./pages/admin/Revenue'));
 const Support = lazy(() => import('./pages/admin/Support'));
 const Health = lazy(() => import('./pages/admin/Health'));
 const AdminSettings = lazy(() => import('./pages/admin/AdminSettings'));
+const AdminGrowth = lazy(() => import('./pages/admin/Growth'));
 const AdminBlogs = lazy(() => import('./pages/admin/Blogs'));
 const AdminBlogEditor = lazy(() => import('./pages/admin/BlogEditor'));
 
@@ -161,6 +164,7 @@ const routes = createRoutesFromElements(
       <Route path="help-center" element={<Suspense fallback={<PageLoader />}><HelpCenter /></Suspense>} />
       <Route path="community" element={<Suspense fallback={<PageLoader />}><Community /></Suspense>} />
       <Route path="privacy-policy" element={<Suspense fallback={<PageLoader />}><PrivacyPolicy /></Suspense>} />
+      <Route path="remove-my-contact" element={<Suspense fallback={<PageLoader />}><RemoveMyContact /></Suspense>} />
       <Route path="terms-of-service" element={<Suspense fallback={<PageLoader />}><TermsOfService /></Suspense>} />
       <Route path="cookie-policy" element={<Suspense fallback={<PageLoader />}><CookiePolicy /></Suspense>} />
       <Route path="extension-design" element={<Suspense fallback={<PageLoader />}><ExtensionDesign /></Suspense>} />
@@ -201,7 +205,10 @@ const routes = createRoutesFromElements(
       <Route path="marketing/email" element={<Suspense fallback={<PageLoader />}><Marketing /></Suspense>} />
       <Route path="marketing/whatsapp" element={<Suspense fallback={<PageLoader />}><Marketing /></Suspense>} />
       <Route path="hr-outreach" element={<Suspense fallback={<PageLoader />}><HROutreach /></Suspense>} />
-      <Route path="cold-emails" element={<Suspense fallback={<PageLoader />}><ColdEmails /></Suspense>} />
+      <Route path="hr-contacts" element={<Suspense fallback={<PageLoader />}><HrContacts /></Suspense>} />
+      <Route path="referrals" element={<Suspense fallback={<PageLoader />}><Referrals /></Suspense>} />
+      {/* Apply Email was replaced by HR Contacts */}
+      <Route path="cold-emails" element={<Navigate to="/dashboard/hr-contacts" replace />} />
       <Route path="onboarding" element={<Suspense fallback={<PageLoader />}><Onboarding /></Suspense>} />
       <Route path="assistant" element={<Suspense fallback={<PageLoader />}><Assistant /></Suspense>} />
     </Route>
@@ -227,6 +234,7 @@ const routes = createRoutesFromElements(
       <Route path="blogs/new" element={<Suspense fallback={<PageLoader />}><AdminBlogEditor /></Suspense>} />
       <Route path="blogs/:id/edit" element={<Suspense fallback={<PageLoader />}><AdminBlogEditor /></Suspense>} />
       <Route path="settings" element={<Suspense fallback={<PageLoader />}><AdminSettings /></Suspense>} />
+      <Route path="growth" element={<Suspense fallback={<PageLoader />}><AdminGrowth /></Suspense>} />
     </Route>
 
     {/* Catch-all */}

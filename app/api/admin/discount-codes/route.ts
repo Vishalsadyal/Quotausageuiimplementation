@@ -8,10 +8,11 @@ import { isValidDiscountCodeFormat, normalizeDiscountCode } from "src/lib/discou
 const createDiscountSchema = z.object({
   code: z.string().trim().min(3).max(32),
   description: z.string().trim().max(240).optional().default(""),
-  type: z.enum(["percent", "flat_rupees"]),
-  target: z.enum(["all", "wallet_topup", "plan_pro", "plan_coach"]).default("wallet_topup"),
+  type: z.enum(["percent", "flat_rupees", "fixed_price"]),
+  target: z.enum(["all", "wallet_topup", "plan_pro", "plan_coach", "plan_connect"]).default("wallet_topup"),
   percentOff: z.number().int().min(1).max(95).optional(),
   flatAmountRupees: z.number().int().min(1).max(200000).optional(),
+  fixedPriceRupees: z.number().int().min(1).max(200000).optional(),
   maxDiscountRupees: z.number().int().min(1).max(200000).optional(),
   minOrderRupees: z.number().int().min(1).max(200000).optional(),
   usageLimitTotal: z.number().int().min(1).max(100000).optional(),
@@ -48,6 +49,7 @@ export async function GET(req: Request) {
           target: true,
           percentOff: true,
           flatAmountRupees: true,
+          fixedPriceRupees: true,
           maxDiscountRupees: true,
           minOrderRupees: true,
           usageLimitTotal: true,
@@ -94,6 +96,9 @@ export async function POST(req: Request) {
     if (payload.type === "percent" && !payload.percentOff) {
       return fail("percentOff is required for percent discounts", 400, "VALIDATION_ERROR");
     }
+    if (payload.type === "fixed_price" && !payload.fixedPriceRupees) {
+      return fail("fixedPriceRupees is required for fixed-price coupons", 400, "VALIDATION_ERROR");
+    }
     if (payload.type === "flat_rupees" && !payload.flatAmountRupees) {
       return fail("flatAmountRupees is required for flat discounts", 400, "VALIDATION_ERROR");
     }
@@ -114,6 +119,7 @@ export async function POST(req: Request) {
         target: payload.target,
         percentOff: payload.type === "percent" ? payload.percentOff || null : null,
         flatAmountRupees: payload.type === "flat_rupees" ? payload.flatAmountRupees || null : null,
+        fixedPriceRupees: payload.type === "fixed_price" ? payload.fixedPriceRupees || null : null,
         maxDiscountRupees: payload.maxDiscountRupees || null,
         minOrderRupees: payload.minOrderRupees || null,
         usageLimitTotal: payload.usageLimitTotal || null,

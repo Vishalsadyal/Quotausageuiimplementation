@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import {
   Coins,
+  Tag,
   RefreshCw,
   Wallet,
   ArrowDownLeft,
@@ -13,6 +14,7 @@ import {
   ShieldCheck,
   Loader2,
   Users,
+  Contact,
   ArrowRight,
   Layers,
   Star,
@@ -21,8 +23,17 @@ import { useAuth } from "../../context/AuthContext";
 import { useExtensionPipelineStats } from "../../hooks/useExtensionPipelineStats";
 import { toast } from "sonner";
 
+const PLAN_COUPON_PLANS = ["pro", "connect", "coach"] as const;
+type PlanCouponPrices = Partial<Record<(typeof PLAN_COUPON_PLANS)[number], { code: string; baseRupees: number; finalRupees: number }>>;
+
+const PLAN_UPGRADE_DESCRIPTION = {
+  pro: "Pro Plan Upgrade - ₹99",
+  connect: "Pro Connect Upgrade - ₹500",
+  coach: "Coach Plan Upgrade - ₹1,849",
+} as const;
+
 type WalletSummary = {
-  plan: "free" | "pro" | "coach";
+  plan: "free" | "pro" | "coach" | "connect";
   hireBalance: number;
   hireSpent: number;
   hirePurchased: number;
@@ -108,6 +119,71 @@ export default function Billing() {
   const [discountPreview, setDiscountPreview] = useState<DiscountPreview | null>(null);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  // Plan coupon (e.g. GOINDIA): checked on the server per plan; the order route re-checks it.
+  const [planCoupon, setPlanCoupon] = useState("");
+  const [planCouponPrices, setPlanCouponPrices] = useState<PlanCouponPrices>({});
+  const [planCouponBusy, setPlanCouponBusy] = useState(false);
+  const [planCouponError, setPlanCouponError] = useState("");
+
+  const applyPlanCoupon = async (codeInput = planCoupon) => {
+    const code = codeInput.trim().toUpperCase();
+    if (!code) return;
+    setPlanCouponBusy(true);
+    setPlanCouponError("");
+    const results = await Promise.all(
+      PLAN_COUPON_PLANS.map(async (plan) => {
+        try {
+          const res = await fetch("/api/billing/discount/preview", {
+            method: "POST",
+            credentials: "include",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ plan, discountCode: code }),
+          });
+          const body = await res.json().catch(() => null);
+          return res.ok && body?.success ? { plan, data: body.data } : { plan, error: String(body?.message || "Invalid coupon") };
+        } catch {
+          return { plan, error: "Could not check the coupon" };
+        }
+      })
+    );
+    const prices: PlanCouponPrices = {};
+    for (const r of results) if ("data" in r && r.data) prices[r.plan] = { code, baseRupees: r.data.baseRupees, finalRupees: r.data.finalRupees };
+    setPlanCouponPrices(prices);
+    if (!Object.keys(prices).length) {
+      const reason = results.find((r) => r.plan === "connect" && "error" in r) as { error?: string } | undefined;
+      setPlanCouponError(reason?.error || "This coupon can't be used on any plan");
+    } else {
+      toast.success(`Coupon ${code} applied`);
+    }
+    setPlanCouponBusy(false);
+  };
+
+  // ?coupon=GOINDIA, or a code remembered from the site banner, fills in and applies the coupon.
+  useEffect(() => {
+    let fromUrl = new URLSearchParams(window.location.search).get("coupon");
+    try {
+      fromUrl = fromUrl || sessionStorage.getItem("cp_pending_coupon");
+      sessionStorage.removeItem("cp_pending_coupon");
+    } catch {
+      // storage blocked
+    }
+    if (fromUrl) {
+      setPlanCoupon(fromUrl.toUpperCase());
+      void applyPlanCoupon(fromUrl);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const couponLine = (plan: "pro" | "coach" | "connect") => {
+    const price = planCouponPrices[plan];
+    if (!price) return null;
+    return (
+      <div className="mt-1 inline-flex items-center gap-1.5 rounded-lg bg-purple-50 px-2 py-0.5 text-[11px] font-bold text-purple-700">
+        With {price.code}: ₹{price.finalRupees.toLocaleString("en-IN")}
+        <span className="font-normal line-through text-purple-400">₹{price.baseRupees.toLocaleString("en-IN")}</span>
+      </div>
+    );
+  };
 
   const INR_PER_USD = 92.5;
   const minTopupRupees = 49;
@@ -171,7 +247,7 @@ export default function Billing() {
     });
   }, [computedRupees]);
 
-  const handlePlanUpgrade = async (targetPlan: "pro" | "coach") => {
+  const handlePlanUpgrade = async (targetPlan: "pro" | "coach" | "connect") => {
     try {
       setUpgradingPlan(targetPlan);
       setError("");
@@ -189,7 +265,7 @@ export default function Billing() {
           "Content-Type": "application/json",
           "x-idempotency-key": `billing_plan_${targetPlan}_${user?.id}_${Date.now()}`,
         },
-        body: JSON.stringify({ plan: targetPlan }),
+        body: JSON.stringify({ plan: targetPlan, ...(planCouponPrices[targetPlan] ? { discountCode: planCouponPrices[targetPlan]!.code } : {}) }),
       });
 
       const orderData = await orderRes.json();
@@ -204,7 +280,9 @@ export default function Billing() {
         amount: order.amount,
         currency: order.currency,
         name: "AutoApply CV",
-        description: targetPlan === "pro" ? "Pro Plan Upgrade - ₹99" : "Coach Plan Upgrade - ₹1,849",
+        description: order.discountCode
+          ? `${PLAN_UPGRADE_DESCRIPTION[targetPlan].split(" - ")[0]} - ₹${order.finalRupees} with ${order.discountCode}`
+          : PLAN_UPGRADE_DESCRIPTION[targetPlan],
         order_id: order.orderId,
         prefill: {
           name: user?.name || "",
@@ -415,17 +493,59 @@ export default function Billing() {
       {/* 1. CURRENT PLAN & PLANS UPGRADE SECTION                  */}
       {/* ======================================================== */}
       <div className="space-y-3">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
           <h2 className="text-xs font-bold text-gray-900 uppercase tracking-wider inline-flex items-center gap-1.5">
             <Layers className="w-4 h-4 text-purple-600" />
             Select Your Plan
           </h2>
-          <span className="text-xs font-medium text-gray-500">
-            Current Plan: <span className="font-bold uppercase text-purple-700">{currentPlan}</span>
-          </span>
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+            {/* Plan coupon (e.g. GOINDIA), on the same line as the heading */}
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                void applyPlanCoupon();
+              }}
+              className="flex items-center gap-1.5"
+            >
+              <Tag className="w-3.5 h-3.5 text-purple-600" aria-hidden="true" />
+              <input
+                value={planCoupon}
+                onChange={(e) => {
+                  setPlanCoupon(e.target.value.toUpperCase());
+                  setPlanCouponError("");
+                }}
+                placeholder="Coupon code"
+                aria-label="Coupon code"
+                className="w-32 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-semibold uppercase tracking-wide outline-none placeholder:normal-case placeholder:font-normal placeholder:tracking-normal focus:border-purple-400 focus:ring-2 focus:ring-purple-100"
+              />
+              <button
+                type="submit"
+                disabled={planCouponBusy || !planCoupon.trim()}
+                className="rounded-lg bg-[#6047f5] px-3 py-1.5 text-xs font-bold text-white shadow-xs hover:bg-[#4f38e0] disabled:opacity-60 cursor-pointer"
+              >
+                {planCouponBusy ? "Checking…" : "Apply"}
+              </button>
+            </form>
+            <span className="text-xs font-medium text-gray-500">
+              Current Plan: <span className="font-bold uppercase text-purple-700">{currentPlan}</span>
+            </span>
+          </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {(Object.keys(planCouponPrices).length > 0 || planCouponError) && (
+          <div className="flex justify-end -mt-1">
+            {Object.keys(planCouponPrices).length > 0 ? (
+              <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-700">
+                <Check className="w-3 h-3" /> {Object.values(planCouponPrices)[0]?.code} applied to{" "}
+                {Object.keys(planCouponPrices).map((p) => (p === "connect" ? "Pro Connect" : p === "pro" ? "Pro" : "Coach")).join(", ")}
+              </span>
+            ) : (
+              <span className="text-[11px] font-medium text-rose-700">{planCouponError}</span>
+            )}
+          </div>
+        )}
+
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
           {/* Plan 1: Free Plan */}
           <div
             className={`rounded-2xl border p-5 bg-white transition-all relative flex flex-col justify-between ${
@@ -517,6 +637,7 @@ export default function Billing() {
                   <span className="text-xs line-through text-gray-400 ml-1">₹499</span>
                 </div>
                 <div className="text-[10px] text-emerald-700 font-bold mt-0.5">⚡ Limited Time Launch Pricing</div>
+                {couponLine("pro")}
               </div>
 
               <ul className="space-y-2.5 text-xs text-gray-700 mb-6">
@@ -576,7 +697,87 @@ export default function Billing() {
             </button>
           </div>
 
-          {/* Plan 3: Coach Plan */}
+          {/* Plan 3: Pro Connect (Pro + HR Contacts) */}
+          <div
+            className={`rounded-2xl border-2 p-5 bg-white transition-all relative flex flex-col justify-between ${
+              currentPlan === "connect"
+                ? "border-emerald-600 ring-4 ring-emerald-600/15 shadow-md"
+                : "border-emerald-200 hover:border-emerald-400 hover:shadow-md"
+            }`}
+          >
+            <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-emerald-600 text-white text-[10px] font-black px-3 py-0.5 rounded-full uppercase tracking-wider shadow-xs">
+              New
+            </div>
+            {currentPlan === "connect" && (
+              <span className="absolute -top-2.5 right-4 bg-emerald-700 text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider">
+                Current Plan
+              </span>
+            )}
+            <div>
+              <div className="w-9 h-9 rounded-xl bg-emerald-600 flex items-center justify-center text-white mb-3 shadow-md shadow-emerald-600/20">
+                <Contact className="w-5 h-5" />
+              </div>
+              <h3 className="text-base font-bold text-gray-900">Pro Connect</h3>
+              <p className="text-xs text-gray-500 mt-0.5">Pro + fresh recruiter contacts every day</p>
+
+              <div className="my-4">
+                <div className="flex items-baseline gap-1">
+                  <span className="text-3xl font-black text-emerald-700">₹500</span>
+                  <span className="text-xs text-gray-500 font-medium">/month</span>
+                </div>
+                {couponLine("connect")}
+              </div>
+
+              <ul className="space-y-2.5 text-xs text-gray-700 mb-6">
+                <li className="flex items-start gap-2">
+                  <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0 mt-0.5" />
+                  <span>Everything in Pro Plan</span>
+                </li>
+                <li className="flex items-start gap-2 font-semibold text-gray-900">
+                  <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0 mt-0.5" />
+                  <span>20 new HR contacts a day, matched to your roles</span>
+                </li>
+                <li className="flex items-start gap-2 font-semibold text-gray-900">
+                  <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0 mt-0.5" />
+                  <span>WhatsApp-checked numbers & recruiter emails</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0 mt-0.5" />
+                  <span>Daily contacts email every morning</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0 mt-0.5" />
+                  <span>Message them for free, 1 click from the dashboard</span>
+                </li>
+              </ul>
+            </div>
+
+            <button
+              onClick={() => handlePlanUpgrade("connect")}
+              disabled={upgradingPlan === "connect" || currentPlan === "connect"}
+              className={`w-full py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                currentPlan === "connect"
+                  ? "bg-emerald-100 text-emerald-700 cursor-default"
+                  : "bg-emerald-600 hover:bg-emerald-700 text-white hover:-translate-y-px"
+              }`}
+            >
+              {upgradingPlan === "connect" ? (
+                <>
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  <span>Processing...</span>
+                </>
+              ) : currentPlan === "connect" ? (
+                <span>Active Plan</span>
+              ) : (
+                <>
+                  <span>Upgrade to Pro Connect (₹{planCouponPrices.connect?.finalRupees ?? 500})</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </>
+              )}
+            </button>
+          </div>
+
+          {/* Plan 4: Coach Plan */}
           <div
             className={`rounded-2xl border p-5 bg-white transition-all relative flex flex-col justify-between ${
               currentPlan === "coach"
@@ -602,6 +803,7 @@ export default function Billing() {
                   <span className="text-xs text-gray-500 font-medium">/month</span>
                   <span className="text-xs line-through text-gray-400 ml-1">₹4,999</span>
                 </div>
+                {couponLine("coach")}
               </div>
 
               <ul className="space-y-2.5 text-xs text-gray-600 mb-6">
@@ -663,10 +865,10 @@ export default function Billing() {
         <div className="bg-white rounded-xl p-3.5 border border-gray-200/80 shadow-xs">
           <div className="text-[10px] uppercase font-bold tracking-wider text-gray-400">Daily Applies Usage</div>
           <div className="text-lg font-bold text-gray-900 mt-1">
-            {mergedDailyUsage.used} / {currentPlan === "pro" ? "∞" : mergedDailyUsage.cap}
+            {mergedDailyUsage.used} / {currentPlan === "pro" || currentPlan === "connect" ? "∞" : mergedDailyUsage.cap}
           </div>
           <div className="text-[11px] text-gray-500">
-            {currentPlan === "pro" ? "Unlimited Pro Active" : `Remaining today: ${mergedDailyUsage.remaining}`}
+            {currentPlan === "pro" || currentPlan === "connect" ? "Unlimited Pro Active" : `Remaining today: ${mergedDailyUsage.remaining}`}
           </div>
         </div>
         <div className="bg-white rounded-xl p-3.5 border border-gray-200/80 shadow-xs">
