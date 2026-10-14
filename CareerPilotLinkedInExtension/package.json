@@ -1,6 +1,6 @@
 {
   "name": "careerpilot-linkedin-extension",
-  "version": "3.3.3",
+  "version": "3.3.4",
   "private": true,
   "description": "AutoApply CV LinkedIn extension.",
   "scripts": {

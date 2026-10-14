@@ -661,14 +661,6 @@ export default function Billing() {
                   <Check className="w-3.5 h-3.5 text-purple-600 shrink-0 mt-0.5" />
                   <span>AI Resume & Cover Letter Tailoring</span>
                 </li>
-                <li className="flex items-start gap-2">
-                  <Check className="w-3.5 h-3.5 text-purple-600 shrink-0 mt-0.5" />
-                  <span>Priority application speed</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <Check className="w-3.5 h-3.5 text-purple-600 shrink-0 mt-0.5" />
-                  <span>Instant UPI & QR Code activation</span>
-                </li>
               </ul>
             </div>
 
