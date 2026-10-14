@@ -16,16 +16,17 @@ import { hasCompletedRequiredOnboarding } from 'src/lib/onboarding';
 import { clearHeroLead, readHeroLead } from 'src/lib/heroLead';
 import { DashboardAuthGate } from './components/DashboardAuthGate';
 
-// Layouts (lightweight - keep eager)
+// The public site shell stays eager. Everything a home-page visitor does not see (dashboard,
+// admin, auth screens) loads on demand, so it is not downloaded and run on mobile first load.
 import Root from './Root';
-import DashboardLayout from './layouts/DashboardLayout';
-import AdminLayout from './layouts/AdminLayout';
+const DashboardLayout = lazy(() => import('./layouts/DashboardLayout'));
+const AdminLayout = lazy(() => import('./layouts/AdminLayout'));
 
-// Auth Pages (critical path - keep eager for fast load)
-import Login from './pages/Login';
-import Signup from './pages/Signup';
-import ForgotPassword from './pages/ForgotPassword';
-import AdminLogin from './pages/AdminLogin';
+// Auth pages (lazy; prerendered like the other public pages)
+const Login = lazy(() => import('./pages/Login'));
+const Signup = lazy(() => import('./pages/Signup'));
+const ForgotPassword = lazy(() => import('./pages/ForgotPassword'));
+const AdminLogin = lazy(() => import('./pages/AdminLogin'));
 
 // Marketing Pages (lazy load)
 const Home = lazy(() => import('./pages/Home'));
@@ -176,17 +177,19 @@ const routes = createRoutesFromElements(
     </Route>
 
     {/* Auth Pages */}
-    <Route path="/login" element={<Login />} />
-    <Route path="/forgot-password" element={<ForgotPassword />} />
-    <Route path="/admin/login" element={<AdminLogin />} />
-    <Route path="/signup" element={<Signup />} />
+    <Route path="/login" element={<Suspense fallback={<PageLoader />}><Login /></Suspense>} />
+    <Route path="/forgot-password" element={<Suspense fallback={<PageLoader />}><ForgotPassword /></Suspense>} />
+    <Route path="/admin/login" element={<Suspense fallback={<PageLoader />}><AdminLogin /></Suspense>} />
+    <Route path="/signup" element={<Suspense fallback={<PageLoader />}><Signup /></Suspense>} />
 
     {/* Dashboard */}
     <Route
       path="/dashboard"
       element={
         <ProtectedRoute>
-          <DashboardLayout />
+          <Suspense fallback={<PageLoader />}>
+            <DashboardLayout />
+          </Suspense>
         </ProtectedRoute>
       }
     >
@@ -218,7 +221,9 @@ const routes = createRoutesFromElements(
       path="/admin"
       element={
         <AdminRoute>
-          <AdminLayout />
+          <Suspense fallback={<PageLoader />}>
+            <AdminLayout />
+          </Suspense>
         </AdminRoute>
       }
     >

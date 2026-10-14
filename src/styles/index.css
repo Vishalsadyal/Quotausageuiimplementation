@@ -1,6 +1,6 @@
 @import './tailwind.css';
 @import './theme.css';
-@import 'react-quill-new/dist/quill.snow.css';
+/* Quill editor styles are imported by the admin BlogEditor only (kept out of the public CSS). */
 
 /* Premium Base Styles */
 * {

@@ -6,6 +6,7 @@ import CookieConsentBanner from "./CookieConsentBanner";
 import AnalyticsScripts from "./AnalyticsScripts";
 import GoogleConsentMode from "./GoogleConsentMode";
 import ChatWidget from "./ChatWidget";
+import DeferredAdSense from "./DeferredAdSense";
 import { OG_IMAGE } from "../src/app/seo/seoConfig";
 
 // Self-hosted at build time: no request to Google Fonts, which the CSP blocks.
@@ -89,6 +90,8 @@ export const metadata: Metadata = {
   title: "Free Auto Apply CV | AI-Powered Job Application Automation",
   description: "Free auto apply CV tool for LinkedIn and Indeed. Save hours with AI resume matching, smart application tracking and automated job search.",
   manifest: "/site.webmanifest",
+  // AdSense site verification (the ad script itself loads deferred, see DeferredAdSense).
+  other: ADSENSE_CLIENT ? { "google-adsense-account": ADSENSE_CLIENT } : {},
   keywords: ["free auto apply cv", "free job application automation", "auto apply jobs free", "automated job applications", "LinkedIn auto apply", "Indeed auto apply", "free AI job search", "resume automation free"],
   openGraph: {
     title: "Free Auto Apply CV | Automate Your Job Search",
@@ -124,15 +127,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <Script id="gtag-consent-default" strategy="beforeInteractive">
           {CONSENT_DEFAULT_SCRIPT}
         </Script>
-        {ADSENSE_CLIENT ? (
-          <Script
-            id="adsense"
-            async
-            strategy="afterInteractive"
-            src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${encodeURIComponent(ADSENSE_CLIENT)}`}
-            crossOrigin="anonymous"
-          />
-        ) : null}
         {GTM_ID ? (
           <Script id="gtm-init" strategy="beforeInteractive">
             {`
@@ -161,6 +155,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {children}
         <CookieConsentBanner clarityProjectId={CLARITY_TAG_ID} googleTagId={GOOGLE_TAG_ID} gtmId={GTM_ID} />
         <ChatWidget />
+        {/* Loaded on first interaction (or after a few seconds) to keep mobile first load fast */}
+        {ADSENSE_CLIENT ? <DeferredAdSense client={ADSENSE_CLIENT} /> : null}
       </body>
     </html>
   );

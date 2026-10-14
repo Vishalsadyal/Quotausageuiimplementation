@@ -594,7 +594,7 @@ export default function Home() {
                 >
                   <feature.icon className="w-6 h-6" />
                 </div>
-                <span aria-hidden="true" className="absolute top-7 right-7 text-sm font-extrabold text-[#8f89a8]">
+                <span aria-hidden="true" className="absolute top-7 right-7 text-sm font-extrabold text-[#6b6585]">
                   {String(index + 1).padStart(2, '0')}
                 </span>
                 <h3 className="text-xl font-bold text-[#17152b] mb-3">{feature.title}</h3>

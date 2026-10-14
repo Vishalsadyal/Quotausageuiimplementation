@@ -11,6 +11,7 @@ import {
   Trash2,
 } from "lucide-react";
 import ReactQuill from "react-quill-new";
+import "react-quill-new/dist/quill.snow.css";
 import { slugifyBlogTitle, stripHtmlToText } from "src/lib/blog";
 import {
   BlogDetail,

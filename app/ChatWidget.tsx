@@ -47,8 +47,27 @@ export default function ChatWidget() {
   const [error, setError] = useState<string>("");
   const listRef = useRef<HTMLDivElement | null>(null);
   const [mounted, setMounted] = useState(false);
+  // A still frame (<1 KB) first; the animated avatar (~60 KB) once the page has settled, so it
+  // doesn't compete with the first paint on mobile.
+  const [avatarSrc, setAvatarSrc] = useState("/bot/bot-avatar-still.webp");
+  useEffect(() => {
+    let done = false;
+    const animate = () => {
+      if (done) return;
+      done = true;
+      setAvatarSrc("/bot/bot-avatar.webp");
+    };
+    const timer = window.setTimeout(animate, 4000);
+    window.addEventListener("pointerdown", animate, { once: true, passive: true });
+    window.addEventListener("scroll", animate, { once: true, passive: true });
+    return () => {
+      window.clearTimeout(timer);
+      window.removeEventListener("pointerdown", animate);
+      window.removeEventListener("scroll", animate);
+    };
+  }, []);
 
-  const title = String(process.env.NEXT_PUBLIC_CHATBOT_TITLE || "Ask me").trim();
+  const title =String(process.env.NEXT_PUBLIC_CHATBOT_TITLE || "Ask me").trim();
   const position = String(process.env.NEXT_PUBLIC_CHATBOT_POSITION || "bottom-right").trim();
   const primary = String(process.env.NEXT_PUBLIC_CHATBOT_PRIMARY || "").trim() || "#6047f5";
   const accent = String(process.env.NEXT_PUBLIC_CHATBOT_ACCENT || "").trim() || "#4932cf";
@@ -156,7 +175,7 @@ export default function ChatWidget() {
                   className="cp-chat-staff-2 h-10 w-10 rounded-full border border-white/60 object-cover bg-white/20 shadow-sm"
                 />
                 <img
-                  src="/bot/bot-avatar.webp"
+                  src={avatarSrc}
                   width={48}
                   height={48}
                   decoding="async"
@@ -305,7 +324,7 @@ export default function ChatWidget() {
                 className="cp-chat-staff-2 h-12 w-12 rounded-full border border-white/60 object-cover bg-white/20 shadow-sm"
               />
               <img
-                src="/bot/bot-avatar.webp"
+                src={avatarSrc}
                   width={48}
                   height={48}
                   decoding="async"
