@@ -2145,6 +2145,9 @@ async function saveSettings(incoming = {}) {
 // Combined Extension Suite Constants & State Management
 // ─────────────────────────────────────────────────────────────────────────────
 
+// Starts "skip posts that mention" for all three tools: clear job-seeker signals only (the dashboard uses the same list).
+const DEFAULT_SKIP_KEYWORDS = ["open to work", "#opentowork", "looking for a job", "looking for a new job", "looking for new opportunities", "seeking new opportunities", "job seeker", "#jobseeker", "#fresherjobseeker"];
+
 const DEFAULT_WA_SETTINGS = {
   targetKeywords: [
     'wordpress', 'shopify', 'php', 'web developer', 'frontend',
@@ -2157,6 +2160,7 @@ const DEFAULT_WA_SETTINGS = {
   autoLikePosts: true,
   showAlreadyContacted: true,
   filterJobSeekers: true,
+  ignoreKeywords: [...DEFAULT_SKIP_KEYWORDS], // posts that mention any of these are skipped
   matchAllHiringPosts: true,
   removeSentPostFromFeed: false,
   hideNonWhatsAppPosts: false,
@@ -2191,6 +2195,7 @@ const DEFAULT_EMAIL_SETTINGS = {
   autoLikePosts: false,
   showAlreadyContacted: true,
   filterJobSeekers: true,
+  ignoreKeywords: [...DEFAULT_SKIP_KEYWORDS], // posts that mention any of these are skipped
   matchAllHiringPosts: true,
   removeSentPostFromFeed: false,
   hideNonEmailPosts: false,
@@ -2208,7 +2213,8 @@ const DEFAULT_AC_SETTINGS = {
   skipJobSeekers: true,
   skipAlreadyLiked: true,
   debugMode: true,
-  filterKeywords: ""
+  filterKeywords: "",
+  ignoreKeywords: [...DEFAULT_SKIP_KEYWORDS] // posts that mention any of these are skipped
 };
 
 // ── Outreach messages (WhatsApp / Email / LinkedIn comments) ─────────────────
@@ -2862,10 +2868,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         spendable = portalSpendable();
       }
       if (remaining <= 0 && spendable <= 0) {
-        await pushLog("Daily apply cap reached (3/day). Run blocked until reset.", "warn");
+        await pushLog("Out of Hires: run blocked. Upgrade to continue.", "warn");
         sendResponse({
           ok: false,
-          error: "Daily application cap reached (3/day). Try again after reset.",
+          error: "Out of Hires: your free applications are used up and you have no Hires left. Upgrade to keep applying.",
           errorCode: "DAILY_CAP_REACHED",
           dailyCap: {
             cap: dailyCap.cap,

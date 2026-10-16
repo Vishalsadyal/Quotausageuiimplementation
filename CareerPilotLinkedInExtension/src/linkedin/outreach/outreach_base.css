@@ -238,7 +238,8 @@
 .cp-ow .cp-ow-hires svg { width: 11px; height: 11px; }
 .cp-ow .cp-ow-hires b { font-weight: 800; }
 .cp-ow .cp-ow-hires.is-low { background: rgba(245, 158, 11, 0.14); color: #b45309; }
-.cp-ow .cp-ow-hires.is-empty { background: rgba(239, 68, 68, 0.12); color: #dc2626; }
+.cp-ow .cp-ow-hires { cursor: pointer; }
+.cp-ow .cp-ow-hires.is-empty { background: rgba(239, 68, 68, 0.12); color: #dc2626; text-decoration: underline; }
 .cp-ow .cp-ow-hires.is-drop::after {
   content: attr(data-delta); position: absolute; right: 4px; top: -2px;
   color: #dc2626; font-size: 11px; font-weight: 800; pointer-events: none;

@@ -27,7 +27,8 @@
     skipJobSeekers: true,    // Skip job seekers / #OpenToWork
     skipAlreadyLiked: true,  // Skip already liked posts
     debugMode: false,
-    filterKeywords: ''
+    filterKeywords: '',
+    ignoreKeywords: [...CP_OW_DEFAULT_SKIP_KEYWORDS]       // skip posts that mention any of these
   };
   let sessionCount = 0;
   let totalCommented = 0;
@@ -547,6 +548,18 @@
         post.setAttribute('data-ac-done', 'true');
         processedUrns.add(urn);
         recordSkip(urn, author, getPostSnippet(post), 'Job seeker post (#OpenToWork)', getPostUrl(post));
+        cpOwMarkSkippedPost(post, { label: 'Comment', reason: 'job seeker' });
+        continue;
+      }
+
+      // Check 4a: words the user wants to avoid (dashboard: "Skip posts that mention"), marked in red on the post
+      const ignoredWord = cpOwMatchIgnoreKeyword(post.innerText || '', currentSettings.ignoreKeywords);
+      if (ignoredWord) {
+        dbgLog('SKIP_IGNORED', `Skipping post by ${author} - mentions "${ignoredWord}"`, { urn });
+        post.setAttribute('data-ac-done', 'true');
+        processedUrns.add(urn);
+        recordSkip(urn, author, getPostSnippet(post), `Ignored keyword: ${ignoredWord}`, getPostUrl(post));
+        cpOwMarkSkippedPost(post, { label: 'Comment', reason: `ignored keyword "${ignoredWord}"` });
         continue;
       }
 

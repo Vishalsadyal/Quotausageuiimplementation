@@ -6,6 +6,7 @@ import { fail, handleApiError, ok } from "src/lib/api";
 import { prisma } from "src/lib/prisma";
 import { verifyRazorpaySubscriptionPaymentSignature } from "src/lib/billing";
 import { getPlanQuota } from "src/lib/quota";
+import { writeAuditLog } from "src/lib/audit";
 
 const verifySchema = z.object({
   plan: z.enum(PAID_PLANS),
@@ -53,6 +54,15 @@ export async function POST(req: NextRequest) {
         quotaTotal: getPlanQuota(body.plan),
       },
     });
+
+    // Shown in Billing > Transaction History. Amount unknown here; the renewal webhook records it with the amount.
+    await writeAuditLog({
+      actorUserId: authResult.auth.user.id,
+      action: "billing.plan_purchased",
+      targetType: "payment",
+      targetId: body.razorpay_payment_id,
+      metadataJson: { plan: body.plan, finalRupees: null, discountCode: null, expiresAt: null, source: "subscription" },
+    }).catch(() => null);
 
     return ok("Payment verified and plan activated", {
       plan: body.plan,

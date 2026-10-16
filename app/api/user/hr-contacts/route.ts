@@ -8,8 +8,10 @@ import {
   DAILY_LIMIT,
   DELIVERY_SELECT,
   assignDailyContacts,
+  contactMatchesRole,
   istDay,
   userRoleKeywords,
+  userRolePhrases,
 } from "src/lib/hr-contacts";
 
 export const dynamic = "force-dynamic";
@@ -73,14 +75,23 @@ export async function GET(req: NextRequest) {
         })
       : [];
 
+    // Which of the user's roles each contact fits, so the page can filter by role.
+    const rolePhrases = await userRolePhrases(userId);
+    const withRoles = <T extends { contact: { keywords: string } }>(rows: T[]) =>
+      rows.map((row) => {
+        const { keywords, ...contact } = row.contact;
+        return { ...row, contact, matchedRoles: rolePhrases.filter((phrase) => contactMatchesRole(keywords, phrase)) };
+      });
+
     return ok("HR Contacts", {
       unlocked: true,
       day,
       dailyLimit: DAILY_LIMIT,
       settings,
       roles: Array.from(await userRoleKeywords(userId)).slice(0, 12),
-      today,
-      history,
+      rolePhrases,
+      today: withRoles(today),
+      history: withRoles(history),
     });
   } catch (error) {
     return handleApiError(error, "Failed to load HR contacts");

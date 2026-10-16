@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { AlertCircle, Check, Loader2, MessageCircle, Mail, MessageSquareText, RefreshCw } from "lucide-react";
+import { AlertCircle, Check, Loader2, MessageCircle, Mail, MessageSquareText, RefreshCw, Sparkles } from "lucide-react";
 
 // Auto Apply > Messages: the text the extension's WhatsApp, Email and LinkedIn comment tools send,
 // and how each tool runs. Saved on the account and handed to the extension.
@@ -7,6 +7,7 @@ import { AlertCircle, Check, Loader2, MessageCircle, Mail, MessageSquareText, Re
 type WhatsappSettings = {
   messageTemplate: string;
   targetKeywords: string[];
+  ignoreKeywords: string[];
   autoSendWhatsApp: boolean;
   autoCloseTab: boolean;
   autoLikePosts: boolean;
@@ -21,6 +22,7 @@ type EmailSettings = {
   subjectTemplate: string;
   messageTemplate: string;
   targetKeywords: string[];
+  ignoreKeywords: string[];
   emailClient: "gmail_web" | "mailto";
   autoCloseTab: boolean;
   autoLikePosts: boolean;
@@ -40,10 +42,18 @@ type CommentSettings = {
   skipJobSeekers: boolean;
   skipAlreadyLiked: boolean;
   filterKeywords: string;
+  ignoreKeywords: string[];
 };
 
 type Messages = { wa: WhatsappSettings; email: EmailSettings; comment: CommentSettings };
 type ToolId = "wa" | "email" | "comment";
+
+/**
+ * "Skip posts that mention" starts with these. Clear job-seeker signals only: phrases recruiters also use
+ * ("I am looking for a developer", "actively hiring") are left out so a default never blocks a real hiring post.
+ * The extension has the same list as its own default (CareerPilotLinkedInExtension: outreach_ui.js, background.js).
+ */
+const DEFAULT_SKIP_KEYWORDS = ["open to work", "#opentowork", "looking for a job", "looking for a new job", "looking for new opportunities", "seeking new opportunities", "job seeker", "#jobseeker", "#fresherjobseeker"];
 
 const COMMENT_LIMIT = 1250; // LinkedIn's own comment length limit
 
@@ -90,6 +100,7 @@ function personalDefaults(name: string, link: string, keywords: string[]): Messa
     wa: {
       messageTemplate: `Hi {name}!\n\nI saw your hiring post on LinkedIn about the {job_title} role.\n\nI am actively looking for new opportunities.${portfolioLine}\n\nI would love to connect and share more details.\n\n${sign}`,
       targetKeywords: keywords,
+      ignoreKeywords: [...DEFAULT_SKIP_KEYWORDS],
       autoSendWhatsApp: true,
       autoCloseTab: true,
       autoLikePosts: true,
@@ -103,6 +114,7 @@ function personalDefaults(name: string, link: string, keywords: string[]): Messa
       subjectTemplate: who ? `Application for {job_title} - ${who}` : "Application for {job_title}",
       messageTemplate: `Hi {name},\n\nI saw your hiring post on LinkedIn about the {job_title} role at {company}.\n\nI am actively looking for new opportunities and would be glad to share my profile.${portfolioLine}\n\nThank you for your time.\n\n${sign}`,
       targetKeywords: keywords,
+      ignoreKeywords: [...DEFAULT_SKIP_KEYWORDS],
       emailClient: "gmail_web",
       autoCloseTab: false,
       autoLikePosts: false,
@@ -121,6 +133,7 @@ function personalDefaults(name: string, link: string, keywords: string[]): Messa
       skipJobSeekers: true,
       skipAlreadyLiked: true,
       filterKeywords: "",
+      ignoreKeywords: [...DEFAULT_SKIP_KEYWORDS],
     },
   };
 }
@@ -134,6 +147,22 @@ function mergeGroup<T extends object>(base: T, incoming: unknown): T {
     if (typeof (base as Record<string, unknown>)[key] === typeof value || Array.isArray(value)) out[key] = value;
   }
   return out as T;
+}
+
+/** Every tool shares one "skip posts that mention" list; older saves may differ per tool, so keep every word, once. */
+function mergeSkipLists(...lists: Array<string[] | undefined>) {
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const list of lists) {
+    for (const raw of list || []) {
+      const word = String(raw || "").trim();
+      const key = word.toLowerCase();
+      if (!word || seen.has(key)) continue;
+      seen.add(key);
+      out.push(word);
+    }
+  }
+  return out;
 }
 
 function mergeMessages(base: Messages, incoming: Partial<Record<ToolId, unknown>> | null | undefined): Messages {
@@ -227,6 +256,9 @@ export default function OutreachMessages({
   const [savedAt, setSavedAt] = useState("");
   const [sentToExtension, setSentToExtension] = useState<boolean | null>(null);
   const [error, setError] = useState("");
+  const [titlesAutoFilled, setTitlesAutoFilled] = useState(false);
+  const [suggesting, setSuggesting] = useState(false);
+  const [suggestNote, setSuggestNote] = useState<{ ok: boolean; text: string } | null>(null);
   const loadedRef = useRef(false);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
 
@@ -261,6 +293,20 @@ export default function OutreachMessages({
         }
       }
       if (!active) return;
+      const sharedSkip = mergeSkipLists(next.wa.ignoreKeywords, next.email.ignoreKeywords, next.comment.ignoreKeywords);
+      next = {
+        wa: { ...next.wa, ignoreKeywords: sharedSkip },
+        email: { ...next.email, ignoreKeywords: sharedSkip },
+        comment: { ...next.comment, ignoreKeywords: sharedSkip },
+      };
+      // Titles to look for follow the user's target roles: when none are saved, start from those roles.
+      let filledFromRoles = false;
+      if (suggestedKeywords.length) {
+        if (!next.wa.targetKeywords.length) { next = { ...next, wa: { ...next.wa, targetKeywords: suggestedKeywords } }; filledFromRoles = true; }
+        if (!next.email.targetKeywords.length) { next = { ...next, email: { ...next.email, targetKeywords: suggestedKeywords } }; filledFromRoles = true; }
+      }
+      // also true when the titles are simply the user's roles (a new user starts that way)
+      setTitlesAutoFilled(filledFromRoles || (suggestedKeywords.length > 0 && next.wa.targetKeywords.join("|") === suggestedKeywords.join("|")));
       loadedRef.current = true;
       setMessages(next);
       setLoading(false);
@@ -281,6 +327,43 @@ export default function OutreachMessages({
 
   const update = <K extends ToolId>(group: K, patch: Partial<Messages[K]>) =>
     setMessages((prev) => ({ ...prev, [group]: { ...prev[group], ...patch } }));
+
+  // One skip list for all three tools: the page keeps it identical in each tool's settings, so the extension needs no change.
+  const skipKeywords = messages.wa.ignoreKeywords;
+  const setSkipKeywords = (list: string[]) =>
+    setMessages((prev) => ({
+      wa: { ...prev.wa, ignoreKeywords: list },
+      email: { ...prev.email, ignoreKeywords: list },
+      comment: { ...prev.comment, ignoreKeywords: list },
+    }));
+
+  // AI suggestions for "Skip posts that mention": added to the box (never replacing what is there); the user reviews and saves.
+  const generateSkipKeywords = async () => {
+    const current = skipKeywords.map((word) => word.trim()).filter(Boolean);
+    setSuggesting(true);
+    setSuggestNote(null);
+    try {
+      const res = await fetch("/api/user/outreach-messages/suggest-skip", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ tool: "all", existing: current }),
+      });
+      const body = await res.json().catch(() => null);
+      if (!res.ok || !body?.success) throw new Error(body?.message || "Could not generate suggestions.");
+      const known = new Set(current.map((word) => word.toLowerCase()));
+      const added = ((body.data?.keywords || []) as string[]).filter((word) => !known.has(word.toLowerCase()));
+      setSkipKeywords([...current, ...added]);
+      setSuggestNote({
+        ok: true,
+        text: added.length ? `Added ${added.length} suggestions. Review them, then press Save messages.` : "No new suggestions this time.",
+      });
+    } catch (e) {
+      setSuggestNote({ ok: false, text: e instanceof Error ? e.message : "Could not generate suggestions." });
+    } finally {
+      setSuggesting(false);
+    }
+  };
 
   const insertToken = (token: string, field: "messageTemplate" | "subjectTemplate" | "commentText") => {
     const el = textareaRef.current;
@@ -536,7 +619,7 @@ export default function OutreachMessages({
                       className="w-full rounded-lg border border-gray-300 px-2.5 py-1.5 text-sm outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-100"
                     />
                     <span className="mt-1 flex items-center justify-between text-[11px] text-gray-500">
-                      <span>Separate with commas.</span>
+                      <span>{titlesAutoFilled ? "Set from your target roles. Edit as you like. Separate with commas." : "Separate with commas."}</span>
                       {suggestedKeywords.length ? (
                         <button
                           type="button"
@@ -553,6 +636,45 @@ export default function OutreachMessages({
             </div>
           </div>
         )}
+
+        {!loading ? (
+          <div className="rounded-xl border border-gray-200 bg-gray-50/60 p-4">
+            <div className="mb-2 flex flex-wrap items-start justify-between gap-2">
+              <div>
+                <label htmlFor="skip-keywords" className="block text-xs font-bold text-gray-800">
+                  Skip posts that mention
+                </label>
+                <p className="mt-0.5 text-[11px] text-gray-500">One list for WhatsApp, Email and LinkedIn comment.</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => void generateSkipKeywords()}
+                disabled={suggesting}
+                className="inline-flex items-center gap-1 rounded-full border border-purple-200 bg-purple-50 px-2.5 py-1 text-[11px] font-semibold text-purple-700 transition-colors hover:bg-purple-100 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {suggesting ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3" />}
+                {suggesting ? "Generating..." : "Generate with AI"}
+              </button>
+            </div>
+            <textarea
+              id="skip-keywords"
+              value={skipKeywords.join(", ")}
+              onChange={(event) => setSkipKeywords(event.target.value.split(",").map((item) => item.trim()))}
+              onBlur={(event) => setSkipKeywords(event.target.value.split(",").map((item) => item.trim()).filter(Boolean))}
+              rows={2}
+              placeholder="open to work, looking for a job, internship"
+              className="w-full rounded-lg border border-gray-300 bg-white px-2.5 py-1.5 text-sm outline-none focus:border-red-300 focus:ring-2 focus:ring-red-100"
+            />
+            <span className="mt-1 block text-[11px] text-gray-500">
+              Separate with commas. A post with any of these words is skipped, and it is marked in red on LinkedIn with the reason.
+            </span>
+            {suggestNote ? (
+              <span className={`mt-1 block text-[11px] font-medium ${suggestNote.ok ? "text-emerald-700" : "text-rose-600"}`} role="status">
+                {suggestNote.text}
+              </span>
+            ) : null}
+          </div>
+        ) : null}
 
         <div className="flex flex-wrap items-center gap-3 border-t border-gray-100 pt-3">
           <button type="button" onClick={() => void save()} disabled={saving || loading} className="rounded-full bg-purple-600 px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-purple-700 disabled:opacity-60">

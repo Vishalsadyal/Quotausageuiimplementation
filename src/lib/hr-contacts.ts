@@ -197,6 +197,81 @@ export async function userRoleKeywords(userId: string) {
   return new Set(roleKeywords(...latest.values()));
 }
 
+/** Words that do not tell roles apart ("Developer" fits every tech job): a role match is judged on the rest. */
+const GENERIC_ROLE_WORDS = new Set(
+  "developer developers engineer engineers programmer executive manager senior junior lead intern associate specialist analyst consultant officer".split(" ")
+);
+
+/** Written-together and written-apart spellings meet in the middle ("Frontend" = "Front End", "Node.js" = "Node"). */
+const ROLE_WORD_ALIASES: Record<string, string[]> = {
+  frontend: ["front", "end"],
+  backend: ["back", "end"],
+  fullstack: ["full", "stack"],
+  "node.js": ["node"],
+  nodejs: ["node"],
+  "react.js": ["react"],
+  reactjs: ["react"],
+  "next.js": ["next"],
+  nextjs: ["next"],
+  "vue.js": ["vue"],
+  vuejs: ["vue"],
+};
+
+/** Each spelling is replaced by its alias words, so both sides of a comparison end up in the same form. */
+function expandRoleWords(words: Iterable<string>) {
+  const out = new Set<string>();
+  for (const word of words) {
+    const aliases = ROLE_WORD_ALIASES[word];
+    if (aliases) aliases.forEach((alias) => out.add(alias));
+    else out.add(word);
+  }
+  return out;
+}
+
+/**
+ * Does a contact (its stored keywords) fit one of the user's roles, e.g. "Full Stack Web Developer"?
+ * Judged on the distinctive words of the role, and two thirds of them must appear, so "Full Stack Developer"
+ * fits "Full Stack Web Developer" but "Developer" alone fits nothing.
+ */
+export function contactMatchesRole(contactKeywords: string, phrase: string) {
+  const have = expandRoleWords(String(contactKeywords || "").split(" ").filter(Boolean));
+  const tokens = Array.from(expandRoleWords(roleKeywords(phrase)));
+  if (!tokens.length) return false;
+  const distinctive = tokens.filter((t) => !GENERIC_ROLE_WORDS.has(t));
+  const pool = distinctive.length ? distinctive : tokens;
+  return pool.filter((t) => have.has(t)).length >= Math.ceil((pool.length * 2) / 3);
+}
+
+/** The user's target roles as written (search terms first, then core skills), for the role filter. */
+export async function userRolePhrases(userId: string, limit = 12) {
+  const keys = ["cp_pref_search_terms", "core_skills"];
+  const rows = await prisma.auditLog.findMany({
+    where: { actorUserId: userId, action: "user.screening_answer_saved", targetId: { in: keys } },
+    orderBy: { createdAt: "desc" },
+    select: { targetId: true, metadataJson: true },
+    take: 20,
+  });
+  const latest = new Map<string, string[]>();
+  for (const row of rows) {
+    if (!row.targetId || latest.has(row.targetId)) continue;
+    const answer = (row.metadataJson as { answer?: unknown } | null)?.answer;
+    latest.set(row.targetId, Array.isArray(answer) ? answer.map(String) : String(answer || "").split(/[,\n;|]+/));
+  }
+  const seen = new Set<string>();
+  const phrases: string[] = [];
+  for (const key of keys) {
+    for (const raw of latest.get(key) || []) {
+      const phrase = raw.replace(/\s+/g, " ").trim().slice(0, 40);
+      const id = phrase.toLowerCase();
+      if (phrase.length >= 2 && !seen.has(id)) {
+        seen.add(id);
+        phrases.push(phrase);
+      }
+    }
+  }
+  return phrases.slice(0, limit);
+}
+
 function scoreContact(
   contact: { keywords: string; waStatus: string; emailStatus: string; kind: string; lastSeenAt: Date; contributorCount: number },
   wanted: Set<string>,
@@ -274,6 +349,7 @@ export const DELIVERY_SELECT = {
       emailStatus: true,
       lastSeenAt: true,
       contributorCount: true,
+      keywords: true, // used to work out which of the user's roles a contact fits; not sent to the browser
     },
   },
 } as const;

@@ -9,24 +9,61 @@
  * Map of all parts and functions: docs/CODE_MAP.md
  */
 
+function urlHasEasyApplyFilter() {
+  try {
+    return new URL(window.location.href).searchParams.get("f_AL") === "true";
+  } catch {
+    return window.location.href.includes("f_AL=true");
+  }
+}
+
+/**
+ * The "Easy Apply" pill of the filter bar: a control whose whole label is "Easy Apply", outside
+ * the job list and details (job cards also contain the words "Easy Apply" as a badge).
+ */
+function findEasyApplyFilterPill() {
+  const byLabel = getBySelectorList([
+    "button[aria-label*='Easy Apply filter']",
+    "button.jobs-search-box__filter-pill-button[aria-label*='Easy Apply']",
+  ]);
+  if (byLabel) return byLabel;
+  const Dom = globalThis.CPLinkedInDom;
+  const tiles = Dom ? Dom.findJobTiles({ passive: true }).tiles : [];
+  const pane = Dom ? Dom.findDetailPane().element : null;
+  return (
+    Array.from(document.querySelectorAll("button, [role='button'], [role='switch'], label")).find((el) => {
+      if (visibleText(el).trim() !== "easy apply") return false;
+      if (el.closest("header, nav, #msg-overlay, [id^='cp-']")) return false;
+      if (pane?.contains(el) || tiles.some((tile) => tile.contains(el))) return false;
+      return true;
+    }) || null
+  );
+}
+
+/** Is the filter pill switched on? Attributes first, then the page URL, then the pill's fill colour. */
+function isEasyApplyPillActive(pill) {
+  for (const attr of ["aria-pressed", "aria-checked", "aria-selected"]) {
+    const v = pill.getAttribute(attr);
+    if (v === "true") return true;
+    if (v === "false") return false;
+  }
+  if (/\b(active|selected)\b/i.test(String(pill.className || ""))) return true;
+  // Selected pills are filled (green); unselected pills are white/transparent with a border.
+  const bg = getComputedStyle(pill).backgroundColor || "";
+  const m = bg.match(/rgba?\(([\d.]+),\s*([\d.]+),\s*([\d.]+)(?:,\s*([\d.]+))?\)/);
+  if (m) {
+    const [r, g, b] = [Number(m[1]), Number(m[2]), Number(m[3])];
+    const alpha = m[4] === undefined ? 1 : Number(m[4]);
+    const nearWhite = r > 235 && g > 235 && b > 235;
+    if (alpha > 0.5 && !nearWhite) return true;
+  }
+  return false;
+}
+
 async function applyEasyApplyFilterIfNeeded(settings) {
   if (!settings.easyApplyOnly) return;
-  let urlHasEasyApplyParam = false;
-  try {
-    const url = new URL(window.location.href);
-    urlHasEasyApplyParam = url.searchParams.get("f_AL") === "true";
-  } catch {
-    urlHasEasyApplyParam = window.location.href.includes("f_AL=true");
-  }
-  let easyBtn = getBySelectorList([
-    "button[aria-label*='Easy Apply filter']",
-    "button[aria-label*='Easy Apply']",
-    "button.jobs-search-box__filter-pill-button"
-  ]);
-  if (!easyBtn) {
-    const candidates = Array.from(document.querySelectorAll("button, label, span"));
-    easyBtn = candidates.find((el) => visibleText(el).includes("easy apply")) || null;
-  }
+  const urlHasEasyApplyParam = urlHasEasyApplyFilter();
+  let easyBtn = findEasyApplyFilterPill();
   if (!easyBtn) {
     // Fallback: use "All filters" modal and toggle Easy Apply there.
     const allFiltersBtn = getBySelectorList([
@@ -78,14 +115,23 @@ async function applyEasyApplyFilterIfNeeded(settings) {
     }
     return;
   }
-  const active = easyBtn.getAttribute("aria-pressed") === "true" || /active|selected/i.test(easyBtn.className);
-  if (active) {
+  if (isEasyApplyPillActive(easyBtn)) {
     await logLine("Easy Apply filter already active");
     return;
   }
-  await resilientClick(easyBtn, "Easy Apply filter");
-  await logLine("Easy Apply filter enabled");
-  await sleep(900);
+  // Click, then check the pill really switched on (the URL alone proves nothing: f_AL is usually set
+  // already); retry once, then say so.
+  for (let attempt = 1; attempt <= 2; attempt += 1) {
+    await resilientClick(easyBtn, "Easy Apply filter");
+    await sleep(1200);
+    const pill = findEasyApplyFilterPill() || easyBtn;
+    if (isEasyApplyPillActive(pill)) {
+      await logLine("Easy Apply filter enabled");
+      return;
+    }
+    easyBtn = pill;
+  }
+  await logLine("Easy Apply filter could not be switched on; only Easy Apply cards will be processed.", "warn");
 }
 
 function hasAdvancedFiltersConfigured(settings) {

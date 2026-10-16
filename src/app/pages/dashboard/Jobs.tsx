@@ -2541,7 +2541,7 @@ export default function Jobs() {
     {
       id: "salary",
       label: "Expected Salary / CTC",
-      shortLabel: "Salary & CTC",
+      shortLabel: "Salary",
       icon: Coins,
       match: (category: string) =>
         category === "Expected salary / CTC" ||
@@ -2551,7 +2551,7 @@ export default function Jobs() {
     {
       id: "availability",
       label: "Notice Period & Availability",
-      shortLabel: "Notice Period",
+      shortLabel: "Notice",
       icon: Clock,
       match: (category: string) =>
         category === "Notice period / joining time" ||
@@ -2573,7 +2573,7 @@ export default function Jobs() {
     {
       id: "authorization",
       label: "Visa & Relocation",
-      shortLabel: "Visa & Location",
+      shortLabel: "Visa",
       icon: ShieldCheck,
       match: (category: string) =>
         category === "Visa sponsorship" ||
@@ -3712,7 +3712,7 @@ export default function Jobs() {
           </div>
 
           {/* Easy Categorized Tabs Navigation */}
-          <div className="bg-white/90 backdrop-blur-md rounded-2xl border border-gray-200/80 p-1.5 shadow-2xs flex items-center gap-1.5 overflow-x-auto">
+          <div className="bg-white/90 backdrop-blur-md rounded-2xl border border-gray-200/80 p-1.5 shadow-2xs flex items-center gap-1 overflow-x-auto">
             {SCREENING_CATEGORY_TABS.filter((t) => isScreeningTabVisible(t.id)).map((tab) => {
               const Icon = tab.icon;
               const isActive = screeningActiveTab === tab.id;
@@ -3722,14 +3722,15 @@ export default function Jobs() {
                   key={tab.id}
                   type="button"
                   onClick={() => setScreeningActiveTab(tab.id)}
-                  className={`shrink-0 px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all duration-150 ${
+                  title={tab.label}
+                  className={`shrink-0 px-3 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all duration-150 ${
                     isActive
                       ? "bg-purple-600 text-white shadow-xs"
                       : "text-gray-700 hover:text-gray-900 hover:bg-gray-100/80 bg-gray-50/50 border border-gray-100"
                   }`}
                 >
                   <Icon className={`w-3.5 h-3.5 ${isActive ? "text-white" : "text-gray-500"}`} />
-                  <span>{tab.label}</span>
+                  <span>{tab.shortLabel}</span>
                   <span
                     className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
                       isActive
@@ -3871,234 +3872,6 @@ export default function Jobs() {
               ))}
             </div>
           )}
-        </div>
-      )}
-
-      {/* TAB 3: Applications Queue */}
-      {activeJobsTab === "queue" && (
-        <div className="space-y-4 animate-in fade-in duration-150">
-          <div className="bg-white rounded-xl p-3 border border-gray-200/80 shadow-xs flex flex-col sm:flex-row gap-2.5">
-            <div className="flex-1 relative">
-              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search queued applications by title, company, status..."
-                className="w-full pl-9 pr-3 py-1.5 text-xs rounded-lg border border-gray-200 focus:border-purple-400 focus:ring-2 focus:ring-purple-100 outline-none"
-              />
-            </div>
-            <button
-              onClick={() => setShowFilters(!showFilters)}
-              className="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-xs font-semibold transition-colors flex items-center gap-1.5"
-            >
-              <SlidersHorizontal className="w-3.5 h-3.5" />
-              <span>Criteria Filter</span>
-            </button>
-          </div>
-
-          {showFilters && (
-            <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} className="bg-white p-3 rounded-xl border border-gray-200/80 shadow-xs grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-xs">
-              <input
-                value={criteria.keywords}
-                onChange={(e) => setCriteria((p) => ({ ...p, keywords: e.target.value }))}
-                placeholder="Keywords / title"
-                className="px-3 py-1.5 rounded-lg border border-gray-200 focus:border-purple-400 outline-none text-xs"
-              />
-              <input
-                value={criteria.company}
-                onChange={(e) => setCriteria((p) => ({ ...p, company: e.target.value }))}
-                placeholder="Company"
-                className="px-3 py-1.5 rounded-lg border border-gray-200 focus:border-purple-400 outline-none text-xs"
-              />
-              <input
-                value={criteria.location}
-                onChange={(e) => setCriteria((p) => ({ ...p, location: e.target.value }))}
-                placeholder="Location / city"
-                className="px-3 py-1.5 rounded-lg border border-gray-200 focus:border-purple-400 outline-none text-xs"
-              />
-            </motion.div>
-          )}
-
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
-            {/* Jobs List */}
-            <div className="lg:col-span-6 space-y-2.5 max-h-[640px] overflow-y-auto pr-1">
-              {loading ? <div className="text-xs text-gray-400 py-6 text-center">Loading applications queue...</div> : null}
-              {!loading && filteredJobs.length === 0 ? (
-                <div className="text-xs text-gray-500 py-8 text-center bg-white rounded-xl border border-gray-200/80">No applications in queue.</div>
-              ) : null}
-
-              {filteredJobs.map((job) => {
-                const company = String(job.criteriaJson?.company || "LinkedIn");
-                const title = String(job.criteriaJson?.title || job.criteriaJson?.keywords || "Auto-Apply Job");
-                const location = String(job.criteriaJson?.location || job.criteriaJson?.currentCity || "N/A");
-                const reason = getJobReason(job);
-                const displayStatus = displayJobStatus(job);
-                const isSelected = selectedJobId === job.id;
-
-                return (
-                  <div
-                    key={job.id}
-                    onClick={() => setSelectedJobId(job.id)}
-                    className={`p-3 rounded-xl border transition-all cursor-pointer shadow-2xs ${isSelected ? "border-purple-500 bg-purple-50/40 ring-1 ring-purple-400" : "border-gray-200/80 bg-white hover:border-purple-200"
-                      }`}
-                  >
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-100 to-blue-100 flex items-center justify-center font-bold text-xs text-purple-700 shrink-0">
-                          {company.charAt(0)}
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <h4 className="text-xs font-semibold text-gray-900 truncate">{title}</h4>
-                          <p className="text-[11px] text-gray-500 truncate">{company}</p>
-                        </div>
-                      </div>
-                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold shrink-0 ${statusBadge(job.status)}`}>
-                        {displayStatus}
-                      </span>
-                    </div>
-
-                    {reason ? (
-                      <div className="mt-1.5 text-[10px] text-amber-800 bg-amber-50 border border-amber-100 rounded px-2 py-1 flex items-center justify-between gap-1">
-                        <span className="truncate">Reason: {reason}</span>
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            openAiInterventionForJob(job);
-                          }}
-                          className="px-2 py-0.5 rounded bg-purple-100 hover:bg-purple-200 text-purple-800 text-[9px] font-bold shrink-0 flex items-center gap-1 border border-purple-200 cursor-pointer"
-                        >
-                          <Sparkles className="w-2.5 h-2.5 text-yellow-600" />
-                          Fix with AI
-                        </button>
-                      </div>
-                    ) : null}
-
-                    <div className="mt-2 flex items-center justify-between text-[10px] text-gray-400 border-t border-gray-50 pt-1.5">
-                      <span>{location}</span>
-                      <div className="flex items-center gap-2">
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            openAiInterventionForJob(job);
-                          }}
-                          className="text-purple-600 hover:text-purple-800 font-semibold flex items-center gap-0.5"
-                        >
-                          <Bot className="w-3 h-3 text-cyan-600" />
-                          <span>AI Fleet</span>
-                        </button>
-                        <span>{formatDate(job.createdAt)}</span>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* Selected Job Inspect Drawer */}
-            <div className="lg:col-span-6 bg-white rounded-xl p-4 border border-gray-200/80 shadow-xs space-y-3 sticky top-4">
-              {!selectedJob ? (
-                <div className="text-xs text-gray-400 py-12 text-center">Select an application to inspect details and logs.</div>
-              ) : (
-                <>
-                  <div className="flex items-start justify-between gap-2 pb-2 border-b border-gray-100">
-                    <div>
-                      <h3 className="text-sm font-bold text-gray-900 leading-tight">
-                        {String(selectedJob.criteriaJson?.title || selectedJob.criteriaJson?.keywords || "Auto-Apply Job")}
-                      </h3>
-                      <p className="text-[11px] text-gray-500 mt-0.5">{String(selectedJob.criteriaJson?.company || "LinkedIn")}</p>
-                    </div>
-                    <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${statusBadge(selectedJob.status)}`}>
-                      {displayJobStatus(selectedJob)}
-                    </span>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-2 text-xs">
-                    <div className="bg-purple-50/70 rounded-lg p-2 border border-purple-100">
-                      <span className="text-[10px] uppercase font-bold text-purple-700">Created</span>
-                      <div className="font-semibold text-gray-900 mt-0.5">{formatDate(selectedJob.createdAt)}</div>
-                    </div>
-                    <div className="bg-blue-50/70 rounded-lg p-2 border border-blue-100">
-                      <span className="text-[10px] uppercase font-bold text-blue-700">Attempts</span>
-                      <div className="font-semibold text-gray-900 mt-0.5">{selectedJob.attempts} / {selectedJob.maxAttempts}</div>
-                    </div>
-                  </div>
-
-                  {getJobReason(selectedJob) ? (
-                    <div className="bg-amber-50 border border-amber-200 rounded-lg p-2.5 text-xs text-amber-800 flex items-center justify-between gap-2">
-                      <div>
-                        <strong>Skipped:</strong> {getJobReason(selectedJob)}
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => openAiInterventionForJob(selectedJob)}
-                        className="px-2.5 py-1 rounded-lg bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-bold text-[10px] shadow-2xs hover:-translate-y-px transition-all flex items-center gap-1 shrink-0 cursor-pointer"
-                      >
-                        <Sparkles className="w-3 h-3 text-yellow-300" />
-                        Resolve Conflict
-                      </button>
-                    </div>
-                  ) : null}
-
-                  {selectedJob.errorMessage ? (
-                    <div className="bg-red-50 border border-red-200 rounded-lg p-2.5 text-xs text-red-700">
-                      {selectedJob.errorMessage}
-                    </div>
-                  ) : null}
-
-                  {/* AI Fleet Decision Banner for Selected Job */}
-                  <div className="p-2.5 rounded-xl bg-gradient-to-r from-indigo-900 via-purple-900 to-slate-900 text-white flex items-center justify-between gap-2 shadow-sm">
-                    <div className="flex items-center gap-2 min-w-0">
-                      <Bot className="w-4 h-4 text-cyan-300 shrink-0" />
-                      <div className="min-w-0">
-                        <div className="text-xs font-bold truncate">11-Agent Neural Fleet Ready</div>
-                        <div className="text-[10px] text-cyan-200 truncate">Optimize resume &amp; auto-submit this job</div>
-                      </div>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => openAiInterventionForJob(selectedJob)}
-                      className="px-3 py-1 bg-cyan-400 hover:bg-cyan-300 text-slate-950 font-extrabold text-[11px] rounded-lg shadow-md hover:-translate-y-px transition-all shrink-0 cursor-pointer flex items-center gap-1"
-                    >
-                      <Sparkles className="w-3 h-3 text-purple-900" />
-                      AI Decision
-                    </button>
-                  </div>
-
-                  <div>
-                    <h4 className="text-xs font-bold text-gray-900 uppercase tracking-wider mb-1.5 flex items-center gap-1">
-                      <FileText className="w-3.5 h-3.5 text-purple-600" />
-                      Criteria
-                    </h4>
-                    <pre className="text-[11px] bg-gray-50 border border-gray-100 rounded-lg p-2.5 max-h-36 overflow-auto font-mono text-gray-700">
-                      {JSON.stringify(selectedJob.criteriaJson || {}, null, 2)}
-                    </pre>
-                  </div>
-
-                  <div className="flex gap-2 pt-2 border-t border-gray-100">
-                    <button
-                      onClick={() => void submitAutoApply()}
-                      disabled={submitting}
-                      className="flex-1 px-3 py-1.5 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-xs font-semibold transition-colors disabled:opacity-60 flex items-center justify-center gap-1.5"
-                    >
-                      <Play className="w-3.5 h-3.5" />
-                      Re-Queue Job
-                    </button>
-                    <button
-                      onClick={() => void cancelSelected()}
-                      disabled={cancelling || selectedJob.status !== "queued"}
-                      className="px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-700 rounded-lg text-xs font-semibold transition-colors disabled:opacity-50 flex items-center gap-1.5"
-                    >
-                      <XCircle className="w-3.5 h-3.5" />
-                      Cancel
-                    </button>
-                  </div>
-                </>
-              )}
-            </div>
-          </div>
         </div>
       )}
 

@@ -16,6 +16,7 @@ const whatsappSchema = z
   .object({
     messageTemplate: z.string().max(5000),
     targetKeywords: keywords,
+    ignoreKeywords: keywords, // posts that mention any of these are skipped
     autoSendWhatsApp: z.boolean(),
     autoCloseTab: z.boolean(),
     autoLikePosts: z.boolean(),
@@ -34,6 +35,7 @@ const emailSchema = z
     subjectTemplate: z.string().max(300),
     messageTemplate: z.string().max(5000),
     targetKeywords: keywords,
+    ignoreKeywords: keywords, // posts that mention any of these are skipped
     emailClient: z.enum(["gmail_web", "mailto"]),
     autoCloseTab: z.boolean(),
     autoLikePosts: z.boolean(),
@@ -57,6 +59,7 @@ const commentSchema = z
     skipJobSeekers: z.boolean(),
     skipAlreadyLiked: z.boolean(),
     filterKeywords: z.string().max(500),
+    ignoreKeywords: keywords, // posts that mention any of these are skipped
   })
   .partial();
 

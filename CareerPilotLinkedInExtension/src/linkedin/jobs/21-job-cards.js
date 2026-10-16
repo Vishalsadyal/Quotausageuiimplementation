@@ -88,7 +88,13 @@ function collectJobCards({ passive = false } = {}) {
 
 function hasEasyApplySignalOnCard(card) {
   if (!card) return false;
-  const quickText = normalizeLabel(card.textContent || "");
+  // Ignore text this extension added itself ("SKIPPED: No Easy Apply" tags, live badges): it would
+  // make a card without the LinkedIn badge look like an Easy Apply card on the next scan.
+  let cardText = String(card.textContent || "");
+  for (const injected of card.querySelectorAll?.(".cp-card-outcome-tag, .cp-card-live-badge, .cp-probe-label") || []) {
+    cardText = cardText.replace(String(injected.textContent || ""), " ");
+  }
+  const quickText = normalizeLabel(cardText);
   if (quickText.includes("easy apply")) return true;
 
   const explicitSignal = getBySelectorList(
@@ -104,6 +110,7 @@ function hasEasyApplySignalOnCard(card) {
   if (explicitSignal) return true;
 
   const buttonSignal = Array.from(card.querySelectorAll("button, a, span"))
+    .filter((el) => !el.closest(".cp-card-outcome-tag, .cp-card-live-badge, .cp-probe-label"))
     .slice(0, 40)
     .some((el) => normalizeLabel(`${el.getAttribute?.("aria-label") || ""} ${el.textContent || ""}`).includes("easy apply"));
   return buttonSignal;

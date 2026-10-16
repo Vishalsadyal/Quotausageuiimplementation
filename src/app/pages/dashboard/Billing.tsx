@@ -18,6 +18,7 @@ import {
   ArrowRight,
   Layers,
   Star,
+  CreditCard,
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { useExtensionPipelineStats } from "../../hooks/useExtensionPipelineStats";
@@ -55,6 +56,19 @@ type WalletTxn = {
   referenceId?: string | null;
   createdAt: string;
 };
+
+type PlanPurchase = {
+  id: string;
+  paymentId: string;
+  createdAt: string;
+  plan: string;
+  amountRupees: number | null;
+  discountCode: string | null;
+  expiresAt: string | null;
+  source: "one_time" | "subscription";
+};
+
+const PLAN_PURCHASE_NAME: Record<string, string> = { pro: "Pro", connect: "Pro Connect", coach: "Coach" };
 
 type TopupOrder = {
   provider: "razorpay";
@@ -110,6 +124,7 @@ export default function Billing() {
   const extensionStats = useExtensionPipelineStats();
   const [wallet, setWallet] = useState<WalletSummary | null>(null);
   const [txns, setTxns] = useState<WalletTxn[]>([]);
+  const [purchases, setPurchases] = useState<PlanPurchase[]>([]);
   const [loading, setLoading] = useState(true);
   const [processingTopup, setProcessingTopup] = useState(false);
   const [upgradingPlan, setUpgradingPlan] = useState<string | null>(null);
@@ -204,6 +219,7 @@ export default function Billing() {
       }
       setWallet(walletData.data as WalletSummary);
       setTxns((txData?.data?.transactions || []) as WalletTxn[]);
+      setPurchases((txData?.data?.purchases || []) as PlanPurchase[]);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to fetch wallet");
     } finally {
@@ -458,6 +474,15 @@ export default function Billing() {
       setProcessingTopup(false);
     }
   };
+
+  // Hires movements and plan purchases in one list, newest first.
+  const historyRows = useMemo(() => {
+    const rows: Array<{ kind: "txn"; at: string; txn: WalletTxn } | { kind: "purchase"; at: string; purchase: PlanPurchase }> = [
+      ...txns.map((txn) => ({ kind: "txn" as const, at: txn.createdAt, txn })),
+      ...purchases.map((purchase) => ({ kind: "purchase" as const, at: purchase.createdAt, purchase })),
+    ];
+    return rows.sort((a, b) => new Date(b.at).getTime() - new Date(a.at).getTime());
+  }, [txns, purchases]);
 
   const txnLabel = (txn: WalletTxn) => {
     if (txn.type === "credit_purchase") return "Top-up";
@@ -879,78 +904,109 @@ export default function Billing() {
       {/* ======================================================== */}
       {/* 3. CUSTOM HIRES TOP UP WALLET                            */}
       {/* ======================================================== */}
-      <div className="bg-white rounded-xl p-4 border border-gray-200/80 shadow-xs space-y-3">
-        <h2 className="text-xs font-bold text-gray-900 uppercase tracking-wider inline-flex items-center gap-1.5">
-          <Coins className="w-4 h-4 text-purple-600" />
-          Top Up Hires Credits (Pay As You Go)
-        </h2>
-        <div className="flex flex-wrap items-end gap-3">
-          <div>
-            <label className="block text-xs font-semibold text-gray-700 mb-1">
-              Top-up Amount (USD)
-              <span className="ml-1 text-[11px] text-gray-500 font-normal">(min ${minTopupUsd.toFixed(2)})</span>
-            </label>
-            <input
-              type="number"
-              min={minTopupUsd}
-              step={0.01}
-              value={usdAmount}
-              onChange={(e) => setUsdAmount(Math.max(0, Number(e.target.value) || 0))}
-              className={`px-3 py-1.5 rounded-lg border text-xs outline-none w-36 ${
-                belowMinUsd ? "border-rose-300 focus:border-rose-400" : "border-gray-300 focus:border-purple-400"
-              }`}
-            />
-            {belowMinUsd ? (
-              <div className="mt-1 text-[11px] font-semibold text-rose-600">
-                Minimum top-up is ${minTopupUsd.toFixed(2)}.
+      <div className="bg-white rounded-xl p-5 border border-gray-200/80 shadow-xs">
+        <div className="mb-4">
+          <h2 className="text-xs font-bold text-gray-900 uppercase tracking-wider inline-flex items-center gap-1.5">
+            <Coins className="w-4 h-4 text-purple-600" />
+            Top Up Hires Credits
+          </h2>
+          <p className="text-xs text-gray-500 mt-1">Pay as you go. Each Hire covers one application.</p>
+        </div>
+
+        <div className="grid gap-5 md:grid-cols-[minmax(0,360px)_320px] md:gap-8 md:items-start">
+          {/* Inputs */}
+          <div className="space-y-5">
+            <div>
+              <label htmlFor="topup-amount" className="block text-xs font-semibold text-gray-700 mb-1.5">
+                Top-up amount (USD)
+              </label>
+              <div className="relative w-full">
+                <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-xs font-semibold text-gray-400">$</span>
+                <input
+                  id="topup-amount"
+                  type="number"
+                  min={minTopupUsd}
+                  step={0.01}
+                  value={usdAmount}
+                  onChange={(e) => setUsdAmount(Math.max(0, Number(e.target.value) || 0))}
+                  className={`h-10 w-full rounded-lg border bg-white pl-7 pr-3 text-sm outline-none transition-colors focus:ring-2 ${
+                    belowMinUsd
+                      ? "border-rose-300 focus:border-rose-400 focus:ring-rose-100"
+                      : "border-gray-300 focus:border-purple-400 focus:ring-purple-100"
+                  }`}
+                />
+              </div>
+              {belowMinUsd ? (
+                <p className="mt-1.5 text-[11px] font-semibold text-rose-600">Minimum top-up is ${minTopupUsd.toFixed(2)}.</p>
+              ) : (
+                <p className="mt-1.5 text-[11px] text-gray-500">Minimum ${minTopupUsd.toFixed(2)}.</p>
+              )}
+            </div>
+
+            <div>
+              <label htmlFor="topup-code" className="block text-xs font-semibold text-gray-700 mb-1.5">
+                Discount code <span className="font-normal text-gray-400">(optional)</span>
+              </label>
+              <div className="flex w-full items-center gap-2">
+                <input
+                  id="topup-code"
+                  type="text"
+                  value={discountCode}
+                  onChange={(e) => {
+                    setDiscountCode(String(e.target.value || "").toUpperCase());
+                    setDiscountPreview(null);
+                  }}
+                  placeholder="WELCOME10"
+                  className="h-10 min-w-0 flex-1 rounded-lg border border-gray-300 bg-white px-3 text-sm uppercase outline-none transition-colors focus:border-purple-400 focus:ring-2 focus:ring-purple-100"
+                />
+                <button
+                  onClick={() => void applyDiscount()}
+                  disabled={applyingDiscount || belowMinUsd}
+                  className="h-10 shrink-0 rounded-lg border border-gray-300 bg-white px-4 text-xs font-semibold text-gray-700 transition-colors hover:bg-gray-50 disabled:opacity-60 cursor-pointer"
+                >
+                  {applyingDiscount ? "Applying..." : "Apply"}
+                </button>
+              </div>
+              {discountPreview ? (
+                <div className="mt-3 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2.5 text-xs text-emerald-800">
+                  <div className="font-semibold">Code applied: {discountPreview.code}</div>
+                  <div className="mt-0.5 text-[11px]">
+                    Base: INR {discountPreview.baseRupees} &middot; Discount: INR {discountPreview.discountRupees} &middot; Payable: INR{" "}
+                    {discountPreview.finalRupees}
+                  </div>
+                  {discountPreview.description ? <div className="mt-0.5 text-[11px] text-emerald-700">{discountPreview.description}</div> : null}
+                </div>
+              ) : null}
+            </div>
+          </div>
+
+          {/* Summary + pay */}
+          <div className="rounded-xl border border-purple-100 bg-purple-50/50 p-5">
+            <div className="text-[10px] font-bold uppercase tracking-wider text-gray-500">You will get</div>
+            <div className="mt-1 flex items-baseline gap-1.5">
+              <span className="text-3xl font-black leading-none text-purple-700">{computedHires}</span>
+              <span className="text-sm font-semibold text-gray-700">Hires</span>
+            </div>
+            <div className="mt-1 text-[11px] text-gray-500">1 Hire = 1 application</div>
+            {discountPreview ? (
+              <div className="mt-3 flex items-center justify-between border-t border-purple-100 pt-3 text-xs">
+                <span className="text-gray-600">Payable</span>
+                <span className="font-bold text-gray-900">INR {discountPreview.finalRupees}</span>
               </div>
             ) : null}
+            <button
+              onClick={() => void startTopup()}
+              disabled={processingTopup || belowMinUsd}
+              className="mt-4 h-11 w-full rounded-lg bg-[#6047f5] text-sm font-bold text-white shadow-xs transition-all hover:bg-[#5538e8] hover:shadow-sm disabled:opacity-60 cursor-pointer"
+            >
+              {processingTopup ? "Processing..." : "Pay with Razorpay"}
+            </button>
+            <p className="mt-2.5 text-center text-[11px] leading-relaxed text-gray-500">
+              Charged in INR at about $1 = INR {INR_PER_USD.toFixed(1)}.
+              <br />
+              Instant UPI / card activation.
+            </p>
           </div>
-          <div className="text-xs text-gray-600 pb-1.5">
-            You will get <span className="font-bold text-purple-700">{computedHires} Hires</span> (1 Hire = 1 Apply)
-          </div>
-          <div>
-            <label className="block text-xs font-semibold text-gray-700 mb-1">Discount Code (optional)</label>
-            <div className="flex items-center gap-1.5">
-              <input
-                type="text"
-                value={discountCode}
-                onChange={(e) => {
-                  setDiscountCode(String(e.target.value || "").toUpperCase());
-                  setDiscountPreview(null);
-                }}
-                placeholder="WELCOME10"
-                className="px-3 py-1.5 rounded-lg border border-gray-300 focus:border-purple-400 text-xs outline-none uppercase w-32"
-              />
-              <button
-                onClick={() => void applyDiscount()}
-                disabled={applyingDiscount || belowMinUsd}
-                className="px-3 py-1.5 rounded-lg border border-gray-300 bg-white hover:bg-gray-50 text-xs font-semibold disabled:opacity-60 cursor-pointer"
-              >
-                {applyingDiscount ? "Applying..." : "Apply"}
-              </button>
-            </div>
-          </div>
-          <button
-            onClick={() => void startTopup()}
-            disabled={processingTopup || belowMinUsd}
-            className="px-4 py-2 rounded-lg bg-[#6047f5] hover:from-[#5558E6] hover:to-[#9647E3] text-white text-xs font-bold shadow-xs hover:shadow-sm transition-all disabled:opacity-60 cursor-pointer"
-          >
-            {processingTopup ? "Processing..." : "Pay with Razorpay"}
-          </button>
-        </div>
-        {discountPreview ? (
-          <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs text-emerald-800">
-            <div className="font-semibold">Code applied: {discountPreview.code}</div>
-            <div className="mt-0.5 text-[11px]">
-              Base: INR {discountPreview.baseRupees} | Discount: INR {discountPreview.discountRupees} | Payable: INR{" "}
-              {discountPreview.finalRupees}
-            </div>
-            {discountPreview.description ? <div className="text-[10px] mt-0.5 text-emerald-700">{discountPreview.description}</div> : null}
-          </div>
-        ) : null}
-        <div className="text-[11px] text-gray-500">
-          Charged in INR at approximate rate: $1 = INR {INR_PER_USD.toFixed(1)}. Instant UPI / Card activation.
         </div>
       </div>
 
@@ -960,9 +1016,36 @@ export default function Billing() {
       <div className="bg-white rounded-xl border border-gray-200/80 p-4 shadow-xs">
         <h2 className="text-xs font-bold text-gray-900 uppercase tracking-wider mb-3">Transaction History</h2>
         {loading ? <div className="text-xs text-gray-500">Loading wallet...</div> : null}
-        {!loading && txns.length === 0 ? <div className="text-xs text-gray-500 py-4 text-center">No wallet transactions yet.</div> : null}
+        {!loading && historyRows.length === 0 ? <div className="text-xs text-gray-500 py-4 text-center">No transactions yet.</div> : null}
         <div className="space-y-1.5">
-          {txns.map((txn) => (
+          {historyRows.map((row) => {
+            if (row.kind === "purchase") return (
+            <div key={`purchase-${row.purchase.id}`} className="flex items-center justify-between p-2.5 rounded-lg border border-purple-100 bg-purple-50/40 hover:bg-purple-50/70 transition-colors">
+              <div className="flex items-center gap-2.5">
+                <div className="w-7 h-7 rounded-lg flex items-center justify-center bg-purple-100">
+                  <CreditCard className="w-3.5 h-3.5 text-purple-700" />
+                </div>
+                <div>
+                  <div className="text-xs font-semibold text-gray-900">
+                    {PLAN_PURCHASE_NAME[row.purchase.plan] || row.purchase.plan} plan {row.purchase.source === "subscription" ? "payment" : "purchase"}
+                  </div>
+                  <div className="text-[11px] text-gray-500">
+                    {new Date(row.purchase.createdAt).toLocaleString()}
+                    {row.purchase.discountCode ? ` · coupon ${row.purchase.discountCode}` : ""}
+                    {row.purchase.expiresAt ? ` · valid until ${new Date(row.purchase.expiresAt).toLocaleDateString()}` : ""}
+                  </div>
+                </div>
+              </div>
+              <div className="text-right">
+                <div className="text-xs font-bold text-purple-700">
+                  {row.purchase.amountRupees === null ? "Plan activated" : `₹${row.purchase.amountRupees.toLocaleString("en-IN")}`}
+                </div>
+                <div className="text-[11px] text-gray-500">Paid</div>
+              </div>
+            </div>
+          );
+            const txn = row.txn;
+            return (
             <div key={txn.id} className="flex items-center justify-between p-2.5 rounded-lg border border-gray-100 hover:bg-purple-50/30 transition-colors">
               <div className="flex items-center gap-2.5">
                 <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${txn.amount >= 0 ? "bg-emerald-100" : "bg-rose-100"}`}>
@@ -980,7 +1063,8 @@ export default function Billing() {
                 <div className="text-[11px] text-gray-500">Bal: {txn.balanceAfter}</div>
               </div>
             </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </div>

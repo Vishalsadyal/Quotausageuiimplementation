@@ -197,6 +197,7 @@ const routes = createRoutesFromElements(
       <Route index element={<Suspense fallback={<PageLoader />}><DashboardOverview /></Suspense>} />
       <Route path="jobs" element={<Navigate to="linkedin" replace />} />
       <Route path="jobs/:provider" element={<Suspense fallback={<PageLoader />}><Jobs /></Suspense>} />
+      <Route path="jobs/:provider/queue" element={<Navigate to="/dashboard/applications" replace />} />
       <Route path="jobs/:provider/:section" element={<Suspense fallback={<PageLoader />}><Jobs /></Suspense>} />
       <Route path="applications" element={<Suspense fallback={<PageLoader />}><Applications /></Suspense>} />
       <Route path="resume" element={<Suspense fallback={<PageLoader />}><Resume /></Suspense>} />

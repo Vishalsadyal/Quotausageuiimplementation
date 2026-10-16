@@ -15,6 +15,7 @@ async function runAutomationLoop() {
   try {
     const boot = await getBootstrap();
     dailyLimitHandledRunId = "";
+    outOfHiresHandledRunId = "";
     exhaustedSearchPageStreak = 0;
     runSeenJobKeys = loadRunSeenJobKeys(boot?.state?.startedAt || "");
     runStats = {
@@ -60,6 +61,7 @@ async function runAutomationLoop() {
           runNonStop: settings.runNonStop || false,
         });
         dailyLimitHandledRunId = "";
+        outOfHiresHandledRunId = "";
         runSeenJobKeys = loadRunSeenJobKeys(lastRunStartedAt);
         await refreshKnownAppliedJobIds(true);
         resumeChoiceCache.clear();
@@ -108,6 +110,7 @@ async function runAutomationLoop() {
           }
           runStats = { applied: 0, skipped: 0, failed: 0 };
           dailyLimitHandledRunId = "";
+          outOfHiresHandledRunId = "";
           exhaustedSearchPageStreak = 0;
           clearSeenJobsForRun(lastRunStartedAt);
           resumeChoiceCache.clear();

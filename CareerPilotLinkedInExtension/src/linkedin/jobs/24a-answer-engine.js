@@ -356,6 +356,17 @@ async function gatherAnswerCandidates(q, settings) {
     raw.push({ value: getYearsFallback(settings), source: "rule", via: "years of experience" });
   }
 
+  // Years of experience: the number the user configured (settings) outranks anything the bank merely
+  // learned or the AI guessed (a default "1" accepted once would otherwise be reused forever).
+  // Answers the user gave themselves (dashboard / typed in the panel) still come first.
+  if ((q.type === "number" || q.type === "text") && isYearsExperienceQuestion(norm)) {
+    const configuredYears = String(settings?.yearsOfExperienceAnswer || "").trim() || (Number(settings?.currentExperience) >= 0 ? String(Number(settings.currentExperience)) : "");
+    if (configuredYears) {
+      const firstNonUser = raw.findIndex((c) => c.source !== "user");
+      raw.splice(firstNonUser < 0 ? raw.length : firstNonUser, 0, { value: configuredYears, source: "profile", via: "configured years of experience" });
+    }
+  }
+
   const out = [];
   const seen = new Set();
   for (const c of raw) {
@@ -465,6 +476,46 @@ async function fillFromAnswerEngine(block, settings) {
 }
 
 /**
+ * Other ways to write the same answer, for fields that only take a number or only take text:
+ * "12 LPA" -> "12" -> "1200000" (full rupees); "12" -> "12 LPA"; "12.5" -> "13" (whole number).
+ * Most likely first; the original value is never returned.
+ */
+function answerFormatVariants(value, label) {
+  const raw = String(value ?? "").trim();
+  if (!raw) return [];
+  const l = normalizeLabel(label);
+  const out = [];
+  const add = (v) => {
+    const s = String(v ?? "").trim();
+    if (s && s !== raw && !out.includes(s)) out.push(s);
+  };
+
+  const numeric = raw.replace(/,/g, "").match(/\d+(\.\d+)?/);
+  const n = numeric ? Number(numeric[0]) : NaN;
+  const hasWords = /[a-z]/i.test(raw);
+
+  if (Number.isFinite(n)) {
+    // Number only: the usual reason for "Invalid input" on a "12 LPA" style answer.
+    if (hasWords || /[^\d.]/.test(raw)) add(numeric[0]);
+    // Whole number only (fields that reject decimals).
+    if (!Number.isInteger(n)) add(Math.round(n));
+    // Lakhs per annum written out in full rupees, and the other way round.
+    if (/lpa|lakh|ctc|compensation|salary/.test(l) || /lpa|lakh/i.test(raw)) {
+      if (n > 0 && n < 1000) add(Math.round(n * 100000));
+      else if (n >= 100000) add(Math.round(n / 100000));
+    }
+    // Number with its unit (fields that want text such as "30 days" or "12 LPA").
+    if (!hasWords) {
+      if (/lpa|lakh|ctc|compensation|salary/.test(l) && n < 1000) add(`${numeric[0]} LPA`);
+      if (/\bdays?\b/.test(l)) add(`${numeric[0]} days`);
+      if (/\bmonths?\b/.test(l)) add(`${numeric[0]} months`);
+      if (/\byears?\b/.test(l)) add(`${numeric[0]} years`);
+    }
+  }
+  return out;
+}
+
+/**
  * After LinkedIn rejects answers on a step (a field shows an error): ranks the rejected answer down
  * and fills the next candidate not tried yet for that field: local candidates first, then AI
  * alternatives (asked with the rejected answers to avoid). Returns how many fields changed.
@@ -486,7 +537,19 @@ async function retryRejectedAnswers(modal, settings) {
     }
     block.dataset.cpTried = JSON.stringify([...tried].slice(-12));
 
-    let next = (await gatherAnswerCandidates(q, settings)).find((c) => !tried.has(normalizeLabel(c.value)));
+    // First try the same answer written another way (number only <-> with unit, whole number, full
+    // rupees): many fields accept only a number or only text, and the answer itself was right.
+    let next = null;
+    if (["text", "number", "textarea"].includes(q.type) && current) {
+      for (const variant of answerFormatVariants(current, q.label)) {
+        const v = coerceAnswer(q, variant);
+        if (v != null && !tried.has(normalizeLabel(v))) {
+          next = { value: v, source: "stored", via: `same answer, other format ("${current.slice(0, 20)}" -> "${v}")` };
+          break;
+        }
+      }
+    }
+    if (!next) next = (await gatherAnswerCandidates(q, settings)).find((c) => !tried.has(normalizeLabel(c.value)));
     if (!next) {
       const aiAnswers = await requestAiAnswerCandidates(q.label, q.type, (q.options || []).map((o) => o.text), error, [...tried]);
       for (const a of aiAnswers) {

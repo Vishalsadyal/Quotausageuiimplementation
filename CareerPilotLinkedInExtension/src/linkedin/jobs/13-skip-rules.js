@@ -253,6 +253,16 @@ let lastDailyEasyApplyLimitEvidence = "";
 
 function hasDailyEasyApplyLimitSignal(root = document) {
   const targetRoot = root || document;
+  // 2026 layout: the limit dialog is a server-driven screen with a stable name, whatever its wording
+  // or class names are. Looked up on the page and inside LinkedIn's shadow root for dialogs.
+  const LIMIT_SCREEN = "[data-sdui-screen*='EasyApplyFuseLimit' i]";
+  const screenRoots = [targetRoot, document, document.getElementById("interop-outlet")?.shadowRoot].filter(Boolean);
+  for (const r of screenRoots) {
+    if (r.querySelector?.(LIMIT_SCREEN)) {
+      lastDailyEasyApplyLimitEvidence = "matched:sdui-screen EasyApplyFuseLimit";
+      return true;
+    }
+  }
   const candidates = getAllBySelectorList(
     [
       ".artdeco-inline-feedback__message",
@@ -283,7 +293,12 @@ function hasDailyEasyApplyLimitSignal(root = document) {
     scopedText.includes("limit daily submissions") ||
     (scopedText.includes("maintain quality and prevent bots") && scopedText.includes("tomorrow")) ||
     (scopedText.includes("save this job") && scopedText.includes("apply tomorrow")) ||
-    scopedText.includes("helping each application get the right attention");
+    scopedText.includes("helping each application get the right attention") ||
+    // 2026 wording: "You reached today's Easy Apply limit. ... Save this job and continue applying tomorrow."
+    (scopedText.includes("reached today") && scopedText.includes("easy apply limit")) ||
+    (scopedText.includes("easy apply limit") && scopedText.includes("tomorrow")) ||
+    (scopedText.includes("save this job") && scopedText.includes("applying tomorrow")) ||
+    (scopedText.includes("limit easy apply submissions") && scopedText.includes("tomorrow"));
 
   const coreLimitPhrases = [
     "we limit the number of applications you can submit in a day",
@@ -316,7 +331,7 @@ async function pauseRunForDailyEasyApplyLimit(settings, reason = "LinkedIn daily
   if (runId) dailyLimitHandledRunId = runId;
 
   runStats.skipped += 1;
-  await logOutcome("warn", "🛑 LinkedIn daily Easy Apply limit reached ('We limit daily submissions...'). Safe stop activated.", "DAILY_EASY_APPLY_LIMIT");
+  await logOutcome("warn", "🛑 LinkedIn daily Easy Apply limit reached. Safe stop activated.", "DAILY_EASY_APPLY_LIMIT");
   await recordOutcome("SKIPPED", {
     reasonCode: "DAILY_EASY_APPLY_LIMIT",
     reason,
@@ -325,9 +340,21 @@ async function pauseRunForDailyEasyApplyLimit(settings, reason = "LinkedIn daily
   await reportProgress();
   await sendMessage({ type: "CP_PAUSE" });
   await botChat(
-    "🛑 LinkedIn daily submission limit reached ('We limit daily submissions to maintain quality and prevent bots... Save this job and apply tomorrow.'). The run has been safely stopped to protect your account.",
+    "🛑 LinkedIn says you reached today's Easy Apply limit. The run has been stopped to protect your account. Click \"Got it\" on LinkedIn's message and continue tomorrow.",
     "warn"
   );
   await debugLog(settings, "Paused due daily limit", { reason, evidence: lastDailyEasyApplyLimitEvidence });
+  return true;
+}
+
+/** Out of Hires with no free applications left: stop now and tell the user how to continue. */
+async function pauseRunOutOfHires(settings) {
+  const runId = String(lastRunStartedAt || "");
+  if (runId && outOfHiresHandledRunId === runId) return false;
+  if (runId) outOfHiresHandledRunId = runId;
+  await logOutcome("warn", "Out of Hires. Run stopped.", "OUT_OF_HIRES");
+  await sendMessage({ type: "CP_PAUSE" });
+  await botChat(OUT_OF_HIRES_TEXT, "warn", OUT_OF_HIRES_META);
+  await debugLog(settings, "Paused: out of Hires", { quota: lastPortalQuota });
   return true;
 }

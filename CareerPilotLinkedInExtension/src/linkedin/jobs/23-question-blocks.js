@@ -624,3 +624,32 @@ function getModalSignature(modal) {
   const validation = getModalValidationMessage(modal);
   return `${heading}|${validation}|${labels.join("|")}`;
 }
+
+/**
+ * Debug aid for a step that will not advance: every field that is empty or flagged invalid, with what
+ * it holds and the message LinkedIn showed (if any). Used in the skip report, so "Could not reach submit
+ * step" names the field that blocked it.
+ */
+function describeStepBlockers(modal, limit = 12) {
+  const out = [];
+  if (!modal) return out;
+  try {
+    for (const block of collectQuestionBlocks(modal)) {
+      const s = getQuestionBlockState(block);
+      if (s.answered && !s.invalid) continue;
+      out.push({
+        label: String(s.label || "").slice(0, 90),
+        type: s.type || "",
+        inputType: s.fieldType || "",
+        required: Boolean(s.required),
+        value: String(s.value || "").slice(0, 40),
+        invalid: Boolean(s.invalid),
+        message: String(s.validationMessage || "").slice(0, 80),
+      });
+      if (out.length >= limit) break;
+    }
+  } catch {
+    // diagnostics must never break the run
+  }
+  return out;
+}

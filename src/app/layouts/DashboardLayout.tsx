@@ -34,7 +34,7 @@ import {
   DASHBOARD_TOUR_ONBOARDING_EXTENSION,
   queueDashboardTourRequest,
 } from 'src/lib/dashboard-tour';
-import { JOBS_SECTIONS, jobsSectionPath, type JobsProvider } from '../pages/dashboard/jobsSections';
+import { APPLICATIONS_PATH, JOBS_SECTIONS, jobsSectionPath, type JobsProvider } from '../pages/dashboard/jobsSections';
 import { usePendingQuestions } from '../hooks/usePendingQuestions';
 import PendingQuestionsPrompt from '../components/PendingQuestionsPrompt';
 
@@ -138,7 +138,7 @@ export default function DashboardLayout() {
   const navigation = [
     { name: 'Overview', href: '/dashboard', icon: LayoutDashboard },
     { name: 'AI Assistant', href: '/dashboard/assistant', icon: Bot, badge: 'NEW' },
-    { name: 'Auto Apply', href: '/dashboard/jobs/linkedin', icon: Target, matchPrefix: '/dashboard/jobs' },
+    { name: 'Auto Apply', href: '/dashboard/jobs/linkedin', icon: Target, matchPrefix: '/dashboard/jobs', extraMatchPrefixes: ['/dashboard/applications'] },
     { name: 'HR Contacts', href: '/dashboard/hr-contacts', icon: Contact, badge: 'NEW', matchPrefix: '/dashboard/hr-contacts' },
     {
       name: 'Recruitment Agency',
@@ -146,7 +146,6 @@ export default function DashboardLayout() {
       icon: Users,
       isExternal: true,
     },
-    { name: 'Applications', href: '/dashboard/applications', icon: Briefcase },
     { name: 'Resume', href: '/dashboard/resume', icon: FileText },
     { name: 'Call Copilot', href: '/dashboard/interview', icon: MessageSquare, badge: 'LIVE' },
     { name: 'Analytics', href: '/dashboard/analytics', icon: BarChart3 },
@@ -159,10 +158,16 @@ export default function DashboardLayout() {
 
   // Auto Apply sections open as sub-items under the menu entry, on the provider in use.
   const jobsProvider: JobsProvider = location.pathname.startsWith('/dashboard/jobs/indeed') ? 'indeed' : 'linkedin';
-  const jobsSubItems = JOBS_SECTIONS.map((section) => ({
-    ...section,
+  type JobsSubItem = { id: string; label: string; href: string; icon: typeof Briefcase };
+  const jobsSubItems: JobsSubItem[] = JOBS_SECTIONS.map((section) => ({
+    id: section.id,
+    label: section.label,
+    icon: section.icon,
     href: jobsSectionPath(jobsProvider, section.id),
   }));
+  // The Applications page is listed inside Auto Apply, after Screening Answers.
+  const screeningAt = jobsSubItems.findIndex((sub) => sub.id === 'screening');
+  jobsSubItems.splice(screeningAt + 1, 0, { id: 'applications', label: 'Applications', icon: Briefcase, href: APPLICATIONS_PATH });
 
   const handleLogout = () => {
     logout();
@@ -229,7 +234,9 @@ export default function DashboardLayout() {
         {/* Navigation Menu Links */}
         <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-200">
           {navigation.map((item) => {
-            const isMatchPrefix = (item as any).matchPrefix && location.pathname.startsWith((item as any).matchPrefix);
+            const isMatchPrefix =
+              ((item as any).matchPrefix && location.pathname.startsWith((item as any).matchPrefix)) ||
+              Boolean(((item as any).extraMatchPrefixes as string[] | undefined)?.some((prefix) => location.pathname.startsWith(prefix)));
             const isDirectMatch = location.pathname === item.href;
             const isActive = isDirectMatch || isMatchPrefix;
 

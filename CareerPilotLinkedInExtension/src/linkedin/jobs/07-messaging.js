@@ -48,8 +48,8 @@ async function reportProgress() {
   if (response?.ok) return true;
   const code = String(response?.errorCode || "").toUpperCase();
   if (code === "DAILY_CAP_REACHED") {
-    await logLine("Daily cap reached (3/day). Stopping run.", "warn");
-    await botChat("Daily application limit reached. AI Copilot is pausing for today.", "warn");
+    await logLine("Out of Hires. Stopping run.", "warn");
+    await botChat(OUT_OF_HIRES_TEXT, "warn", OUT_OF_HIRES_META);
     await sendMessage({ type: "CP_STOP" });
     return false;
   }
@@ -79,8 +79,8 @@ function userChat(text) {
   return logLine(`You: ${String(text || "").trim()}`, "user");
 }
 
-function botChat(text, level = "info") {
-  return logLine(`Copilot: ${String(text || "").trim()}`, level);
+function botChat(text, level = "info", meta = undefined) {
+  return logLine(`Copilot: ${String(text || "").trim()}`, level, meta);
 }
 
 async function debugLog(settings, message, meta = undefined) {

@@ -69,6 +69,58 @@ function cpOwIcon(name) {
   return CP_OW_ICONS[name] || "";
 }
 
+/**
+ * Default "skip posts that mention" words for the WhatsApp, Email and Comment tools (clear job-seeker signals only).
+ * The dashboard starts with the same list (OutreachMessages.tsx) and overwrites it when the user saves their own.
+ */
+const CP_OW_DEFAULT_SKIP_KEYWORDS = ["open to work", "#opentowork", "looking for a job", "looking for a new job", "looking for new opportunities", "seeking new opportunities", "job seeker", "#jobseeker", "#fresherjobseeker"];
+
+/**
+ * First keyword from the user's "skip posts that mention" list that appears in `text`, or "".
+ * Case-insensitive; a keyword made of letters/digits only matches as a whole word ("hire" does not match "hired").
+ * `list` is an array or a comma-separated string.
+ */
+function cpOwMatchIgnoreKeyword(text, list) {
+  const haystack = String(text || "").toLowerCase();
+  const words = Array.isArray(list) ? list : String(list || "").split(",");
+  for (const raw of words) {
+    const keyword = String(raw || "").trim().toLowerCase();
+    if (!keyword) continue;
+    const escaped = keyword.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const left = /^[a-z0-9]/.test(keyword) ? "(?:^|[^a-z0-9])" : "";
+    const right = /[a-z0-9]$/.test(keyword) ? "(?:[^a-z0-9]|$)" : "";
+    if (new RegExp(left + escaped + right).test(haystack)) return keyword;
+  }
+  return "";
+}
+
+/**
+ * Marks a LinkedIn post in red when a tool skipped it, e.g. "WhatsApp found · skipped: job seeker".
+ * Built with textContent (the reason can contain the user's own keyword) and inline styles (LinkedIn's CSS must not
+ * restyle it). Safe to call on every scan: an identical badge is left alone, a different one is replaced.
+ */
+function cpOwMarkSkippedPost(postEl, { label, reason }) {
+  if (!postEl || typeof postEl.insertBefore !== "function") return;
+  const key = `${label}|${reason}`;
+  const old = postEl.querySelector(":scope > .cp-ow-skip-badge");
+  if (old) {
+    if (old.getAttribute("data-key") === key) return;
+    old.remove();
+  }
+  const badge = document.createElement("div");
+  badge.className = "cp-ow-skip-badge";
+  badge.setAttribute("data-key", key);
+  badge.style.cssText =
+    "display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin:6px 12px;padding:6px 12px;border-radius:8px;" +
+    "border:1px solid #fca5a5;background:#fef2f2;color:#b91c1c;font:12px/1.3 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;";
+  const title = document.createElement("strong");
+  title.textContent = `⛔ ${label}`;
+  const why = document.createElement("span");
+  why.textContent = `· skipped: ${reason}`;
+  badge.append(title, why);
+  postEl.insertBefore(badge, postEl.firstChild);
+}
+
 function cpOwEscape(value) {
   return String(value ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
 }
@@ -86,7 +138,7 @@ function cpOwShell({ id, title, subtitle, icon, tabs, controls = "", foot = "" }
           <div><div class="cp-ow-title">${cpOwEscape(title)}</div><div class="cp-ow-sub">${cpOwEscape(subtitle)}</div></div>
         </div>
         <div class="cp-ow-head-right">
-          <span class="cp-ow-hires" data-hires hidden title="Hires left. Each message or comment costs 1.">${cpOwIcon("coin")}<b data-hires-text>--</b></span>
+          <span class="cp-ow-hires" data-hires role="button" tabindex="0" title="Hires left. Each message or comment costs 1. Click for plans and top-up.">${cpOwIcon("coin")}<b data-hires-text>-- Hires</b></span>
           <span class="cp-ow-badge" data-badge>Idle</span>
           <div class="cp-ow-actions">
             <button type="button" data-act="min" title="Minimize">&ndash;</button>
@@ -245,6 +297,8 @@ function cpOwInit(root, { defaultTab, onTab } = {}) {
   return controller;
 }
 
+const CP_OW_UPGRADE_URL = "https://www.autoapplycv.in/dashboard/billing";
+
 /**
  * Shows the Hires left in the header chip and keeps it live. The background rewrites `cpHiresBalance` after every
  * allowance check and every charge (one per message or comment), so the number drops as each one is sent,
@@ -256,11 +310,17 @@ function cpOwBindHires(root) {
   if (!chip || !text || typeof chrome === "undefined" || !chrome.storage) return;
   let last = null;
   let flashTimer = 0;
+  // Click (or Enter) opens the plans / top-up page; it is the Upgrade button once the Hires run out.
+  const openPlans = () => window.open(CP_OW_UPGRADE_URL, "_blank", "noopener");
+  chip.addEventListener("click", openPlans);
+  chip.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" || e.key === " ") openPlans();
+  });
   const apply = (balance) => {
     if (!balance) return;
     chip.hidden = false;
     const n = Number(balance.spendable || 0);
-    text.textContent = balance.unlimited ? "Unlimited" : `${n} ${n === 1 ? "Hire" : "Hires"}`;
+    text.textContent = balance.unlimited ? "Unlimited" : n <= 0 ? "0 Hires · Upgrade" : `${n} ${n === 1 ? "Hire" : "Hires"}`;
     chip.classList.toggle("is-low", !balance.unlimited && n > 0 && n <= 3);
     chip.classList.toggle("is-empty", !balance.unlimited && n <= 0);
     if (!balance.unlimited && last !== null && n < last) {

@@ -101,7 +101,7 @@ async function handleChatCommand(input) {
     if (!modeSaved) return;
     const startRes = await sendMessage({ type: "CP_START", forceRestart: false });
     if (!startRes?.ok) {
-      await botChat(startRes?.error || "Could not start auto-submit run.", "error");
+      await reportStartFailure(startRes, "Could not start auto-submit run.");
       return;
     }
     await botChat("Acknowledged. Auto-submit is ON.", "warn");
@@ -113,7 +113,7 @@ async function handleChatCommand(input) {
     if (!modeSaved) return;
     const startRes = await sendMessage({ type: "CP_START", forceRestart: false });
     if (!startRes?.ok) {
-      await botChat(startRes?.error || "Auto-submit run start failed.", "error");
+      await reportStartFailure(startRes, "Auto-submit run start failed.");
       return;
     }
     await botChat("Auto-submit run started. Auto-submit is ON.", "warn");
@@ -129,7 +129,7 @@ async function handleChatCommand(input) {
     }
     const startRes = await sendMessage({ type: "CP_START", forceRestart: false });
     if (!startRes?.ok) {
-      await botChat(startRes?.error || "Run start failed. Check settings.", "error");
+      await reportStartFailure(startRes, "Run start failed. Check settings.");
       return;
     }
     await botChat("Run started. AI Copilot is now scanning for jobs...");
@@ -138,7 +138,7 @@ async function handleChatCommand(input) {
   if (cmd === "restart" || cmd === "/restart") {
     const startRes = await sendMessage({ type: "CP_START", forceRestart: true });
     if (!startRes?.ok) {
-      await botChat(startRes?.error || "Run restart failed.", "error");
+      await reportStartFailure(startRes, "Run restart failed.");
       return;
     }
     await botChat("Run restarted. AI Copilot is resuming the scan...", "warn");
@@ -149,7 +149,7 @@ async function handleChatCommand(input) {
     if (!modeSaved) return;
     const startRes = await sendMessage({ type: "CP_START", forceRestart: true });
     if (!startRes?.ok) {
-      await botChat(startRes?.error || "Live run restart failed.", "error");
+      await reportStartFailure(startRes, "Live run restart failed.");
       return;
     }
     await botChat("Live run restarted. Auto-submit is ON.", "warn");
@@ -295,4 +295,14 @@ async function handleChatCommand(input) {
     "Unknown command. Try: start, start live, restart, restart live, pause, resume, stop, set city <name>, clear city, clear locations, set pace <minSec> <maxSec>, set years <n>, set phone <num>, set email <mail>, dry run on/off, download debug log",
     "warn"
   );
+}
+
+/** A refused Start: the out-of-Hires card (with its Upgrade button) when that is why, else the plain error. */
+async function reportStartFailure(startRes, fallback) {
+  const code = String(startRes?.errorCode || "").toUpperCase();
+  if (code === "DAILY_CAP_REACHED") {
+    await botChat(OUT_OF_HIRES_TEXT, "warn", OUT_OF_HIRES_META);
+    return;
+  }
+  await botChat(startRes?.error || fallback, "error");
 }

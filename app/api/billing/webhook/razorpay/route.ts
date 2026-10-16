@@ -5,6 +5,7 @@ import { prisma } from "src/lib/prisma";
 import { verifyRazorpayWebhook } from "src/lib/billing";
 import { getPlanQuota } from "src/lib/quota";
 import { isPaidPlan } from "src/lib/plans";
+import { writeAuditLog } from "src/lib/audit";
 
 function toPlan(value: string | undefined) {
   return isPaidPlan(value) ? value : "free";
@@ -91,6 +92,24 @@ export async function POST(req: NextRequest) {
           quotaTotal: getPlanQuota(userPlan),
         },
       });
+    }
+
+    // A successful charge (first payment or renewal) goes in Billing > Transaction History, with the amount paid.
+    const paymentEntity = payload.payload?.payment?.entity;
+    if (eventType === "subscription.charged" && userId && providerSubscriptionId && paymentEntity?.id && plan !== "free") {
+      await writeAuditLog({
+        actorUserId: userId,
+        action: "billing.plan_purchased",
+        targetType: "payment",
+        targetId: String(paymentEntity.id),
+        metadataJson: {
+          plan,
+          finalRupees: Math.round(Number(paymentEntity.amount || 0) / 100),
+          discountCode: null,
+          expiresAt: subscriptionEntity?.current_end ? new Date(subscriptionEntity.current_end * 1000).toISOString() : null,
+          source: "subscription",
+        },
+      }).catch(() => null);
     }
 
     await prisma.paymentEvent.update({

@@ -38,6 +38,11 @@ function formatAiFeedCard(entry) {
   const time = String(entry?.ts?.slice(11, 19) || "");
   const level = String(entry?.level || "info").toLowerCase();
 
+  // Out of Hires: a card with the reason and a real Upgrade button (click handled in 19-panel-ui.js).
+  if (entry?.meta?.card === "out-of-hires") {
+    return `<div class="cp-ai-card cp-out-of-hires"><span class="cp-ai-icon">${ICONS.alert}</span><span class="cp-ai-text"><strong>You are out of Hires</strong><span class="cp-out-body">${escapeHtml(rawMsg)}</span><button type="button" class="cp-out-upgrade" data-cp-upgrade>Upgrade now</button></span><span class="cp-ai-time">${escapeHtml(time)}</span></div>`;
+  }
+
   let icon = ICONS.sparkle;
   let cardClass = "";
   let formattedHtml = escapeHtml(rawMsg);
@@ -265,6 +270,28 @@ function buildLogRenderSignature(logs, state, settings, activeTab) {
   ].join("|");
 }
 
+/**
+ * What the portal quota says about spending: paid Hires, free applications used, and whether nothing is
+ * left (free + paid). Unknown quota is never treated as out. Shared by the panel pill and the run loop.
+ */
+function describeHiresState(quota) {
+  const q = quota || {};
+  const hireBalance = Number(q.hireBalance ?? NaN);
+  const quotaUsed = Number(q.quotaUsed ?? NaN);
+  const quotaTotal = Number(q.quotaTotal ?? NaN);
+  const spendable = Number(q.spendable ?? NaN);
+  const hasFree = Number.isFinite(quotaUsed) && Number.isFinite(quotaTotal);
+  const freeLeft = hasFree ? Math.max(0, quotaTotal - quotaUsed) : 0;
+  // Paid Hires: the explicit balance, else whatever is spendable beyond the free allowance.
+  const hires = Number.isFinite(hireBalance)
+    ? Math.max(0, hireBalance)
+    : Number.isFinite(spendable)
+      ? Math.max(0, spendable - freeLeft)
+      : null;
+  const out = Number.isFinite(spendable) ? spendable <= 0 : hires !== null && hasFree && hires <= 0 && freeLeft <= 0;
+  return { quotaUsed, quotaTotal, hasFree, freeLeft, hires, out };
+}
+
 function renderState(state) {
   ensurePanelConnected();
   if (!panelEl) return;
@@ -312,21 +339,18 @@ function renderState(state) {
 
   const walletTextEl = panelEl.querySelector("#cp-wallet-text");
   if (walletTextEl) {
-    const q = lastPortalQuota || {};
-    const hireBalance = Number(q.hireBalance ?? NaN);
-    const quotaUsed = Number(q.quotaUsed ?? NaN);
-    const quotaTotal = Number(q.quotaTotal ?? NaN);
-    const spendable = Number(q.spendable ?? NaN);
+    const { quotaUsed, quotaTotal, hasFree, hires, out } = describeHiresState(lastPortalQuota);
 
-    if (Number.isFinite(hireBalance) && hireBalance > 0) {
-      walletTextEl.textContent = `${hireBalance} Hires (${Number.isFinite(quotaUsed) ? quotaUsed : 0}/${Number.isFinite(quotaTotal) ? quotaTotal : 3} Free)`;
-    } else if (Number.isFinite(spendable) && spendable > 0) {
-      walletTextEl.textContent = `${spendable} Hires`;
-    } else if (Number.isFinite(quotaUsed) && Number.isFinite(quotaTotal)) {
-      walletTextEl.textContent = `${Math.max(0, quotaUsed)}/${Math.max(0, quotaTotal)} Free Used`;
-    } else {
+    if (hires === null && !hasFree) {
       walletTextEl.textContent = "Quota Active";
+    } else {
+      const hiresText = hires === null ? "-- Hires" : `${hires} ${hires === 1 ? "Hire" : "Hires"}`;
+      const freeText = hasFree ? ` · ${Math.max(0, quotaUsed)}/${Math.max(0, quotaTotal)} Free used` : "";
+      walletTextEl.textContent = out ? `${hiresText}${freeText} · Out` : `${hiresText}${freeText}`;
     }
+    panelEl.querySelector("#cp-wallet")?.classList.toggle("cp-quota-out", out);
+    const upgradeBtn = panelEl.querySelector("#cp-upgrade");
+    if (upgradeBtn) upgradeBtn.hidden = !out;
   }
 
   const logs = state.logs || [];

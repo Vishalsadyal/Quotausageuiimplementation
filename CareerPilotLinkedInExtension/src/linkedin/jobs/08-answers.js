@@ -133,7 +133,12 @@ function getQuestionLabel(block) {
 function normalizePhoneForInput(value) {
   const raw = String(value || "").trim();
   if (!raw) return "";
-  return raw.replace(/[^\d]/g, "");
+  const digits = raw.replace(/[^\d]/g, "");
+  // LinkedIn has a separate country-code dropdown, so the field must hold the national number only:
+  // "+91 98055 59015" / "919805559015" / "09805559015" -> "9805559015" (India, 10 digits).
+  if (digits.length === 12 && digits.startsWith("91")) return digits.slice(2);
+  if (digits.length === 11 && digits.startsWith("0")) return digits.slice(1);
+  return digits;
 }
 
 function normalizeNumberString(value) {

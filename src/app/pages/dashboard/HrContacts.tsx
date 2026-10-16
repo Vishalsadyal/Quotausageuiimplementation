@@ -36,7 +36,7 @@ type HrContactRow = {
   lastSeenAt: string;
   contributorCount: number;
 };
-type Delivery = { id: string; day: string; sentAt: string | null; contact: HrContactRow };
+type Delivery = { id: string; day: string; sentAt: string | null; contact: HrContactRow; matchedRoles: string[] };
 type Settings = { shareOutreachContacts: boolean; dailyEmail: boolean };
 type HrContactsData =
   | {
@@ -51,9 +51,13 @@ type HrContactsData =
       dailyLimit: number;
       settings: Settings;
       roles: string[];
+      rolePhrases: string[];
       today: Delivery[];
       history: Delivery[];
     };
+
+/** Filter key for contacts that fit none of the user's roles. */
+const OTHER_ROLES = "__other__";
 
 function timeAgo(iso: string) {
   const days = Math.floor((Date.now() - new Date(iso).getTime()) / 86_400_000);
@@ -78,6 +82,7 @@ export default function HrContacts() {
   const [tab, setTab] = useState<"today" | "history">("today");
   const [savingSetting, setSavingSetting] = useState<keyof Settings | null>(null);
   const [composeFor, setComposeFor] = useState<Delivery | null>(null);
+  const [roleFilter, setRoleFilter] = useState<string[]>([]);
 
   const load = useCallback(async (withHistory = false) => {
     setLoading(true);
@@ -153,12 +158,36 @@ export default function HrContacts() {
     }
   };
 
+  // Role filter: any selected role (or "Other") keeps a contact. The daily 20 is unchanged; this only hides rows.
+  const passesRoleFilter = useCallback(
+    (d: Delivery) =>
+      roleFilter.length === 0 ||
+      roleFilter.some((r) => (r === OTHER_ROLES ? d.matchedRoles.length === 0 : d.matchedRoles.includes(r))),
+    [roleFilter]
+  );
+
+  const visibleToday = useMemo(() => (data?.unlocked ? data.today.filter(passesRoleFilter) : []), [data, passesRoleFilter]);
+
   const historyByDay = useMemo(() => {
     if (!data?.unlocked) return [];
     const groups = new Map<string, Delivery[]>();
-    for (const d of data.history) groups.set(d.day, [...(groups.get(d.day) || []), d]);
+    for (const d of data.history.filter(passesRoleFilter)) groups.set(d.day, [...(groups.get(d.day) || []), d]);
     return Array.from(groups.entries());
-  }, [data]);
+  }, [data, passesRoleFilter]);
+
+  // How many contacts each role has in the list being viewed (Today or Earlier), for the chip counts.
+  const roleCounts = useMemo(() => {
+    const counts = new Map<string, number>();
+    let other = 0;
+    const rows = data?.unlocked ? (tab === "today" ? data.today : data.history) : [];
+    for (const d of rows) {
+      if (d.matchedRoles.length === 0) other += 1;
+      for (const r of d.matchedRoles) counts.set(r, (counts.get(r) || 0) + 1);
+    }
+    return { counts, other, total: rows.length };
+  }, [data, tab]);
+
+  const toggleRole = (role: string) => setRoleFilter((current) => (current.includes(role) ? current.filter((r) => r !== role) : [...current, role]));
 
   return (
     <div className="space-y-4">
@@ -207,28 +236,31 @@ export default function HrContacts() {
                 </button>
               ))}
             </div>
-            {data.roles.length > 0 && (
-              <div className="flex flex-wrap items-center gap-1 text-[11px] text-gray-500">
-                Matched to:
-                {data.roles.slice(0, 8).map((r) => (
-                  <span key={r} className="rounded-full bg-gray-100 px-2 py-0.5 text-gray-700">
-                    {r}
-                  </span>
-                ))}
-              </div>
-            )}
           </div>
 
+          <RoleFilter
+            roles={data.rolePhrases}
+            counts={roleCounts.counts}
+            otherCount={roleCounts.other}
+            total={roleCounts.total}
+            shown={tab === "today" ? visibleToday.length : historyByDay.reduce((n, [, items]) => n + items.length, 0)}
+            selected={roleFilter}
+            onToggle={toggleRole}
+            onClear={() => setRoleFilter([])}
+          />
+
           {tab === "today" &&
-            (data.today.length ? (
+            (visibleToday.length ? (
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
-                {data.today.map((d) => (
+                {visibleToday.map((d) => (
                   <ContactCard key={d.id} delivery={d} onWhatsApp={openWhatsApp} onEmail={setComposeFor} onCopy={copyValue} />
                 ))}
               </div>
             ) : (
               <div className="rounded-2xl border border-gray-200 bg-white px-6 py-12 text-center text-sm text-gray-500">
-                No new contacts right now. New recruiters are added all day, check back later.
+                {data.today.length
+                  ? "No contacts for this role today. Clear the filter to see all of today's contacts."
+                  : "No new contacts right now. New recruiters are added all day, check back later."}
               </div>
             ))}
 
@@ -246,7 +278,11 @@ export default function HrContacts() {
               ))
             ) : (
               <div className="rounded-2xl border border-gray-200 bg-white px-6 py-12 text-center text-sm text-gray-500">
-                {loading ? "Loading…" : "Contacts from earlier days will show here."}
+                {loading
+                  ? "Loading…"
+                  : data.history.length
+                    ? "No earlier contacts for this role. Clear the filter to see them all."
+                    : "Contacts from earlier days will show here."}
               </div>
             ))}
         </>
@@ -285,6 +321,90 @@ export default function HrContacts() {
           }}
         />
       )}
+    </div>
+  );
+}
+
+/** Filter chips built from the user's own target roles. Several can be on at once; none on means everything. */
+function RoleFilter({
+  roles,
+  counts,
+  otherCount,
+  total,
+  shown,
+  selected,
+  onToggle,
+  onClear,
+}: {
+  roles: string[];
+  counts: Map<string, number>;
+  otherCount: number;
+  total: number;
+  shown: number;
+  selected: string[];
+  onToggle: (role: string) => void;
+  onClear: () => void;
+}) {
+  if (roles.length === 0) {
+    return (
+      <p className="rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-[11px] text-gray-500">
+        Add your target roles in{" "}
+        <Link to="/dashboard/jobs/linkedin/preferences" className="font-semibold text-emerald-700 hover:underline">
+          Auto Apply preferences
+        </Link>{" "}
+        to filter your contacts by role.
+      </p>
+    );
+  }
+
+  const chips: Array<{ key: string; label: string; count: number }> = [
+    ...roles.map((role) => ({ key: role, label: role, count: counts.get(role) || 0 })),
+    ...(otherCount > 0 ? [{ key: OTHER_ROLES, label: "Other roles", count: otherCount }] : []),
+  ];
+  const filtering = selected.length > 0;
+
+  return (
+    <div className="rounded-xl border border-gray-200 bg-white px-3.5 py-3">
+      <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+        <span className="text-[11px] font-bold uppercase tracking-wider text-gray-500">Filter by role</span>
+        <span className="text-[11px] text-gray-500">
+          {filtering ? `Showing ${shown} of ${total}` : `${total} contact${total === 1 ? "" : "s"}`}
+          {filtering && (
+            <button type="button" onClick={onClear} className="ml-2 font-semibold text-emerald-700 hover:underline">
+              Clear
+            </button>
+          )}
+        </span>
+      </div>
+      <div className="flex flex-wrap gap-1.5">
+        <button
+          type="button"
+          onClick={onClear}
+          aria-pressed={!filtering}
+          className={`rounded-full border px-3 py-1 text-[11px] font-semibold transition-colors ${
+            !filtering ? "border-emerald-600 bg-emerald-600 text-white" : "border-gray-200 bg-white text-gray-700 hover:bg-gray-50"
+          }`}
+        >
+          All roles <span className={!filtering ? "text-emerald-100" : "text-gray-400"}>{total}</span>
+        </button>
+        {chips.map((chip) => {
+          const on = selected.includes(chip.key);
+          return (
+            <button
+              key={chip.key}
+              type="button"
+              onClick={() => onToggle(chip.key)}
+              aria-pressed={on}
+              disabled={chip.count === 0 && !on}
+              className={`rounded-full border px-3 py-1 text-[11px] font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-45 ${
+                on ? "border-emerald-600 bg-emerald-600 text-white" : "border-gray-200 bg-white text-gray-700 hover:bg-gray-50"
+              }`}
+            >
+              {chip.label} <span className={on ? "text-emerald-100" : "text-gray-400"}>{chip.count}</span>
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 }

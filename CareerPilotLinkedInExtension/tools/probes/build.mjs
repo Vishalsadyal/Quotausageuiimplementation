@@ -80,6 +80,41 @@ const PROBES = [
  * Report: copied to the clipboard and kept in window.__cpProbe. cpProbeClear() removes outlines.`,
   },
   {
+    out: "cards-check-probe.js",
+    body: "bodies/cards-check.js",
+    modules: ["dom"],
+    title: "Job card check",
+    about: `Read-only: finds the job cards on the current page and prints PASS / FAIL for card count, unique job ids
+ * and clean (not doubled) titles. Result kept in window.__cpCards.`,
+  },
+  {
+    out: "phone-check-probe.js",
+    body: "bodies/phone-check.js",
+    modules: [],
+    title: "Phone field check",
+    about: `Paste while an Easy Apply form is open (do not submit). Lists the phone / mobile fields (type, label,
+ * value), shows what the saved number becomes, and whether the "years" fallback could type a stray 1 into it.
+ * Edit CONFIG.phone first; CONFIG.fill = true also types the cleaned number. Result in window.__cpPhone.`,
+  },
+  {
+    out: "apply-check-probe.js",
+    body: "bodies/apply-check.js",
+    modules: ["dom"],
+    title: "Apply button check",
+    about: `Read-only. Snapshot of how the Apply button, the details pane and every job card are seen, then a WATCH
+ * (CONFIG.watchSeconds): click the job that gets called "external" and it records what the URL, the pane and the
+ * apply button looked like every 250 ms. Never clicks. Result in window.__cpApply.`,
+  },
+  {
+    out: "limit-check-probe.js",
+    body: "bodies/limit-check.js",
+    modules: [],
+    title: "Daily limit + Hires check",
+    about: `Read-only. A) is LinkedIn's daily Easy Apply limit message on the page, and do the extension's rules detect it?
+ * B) what the panel shows for Hires, and does "0 Hires + no free applications" mean stopped + Upgrade button?
+ * Run it on a Jobs page (also while the limit dialog is open). Result in window.__cpLimits.`,
+  },
+  {
     out: "walk-probe.js",
     body: "bodies/walk.js",
     modules: ["dom"],

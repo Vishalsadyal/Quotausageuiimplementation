@@ -23,6 +23,7 @@
     autoLikePosts: false,
     showAlreadyContacted: true,
     filterJobSeekers: true,
+    ignoreKeywords: [...CP_OW_DEFAULT_SKIP_KEYWORDS],           // skip posts that mention any of these
     autoScroll: true,
     matchAllHiringPosts: true,
     removeSentPostFromFeed: false,
@@ -898,10 +899,16 @@
 
       const skipKey = stablePostKey(post, postText);
 
-      // 1. Filter out pure job seekers if enabled
+      // 1. Skip job seekers and posts that mention an ignored keyword. A post that carried an email address is
+      //    marked in red with the reason ("Email found · skipped: job seeker").
       const isSeeker = settings.filterJobSeekers && isJobSeekerPost(post, postText);
-      if (isSeeker) {
-        recordSkip({ id: skipKey, name: getPostAuthor(post), reason: 'Job seeker post (#OpenToWork)' });
+      const ignoredWord = isSeeker ? '' : cpOwMatchIgnoreKeyword(postText, settings.ignoreKeywords);
+      if (isSeeker || ignoredWord) {
+        recordSkip({ id: skipKey, name: getPostAuthor(post), reason: isSeeker ? 'Job seeker post (#OpenToWork)' : `Ignored keyword: ${ignoredWord}` });
+        const foundEmails = extractEmailsFromPost(post, postText);
+        if (foundEmails && foundEmails.length > 0) {
+          cpOwMarkSkippedPost(post, { label: 'Email found', reason: isSeeker ? 'job seeker' : `ignored keyword "${ignoredWord}"` });
+        }
         continue;
       }
 

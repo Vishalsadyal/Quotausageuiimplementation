@@ -154,8 +154,12 @@ function getStructuredTextFallback(label, settings) {
 
 function shouldUseNumericFallbackForTextInput(label, textInput) {
   const inputType = normalizeLabel(textInput?.getAttribute?.("type") || "");
-  if (inputType === "number") return true;
   const l = normalizeLabel(label);
+  // Identity-style numbers are never "years" or counts: leave them empty rather than type a guess
+  // (a blank phone field once received the default "1").
+  if (/\b(phone|mobile|tel|telephone|contact number|zip|postal|pin ?code)\b/.test(l)) return false;
+  if (inputType === "tel") return false;
+  if (inputType === "number") return true;
   return (
     l.includes("year") ||
     l.includes("how many") ||
@@ -446,6 +450,23 @@ async function fillQuestionBlock(block, settings) {
   if (!label) {
     return fillUnlabeledQuestionBlock(block, settings);
   }
+  {
+    const telBefore = block.querySelector("input[type='tel']");
+    // LinkedIn pre-fills contact info from the previous application, so a wrong number (e.g. a stray
+    // "1" saved by an older run) comes back every time, and "leave filled fields alone" would keep it.
+    // The phone saved in the settings is the user's own choice: correct a different value.
+    const wantedPhone = normalizePhoneForInput(settings.phoneNumber || "");
+    const currentPhone = telBefore ? normalizePhoneForInput(telBefore.value) : "";
+    if (telBefore && wantedPhone.length >= 7 && currentPhone !== wantedPhone) {
+      telBefore.focus();
+      setNativeValue(telBefore, wantedPhone);
+      telBefore.dispatchEvent(new Event("input", { bubbles: true, composed: true }));
+      telBefore.dispatchEvent(new Event("change", { bubbles: true }));
+      telBefore.dispatchEvent(new FocusEvent("focusout", { bubbles: true, composed: true }));
+      await logLine(`Corrected phone number "${currentPhone || "(empty)"}" -> ${wantedPhone}`);
+      return true;
+    }
+  }
   if (label.includes("date") || label.includes("start date") || label.includes("available start")) {
     const dateChanged = await selectTodayDateIfPresent(block);
     if (dateChanged) return true;
@@ -483,6 +504,18 @@ async function fillQuestionBlock(block, settings) {
   if (textInput && isEntityListBlock) {
     const handledByCombobox = await applyComboboxOption(block, aiQuestionLabel, answer, settings);
     if (handledByCombobox) return true;
+  }
+  // A phone number is the user's own data: never ask the AI to invent one (it answered "1"). With no
+  // number saved the field stays empty and the step is reported as needing input.
+  const isPhoneField =
+    Boolean(textInput) &&
+    (normalizeLabel(textInput.getAttribute("type") || "") === "tel" || /\b(phone|mobile|telephone)\b/.test(label));
+  if (isPhoneField && !answer) {
+    if (!warnedMissingPhone) {
+      warnedMissingPhone = true;
+      await logLine("Phone number is not saved in the extension settings, so the phone field was left empty. In the panel chat type: set phone 9805559015", "warn");
+    }
+    return false;
   }
   if (textInput && !answer) {
     answer = await requestAiAnswer(aiQuestionLabel, textInput.tagName.toLowerCase() === "textarea" ? "textarea" : "text", [], validationMessage);

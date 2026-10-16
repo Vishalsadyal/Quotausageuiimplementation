@@ -312,6 +312,14 @@ async function runCycle(settings) {
     if (easyApplyCards.length > 0 && easyApplyCards.length < cards.length) {
       cardsToProcess = easyApplyCards;
       await logLine(`Easy Apply candidates: ${easyApplyCards.length}/${cards.length}`);
+      // Tag the cards left out so they don't just sit there unexplained. Tag only: nothing is
+      // opened, applied to or counted as skipped, and cards that already carry a tag keep it.
+      for (const card of cards) {
+        if (easyApplyCards.includes(card)) continue;
+        const container = getCardElementContainer(card);
+        if (!container || container.querySelector(".cp-card-outcome-tag")) continue;
+        markJobCardStatus(card, "skipped", "No Easy Apply");
+      }
     } else if (easyApplyCards.length === 0) {
       await debugLog(settings, "No explicit Easy Apply badge on cards; processing all cards as fallback", {
         cards: cards.length,
@@ -322,6 +330,12 @@ async function runCycle(settings) {
   for (const card of cardsToProcess) {
     const state = (await sendMessage({ type: "CP_GET_BOOTSTRAP" })).state;
     if (!state.running || state.paused) return false;
+
+    // Nothing left to spend (no Hires and no free applications): stop before opening another job.
+    if (describeHiresState(lastPortalQuota).out) {
+      await pauseRunOutOfHires(settings);
+      return false;
+    }
 
     const targetApplyLimit = Math.max(1, Number(settings.maxApplicationsPerRun || 10));
     if (runStats.applied >= targetApplyLimit) {
@@ -640,6 +654,24 @@ async function runCycle(settings) {
       markSeenForAliases();
       continue;
     }
+    // The card says "Easy Apply" but the details pane shows an external Apply link: the pane is most
+    // likely still showing the previous job. Open this card again and re-read before believing it.
+    if (applyAction.type === "external" && hasEasyApplySignalOnCard(card)) {
+      for (let recheck = 1; recheck <= 2 && applyAction.type === "external"; recheck += 1) {
+        captureDebugEvent("cycle", "EXTERNAL_CONFLICT", {
+          recheck,
+          jobKey,
+          urlJobId: extractLinkedInJobIdFromUrl(window.location.href),
+          title,
+          paneHeading: globalThis.CPLinkedInDom?.jobHeading?.(globalThis.CPLinkedInDom?.findDetailPane?.().element) || "",
+          buttonLabel: String(applyAction.button?.getAttribute?.("aria-label") || applyAction.button?.textContent || "").trim().slice(0, 60),
+        });
+        await logLine(`"${title.slice(0, 50)}" shows Easy Apply on the card but the pane says external. Re-checking (${recheck}/2)...`, "info");
+        await selectJobCardInSearchList(card);
+        await sleep(1500);
+        applyAction = await waitForApplyButtonFromDetailPane(settings, 5000, "easy-apply badge recheck");
+      }
+    }
     if (applyAction.type === "external") {
       if (settings.easyApplyOnly) {
         classifyExhaustedCandidate();
@@ -742,8 +774,15 @@ async function runCycle(settings) {
       await logOutcome("warn", `Skipped: ${skipReason}`, reasonCode);
       // Exactly where the form was when we gave up, so every skip can be explained.
       const skipState = describeModalState(getActiveModal());
-      captureDebugEvent("cycle", "SKIP_DETAILS", { jobKey, reason: skipReason, reasonCode, ...skipState });
+      const blockers = describeStepBlockers(getActiveModal());
+      captureDebugEvent("cycle", "SKIP_DETAILS", { jobKey, reason: skipReason, reasonCode, ...skipState, blockers });
       await logLine(`Skip details: ${summarizeModalState(skipState)}`, "info");
+      if (blockers.length) {
+        await logLine(
+          `Fields still empty or invalid: ${blockers.map((b) => `"${b.label.slice(0, 45)}" [${b.type}${b.inputType ? `/${b.inputType}` : ""}] = "${b.value}"${b.message ? ` (${b.message})` : ""}`).join("; ")}`,
+          "warn"
+        );
+      }
       await recordOutcome("SKIPPED", {
         reasonCode,
         reason: skipReason,

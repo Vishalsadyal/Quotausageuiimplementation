@@ -99,7 +99,14 @@ function getApplyButtonFromDetailPane() {
     ".jobs-details-top-card",
     ".scaffold-layout__detail"
   ]);
-  const roots = detailRoots.length ? detailRoots : [document];
+  if (!detailRoots.length) {
+    // Class-free layout: the old selectors below would search the WHOLE page (and once matched this
+    // extension's own "AutoApply CV Copilot" button as an external Apply). Use the details-pane finder.
+    const generic = globalThis.CPLinkedInDom?.findApplyAction?.();
+    if (generic && generic.type !== "none") return generic;
+    return { type: "none", button: null };
+  }
+  const roots = detailRoots;
 
   const candidates = [];
   for (const root of roots) {
@@ -115,6 +122,7 @@ function getApplyButtonFromDetailPane() {
     if (!b || b.disabled) return false;
     // Ignore job search filter buttons and pill controls.
     if (b.closest(".jobs-search-box__filters-bar, .search-reusables__filters-bar, .jobs-search-box__filter-item")) return false;
+    if (b.closest("[id^='cp-']")) return false; // this extension's own panel / toggle
     const cls = normalizeLabel(b.className || "");
     const aria = normalizeLabel(b.getAttribute("aria-label") || "");
     const txt = normalizeLabel(b.textContent || "");
@@ -131,7 +139,7 @@ function getApplyButtonFromDetailPane() {
 
   const externalApply = enabled.find((b) => {
     const txt = `${normalizeLabel(b.getAttribute("aria-label") || "")} ${normalizeLabel(b.textContent || "")}`;
-    if (!txt.includes("apply")) return false;
+    if (!/(^|[^a-z])apply(ing)?([^a-z]|$)/.test(txt)) return false;
     if (txt.includes("easy apply")) return false;
     return true;
   });

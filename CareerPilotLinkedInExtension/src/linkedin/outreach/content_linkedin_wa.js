@@ -20,6 +20,7 @@
     autoLikePosts: true,
     showAlreadyContacted: true,   // Keep all posts visible
     filterJobSeekers: true,
+    ignoreKeywords: [...CP_OW_DEFAULT_SKIP_KEYWORDS],           // skip posts that mention any of these
     autoScroll: true,
     matchAllHiringPosts: true,
     removeSentPostFromFeed: false,// Keep all elements intact in feed
@@ -916,12 +917,15 @@
       const postText = getAllTextFromPost(post).trim();
       if (!postText) continue;
 
-      // 1. Check Job Seeker filter
+      // 1. Skip job seekers and posts that mention an ignored keyword. A post that carried a phone number is
+      //    listed and marked in red with the reason ("WhatsApp found · skipped: job seeker").
       const isSeeker = settings.filterJobSeekers && isJobSeekerPost(post, postText);
-      if (isSeeker) {
+      const ignoredWord = isSeeker ? '' : cpOwMatchIgnoreKeyword(postText, settings.ignoreKeywords);
+      if (isSeeker || ignoredWord) {
         // Only worth listing when the post carried a phone number (it would have been a lead otherwise).
         if (extractPhoneNumbersFromPost(post, postText).length > 0) {
-          recordSkip({ keyBase: stablePostKey(post, postText), name: getPostAuthor(post), title: extractJobTitle(postText, 'Job'), company: extractCompany(post, postText), reason: 'Job seeker post (#OpenToWork)' });
+          recordSkip({ keyBase: stablePostKey(post, postText), name: getPostAuthor(post), title: extractJobTitle(postText, 'Job'), company: extractCompany(post, postText), reason: isSeeker ? 'Job seeker post (#OpenToWork)' : `Ignored keyword: ${ignoredWord}` });
+          cpOwMarkSkippedPost(post, { label: 'WhatsApp found', reason: isSeeker ? 'job seeker' : `ignored keyword "${ignoredWord}"` });
         }
         continue;
       }

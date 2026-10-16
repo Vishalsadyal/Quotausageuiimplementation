@@ -1,6 +1,6 @@
-import { BookOpen, Briefcase, LayoutGrid, MessageSquareText, Send, SlidersHorizontal } from "lucide-react";
+import { BookOpen, LayoutGrid, MessageSquareText, Send, SlidersHorizontal } from "lucide-react";
 
-export type JobsSectionId = "autopilot" | "dictionary" | "screening" | "queue" | "settings" | "messages";
+export type JobsSectionId = "autopilot" | "dictionary" | "screening" | "settings" | "messages";
 
 // Each Auto Apply section has its own URL: /dashboard/jobs/:provider/:slug.
 // The overview has no slug, so /dashboard/jobs/linkedin stays the landing page.
@@ -8,10 +8,12 @@ export const JOBS_SECTIONS = [
   { id: "autopilot", slug: "", label: "Overview", icon: LayoutGrid },
   { id: "dictionary", slug: "keywords", label: "Keywords", icon: BookOpen },
   { id: "screening", slug: "screening", label: "Screening Answers", icon: MessageSquareText },
-  { id: "queue", slug: "queue", label: "Applications Queue", icon: Briefcase },
   { id: "settings", slug: "preferences", label: "Preferences", icon: SlidersHorizontal },
   { id: "messages", slug: "messages", label: "Messages", icon: Send },
 ] as const satisfies ReadonlyArray<{ id: JobsSectionId; slug: string; label: string; icon: unknown }>;
+
+// The Applications page lives at its own URL but is listed inside the Auto Apply menu (after Screening Answers).
+export const APPLICATIONS_PATH = "/dashboard/applications";
 
 export type JobsProvider = "linkedin" | "indeed";
 
