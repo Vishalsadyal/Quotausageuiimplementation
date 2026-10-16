@@ -70,12 +70,15 @@ function questionKeyFromLabel(label) {
 }
 
 function cleanQuestionLabel(value) {
-  return String(value || "")
+  const text = String(value || "")
     .replace(/\s+/g, " ")
     .replace(/\u00a0/g, " ")
     .replace(/\*/g, " ")
     .replace(/\s+/g, " ")
     .trim();
+  // LinkedIn puts the label in the page twice (visible + screen reader): "Location (city)Location (city)".
+  const doubled = text.match(/^(.{3,}?)\s*\1$/);
+  return doubled ? doubled[1].trim() : text;
 }
 
 function getQuestionLabel(block) {

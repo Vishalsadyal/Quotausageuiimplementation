@@ -3,474 +3,281 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>AutoApply CV Copilot Settings</title>
+    <title>AutoApply CV Settings</title>
     <link rel="stylesheet" href="options.css" />
   </head>
   <body>
     <main class="wrap">
       <header class="page-head">
         <img class="brand-logo" src="/icons/icon48.png" alt="AutoApply CV" />
-        <div>
-          <h1>AutoApply CV LinkedIn Copilot</h1>
-          <p class="sub">Configure runtime behavior for the extension.</p>
+        <div class="head-text">
+          <h1>AutoApply CV Settings</h1>
+          <p class="sub">How the LinkedIn copilot searches and runs.</p>
         </div>
+        <span id="account-chip" class="account-chip">Checking account...</span>
       </header>
 
-      <form id="settings-form" class="card">
-
-        <!-- ═══════════════════════════════════════════ -->
-        <!-- SECTION: Run Behavior                      -->
-        <!-- ═══════════════════════════════════════════ -->
-        <h2>Run Behavior</h2>
-        <p class="note">Submit mode (Dry Run / Live) is controlled from the popup panel toggle.</p>
-
-        <div class="row checks">
-          <label class="check">
-            <input id="liveModeAcknowledged" type="checkbox" />
-            <span>I acknowledge live auto-submit risk</span>
-          </label>
-          <label class="check">
-            <input id="easyApplyOnly" type="checkbox" />
-            <span>Enable Easy Apply filter</span>
-          </label>
-          <label class="check">
-            <input id="autoResumeOnAnswer" type="checkbox" />
-            <span>Auto Resume After Answer</span>
-          </label>
-          <label class="check">
-            <input id="runNonStop" type="checkbox" />
-            <span>Run non-stop cycles</span>
-          </label>
-          <label class="check">
-            <input id="pauseBeforeSubmit" type="checkbox" />
-            <span>Pause before submit</span>
-          </label>
-          <label class="check">
-            <input id="pauseAtFailedQuestion" type="checkbox" />
-            <span>Pause at failed question</span>
-          </label>
-          <label class="check">
-            <input id="overwritePreviousAnswers" type="checkbox" />
-            <span>Overwrite existing answers</span>
-          </label>
-          <label class="check">
-            <input id="followCompanies" type="checkbox" />
-            <span>Follow company on submit</span>
-          </label>
-          <label class="check">
-            <input id="debugMode" type="checkbox" />
-            <span>Debug Mode (verbose logs)</span>
-          </label>
-          <label class="check" title="Blocks Google, Bing, Facebook and LinkedIn ad trackers on LinkedIn pages only. LinkedIn itself keeps working. Chrome asks for permission once.">
-            <input id="blockLinkedInTrackers" type="checkbox" />
-            <span>Block LinkedIn ad trackers (less tracking, faster pages)</span>
-          </label>
+      <div class="banner">
+        <div>
+          <strong>Your profile and answers live in the dashboard.</strong>
+          Name, phone, address, salary and screening answers are filled in from your dashboard and your resume, so they are not edited here.
         </div>
+        <a class="banner-link" href="https://www.autoapplycv.in/dashboard/jobs/linkedin/preferences" target="_blank" rel="noopener noreferrer">Open dashboard</a>
+      </div>
 
-        <div class="row">
-          <label>
-            <span>Max Applications Per Run</span>
-            <input id="maxApplicationsPerRun" type="number" min="1" max="200" />
+      <form id="settings-form">
+        <!-- ═══ Search filters ═══ -->
+        <section class="card">
+          <div class="card-head">
+            <h2>Search filters</h2>
+            <p>What the extension asks LinkedIn for. These match the Preferences page in your dashboard.</p>
+          </div>
+
+          <div class="grid three">
+            <label class="field">
+              <span>Date posted</span>
+              <select data-setting="datePosted" data-kind="text" data-default="Past week">
+                <option value="Past 24 hours">Past 24 hours</option>
+                <option value="Past week">Past week</option>
+                <option value="Past month">Past month</option>
+                <option value="Any time">Any time</option>
+              </select>
+            </label>
+            <label class="field">
+              <span>Search radius</span>
+              <select data-setting="distance" data-kind="text">
+                <option value="">LinkedIn default (25 mi / 40 km)</option>
+                <option value="5">5 miles (8 km)</option>
+                <option value="10">10 miles (16 km)</option>
+                <option value="25">25 miles (40 km)</option>
+                <option value="50">50 miles (80 km)</option>
+                <option value="100">100 miles (160 km)</option>
+              </select>
+            </label>
+            <label class="field">
+              <span>Sort by</span>
+              <select data-setting="sortBy" data-kind="text">
+                <option value="">No change</option>
+                <option value="Most recent">Most recent</option>
+                <option value="Most relevant">Most relevant</option>
+              </select>
+            </label>
+          </div>
+
+          <div class="field">
+            <span>Easy Apply</span>
+            <div class="chips">
+              <label class="chip">
+                <input type="checkbox" data-setting="easyApplyOnly" data-kind="check" data-default="true" />
+                <span>Easy Apply jobs only</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="field">
+            <span>Experience level</span>
+            <div class="chips" data-setting="experienceLevel" data-kind="chips">
+              <label class="chip"><input type="checkbox" value="Internship" /><span>Internship</span></label>
+              <label class="chip"><input type="checkbox" value="Entry level" /><span>Entry level</span></label>
+              <label class="chip"><input type="checkbox" value="Associate" /><span>Associate</span></label>
+              <label class="chip"><input type="checkbox" value="Mid-Senior level" /><span>Mid-Senior level</span></label>
+              <label class="chip"><input type="checkbox" value="Director" /><span>Director</span></label>
+              <label class="chip"><input type="checkbox" value="Executive" /><span>Executive</span></label>
+            </div>
+          </div>
+
+          <div class="field">
+            <span>Job type</span>
+            <div class="chips" data-setting="jobType" data-kind="chips">
+              <label class="chip"><input type="checkbox" value="Full-time" /><span>Full-time</span></label>
+              <label class="chip"><input type="checkbox" value="Part-time" /><span>Part-time</span></label>
+              <label class="chip"><input type="checkbox" value="Contract" /><span>Contract</span></label>
+              <label class="chip"><input type="checkbox" value="Temporary" /><span>Temporary</span></label>
+              <label class="chip"><input type="checkbox" value="Internship" /><span>Internship</span></label>
+            </div>
+          </div>
+
+          <div class="field">
+            <span>Work mode</span>
+            <div class="chips" data-setting="onSite" data-kind="chips">
+              <label class="chip"><input type="checkbox" value="Remote" /><span>Remote</span></label>
+              <label class="chip"><input type="checkbox" value="Hybrid" /><span>Hybrid</span></label>
+              <label class="chip"><input type="checkbox" value="On-site" /><span>On-site</span></label>
+            </div>
+          </div>
+
+          <label class="field">
+            <span>Job titles to search</span>
+            <textarea data-setting="searchTerms" data-kind="list" rows="3" placeholder="Full Stack Developer, React Developer"></textarea>
+            <small>Separate with commas or new lines. The extension searches them one after another.</small>
           </label>
-          <label>
-            <span>Max Skips Per Run</span>
-            <input id="maxSkipsPerRun" type="number" min="1" max="500" />
+
+          <div class="grid two">
+            <label class="field">
+              <span>Search location</span>
+              <input data-setting="searchLocation" data-kind="text" type="text" placeholder="Mohali, India" />
+              <small>A place, not "Remote". Use Work mode above for remote jobs.</small>
+            </label>
+            <label class="field">
+              <span>Salary filter</span>
+              <input data-setting="salary" data-kind="text" type="text" placeholder="$100,000+" />
+            </label>
+          </div>
+
+          <label class="field">
+            <span>Other locations</span>
+            <textarea data-setting="filterLocations" data-kind="list" rows="2" placeholder="Chandigarh, Panchkula"></textarea>
           </label>
-        </div>
+        </section>
 
-        <label>
-          <span>Switch Search Term After N Successful Applies</span>
-          <input id="switchNumber" type="number" min="1" max="300" />
-        </label>
+        <!-- ═══ Run behavior ═══ -->
+        <section class="card">
+          <div class="card-head">
+            <h2>Run behavior</h2>
+            <p>Live or Dry Run is switched in the panel on LinkedIn, next to Start.</p>
+          </div>
 
-        <div class="row checks">
-          <label class="check">
-            <input id="alternateSortBy" type="checkbox" />
-            <span>Alternate sort each cycle</span>
+          <div class="switches">
+            <label class="switch-row">
+              <span class="switch-text"><b>I accept the live auto-submit risk</b><small>Needed before the panel can submit applications for real.</small></span>
+              <input class="switch" type="checkbox" data-setting="liveModeAcknowledged" data-kind="check" />
+            </label>
+            <label class="switch-row">
+              <span class="switch-text"><b>Pause at a question I can't answer</b><small>Asks you in the panel instead of guessing.</small></span>
+              <input class="switch" type="checkbox" data-setting="pauseAtFailedQuestion" data-kind="check" data-default="true" />
+            </label>
+            <label class="switch-row">
+              <span class="switch-text"><b>Continue after I answer</b><small>Picks the application back up as soon as you answer.</small></span>
+              <input class="switch" type="checkbox" data-setting="autoResumeOnAnswer" data-kind="check" data-default="true" />
+            </label>
+            <label class="switch-row">
+              <span class="switch-text"><b>Pause before submit</b><small>Stops on the last step so you can review.</small></span>
+              <input class="switch" type="checkbox" data-setting="pauseBeforeSubmit" data-kind="check" />
+            </label>
+            <label class="switch-row">
+              <span class="switch-text"><b>Replace answers already on the form</b><small>Off keeps what LinkedIn pre-filled.</small></span>
+              <input class="switch" type="checkbox" data-setting="overwritePreviousAnswers" data-kind="check" />
+            </label>
+            <label class="switch-row">
+              <span class="switch-text"><b>Follow the company after applying</b></span>
+              <input class="switch" type="checkbox" data-setting="followCompanies" data-kind="check" />
+            </label>
+            <label class="switch-row">
+              <span class="switch-text"><b>Block LinkedIn ad trackers</b><small>Less tracking and faster pages. Chrome asks for permission once.</small></span>
+              <input id="blockLinkedInTrackers" class="switch" type="checkbox" />
+            </label>
+            <label class="switch-row">
+              <span class="switch-text"><b>Detailed logs</b><small>Only for troubleshooting.</small></span>
+              <input class="switch" type="checkbox" data-setting="debugMode" data-kind="check" />
+            </label>
+          </div>
+
+          <div class="grid three">
+            <label class="field">
+              <span>Applications per run</span>
+              <input data-setting="maxApplicationsPerRun" data-kind="number" data-default="200" data-min="1" type="number" min="1" max="200" />
+            </label>
+            <label class="field">
+              <span>Skips per run</span>
+              <input data-setting="maxSkipsPerRun" data-kind="number" data-default="50" data-min="1" type="number" min="1" max="500" />
+            </label>
+            <label class="field">
+              <span>Next job title after</span>
+              <input data-setting="switchNumber" data-kind="number" data-default="30" data-min="1" type="number" min="1" max="300" />
+              <small>successful applications</small>
+            </label>
+          </div>
+
+          <div class="switches">
+            <label class="switch-row">
+              <span class="switch-text"><b>Keep running in cycles</b><small>Starts a new round when one finishes.</small></span>
+              <input class="switch" type="checkbox" data-setting="runNonStop" data-kind="check" />
+            </label>
+            <label class="switch-row sub-row">
+              <span class="switch-text"><b>Alternate the sort each round</b></span>
+              <input class="switch" type="checkbox" data-setting="alternateSortBy" data-kind="check" />
+            </label>
+            <label class="switch-row sub-row">
+              <span class="switch-text"><b>Widen the date range each round</b></span>
+              <input class="switch" type="checkbox" data-setting="cycleDatePosted" data-kind="check" />
+            </label>
+            <label class="switch-row sub-row">
+              <span class="switch-text"><b>Stop widening at Past 24 hours</b></span>
+              <input class="switch" type="checkbox" data-setting="stopDateCycleAt24hr" data-kind="check" data-default="true" />
+            </label>
+            <label class="switch-row sub-row">
+              <span class="switch-text"><b>Shuffle the job title order</b></span>
+              <input class="switch" type="checkbox" data-setting="randomizeSearchOrder" data-kind="check" />
+            </label>
+          </div>
+        </section>
+
+        <!-- ═══ Skip rules ═══ -->
+        <section class="card">
+          <div class="card-head">
+            <h2>Skip rules</h2>
+            <p>Jobs matching these are skipped, and the reason is shown in the panel's Skipped tab.</p>
+          </div>
+
+          <label class="field">
+            <span>Blocked companies</span>
+            <textarea data-setting="blacklistedCompanies" data-kind="list" rows="2" placeholder="Company A, Company B"></textarea>
           </label>
-          <label class="check">
-            <input id="cycleDatePosted" type="checkbox" />
-            <span>Cycle date-posted each cycle</span>
+          <label class="field">
+            <span>Words to skip in the job title or description</span>
+            <textarea data-setting="badWords" data-kind="list" rows="2" placeholder="staffing, internship, unpaid"></textarea>
           </label>
-          <label class="check">
-            <input id="stopDateCycleAt24hr" type="checkbox" />
-            <span>Stop date cycle at Past 24 hours</span>
+          <div class="grid two">
+            <label class="field">
+              <span>Skip if the company description has</span>
+              <textarea data-setting="aboutCompanyBadWords" data-kind="list" rows="2" placeholder="staffing, recruiting"></textarea>
+            </label>
+            <label class="field">
+              <span>...unless it also has</span>
+              <textarea data-setting="aboutCompanyGoodWords" data-kind="list" rows="2" placeholder="Robert Half, Dice"></textarea>
+            </label>
+          </div>
+        </section>
+
+        <!-- ═══ Advanced ═══ -->
+        <details class="card advanced">
+          <summary>
+            <h2>Advanced filters</h2>
+            <p>Rarely needed LinkedIn filters. Anything you set earlier is kept and shown here.</p>
+          </summary>
+
+          <div class="grid two">
+            <label class="field"><span>Companies</span><textarea data-setting="companies" data-kind="list" rows="2" placeholder="Google, Amazon"></textarea></label>
+            <label class="field"><span>Job titles filter</span><textarea data-setting="jobTitles" data-kind="list" rows="2" placeholder="Software Engineer"></textarea></label>
+            <label class="field"><span>Industry</span><textarea data-setting="industry" data-kind="list" rows="2" placeholder="Software Development"></textarea></label>
+            <label class="field"><span>Job function</span><textarea data-setting="jobFunction" data-kind="list" rows="2" placeholder="Engineering"></textarea></label>
+            <label class="field"><span>Benefits</span><textarea data-setting="benefits" data-kind="list" rows="2" placeholder="Health insurance"></textarea></label>
+            <label class="field"><span>Commitments</span><textarea data-setting="commitments" data-kind="list" rows="2" placeholder="Diversity and inclusion"></textarea></label>
+          </div>
+
+          <div class="chips">
+            <label class="chip"><input type="checkbox" data-setting="under10Applicants" data-kind="check" /><span>Under 10 applicants</span></label>
+            <label class="chip"><input type="checkbox" data-setting="inYourNetwork" data-kind="check" /><span>In your network</span></label>
+            <label class="chip"><input type="checkbox" data-setting="fairChanceEmployer" data-kind="check" /><span>Fair chance employer</span></label>
+            <label class="chip"><input type="checkbox" data-setting="didMasters" data-kind="check" /><span>I have a Master's degree</span></label>
+            <label class="chip"><input type="checkbox" data-setting="securityClearance" data-kind="check" /><span>I have a security clearance</span></label>
+          </div>
+
+          <label class="field narrow">
+            <span>My years of experience</span>
+            <input data-setting="currentExperience" data-kind="number" data-default="-1" type="number" min="-1" max="50" />
+            <small>Jobs asking for more are skipped. -1 turns this off. Your dashboard fills this in.</small>
           </label>
-        </div>
-
-        <!-- ═══════════════════════════════════════════ -->
-        <!-- SECTION: Search Terms & Sorting             -->
-        <!-- ═══════════════════════════════════════════ -->
-        <h2>Search Terms &amp; Sorting</h2>
-
-        <label>
-          <span>Search Terms (comma/newline separated)</span>
-          <textarea id="searchTerms" rows="3" placeholder="Software Engineer, Python Developer"></textarea>
-        </label>
-
-        <label class="check">
-          <input id="randomizeSearchOrder" type="checkbox" />
-          <span>Randomize search term order on each run</span>
-        </label>
-
-        <div class="row">
-          <label>
-            <span>Sort By</span>
-            <select id="sortBy">
-              <option value="">No change</option>
-              <option value="Most recent">Most recent</option>
-              <option value="Most relevant">Most relevant</option>
-            </select>
-          </label>
-          <label>
-            <span>Date Posted</span>
-            <select id="datePosted">
-              <option value="">No change</option>
-              <option value="Past 24 hours">Past 24 hours</option>
-              <option value="Past week">Past week</option>
-              <option value="Past month">Past month</option>
-              <option value="Any time">Any time</option>
-            </select>
-          </label>
-          <label>
-            <span>Salary Filter</span>
-            <input id="salary" type="text" placeholder="$100,000+" />
-          </label>
-        </div>
-
-        <!-- ═══════════════════════════════════════════ -->
-        <!-- SECTION: LinkedIn Advanced Filters          -->
-        <!-- ═══════════════════════════════════════════ -->
-        <h2>LinkedIn Advanced Filters</h2>
-
-        <label>
-          <span>Experience Level (comma/newline separated)</span>
-          <textarea id="experienceLevel" rows="2" placeholder="Entry level, Associate"></textarea>
-        </label>
-
-        <label>
-          <span>Job Type (comma/newline separated)</span>
-          <textarea id="jobType" rows="2" placeholder="Full-time, Contract"></textarea>
-        </label>
-
-        <label>
-          <span>On-site Mode (comma/newline separated)</span>
-          <textarea id="onSite" rows="2" placeholder="Remote, Hybrid"></textarea>
-        </label>
-
-        <label>
-          <span>Search Location (LinkedIn city/location box)</span>
-          <input id="searchLocation" type="text" placeholder="United States" />
-        </label>
-
-        <label>
-          <span>Locations Filter (comma/newline separated)</span>
-          <textarea id="filterLocations" rows="2" placeholder="United States, New York"></textarea>
-        </label>
-
-        <label>
-          <span>Companies (comma/newline separated)</span>
-          <textarea id="companies" rows="2" placeholder="Google, Amazon"></textarea>
-        </label>
-
-        <label>
-          <span>Job Titles Filter (comma/newline separated)</span>
-          <textarea id="jobTitles" rows="2" placeholder="Software Engineer"></textarea>
-        </label>
-
-        <label>
-          <span>Industry (comma/newline separated)</span>
-          <textarea id="industry" rows="2" placeholder="Software Development"></textarea>
-        </label>
-
-        <label>
-          <span>Job Function (comma/newline separated)</span>
-          <textarea id="jobFunction" rows="2" placeholder="Engineering"></textarea>
-        </label>
-
-        <label>
-          <span>Benefits (comma/newline separated)</span>
-          <textarea id="benefits" rows="2" placeholder="Health insurance"></textarea>
-        </label>
-
-        <label>
-          <span>Commitments (comma/newline separated)</span>
-          <textarea id="commitments" rows="2" placeholder="Diversity and inclusion"></textarea>
-        </label>
-
-        <div class="row checks">
-          <label class="check">
-            <input id="under10Applicants" type="checkbox" />
-            <span>Under 10 applicants</span>
-          </label>
-          <label class="check">
-            <input id="inYourNetwork" type="checkbox" />
-            <span>In your network</span>
-          </label>
-          <label class="check">
-            <input id="fairChanceEmployer" type="checkbox" />
-            <span>Fair chance employer</span>
-          </label>
-        </div>
-
-        <div class="row checks two-col">
-          <label class="check">
-            <input id="didMasters" type="checkbox" />
-            <span>Has Masters degree</span>
-          </label>
-          <label class="check">
-            <input id="securityClearance" type="checkbox" />
-            <span>Has active security clearance</span>
-          </label>
-        </div>
-
-        <label>
-          <span>Current Experience (years, -1 disables cap)</span>
-          <input id="currentExperience" type="number" min="-1" max="50" />
-        </label>
-
-        <!-- ═══════════════════════════════════════════ -->
-        <!-- SECTION: Company Filtering                  -->
-        <!-- ═══════════════════════════════════════════ -->
-        <h2>Company Filtering</h2>
-
-        <label>
-          <span>Blacklisted Companies (comma separated)</span>
-          <input id="blacklistedCompanies" type="text" placeholder="Company A, Company B" />
-        </label>
-
-        <label>
-          <span>About Company Bad Words (comma separated)</span>
-          <input id="aboutCompanyBadWords" type="text" placeholder="staffing, recruiting" />
-        </label>
-
-        <label>
-          <span>About Company Good Words (skip bad-word block if matched)</span>
-          <input id="aboutCompanyGoodWords" type="text" placeholder="Robert Half, Dice" />
-        </label>
-
-        <label>
-          <span>Bad Words In Job Title/Description (comma separated)</span>
-          <input id="badWords" type="text" placeholder="staffing, recruiter, internship" />
-        </label>
-
-        <!-- ═══════════════════════════════════════════ -->
-        <!-- SECTION: Personal Information               -->
-        <!-- ═══════════════════════════════════════════ -->
-        <h2>Personal Information</h2>
-
-        <div class="row">
-          <label>
-            <span>First Name</span>
-            <input id="firstName" type="text" placeholder="Jane" />
-          </label>
-          <label>
-            <span>Middle Name</span>
-            <input id="middleName" type="text" placeholder="A" />
-          </label>
-        </div>
-
-        <div class="row">
-          <label>
-            <span>Last Name</span>
-            <input id="lastName" type="text" placeholder="Doe" />
-          </label>
-          <label>
-            <span>Full Name (optional override)</span>
-            <input id="fullName" type="text" placeholder="Jane A Doe" />
-          </label>
-        </div>
-
-        <label>
-          <span>Contact Email</span>
-          <input id="contactEmail" type="email" placeholder="you@example.com" />
-        </label>
-
-        <div class="row">
-          <label>
-            <span>Phone Number</span>
-            <input id="phoneNumber" type="text" placeholder="9876543210" />
-          </label>
-          <label>
-            <span>Phone Country Code</span>
-            <input id="phoneCountryCode" type="text" placeholder="+1" />
-          </label>
-        </div>
-
-        <div class="row">
-          <label>
-            <span>LinkedIn URL</span>
-            <input id="linkedinUrl" type="url" placeholder="https://www.linkedin.com/in/you" />
-          </label>
-          <label>
-            <span>Website/Portfolio</span>
-            <input id="websiteUrl" type="url" placeholder="https://example.com" />
-          </label>
-        </div>
-
-        <!-- ═══════════════════════════════════════════ -->
-        <!-- SECTION: Address                            -->
-        <!-- ═══════════════════════════════════════════ -->
-        <h2>Address</h2>
-
-        <label>
-          <span>Current City (for location questions)</span>
-          <input id="currentCity" type="text" placeholder="San Francisco" />
-        </label>
-
-        <label>
-          <span>Street Address</span>
-          <input id="streetAddress" type="text" placeholder="123 Main St" />
-        </label>
-
-        <div class="row">
-          <label>
-            <span>State/Province</span>
-            <input id="stateRegion" type="text" placeholder="California" />
-          </label>
-          <label>
-            <span>Postal Code</span>
-            <input id="postalCode" type="text" placeholder="94105" />
-          </label>
-        </div>
-
-        <label>
-          <span>Country</span>
-          <input id="country" type="text" placeholder="United States" />
-        </label>
-
-        <!-- ═══════════════════════════════════════════ -->
-        <!-- SECTION: Screening Answers                  -->
-        <!-- ═══════════════════════════════════════════ -->
-        <h2>Screening Answers</h2>
-
-        <div class="row">
-          <label>
-            <span>Marketing Consent</span>
-            <select id="marketingConsent">
-              <option value="No">No</option>
-              <option value="Yes">Yes</option>
-            </select>
-          </label>
-          <label>
-            <span>Require Visa</span>
-            <select id="requireVisa">
-              <option value="No">No</option>
-              <option value="Yes">Yes</option>
-            </select>
-          </label>
-        </div>
-
-        <div class="row">
-          <label>
-            <span>US Citizenship Status</span>
-            <input id="usCitizenship" type="text" placeholder="U.S. Citizen/Permanent Resident" />
-          </label>
-          <label>
-            <span>Veteran Status</span>
-            <input id="veteranStatus" type="text" placeholder="No" />
-          </label>
-        </div>
-
-        <div class="row">
-          <label>
-            <span>Disability Status</span>
-            <input id="disabilityStatus" type="text" placeholder="No" />
-          </label>
-          <label>
-            <span>Years Of Experience Answer</span>
-            <input id="yearsOfExperienceAnswer" type="text" placeholder="5" />
-          </label>
-        </div>
-
-        <div class="row">
-          <label>
-            <span>Gender</span>
-            <select id="gender">
-              <option value="">No preference</option>
-              <option value="Male">Male</option>
-              <option value="Female">Female</option>
-              <option value="Other">Other</option>
-              <option value="Decline">Decline</option>
-            </select>
-          </label>
-          <label>
-            <span>Ethnicity</span>
-            <select id="ethnicity">
-              <option value="">No preference</option>
-              <option value="Decline">Decline</option>
-              <option value="Hispanic/Latino">Hispanic/Latino</option>
-              <option value="American Indian or Alaska Native">American Indian or Alaska Native</option>
-              <option value="Asian">Asian</option>
-              <option value="Black or African American">Black or African American</option>
-              <option value="Native Hawaiian or Other Pacific Islander">Native Hawaiian or Other Pacific Islander</option>
-              <option value="White">White</option>
-              <option value="Other">Other</option>
-            </select>
-          </label>
-        </div>
-
-        <!-- ═══════════════════════════════════════════ -->
-        <!-- SECTION: Salary & Compensation              -->
-        <!-- ═══════════════════════════════════════════ -->
-        <h2>Salary &amp; Compensation</h2>
-
-        <div class="row">
-          <label>
-            <span>Desired Salary</span>
-            <input id="desiredSalary" type="text" placeholder="120000" />
-          </label>
-          <label>
-            <span>Current CTC / Salary</span>
-            <input id="currentCtc" type="text" placeholder="85000" />
-          </label>
-        </div>
-
-        <div class="row">
-          <label>
-            <span>Notice Period (days)</span>
-            <input id="noticePeriodDays" type="text" placeholder="15" />
-          </label>
-          <label>
-            <span>Confidence Level (1-10)</span>
-            <input id="confidenceLevel" type="text" placeholder="8" />
-          </label>
-        </div>
-
-        <!-- ═══════════════════════════════════════════ -->
-        <!-- SECTION: Professional Profile               -->
-        <!-- ═══════════════════════════════════════════ -->
-        <h2>Professional Profile</h2>
-
-        <label>
-          <span>Recent Employer</span>
-          <input id="recentEmployer" type="text" placeholder="Acme Corp" />
-        </label>
-
-        <label>
-          <span>LinkedIn Headline</span>
-          <input id="linkedinHeadline" type="text" placeholder="Full Stack Developer" />
-        </label>
-
-        <label>
-          <span>LinkedIn Summary</span>
-          <textarea id="linkedinSummary" rows="3" placeholder="Short profile summary..."></textarea>
-        </label>
-
-        <label>
-          <span>Cover Letter Template</span>
-          <textarea id="coverLetter" rows="4" placeholder="Cover letter text..."></textarea>
-        </label>
-
-        <!-- ═══════════════════════════════════════════ -->
-        <!-- Save Button                                 -->
-        <!-- ═══════════════════════════════════════════ -->
-        <div class="actions">
-          <button type="submit">Save Settings</button>
-          <span id="status"></span>
-        </div>
+        </details>
       </form>
     </main>
+
+    <div class="savebar">
+      <div class="savebar-inner">
+        <span id="status" role="status"></span>
+        <button type="submit" form="settings-form">Save settings</button>
+      </div>
+    </div>
     <script src="options.js"></script>
   </body>
 </html>

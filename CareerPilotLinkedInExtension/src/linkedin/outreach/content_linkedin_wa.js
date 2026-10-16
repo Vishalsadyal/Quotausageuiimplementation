@@ -10,34 +10,11 @@
   window.__linkedInWhatsAppOutreachInjected = true;
 
 
-  let settings = {
-    targetKeywords: [
-      'wordpress',
-      'shopify',
-      'php',
-      'web developer',
-      'frontend',
-      'full stack',
-      'react',
-      'web designer',
-      'javascript',
-      'html',
-      'developer',
-      'fresher',
-      'electrical',
-      'field engineer'
-    ],
-    messageTemplate: `Hi {name}!
-
-I saw your hiring post on LinkedIn regarding the {job_title} role.
-
-I am actively looking for new opportunities. Feel free to check out my portfolio & recent work (specializing in WordPress, Shopify, PHP & Web Development):
-🌐 https://parveen-portfolio-xi.vercel.app/
-
-I am available for immediate joining and would love to connect and share more details!
-
-Best regards,
-Parveen`,
+  // Defaults only. The real values (message, keywords, options) come from the dashboard through
+  // chrome.storage.local key "waSettings"; nothing personal is hard-coded here.
+  const DEFAULT_SETTINGS = {
+    targetKeywords: [],
+    messageTemplate: '',
     autoSendWhatsApp: true,       // Auto-send on WhatsApp Web
     autoCloseTab: true,           // Auto-close WhatsApp Web tab after send
     autoLikePosts: true,
@@ -51,14 +28,29 @@ Parveen`,
     delayBetweenMessages: 4
   };
 
+  let settings = { ...DEFAULT_SETTINGS };
+
   let extractedLeads = [];
   let contactedPhones = new Set();
   let duplicateCount = 0;
+  let postsSeenCount = 0;
   let isScanning = false;
   let isPaused = false;
-  let isWidgetMinimized = false;
-  let currentTab = 'search';
-  let activeLeadFilter = 'all'; // 'all', 'pending', 'sent'
+  let sendProgress = '';
+
+  // Skipped posts / leads (newest first, capped) and the activity feed (newest first, capped).
+  const SKIPPED_CAP = 200;
+  const ACTIVITY_CAP = 100;
+  let skippedList = [];
+  let skippedKeys = new Set();
+  let skippedDirty = false;
+  let skippedSaveTimer = null;
+  let activityLog = [];
+
+  // Widget controller (cpOwInit) and its root element
+  let ui = null;
+  let widgetRoot = null;
+
 
   // Comprehensive Phone regexes
   // 1. Explicit WhatsApp/call prefixes (e.g. "WhatsApp: 9876543210", "DM/WA +91 98765 43210", "share cv on 9876543210")
@@ -105,474 +97,474 @@ Parveen`,
     /\b(?:whatsapp|wa\.me)\b/i
   ];
 
+  function normalizeSettings(raw) {
+    const merged = { ...DEFAULT_SETTINGS, ...(raw && typeof raw === 'object' ? raw : {}) };
+    merged.targetKeywords = Array.isArray(merged.targetKeywords)
+      ? merged.targetKeywords.map((k) => String(k || '').trim()).filter(Boolean)
+      : [];
+    merged.messageTemplate = typeof merged.messageTemplate === 'string' ? merged.messageTemplate : '';
+    return merged;
+  }
+
   // Load storage
   async function loadStorage() {
     // Disconnected after an extension reload: storage is gone until the tab is refreshed.
     if (!chrome?.runtime?.id) return;
     try {
-      const data = await chrome.storage.local.get(['waSettings', 'waLeads', 'contactedPhones', 'duplicateStats']);
-      if (data.waSettings) settings = { ...settings, ...data.waSettings };
+      const data = await chrome.storage.local.get(['waSettings', 'waLeads', 'contactedPhones', 'duplicateStats', 'waSkipped']);
+      settings = normalizeSettings(data.waSettings);
       if (Array.isArray(data.waLeads)) extractedLeads = data.waLeads;
       if (Array.isArray(data.contactedPhones)) contactedPhones = new Set(data.contactedPhones);
       if (data.duplicateStats && typeof data.duplicateStats.skippedCount === 'number') {
         duplicateCount = data.duplicateStats.skippedCount;
+      }
+      if (Array.isArray(data.waSkipped)) {
+        skippedList = data.waSkipped.slice(0, SKIPPED_CAP);
+        skippedKeys = new Set(skippedList.map((s) => s && s.key).filter(Boolean));
       }
     } catch (e) {
       console.error('[LinkedIn-WA] Load storage error:', e);
     }
   }
 
-  // ── FLOATING WIDGET UI ────────────────────────────────────────────────────
+  // Keep `settings` fresh when the dashboard saves new options.
+  function setupSettingsListener() {
+    if (!chrome?.storage?.onChanged) return;
+    chrome.storage.onChanged.addListener((changes, areaName) => {
+      if (areaName !== 'local' || !changes.waSettings) return;
+      settings = normalizeSettings(changes.waSettings.newValue);
+      renderQuickChips();
+      renderContactedChip();
+      refreshTemplateNote();
+      renderLeadsList();
+    });
+  }
 
+  function hasMessageTemplate() {
+    return String(settings.messageTemplate || '').trim().length > 0;
+  }
+
+
+  // ── FLOATING WIDGET UI (built on the shared outreach kit: outreach_ui.js / outreach_base.css) ──
+
+  // Shown only when WhatsApp outreach was asked for in this tab (see cpOwRequestedModule in outreach_ui.js).
   function checkModuleVisibility() {
-    const widget = document.getElementById('li-wa-widget');
-    if (!widget) return;
-    const hash = (window.location.hash || '').toLowerCase();
-
-    // If explicit module requested
-    if (hash.includes('autoapply-module=whatsapp') || hash.includes('module=whatsapp')) {
-      widget.style.display = 'block';
-      return;
-    }
-
-    // If another module was requested
-    if (
-      hash.includes('autoapply-module=email') ||
-      hash.includes('module=email') ||
-      hash.includes('autoapply-module=commenter') ||
-      hash.includes('module=commenter') ||
-      hash.includes('autoapply-module=easy_apply') ||
-      hash.includes('module=easy_apply') ||
-      hash.includes('autoapply-module=hr_leads') ||
-      hash.includes('module=hr_leads')
-    ) {
-      widget.style.display = 'none';
-      return;
-    }
-
-    // On /jobs/ page, default to hidden
-    if (window.location.pathname.startsWith('/jobs')) {
-      widget.style.display = 'none';
-      return;
-    }
-
-    widget.style.display = 'block';
+    if (!ui) return;
+    if (cpOwRequestedModule() === 'whatsapp') ui.show();
+    else ui.hide();
   }
 
   function injectFloatingWidget() {
     if (document.getElementById('li-wa-widget')) return;
 
-    const widget = document.createElement('div');
-    widget.id = 'li-wa-widget';
-    widget.className = 'li-wa-container';
-    widget.innerHTML = `
-      <div class="li-wa-header" id="li-wa-drag-header">
-        <div class="li-wa-title">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="#25D366"><path d="M12.04 2c-5.46 0-9.91 4.45-9.91 9.91 0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38c1.45.79 3.08 1.21 4.74 1.21 5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.816 9.816 0 0 0 12.04 2z"/></svg>
-          <span>WhatsApp Job Outreach Pro</span>
-        </div>
-        <div class="li-wa-window-actions">
-          <button class="li-wa-btn-icon" id="li-wa-min-btn" title="Minimize / Expand">_</button>
-        </div>
+    const controls = `
+      <div id="li-wa-note-slot"></div>
+      <div class="cp-ow-search">
+        <input type="text" id="widget-search-query" class="cp-ow-input" placeholder="Search hiring posts, e.g. developer hiring whatsapp" />
+        ${cpOwButton({ id: 'btn-exec-search', label: 'Search', icon: 'search', kind: 'start' })}
       </div>
-
-      <div class="li-wa-nav">
-        <button class="li-wa-tab-btn active" id="tab-search">🔍 Quick Search</button>
-        <button class="li-wa-tab-btn" id="tab-leads">📋 Leads (<span id="lead-count-badge">0</span>)</button>
-        <button class="li-wa-tab-btn" id="tab-settings">⚙️ Settings</button>
-        <button class="li-wa-tab-btn" id="tab-logs">📜 Console & Diag</button>
+      <div class="cp-ow-chips" id="li-wa-chips"></div>
+      ${cpOwQuickRow('wa', { start: 'Scan feed', pause: 'Pause', stop: 'Stop' })}
+      <div class="cp-ow-quick is-two">
+        ${cpOwButton({ id: 'btn-deep-scroll', label: 'Full auto-scroll', icon: 'scroll', title: 'Scroll to the end of the feed and collect every lead' })}
+        ${cpOwButton({ id: 'btn-auto-send-all', label: 'Auto-send', icon: 'chat', title: 'Message every pending lead on WhatsApp, one by one' })}
       </div>
+      ${cpOwStats([
+        { id: 'seen', label: 'Cards seen', value: 0 },
+        { id: 'matched', label: 'Matched', value: 0 },
+        { id: 'sent', label: 'Sent', value: 0 },
+        { id: 'dupes', label: 'Duplicates', value: 0 }
+      ])}
+      <div class="cp-ow-chips cp-ow-wa-tools">
+        <button type="button" class="cp-ow-chip" id="li-wa-chip-contacted" title="Keep posts you already messaged visible in the feed">Show contacted posts</button>
+        <button type="button" class="cp-ow-chip" id="btn-export-csv" title="Download your leads as a CSV file">Export CSV</button>
+        <button type="button" class="cp-ow-chip" id="btn-clear-leads" title="Clear all leads and contact history">Clear all</button>
+      </div>`;
 
-      <div class="li-wa-body" id="li-wa-body">
-        <!-- SEARCH PANE -->
-        <div id="pane-search" class="li-wa-pane active">
-          <div class="li-wa-search-box">
-            <label class="li-wa-label">🎯 Search Hiring Posts on LinkedIn:</label>
-            <div class="li-wa-search-input-group">
-              <input type="text" id="widget-search-query" class="li-wa-input" placeholder="e.g. WordPress developer hiring whatsapp" />
-              <button class="li-wa-btn li-wa-btn-primary" id="btn-exec-search">
-                <span>🔍 Search</span>
-              </button>
-            </div>
-            <div class="li-wa-chips-row">
-              <span class="li-wa-quick-chip" data-q="WordPress developer hiring whatsapp">🌐 WordPress</span>
-              <span class="li-wa-quick-chip" data-q="React developer hiring whatsapp">⚛️ React Dev</span>
-              <span class="li-wa-quick-chip" data-q="Web developer hiring whatsapp">💻 Web Dev</span>
-              <span class="li-wa-quick-chip" data-q="Frontend developer hiring whatsapp">🎨 Frontend</span>
-              <span class="li-wa-quick-chip" data-q="Electrical fresher hiring whatsapp">⚡ Electrical</span>
-              <span class="li-wa-quick-chip" data-q="Field engineer hiring whatsapp">🔌 Field Engineer</span>
-            </div>
-          </div>
+    const holder = document.createElement('div');
+    holder.innerHTML = cpOwShell({
+      id: 'li-wa-widget',
+      title: 'WhatsApp Outreach',
+      subtitle: 'Message recruiters who post a phone number',
+      icon: 'chat',
+      tabs: [
+        { id: 'pending', label: 'Pending' },
+        { id: 'sent', label: 'Sent' },
+        { id: 'skipped', label: 'Skipped' },
+        { id: 'activity', label: 'Activity' }
+      ],
+      controls,
+      foot: cpOwDashboardNote()
+    });
+    widgetRoot = holder.firstElementChild;
+    document.body.appendChild(widgetRoot);
 
-          <div class="li-wa-toolbar" style="margin-top: 10px; display:flex; gap:6px; flex-wrap:wrap;">
-            <button class="li-wa-btn li-wa-btn-primary" id="btn-start-scan" style="flex:1;">
-              <span>🚀 Scan Feed</span>
-            </button>
-            <button class="li-wa-btn" id="btn-deep-scroll" style="flex:1.1; background:linear-gradient(135deg, #0ea5e9, #0284c7); color:#ffffff; font-weight:700; border:none; box-shadow:0 2px 8px rgba(14,165,233,0.35); display:flex; align-items:center; justify-content:center; gap:4px; cursor:pointer; border-radius:6px; padding:7px 10px; font-size:12px;">
-              <span>📜 Full Auto-Scroll</span>
-            </button>
-            <button class="li-wa-btn li-wa-btn-wa" id="btn-auto-send-all" style="flex:1.2; background:#25D366; color:#0f172a; font-weight:700; border:none; box-shadow:0 2px 8px rgba(37,211,102,0.3); display:flex; align-items:center; justify-content:center; gap:4px;">
-              <span>⚡ Auto-Send WhatsApp</span>
-            </button>
-            <button class="li-wa-btn li-wa-btn-pause" id="btn-pause-scan" style="display:none;">
-              <span>⏸️ Pause</span>
-            </button>
-          </div>
-
-          <div style="margin-top: 8px; padding: 6px 10px; background: rgba(15, 23, 42, 0.4); border-radius: 8px; border: 1px solid rgba(255,255,255,0.06); display: flex; align-items: center; justify-content: space-between;">
-            <label class="li-wa-checkbox" style="margin: 0; font-size: 11px; cursor: pointer; display: flex; align-items: center; gap: 6px;">
-              <input type="checkbox" id="quick-check-show-contacted" ${settings.showAlreadyContacted ? 'checked' : ''} />
-              <span style="color: #cbd5e1; font-weight: 500;">👁️ Show Already Contacted Posts</span>
-            </label>
-            <span id="quick-status-contacted" style="font-size: 10px; color: ${settings.showAlreadyContacted ? '#22c55e' : '#94a3b8'}; font-weight: 600;">${settings.showAlreadyContacted ? 'Visible' : 'Hidden'}</span>
-          </div>
-
-          <div class="li-wa-stats-bar">
-            <div>Cards: <b id="stat-posts-seen">0</b></div>
-            <div>Matched: <b id="stat-total-leads" style="color:#25D366;">0</b></div>
-            <div>Sent: <b id="stat-sent-leads" style="color:#38bdf8;">0</b></div>
-            <div>🔁 Dupes: <b id="stat-dupes-count" style="color:#fbbf24;">0</b></div>
-          </div>
-        </div>
-
-        <!-- LEADS PANE -->
-        <div id="pane-leads" class="li-wa-pane" style="display:none;">
-          <div class="li-wa-subnav">
-            <button class="li-wa-filter-btn active" data-filter="all">All (<span id="count-filter-all">0</span>)</button>
-            <button class="li-wa-filter-btn" data-filter="pending">⏳ Pending (<span id="count-filter-pending">0</span>)</button>
-            <button class="li-wa-filter-btn" data-filter="sent">✅ Sent (<span id="count-filter-sent">0</span>)</button>
-          </div>
-
-          <div class="li-wa-toolbar" style="margin-top:8px; display:flex; gap:6px; flex-wrap:wrap;">
-            <button class="li-wa-btn li-wa-btn-wa" id="btn-leads-auto-send" style="flex:1.2; background:#25D366; color:#0f172a; font-weight:700; border:none; box-shadow:0 2px 8px rgba(37,211,102,0.3); display:flex; align-items:center; justify-content:center; gap:4px;">
-              <span>⚡ Auto-Send Pending (<span id="count-btn-pending">0</span>)</span>
-            </button>
-            <button class="li-wa-btn li-wa-btn-secondary" id="btn-export-csv" title="Export leads to CSV" style="padding:6px 10px;">
-              <span>📥 CSV</span>
-            </button>
-            <button class="li-wa-btn li-wa-btn-danger" id="btn-clear-leads" title="Clear pending leads" style="padding:6px 10px;">
-              <span>🗑️ Clear</span>
-            </button>
-          </div>
-
-          <div class="li-wa-leads-list" id="li-wa-leads-list">
-            <div class="li-wa-empty-state">
-              No WhatsApp leads extracted yet.<br>
-              Click <b>"🚀 Scan Feed & Match Leads"</b> or search hiring posts!
-            </div>
-          </div>
-        </div>
-
-        <!-- SETTINGS PANE -->
-        <div id="pane-settings" class="li-wa-pane" style="display:none;">
-          <div class="li-wa-field-group">
-            <label class="li-wa-label">🎯 Target Keywords (comma separated):</label>
-            <input type="text" id="input-keywords" class="li-wa-input" value="${settings.targetKeywords.join(', ')}" />
-            <span class="li-wa-hint">Example: wordpress, react, web developer, php, shopify, electrical, fresher</span>
-          </div>
-
-          <div class="li-wa-field-group">
-            <label class="li-wa-label">💬 WhatsApp Outreach Message Template:</label>
-            <div class="li-wa-chips">
-              <span class="li-wa-chip" data-token="{name}">+ {name}</span>
-              <span class="li-wa-chip" data-token="{job_title}">+ {job_title}</span>
-              <span class="li-wa-chip" data-token="{company}">+ {company}</span>
-              <span class="li-wa-chip" data-token="{phone}">+ {phone}</span>
-            </div>
-            <textarea id="input-template" class="li-wa-textarea" rows="5">${settings.messageTemplate}</textarea>
-          </div>
-
-          <div class="li-wa-options">
-            <label class="li-wa-checkbox">
-              <input type="checkbox" id="check-hide-non-wa" ${settings.hideNonWhatsAppPosts !== false ? 'checked' : ''} />
-              <span>🎯 <b>Hide Non-WhatsApp Posts (Brings WhatsApp Jobs to Top)</b></span>
-            </label>
-            <label class="li-wa-checkbox">
-              <input type="checkbox" id="check-show-contacted" ${settings.showAlreadyContacted ? 'checked' : ''} />
-              <span>👁️ <b>Show Already Contacted Posts (Uncheck to hide already sent posts)</b></span>
-            </label>
-            <label class="li-wa-checkbox">
-              <input type="checkbox" id="check-auto-like" ${settings.autoLikePosts !== false ? 'checked' : ''} />
-              <span>👍 <b>Auto-Like Recruiter Hiring Posts on LinkedIn</b></span>
-            </label>
-            <label class="li-wa-checkbox">
-              <input type="checkbox" id="check-remove-sent" ${settings.removeSentPostFromFeed !== false ? 'checked' : ''} />
-              <span>🚪 <b>Auto-Remove post from feed after message sent (Brings next post to top)</b></span>
-            </label>
-            <label class="li-wa-checkbox">
-              <input type="checkbox" id="check-match-all" ${settings.matchAllHiringPosts ? 'checked' : ''} />
-              <span>🌟 Match All Hiring Posts with Phone (Broad Reach)</span>
-            </label>
-            <label class="li-wa-checkbox">
-              <input type="checkbox" id="check-auto-send" ${settings.autoSendWhatsApp ? 'checked' : ''} />
-              <span>⚡ Auto-Click Send on WhatsApp Web</span>
-            </label>
-            <label class="li-wa-checkbox">
-              <input type="checkbox" id="check-auto-close" ${settings.autoCloseTab ? 'checked' : ''} />
-              <span>🚪 Auto-Close WhatsApp Tab after sending</span>
-            </label>
-            <label class="li-wa-checkbox">
-              <input type="checkbox" id="check-filter-seekers" ${settings.filterJobSeekers ? 'checked' : ''} />
-              <span>🛡️ Filter out Job Seekers / #OpenToWork</span>
-            </label>
-            <label class="li-wa-checkbox">
-              <input type="checkbox" id="check-auto-scroll" ${settings.autoScroll ? 'checked' : ''} />
-              <span>📜 Auto-Scroll feed during active scan</span>
-            </label>
-            <p style="margin:6px 0 0; font-size:11px; color:#94a3b8; line-height:1.4;">
-              Recruiters you message (name, number, role) are added to AutoApply CV's shared HR Contacts list. You can turn this off on the HR Contacts page of your dashboard.
-            </p>
-          </div>
-
-          <button class="li-wa-btn li-wa-btn-primary" id="btn-save-settings" style="width:100%; margin-top:10px;">
-            <span>💾 Save Settings</span>
-          </button>
-        </div>
-
-        <!-- LOGS PANE -->
-        <div id="pane-logs" class="li-wa-pane" style="display:none;">
-          <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
-            <button class="li-wa-btn li-wa-btn-secondary" id="btn-run-diag" style="font-size:10px; padding:4px 8px;">
-              🔍 Run Diagnostics Scan
-            </button>
-          </div>
-          <div class="li-wa-terminal" id="li-wa-terminal">
-            <div class="term-line info">[System] WhatsApp Job Outreach ready on ${window.location.hostname}.</div>
-          </div>
-        </div>
-      </div>
-    `;
-
-    document.body.appendChild(widget);
+    ui = cpOwInit(widgetRoot, { defaultTab: 'pending', onTab: () => renderLeadsList() });
     setupWidgetEvents();
+    renderQuickChips();
+    renderContactedChip();
+    refreshTemplateNote();
     renderLeadsList();
-    makeDraggable(widget, document.getElementById('li-wa-drag-header'));
+  }
+
+  function $wa(selector) {
+    return widgetRoot ? widgetRoot.querySelector(selector) : null;
+  }
+
+  function setButtonLabel(btn, text) {
+    const span = btn && btn.querySelector('span');
+    if (span) span.textContent = text;
+  }
+
+  // Quick-search chips come from the keywords set in the dashboard.
+  function renderQuickChips() {
+    const box = $wa('#li-wa-chips');
+    if (!box) return;
+    const keywords = (settings.targetKeywords || []).slice(0, 6);
+    if (keywords.length === 0) {
+      box.innerHTML = '<span class="cp-ow-hint">Search suggestions come from the keywords in your dashboard.</span>';
+      return;
+    }
+    box.innerHTML = keywords
+      .map((kw) => {
+        const query = `${kw} hiring whatsapp`;
+        return `<button type="button" class="cp-ow-chip" data-q="${cpOwEscape(query)}">${cpOwEscape(kw)}</button>`;
+      })
+      .join('');
+  }
+
+  function renderContactedChip() {
+    const chip = $wa('#li-wa-chip-contacted');
+    if (chip) chip.classList.toggle('is-on', !!settings.showAlreadyContacted);
+  }
+
+  // Sending needs a message written in the dashboard. Scanning and searching work without it.
+  function refreshTemplateNote() {
+    const slot = $wa('#li-wa-note-slot');
+    if (!slot) return;
+    slot.innerHTML = hasMessageTemplate() ? '' : cpOwDashboardNote('Write your WhatsApp message in your dashboard first.', true);
+  }
+
+  function blockedByEmptyMessage() {
+    if (hasMessageTemplate()) return false;
+    refreshTemplateNote();
+    logTerminal('Write your WhatsApp message in your dashboard first. Sending is off until you save a message there.', 'error');
+    if (ui) ui.setTab('activity');
+    return true;
+  }
+
+  function performSearch(query) {
+    const q = (query || '').trim();
+    if (!q) {
+      logTerminal('Type what you want to search for first.', 'warning');
+      $wa('#widget-search-query')?.focus();
+      return;
+    }
+    logTerminal(`Opening LinkedIn content search for "${q}"...`, 'info');
+    const searchUrl = `https://www.linkedin.com/search/results/content/?keywords=${encodeURIComponent(q)}&sortBy=%5B%22date_posted%22%5D#autoapply-module=whatsapp`;
+    window.location.href = searchUrl;
   }
 
   function setupWidgetEvents() {
-    const minBtn = document.getElementById('li-wa-min-btn');
-    const tabSearch = document.getElementById('tab-search');
-    const tabLeads = document.getElementById('tab-leads');
-    const tabSettings = document.getElementById('tab-settings');
-    const tabLogs = document.getElementById('tab-logs');
-    const paneSearch = document.getElementById('pane-search');
-    const paneLeads = document.getElementById('pane-leads');
-    const paneSettings = document.getElementById('pane-settings');
-    const paneLogs = document.getElementById('pane-logs');
+    const searchInput = $wa('#widget-search-query');
 
-    // Minimize
-    minBtn?.addEventListener('click', () => {
-      isWidgetMinimized = !isWidgetMinimized;
-      const body = document.getElementById('li-wa-body');
-      const nav = document.querySelector('.li-wa-nav');
-      if (body) body.style.display = isWidgetMinimized ? 'none' : 'block';
-      if (nav) nav.style.display = isWidgetMinimized ? 'none' : 'flex';
-      minBtn.textContent = isWidgetMinimized ? '+' : '_';
-    });
-
-    // Navigation Tabs
-    tabSearch?.addEventListener('click', () => switchTab('search'));
-    tabLeads?.addEventListener('click', () => switchTab('leads'));
-    tabSettings?.addEventListener('click', () => switchTab('settings'));
-    tabLogs?.addEventListener('click', () => switchTab('logs'));
-
-    function switchTab(tab) {
-      currentTab = tab;
-      [tabSearch, tabLeads, tabSettings, tabLogs].forEach(t => t?.classList.remove('active'));
-      [paneSearch, paneLeads, paneSettings, paneLogs].forEach(p => { if (p) p.style.display = 'none'; });
-
-      if (tab === 'search') {
-        tabSearch?.classList.add('active');
-        if (paneSearch) paneSearch.style.display = 'block';
-      } else if (tab === 'leads') {
-        tabLeads?.classList.add('active');
-        if (paneLeads) paneLeads.style.display = 'block';
-      } else if (tab === 'settings') {
-        tabSettings?.classList.add('active');
-        if (paneSettings) paneSettings.style.display = 'block';
-      } else if (tab === 'logs') {
-        tabLogs?.classList.add('active');
-        if (paneLogs) paneLogs.style.display = 'block';
-      }
-    }
-
-    // Filter Buttons in Leads Pane
-    document.querySelectorAll('.li-wa-filter-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        document.querySelectorAll('.li-wa-filter-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        activeLeadFilter = btn.getAttribute('data-filter') || 'all';
-        renderLeadsList();
-      });
-    });
-
-    // Diagnostics button
-    document.getElementById('btn-run-diag')?.addEventListener('click', () => {
-      runDiagnostics();
-    });
-
-    // Search Trigger
-    const searchInput = document.getElementById('widget-search-query');
-    const searchBtn = document.getElementById('btn-exec-search');
-
-    function performSearch(query) {
-      const q = (query || '').trim();
-      if (!q) {
-        alert('Please enter keywords to search.');
-        return;
-      }
-      logTerminal(`🔍 Navigating to LinkedIn Content Search for: "${q}"...`, 'info');
-      const searchUrl = `https://www.linkedin.com/search/results/content/?keywords=${encodeURIComponent(q)}&sortBy=%5B%22date_posted%22%5D`;
-      window.location.href = searchUrl;
-    }
-
-    searchBtn?.addEventListener('click', () => {
-      performSearch(searchInput ? searchInput.value : '');
-    });
-
+    $wa('#btn-exec-search')?.addEventListener('click', () => performSearch(searchInput ? searchInput.value : ''));
     searchInput?.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') {
-        performSearch(searchInput.value);
-      }
+      if (e.key === 'Enter') performSearch(searchInput.value);
     });
 
-    // Quick Search Chips
-    document.querySelectorAll('.li-wa-quick-chip').forEach(chip => {
-      chip.addEventListener('click', () => {
-        const query = chip.getAttribute('data-q');
-        if (searchInput) searchInput.value = query;
-        performSearch(query);
-      });
+    // Quick search chips (built from dashboard keywords)
+    $wa('#li-wa-chips')?.addEventListener('click', (e) => {
+      const chip = e.target instanceof Element ? e.target.closest('[data-q]') : null;
+      if (!chip) return;
+      const query = chip.getAttribute('data-q') || '';
+      if (searchInput) searchInput.value = query;
+      performSearch(query);
     });
 
-    // Token Chips in Template editor
-    document.querySelectorAll('.li-wa-chip').forEach(chip => {
-      chip.addEventListener('click', () => {
-        const token = chip.getAttribute('data-token');
-        const textarea = document.getElementById('input-template');
-        if (textarea && token) {
-          const start = textarea.selectionStart;
-          const end = textarea.selectionEnd;
-          textarea.value = textarea.value.substring(0, start) + token + textarea.value.substring(end);
-          textarea.focus();
-          textarea.selectionStart = textarea.selectionEnd = start + token.length;
-        }
-      });
+    // Scan feed
+    $wa('#wa-start')?.addEventListener('click', () => {
+      if (!isScanning) startScanner();
     });
 
-    // Save Settings
-    document.getElementById('btn-save-settings')?.addEventListener('click', saveSettingsFromUI);
-
-    // Start / Pause Scanner
-    document.getElementById('btn-start-scan')?.addEventListener('click', () => {
-      if (isScanning) {
-        stopScanner();
-      } else {
-        startScanner();
-      }
+    // Pause / resume whatever is running
+    $wa('#wa-pause')?.addEventListener('click', () => {
+      if (!isBusy()) return;
+      isPaused = !isPaused;
+      logTerminal(isPaused ? 'Paused.' : 'Resumed.', 'warning');
+      updateUi();
     });
+
+    // Stop everything
+    $wa('#wa-stop')?.addEventListener('click', stopEverything);
 
     // Deep Full Auto-Scroll Button
-    document.getElementById('btn-deep-scroll')?.addEventListener('click', () => {
-      startFullAutoScroll();
-    });
+    $wa('#btn-deep-scroll')?.addEventListener('click', () => startFullAutoScroll());
 
-    // Auto-Send to WhatsApp Queue Buttons
-    document.getElementById('btn-auto-send-all')?.addEventListener('click', () => {
-      startAutoSendingQueue();
-    });
+    // Auto-send queue
+    $wa('#btn-auto-send-all')?.addEventListener('click', () => startAutoSendingQueue());
 
-    document.getElementById('btn-leads-auto-send')?.addEventListener('click', () => {
-      startAutoSendingQueue();
-    });
-
-    document.getElementById('btn-pause-scan')?.addEventListener('click', () => {
-      isPaused = !isPaused;
-      const pauseBtn = document.getElementById('btn-pause-scan');
-      if (pauseBtn) pauseBtn.querySelector('span').textContent = isPaused ? '▶️ Resume' : '⏸️ Pause';
-      logTerminal(isPaused ? 'Scanner paused.' : 'Scanner resumed.', 'warning');
-    });
-
-    // Quick Toggle & Settings Toggle for Show Already Contacted
-    const quickContactedToggle = document.getElementById('quick-check-show-contacted');
-    const settingsContactedToggle = document.getElementById('check-show-contacted');
-    const quickStatusContacted = document.getElementById('quick-status-contacted');
-
-    function handleContactedToggleChange(isChecked) {
-      settings.showAlreadyContacted = isChecked;
-      if (quickContactedToggle) quickContactedToggle.checked = isChecked;
-      if (settingsContactedToggle) settingsContactedToggle.checked = isChecked;
-      if (quickStatusContacted) {
-        quickStatusContacted.textContent = isChecked ? 'Visible' : 'Hidden';
-        quickStatusContacted.style.color = isChecked ? '#22c55e' : '#94a3b8';
-      }
-      chrome.storage.local.set({ waSettings: settings });
-      logTerminal(isChecked ? '👁️ Showing already contacted recruiter posts in LinkedIn feed.' : '🚫 Hiding already contacted recruiter posts from LinkedIn feed.', 'info');
-      // Instantly refresh feed visibility
+    // Only quick toggle kept in the widget; every other option is edited in the dashboard.
+    $wa('#li-wa-chip-contacted')?.addEventListener('click', async () => {
+      settings.showAlreadyContacted = !settings.showAlreadyContacted;
+      renderContactedChip();
+      try {
+        const data = await chrome.storage.local.get(['waSettings']);
+        await chrome.storage.local.set({ waSettings: { ...(data.waSettings || {}), showAlreadyContacted: settings.showAlreadyContacted } });
+      } catch (_) {}
+      logTerminal(settings.showAlreadyContacted ? 'Showing contacted posts in the LinkedIn feed.' : 'Hiding contacted posts from the LinkedIn feed.', 'info');
       scanCurrentDOMForLeads();
-    }
-
-    quickContactedToggle?.addEventListener('change', (e) => handleContactedToggleChange(e.target.checked));
-    settingsContactedToggle?.addEventListener('change', (e) => handleContactedToggleChange(e.target.checked));
+    });
 
     // Clear leads & history
-    document.getElementById('btn-clear-leads')?.addEventListener('click', () => {
+    $wa('#btn-clear-leads')?.addEventListener('click', () => {
       if (confirm('Clear all leads and reset contacted history for fresh outreach testing?')) {
         extractedLeads = [];
         contactedPhones = new Set();
         duplicateCount = 0;
-        chrome.storage.local.set({ waLeads: [], contactedPhones: [], contactedLog: [], duplicateStats: { skippedCount: 0 } });
+        skippedList = [];
+        skippedKeys = new Set();
+        chrome.storage.local.set({ waLeads: [], contactedPhones: [], contactedLog: [], duplicateStats: { skippedCount: 0 }, waSkipped: [] });
         renderLeadsList();
-        logTerminal('Cleared all leads & reset contact history.', 'info');
+        logTerminal('Cleared all leads and reset contact history.', 'info');
         scanCurrentDOMForLeads();
       }
     });
 
     // Export CSV
-    document.getElementById('btn-export-csv')?.addEventListener('click', exportLeadsToCSV);
+    $wa('#btn-export-csv')?.addEventListener('click', exportLeadsToCSV);
+
+    // Per-lead actions inside the list (event delegation)
+    ui.list?.addEventListener('click', (e) => {
+      const btn = e.target instanceof Element ? e.target.closest('[data-wa-act]') : null;
+      if (!btn) return;
+      const lead = extractedLeads.find((l) => l.id === btn.getAttribute('data-id'));
+      if (lead && btn.getAttribute('data-wa-act') === 'send') dispatchOutreach(lead);
+    });
   }
 
-  function saveSettingsFromUI() {
-    const kwInput = document.getElementById('input-keywords');
-    const tplInput = document.getElementById('input-template');
-    const hideNonWaCheck = document.getElementById('check-hide-non-wa');
-    const showContactedCheck = document.getElementById('check-show-contacted');
-    const autoLikeCheck = document.getElementById('check-auto-like');
-    const removeSentCheck = document.getElementById('check-remove-sent');
-    const matchAllCheck = document.getElementById('check-match-all');
-    const autoSendCheck = document.getElementById('check-auto-send');
-    const autoCloseCheck = document.getElementById('check-auto-close');
-    const filterSeekersCheck = document.getElementById('check-filter-seekers');
-    const autoScrollCheck = document.getElementById('check-auto-scroll');
+  // ── SKIPPED + ACTIVITY BOOKKEEPING ────────────────────────────────────────
 
-    const rawKws = kwInput ? kwInput.value.split(',').map(s => s.trim().toLowerCase()).filter(Boolean) : settings.targetKeywords;
-    
-    settings.targetKeywords = rawKws.length > 0 ? rawKws : ['wordpress', 'react', 'web developer', 'fresher'];
-    settings.messageTemplate = tplInput ? tplInput.value.trim() : settings.messageTemplate;
-    settings.hideNonWhatsAppPosts = hideNonWaCheck ? hideNonWaCheck.checked : true;
-    settings.showAlreadyContacted = showContactedCheck ? showContactedCheck.checked : false;
-    settings.autoLikePosts = autoLikeCheck ? autoLikeCheck.checked : true;
-    settings.removeSentPostFromFeed = removeSentCheck ? removeSentCheck.checked : true;
-    settings.matchAllHiringPosts = matchAllCheck ? matchAllCheck.checked : true;
-    settings.autoSendWhatsApp = autoSendCheck ? autoSendCheck.checked : true;
-    settings.autoCloseTab = autoCloseCheck ? autoCloseCheck.checked : true;
-    settings.filterJobSeekers = filterSeekersCheck ? filterSeekersCheck.checked : true;
-    settings.autoScroll = autoScrollCheck ? autoScrollCheck.checked : true;
+  // Record one skipped lead/post (once per key + reason), newest first, persisted under waSkipped.
+  function recordSkip({ id = '', name = '', title = '', company = '', reason, keyBase = '' }) {
+    const key = `${reason}|${keyBase || id || name}`;
+    if (skippedKeys.has(key)) return false;
+    skippedKeys.add(key);
+    skippedList.unshift({
+      id: id || keyBase,
+      key,
+      name: name || 'Unknown poster',
+      title: title || '',
+      company: company || '',
+      reason,
+      ts: new Date().toISOString()
+    });
+    while (skippedList.length > SKIPPED_CAP) {
+      const dropped = skippedList.pop();
+      if (dropped && dropped.key) skippedKeys.delete(dropped.key);
+    }
+    skippedDirty = true;
+    return true;
+  }
 
-    // Sync quick toggle
-    const quickContactedToggle = document.getElementById('quick-check-show-contacted');
-    const quickStatusContacted = document.getElementById('quick-status-contacted');
-    if (quickContactedToggle) quickContactedToggle.checked = settings.showAlreadyContacted;
-    if (quickStatusContacted) {
-      quickStatusContacted.textContent = settings.showAlreadyContacted ? 'Visible' : 'Hidden';
-      quickStatusContacted.style.color = settings.showAlreadyContacted ? '#22c55e' : '#94a3b8';
+  function flushSkipped() {
+    if (!skippedDirty) return;
+    skippedDirty = false;
+    clearTimeout(skippedSaveTimer);
+    skippedSaveTimer = setTimeout(() => {
+      if (!chrome?.runtime?.id) return;
+      try {
+        chrome.storage.local.set({ waSkipped: skippedList, duplicateStats: { skippedCount: duplicateCount } });
+      } catch (_) {}
+    }, 300);
+  }
+
+  // Stable identity for a post even when LinkedIn gives it no id attribute.
+  function stablePostKey(postEl, text) {
+    const attr = postEl.getAttribute('componentkey') || postEl.id || postEl.getAttribute('data-urn') || postEl.getAttribute('data-chameleon-result-urn');
+    if (attr) return attr;
+    return 'txt:' + String(text || '').replace(/\s+/g, ' ').trim().slice(0, 80);
+  }
+
+  function formatTime(value) {
+    return typeof cpOwClock === 'function' ? cpOwClock(value) : '';
+  }
+
+  function isBusy() {
+    return isScanning || isFullScrolling || isAutoSending;
+  }
+
+  function pendingLeadList() {
+    return extractedLeads.filter((l) => l.status !== 'sent' && l.status !== 'invalid' && !contactedPhones.has(l.cleanPhone));
+  }
+
+  function leadTime(lead) {
+    return new Date(lead.sentAt || lead.timestamp || 0).getTime() || 0;
+  }
+
+  function newestFirst(list) {
+    return list.slice().sort((a, b) => leadTime(b) - leadTime(a));
+  }
+
+  function leadSub(lead) {
+    const role = [lead.jobTitle, lead.company].filter(Boolean).join(' at ');
+    return [role, lead.cleanPhone ? `+${lead.cleanPhone}` : ''].filter(Boolean).join(' - ');
+  }
+
+  // ── CARD BUILDERS ─────────────────────────────────────────────────────────
+
+  function pendingCardHtml(lead) {
+    const sending = lead.status === 'sending';
+    const actions = sending
+      ? ''
+      : `<button type="button" class="cp-ow-btn is-ghost cp-ow-btn-sm" data-wa-act="send" data-id="${cpOwEscape(lead.id)}">Send now</button>`;
+    return cpOwCard({
+      icon: 'chat',
+      title: lead.recruiterName || 'Hiring Manager',
+      sub: leadSub(lead),
+      tag: sending ? 'Sending' : '',
+      time: formatTime(lead.timestamp),
+      actionsHtml: actions
+    });
+  }
+
+  function sentCardHtml(lead) {
+    return cpOwCard({
+      kind: 'sent',
+      icon: 'check',
+      title: lead.recruiterName || 'Hiring Manager',
+      sub: leadSub(lead),
+      time: formatTime(lead.sentAt || lead.timestamp),
+      actionsHtml: `<button type="button" class="cp-ow-btn is-ghost cp-ow-btn-sm" data-wa-act="send" data-id="${cpOwEscape(lead.id)}">Message again</button>`
+    });
+  }
+
+  function skippedCardHtml(entry) {
+    return cpOwCard({
+      kind: 'skipped',
+      icon: 'skip',
+      title: entry.name || 'Unknown poster',
+      sub: [entry.title, entry.company].filter(Boolean).join(' at '),
+      reason: entry.reason,
+      time: formatTime(entry.ts)
+    });
+  }
+
+  function activityCardHtml(item) {
+    const map = {
+      success: { kind: 'sent', icon: 'check' },
+      error: { kind: 'error', icon: 'alert' },
+      warning: { kind: 'skipped', icon: 'alert' },
+      info: { kind: '', icon: 'sparkle' }
+    };
+    const m = map[item.type] || map.info;
+    return cpOwCard({ kind: m.kind, icon: m.icon, title: item.text, time: formatTime(item.ts) });
+  }
+
+  function bannerHtml() {
+    if (!isBusy()) return '';
+    let title = 'Scanning feed';
+    if (isAutoSending) title = 'Sending messages';
+    else if (isFullScrolling) title = 'Scrolling the feed';
+    if (isPaused) title = 'Paused';
+    const latest = activityLog[0];
+    const main = latest ? latest.text : 'Working...';
+    const detail = `${extractedLeads.length} matched, ${extractedLeads.filter((l) => l.status === 'sent').length} sent` + (sendProgress && isAutoSending ? `, lead ${sendProgress}` : '');
+    return cpOwBanner({ title, main, detail }) + (isPaused ? '' : cpOwWorking(isAutoSending ? 'Sending on WhatsApp' : 'Looking for phone numbers'));
+  }
+
+  // ── STATE -> UI ───────────────────────────────────────────────────────────
+
+  function updateUi() {
+    if (!ui) return;
+    const busy = isBusy();
+    if (busy && isPaused) ui.setBadge('Paused', 'pause');
+    else if (isAutoSending) ui.setBadge('Sending', 'run');
+    else if (isScanning || isFullScrolling) ui.setBadge('Scanning', 'run');
+    else ui.setBadge('Idle', '');
+
+    const start = $wa('#wa-start');
+    const pause = $wa('#wa-pause');
+    const stop = $wa('#wa-stop');
+    const deep = $wa('#btn-deep-scroll');
+    const send = $wa('#btn-auto-send-all');
+    if (start) {
+      start.disabled = isScanning;
+      setButtonLabel(start, isScanning ? 'Scanning' : 'Scan feed');
+    }
+    if (pause) {
+      pause.disabled = !busy;
+      setButtonLabel(pause, isPaused ? 'Resume' : 'Pause');
+    }
+    if (stop) stop.disabled = !busy;
+    if (deep) setButtonLabel(deep, isFullScrolling ? 'Stop scroll' : 'Full auto-scroll');
+    if (send) setButtonLabel(send, isAutoSending ? (sendProgress ? `Stop sending (${sendProgress})` : 'Stop sending') : 'Auto-send');
+  }
+
+  function setStat(id, value) {
+    const el = $wa(`[data-stat="${id}"]`);
+    if (el) el.textContent = String(value);
+  }
+
+  function updateStatsBar() {
+    const sentCount = extractedLeads.filter((l) => l.status === 'sent').length;
+    const pendingCount = pendingLeadList().length;
+    setStat('seen', postsSeenCount);
+    setStat('matched', extractedLeads.length);
+    setStat('sent', sentCount);
+    setStat('dupes', duplicateCount);
+    if (ui) {
+      ui.setCount('pending', pendingCount);
+      ui.setCount('sent', sentCount);
+      ui.setCount('skipped', skippedList.length);
+    }
+  }
+
+  let lastListKey = '';
+  let lastTab = '';
+
+  function renderLeadsList() {
+    updateStatsBar();
+    updateUi();
+    if (!ui || !ui.list) return;
+
+    const tab = ui.tab;
+    let html = '';
+    let items = [];
+    let firstKey = '';
+
+    if (tab === 'pending') {
+      items = newestFirst(pendingLeadList());
+      html = items.map(pendingCardHtml).join('');
+      firstKey = items[0] ? items[0].id : '';
+      if (!items.length) html = cpOwEmpty('search', 'No leads waiting. Scan the feed or search for hiring posts that mention a phone number.');
+    } else if (tab === 'sent') {
+      items = newestFirst(extractedLeads.filter((l) => l.status === 'sent'));
+      html = items.map(sentCardHtml).join('');
+      firstKey = items[0] ? items[0].id : '';
+      if (!items.length) html = cpOwEmpty('chat', 'No messages sent yet.');
+    } else if (tab === 'skipped') {
+      items = skippedList.slice().sort((a, b) => (new Date(b.ts).getTime() || 0) - (new Date(a.ts).getTime() || 0));
+      html = items.map(skippedCardHtml).join('');
+      firstKey = items[0] ? items[0].key : '';
+      if (!items.length) html = cpOwEmpty('skip', 'Nothing skipped. Posts the widget passes over show up here with the reason.');
+    } else {
+      items = activityLog;
+      html = bannerHtml() + items.map(activityCardHtml).join('');
+      firstKey = items[0] ? `${items[0].ts}|${items[0].text}` : '';
+      if (!items.length && !isBusy()) html = cpOwEmpty('clock', 'Nothing has happened yet. What the widget does will be listed here, newest first.');
     }
 
-    chrome.storage.local.set({ waSettings: settings });
-    logTerminal('Settings saved successfully!', 'success');
-    scanCurrentDOMForLeads();
-    alert('Settings saved!');
+    const list = ui.list;
+    const keepScroll = list.scrollTop;
+    const listKey = `${tab}|${firstKey}`;
+    ui.setList(html);
+    if (tab !== lastTab || listKey !== lastListKey) list.scrollTop = 0;
+    else list.scrollTop = keepScroll;
+    lastTab = tab;
+    lastListKey = listKey;
   }
+
 
   // Abortable sleep that checks running predicate every 50ms for instant stoppage
   async function abortableSleep(ms, isRunningFn) {
@@ -592,8 +584,8 @@ Parveen`,
     if (isFullScrolling) stopFullAutoScroll();
     isScanning = true;
     isPaused = false;
-    updateScanButtons(true);
-    logTerminal('🚀 Starting LinkedIn Scanner for Hiring Posts & WhatsApp Numbers...', 'info');
+    updateUi();
+    logTerminal('Starting LinkedIn Scanner for Hiring Posts & WhatsApp Numbers...', 'info');
     runScanLoop();
   }
 
@@ -601,21 +593,20 @@ Parveen`,
     isScanning = false;
     isPaused = false;
     isFullScrolling = false;
-    updateScanButtons(false);
-    updateFullScrollButton(false);
-    logTerminal('⏹️ Scanner stopped.', 'info');
+    updateUi();
+    logTerminal('Scanner stopped.', 'info');
   }
 
-  function updateScanButtons(scanning) {
-    const startBtn = document.getElementById('btn-start-scan');
-    const pauseBtn = document.getElementById('btn-pause-scan');
-    if (startBtn) {
-      startBtn.className = scanning ? 'li-wa-btn li-wa-btn-danger' : 'li-wa-btn li-wa-btn-primary';
-      startBtn.querySelector('span').textContent = scanning ? '⏹️ Stop Scan' : '🚀 Scan Feed & Match Leads';
-    }
-    if (pauseBtn) {
-      pauseBtn.style.display = scanning ? 'flex' : 'none';
-    }
+  function stopEverything() {
+    const wasBusy = isBusy();
+    isScanning = false;
+    isFullScrolling = false;
+    isAutoSending = false;
+    isPaused = false;
+    sendProgress = '';
+    updateUi();
+    renderLeadsList();
+    if (wasBusy) logTerminal('Stopped.', 'warning');
   }
 
   async function runScanLoop() {
@@ -632,7 +623,7 @@ Parveen`,
       const newLeadsFound = scanCurrentDOMForLeads();
 
       if (newLeadsFound > 0) {
-        logTerminal(`✨ Found ${newLeadsFound} new hiring lead(s) with WhatsApp numbers!`, 'success');
+        logTerminal(`Found ${newLeadsFound} new hiring lead(s) with WhatsApp numbers!`, 'success');
         renderLeadsList();
       }
 
@@ -736,18 +727,22 @@ Parveen`,
     // Stop scanner if running to prevent concurrent scroll loops
     if (isScanning) {
       isScanning = false;
-      updateScanButtons(false);
     }
 
     isFullScrolling = true;
-    updateFullScrollButton(true);
-    logTerminal('📜 Full Auto-Scroll started! Navigating LinkedIn 3s lazy loading batches...', 'info');
+    isPaused = false;
+    updateUi();
+    logTerminal('Full Auto-Scroll started! Navigating LinkedIn 3s lazy loading batches...', 'info');
 
     let stagnantCount = 0;
     let cycleCount = 0;
     let lastPostCount = findAllPostElements().length;
 
     while (isFullScrolling) {
+      if (isPaused) {
+        await abortableSleep(1000, () => isFullScrolling && isPaused);
+        continue;
+      }
       cycleCount++;
 
       // 1. Expand all "...see more" buttons on currently visible posts
@@ -796,7 +791,7 @@ Parveen`,
       });
 
       // 6. Wait 3 seconds for LinkedIn lazy loader to fetch & render new ~5 posts batch
-      logTerminal(`⏳ [Batch #${cycleCount}] Waiting 3s for LinkedIn lazy load (Posts: ${prevPosts}, Leads: ${extractedLeads.length})...`, 'info');
+      logTerminal(`[Batch #${cycleCount}] Waiting 3s for LinkedIn lazy load (Posts: ${prevPosts}, Leads: ${extractedLeads.length})...`, 'info');
       
       let waited = 0;
       while (waited < 3000 && isFullScrolling) {
@@ -817,7 +812,7 @@ Parveen`,
 
       if (newPosts > lastPostCount || newHeight > prevHeight + 100) {
         const addedPosts = newPosts - lastPostCount;
-        logTerminal(`✅ Loaded +${addedPosts > 0 ? addedPosts : 'new'} posts from LinkedIn! Total cards: ${newPosts}`, 'success');
+        logTerminal(`Loaded +${addedPosts > 0 ? addedPosts : 'new'} posts from LinkedIn! Total cards: ${newPosts}`, 'success');
         lastPostCount = newPosts;
         stagnantCount = 0;
 
@@ -829,16 +824,16 @@ Parveen`,
         // Try clicking show more button if feed paused
         const clicked = findAndClickShowMoreButton();
         if (clicked) {
-          logTerminal('👆 Clicked "Show more results" button on LinkedIn. Waiting 3s...', 'info');
+          logTerminal('Clicked "Show more results" button on LinkedIn. Waiting 3s...', 'info');
           const ok = await abortableSleep(3000, () => isFullScrolling);
           if (!ok || !isFullScrolling) break;
           continue;
         }
 
         stagnantCount++;
-        logTerminal(`⏳ Reached feed pause (${stagnantCount}/4)... retrying scroll.`, 'warning');
+        logTerminal(`Reached feed pause (${stagnantCount}/4)... retrying scroll.`, 'warning');
         if (stagnantCount >= 4) {
-          logTerminal('🏁 Reached the end of LinkedIn feed / search results! All available posts loaded.', 'success');
+          logTerminal('Reached the end of LinkedIn feed / search results! All available posts loaded.', 'success');
           break;
         }
       }
@@ -846,30 +841,22 @@ Parveen`,
 
     const wasRunning = isFullScrolling;
     isFullScrolling = false;
-    updateFullScrollButton(false);
+    isPaused = false;
+    updateUi();
     expandAllSeeMoreButtons();
     scanCurrentDOMForLeads();
     renderLeadsList();
     if (wasRunning) {
-      logTerminal(`🎉 Full Scroll complete! Extracted total ${extractedLeads.length} leads from ${findAllPostElements().length} posts.`, 'success');
+      logTerminal(`Full Scroll complete! Extracted total ${extractedLeads.length} leads from ${findAllPostElements().length} posts.`, 'success');
     }
   }
 
   function stopFullAutoScroll() {
     isFullScrolling = false;
     isScanning = false;
-    updateFullScrollButton(false);
-    updateScanButtons(false);
-    logTerminal('🛑 Full Auto-Scroll stopped immediately.', 'warning');
-  }
-
-  function updateFullScrollButton(running) {
-    const btn = document.getElementById('btn-deep-scroll');
-    if (btn) {
-      btn.style.background = running ? '#ef4444' : 'linear-gradient(135deg, #0ea5e9, #0284c7)';
-      const span = btn.querySelector('span');
-      if (span) span.textContent = running ? '⏹️ Stop Full Scroll' : '📜 Full Auto-Scroll';
-    }
+    isPaused = false;
+    updateUi();
+    logTerminal('Full auto-scroll stopped.', 'warning');
   }
 
   // Expand "...see more" buttons so phone numbers hidden below the fold are revealed
@@ -916,32 +903,11 @@ Parveen`,
     return parts.join('\n');
   }
 
-  // Diagnostics runner
-  function runDiagnostics() {
-    expandAllSeeMoreButtons();
-    const posts = findAllPostElements();
-    logTerminal(`[Diagnostics] Found ${posts.length} post containers on screen.`, 'info');
-
-    posts.forEach((post, i) => {
-      const fullText = getAllTextFromPost(post).trim();
-      const author = getPostAuthor(post);
-      const phones = extractPhoneNumbersFromPost(post, fullText);
-      const isSeeker = settings.filterJobSeekers && isJobSeekerPost(post, fullText);
-      const matchedKw = matchTargetKeywords(fullText);
-
-      
-      if (phones.length > 0) {
-        logTerminal(`Card #${i+1} (${author}): Phone +${phones.join(', +')} | Role: ${matchedKw || 'Hiring'}`, 'success');
-      }
-    });
-  }
-
   // Scan all visible posts on the page (Non-destructive: keeps all posts in feed)
   function scanCurrentDOMForLeads() {
     expandAllSeeMoreButtons();
     const postElements = findAllPostElements();
-    const statPostsSeen = document.getElementById('stat-posts-seen');
-    if (statPostsSeen) statPostsSeen.textContent = `${postElements.length}`;
+    postsSeenCount = postElements.length;
 
     let newCount = 0;
     let sessionDupes = 0;
@@ -952,15 +918,30 @@ Parveen`,
 
       // 1. Check Job Seeker filter
       const isSeeker = settings.filterJobSeekers && isJobSeekerPost(post, postText);
-      if (isSeeker) continue;
+      if (isSeeker) {
+        // Only worth listing when the post carried a phone number (it would have been a lead otherwise).
+        if (extractPhoneNumbersFromPost(post, postText).length > 0) {
+          recordSkip({ keyBase: stablePostKey(post, postText), name: getPostAuthor(post), title: extractJobTitle(postText, 'Job'), company: extractCompany(post, postText), reason: 'Job seeker post (#OpenToWork)' });
+        }
+        continue;
+      }
 
       // 2. Extract Phone / WhatsApp Numbers from text & links
       const phones = extractPhoneNumbersFromPost(post, postText);
-      if (!phones || phones.length === 0) continue;
+      if (!phones || phones.length === 0) {
+        // Only hiring-style posts are listed; the rest of the feed is just not relevant.
+        if (hasHiringSignals(postText)) {
+          recordSkip({ keyBase: stablePostKey(post, postText), name: getPostAuthor(post), company: extractCompany(post, postText), reason: 'No phone number in the post' });
+        }
+        continue;
+      }
 
       // 3. Match Job Titles & Keywords
       const matchedKeyword = matchTargetKeywords(postText);
-      if (!matchedKeyword && !settings.matchAllHiringPosts) continue;
+      if (!matchedKeyword && !settings.matchAllHiringPosts) {
+        recordSkip({ keyBase: stablePostKey(post, postText), name: getPostAuthor(post), company: extractCompany(post, postText), reason: 'Does not match your keywords' });
+        continue;
+      }
 
       // 4. Extract Post Details
       const urn = getPostUrn(post);
@@ -970,7 +951,10 @@ Parveen`,
 
       for (const phone of phones) {
         const cleanPhone = cleanPhoneNumber(phone);
-        if (!cleanPhone || cleanPhone.length < 10) continue;
+        if (!cleanPhone || cleanPhone.length < 10) {
+          recordSkip({ keyBase: `${urn}|${phone}`, id: urn, name: author, title: jobTitle, company, reason: 'Invalid phone number' });
+          continue;
+        }
 
         // Check if phone was already contacted
         const isContacted = contactedPhones.has(cleanPhone);
@@ -979,6 +963,10 @@ Parveen`,
         const existingLead = extractedLeads.find(l => l.cleanPhone === cleanPhone || (urn && l.urn === urn && l.cleanPhone === cleanPhone));
         if (existingLead) {
           injectPostActionBadge(post, existingLead);
+          if (existingLead.status === 'sent' || isContacted) {
+            const fresh = recordSkip({ keyBase: `${urn}|${cleanPhone}`, id: existingLead.id, name: existingLead.recruiterName || author, title: existingLead.jobTitle || jobTitle, company: existingLead.company || company, reason: 'Already messaged this number' });
+            if (fresh) duplicateCount++;
+          }
           continue;
         }
 
@@ -1016,8 +1004,9 @@ Parveen`,
         waLeads: extractedLeads,
         duplicateStats: { skippedCount: duplicateCount }
       });
-      updateStatsBar();
     }
+    flushSkipped();
+    updateStatsBar();
 
     return newCount;
   }
@@ -1045,12 +1034,11 @@ Parveen`,
     badge.innerHTML = `
       <div class="badge-content" style="display:flex; align-items:center; justify-content:space-between; width:100%; gap:10px; flex-wrap:wrap;">
         <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
-          <span style="font-size:14px;">🟢</span>
           <span class="badge-tag" style="font-size:12px; font-weight:700; color:#38bdf8;">
             ${escapeHtml(lead.recruiterName)} &bull; ${escapeHtml(lead.jobTitle)}
           </span>
-          <span style="font-size:11px; font-weight:700; color:#25D366;">📞 +${lead.cleanPhone}</span>
-          ${isSent ? '<span style="font-size:10px; color:#22c55e; background:rgba(34,197,94,0.15); border:1px solid rgba(34,197,94,0.3); padding:2px 7px; border-radius:10px; font-weight:600;">✅ Contacted</span>' : '<span style="font-size:10px; color:#fbbf24; background:rgba(251,191,36,0.15); border:1px solid rgba(251,191,36,0.3); padding:2px 7px; border-radius:10px; font-weight:600;">⚡ WhatsApp Lead</span>'}
+          <span style="font-size:11px; font-weight:700; color:#25D366;">+${lead.cleanPhone}</span>
+          ${isSent ? '<span style="font-size:10px; color:#22c55e; background:rgba(34,197,94,0.15); border:1px solid rgba(34,197,94,0.3); padding:2px 7px; border-radius:10px; font-weight:600;">Contacted</span>' : '<span style="font-size:10px; color:#fbbf24; background:rgba(251,191,36,0.15); border:1px solid rgba(251,191,36,0.3); padding:2px 7px; border-radius:10px; font-weight:600;">WhatsApp Lead</span>'}
         </div>
         <button class="badge-wa-btn" id="btn-badge-send-${lead.id}" style="background:#25D366; color:#052e16; border:none; border-radius:6px; padding:6px 13px; font-size:11px; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:5px; transition:all 0.2s;" title="Open WhatsApp Web chat to manually check and send message">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M12.04 2c-5.46 0-9.91 4.45-9.91 9.91 0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38c1.45.79 3.08 1.21 4.74 1.21 5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.816 9.816 0 0 0 12.04 2z"/></svg>
@@ -1372,11 +1360,15 @@ Parveen`,
 
   let isAutoSending = false;
   // Dispatch refusals from the background billing check that stop the whole batch.
-  const OUTREACH_STOP_REASONS = ['INSUFFICIENT_HIRES', 'NOT_SIGNED_IN', 'PORTAL_UNREACHABLE', 'RATE_LIMITED'];
+  const OUTREACH_STOP_REASONS = ['NO_TEMPLATE', 'INSUFFICIENT_HIRES', 'NOT_SIGNED_IN', 'PORTAL_UNREACHABLE', 'RATE_LIMITED'];
 
   function dispatchOutreach(lead, originPostEl = null, forceAutoSend = false) {
     return new Promise((resolve) => {
-      logTerminal(`📲 Opening WhatsApp for ${lead.recruiterName} (+${lead.cleanPhone})...`, 'info');
+      if (blockedByEmptyMessage()) {
+        resolve({ success: false, error: 'No message written in the dashboard', reason: 'NO_TEMPLATE' });
+        return;
+      }
+      logTerminal(`Opening WhatsApp for ${lead.recruiterName} (+${lead.cleanPhone})...`, 'info');
 
       lead.status = 'sending';
       renderLeadsList();
@@ -1393,7 +1385,7 @@ Parveen`,
         }
       }, (response) => {
         if (response && response.success) {
-          logTerminal(`✅ WhatsApp Web opened for +${lead.cleanPhone}!`, 'success');
+          logTerminal(`WhatsApp Web opened for +${lead.cleanPhone}!`, 'success');
 
           // If card was clicked directly on LinkedIn and removal is enabled, collapse it
           if (originPostEl && settings.removeSentPostFromFeed) {
@@ -1403,9 +1395,9 @@ Parveen`,
           }
           resolve({ success: true, tabId: response.tabId });
         } else {
-          logTerminal(`❌ Failed to dispatch WhatsApp: ${response?.error || 'Unknown error'}`, 'error');
+          logTerminal(`Failed to dispatch WhatsApp: ${response?.error || 'Unknown error'}`, 'error');
           if (response?.reason === 'INSUFFICIENT_HIRES') {
-            logTerminal(`💳 Each WhatsApp message costs 1 Hire. Top up: ${response.topUpUrl || 'AutoApply CV dashboard > Billing'}`, 'warning');
+            logTerminal(`Each WhatsApp message costs 1 Hire. Top up: ${response.topUpUrl || 'AutoApply CV dashboard > Billing'}`, 'warning');
           }
           lead.status = 'pending';
           renderLeadsList();
@@ -1423,7 +1415,7 @@ Parveen`,
     }
 
     const tabId = res.tabId;
-    logTerminal(`⏳ Processing auto-send for +${lead.cleanPhone} (waiting for dispatch & tab completion)...`, 'info');
+    logTerminal(`Processing auto-send for +${lead.cleanPhone} (waiting for dispatch & tab completion)...`, 'info');
 
     // Wait until the message is confirmed sent OR the tab completes/closes (up to 120s for slow network)
     const startTime = Date.now();
@@ -1435,15 +1427,17 @@ Parveen`,
 
       // 1. Check if lead was marked sent in memory / storage
       if (contactedPhones.has(lead.cleanPhone)) {
-        logTerminal(`🎉 Outreach confirmed sent to +${lead.cleanPhone}!`, 'success');
+        logTerminal(`Outreach confirmed sent to +${lead.cleanPhone}!`, 'success');
         break;
       }
 
       // 2. Check if lead was marked invalid (Not on WhatsApp)
       const invData = await chrome.storage.local.get(['invalidPhones']);
       if (invData.invalidPhones && invData.invalidPhones.includes(lead.cleanPhone)) {
-        logTerminal(`❌ Recruiter (+${lead.cleanPhone}) isn't on WhatsApp. Skipping lead...`, 'error');
+        logTerminal(`Recruiter (+${lead.cleanPhone}) isn't on WhatsApp. Skipping lead...`, 'error');
         lead.status = 'invalid';
+        recordSkip({ keyBase: lead.cleanPhone, id: lead.id, name: lead.recruiterName, title: lead.jobTitle, company: lead.company, reason: 'Invalid phone number (not on WhatsApp)' });
+        flushSkipped();
         break;
       }
 
@@ -1459,7 +1453,7 @@ Parveen`,
         });
 
         if (!isTabOpen) {
-          logTerminal(`🚪 WhatsApp tab finished & closed for +${lead.cleanPhone}.`, 'info');
+          logTerminal(`WhatsApp tab finished & closed for +${lead.cleanPhone}.`, 'info');
           break;
         }
       } catch {
@@ -1471,14 +1465,18 @@ Parveen`,
     const invDataFinal = await chrome.storage.local.get(['invalidPhones']);
     if (invDataFinal.invalidPhones && invDataFinal.invalidPhones.includes(lead.cleanPhone)) {
       lead.status = 'invalid';
+      recordSkip({ keyBase: lead.cleanPhone, id: lead.id, name: lead.recruiterName, title: lead.jobTitle, company: lead.company, reason: 'Invalid phone number (not on WhatsApp)' });
+      flushSkipped();
     } else if (contactedPhones.has(lead.cleanPhone)) {
       lead.status = 'sent';
+      if (!lead.sentAt) lead.sentAt = new Date().toISOString();
     } else {
       // If time expired or user closed early, check storage once
       const data = await chrome.storage.local.get(['contactedPhones']);
       if (data.contactedPhones && data.contactedPhones.includes(lead.cleanPhone)) {
         contactedPhones.add(lead.cleanPhone);
         lead.status = 'sent';
+        if (!lead.sentAt) lead.sentAt = new Date().toISOString();
       }
     }
     renderLeadsList();
@@ -1495,7 +1493,7 @@ Parveen`,
 
     // Graceful cooldown between messages
     const cooldown = Math.max(2, (settings.delayBetweenMessages || 4));
-    logTerminal(`⏳ Pausing ${cooldown}s before next contact...`, 'info');
+    logTerminal(`Pausing ${cooldown}s before next contact...`, 'info');
     await sleep(cooldown * 1000);
     return res;
   }
@@ -1505,51 +1503,52 @@ Parveen`,
       stopAutoSendingQueue();
       return;
     }
+    if (blockedByEmptyMessage()) return;
 
-    let pendingLeads = extractedLeads.filter(l => l.status !== 'sent' && l.status !== 'invalid' && !contactedPhones.has(l.cleanPhone));
+    let pendingLeads = pendingLeadList();
 
     if (pendingLeads.length === 0) {
-      logTerminal('🔍 Scanning feed for verified WhatsApp hiring posts first...', 'info');
+      logTerminal('Scanning feed for verified WhatsApp hiring posts first...', 'info');
       expandAllSeeMoreButtons();
       scanCurrentDOMForLeads();
       renderLeadsList();
-      pendingLeads = extractedLeads.filter(l => l.status !== 'sent' && l.status !== 'invalid' && !contactedPhones.has(l.cleanPhone));
+      pendingLeads = pendingLeadList();
     }
 
     if (pendingLeads.length === 0) {
-      logTerminal('⚠️ No verified WhatsApp hiring leads found. Try searching keywords or scrolling feed.', 'warning');
-      alert('No pending WhatsApp hiring leads found! Please scroll through LinkedIn feed or search hiring keywords first.');
+      logTerminal('No verified WhatsApp hiring leads found. Try searching keywords or scrolling feed.', 'warning');
+      if (ui) ui.setTab('activity');
       return;
     }
 
     isAutoSending = true;
-    updateAutoSendButtons(true);
-    logTerminal(`⚡ Starting Single-Tab Auto-Outreach to ${pendingLeads.length} recruiter(s)...`, 'success');
+    isPaused = false;
+    sendProgress = '';
+    updateUi();
+    logTerminal(`Starting Single-Tab Auto-Outreach to ${pendingLeads.length} recruiter(s)...`, 'success');
 
     for (let i = 0; i < pendingLeads.length; i++) {
+      while (isPaused && isAutoSending) await sleep(500);
       if (!isAutoSending) {
-        logTerminal('⏸️ Auto-sending stopped by user.', 'warning');
+        logTerminal('Auto-sending stopped by user.', 'warning');
         break;
       }
 
       const lead = pendingLeads[i];
       if (contactedPhones.has(lead.cleanPhone)) {
-        logTerminal(`⏩ Skipping +${lead.cleanPhone} (Already contacted).`, 'info');
+        logTerminal(`Skipping +${lead.cleanPhone} (Already contacted).`, 'info');
         lead.status = 'sent';
         continue;
       }
 
-      updateAutoSendButtonText(`⏸️ Stop (${i + 1}/${pendingLeads.length})`);
-      logTerminal(`[${i + 1}/${pendingLeads.length}] 🚀 Processing WhatsApp for ${lead.recruiterName} (+${lead.cleanPhone})...`, 'info');
+      sendProgress = `${i + 1}/${pendingLeads.length}`;
+      updateUi();
+      logTerminal(`[${i + 1}/${pendingLeads.length}] Processing WhatsApp for ${lead.recruiterName} (+${lead.cleanPhone})...`, 'info');
 
       // Move focus to the corresponding LinkedIn post and sidebar lead row
       const targetPost = findPostElementForLead(lead);
       if (targetPost) {
         focusAndHighlightPost(targetPost, '#25D366');
-      }
-      const leadRow = document.getElementById(`lead-item-${lead.id}`);
-      if (leadRow) {
-        leadRow.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
       }
 
       // Strictly open one tab at a time and wait for it to finish!
@@ -1562,140 +1561,25 @@ Parveen`,
     }
 
     isAutoSending = false;
-    updateAutoSendButtons(false);
-    logTerminal('🎉 Auto-Outreach queue completed! All leads processed one by one.', 'success');
+    isPaused = false;
+    sendProgress = '';
+    updateUi();
+    renderLeadsList();
+    logTerminal('Auto-Outreach queue completed! All leads processed one by one.', 'success');
   }
 
   function stopAutoSendingQueue() {
     isAutoSending = false;
-    updateAutoSendButtons(false);
-    logTerminal('🛑 Auto-Outreach queue stopped.', 'warning');
-  }
-
-  function updateAutoSendButtons(running) {
-    const btn1 = document.getElementById('btn-auto-send-all');
-    const btn2 = document.getElementById('btn-leads-auto-send');
-
-    if (btn1) {
-      btn1.style.background = running ? '#ef4444' : '#25D366';
-      btn1.style.color = running ? '#ffffff' : '#0f172a';
-      const span = btn1.querySelector('span');
-      if (span) span.textContent = running ? '⏸️ Stop Auto-Send' : '⚡ Auto-Send WhatsApp';
-    }
-
-    if (btn2) {
-      btn2.style.background = running ? '#ef4444' : '#25D366';
-      btn2.style.color = running ? '#ffffff' : '#0f172a';
-      const pendingCount = extractedLeads.filter(l => l.status !== 'sent').length;
-      const span = btn2.querySelector('span');
-      if (span) span.innerHTML = running ? '⏸️ Stop Auto-Send' : `⚡ Auto-Send Pending (<span id="count-btn-pending">${pendingCount}</span>)`;
-    }
-  }
-
-  function updateAutoSendButtonText(text) {
-    const btn1 = document.getElementById('btn-auto-send-all');
-    const btn2 = document.getElementById('btn-leads-auto-send');
-    if (btn1) {
-      const span = btn1.querySelector('span');
-      if (span) span.textContent = text;
-    }
-    if (btn2) {
-      const span = btn2.querySelector('span');
-      if (span) span.textContent = text;
-    }
-  }
-
-  function updateStatsBar() {
-    const countBadge = document.getElementById('lead-count-badge');
-    const statTotal = document.getElementById('stat-total-leads');
-    const statSent = document.getElementById('stat-sent-leads');
-    const statDupes = document.getElementById('stat-dupes-count');
-    const countFilterAll = document.getElementById('count-filter-all');
-    const countFilterPending = document.getElementById('count-filter-pending');
-    const countFilterSent = document.getElementById('count-filter-sent');
-    const countBtnPending = document.getElementById('count-btn-pending');
-
-    const sentCount = extractedLeads.filter(l => l.status === 'sent').length;
-    const pendingCount = extractedLeads.length - sentCount;
-
-    if (countBadge) countBadge.textContent = `${extractedLeads.length}`;
-    if (statTotal) statTotal.textContent = `${extractedLeads.length}`;
-    if (statSent) statSent.textContent = `${sentCount}`;
-    if (statDupes) statDupes.textContent = `${duplicateCount}`;
-
-    if (countFilterAll) countFilterAll.textContent = `${extractedLeads.length}`;
-    if (countFilterPending) countFilterPending.textContent = `${pendingCount}`;
-    if (countFilterSent) countFilterSent.textContent = `${sentCount}`;
-    if (countBtnPending) countBtnPending.textContent = `${pendingCount}`;
-  }
-
-  function renderLeadsList() {
-    updateStatsBar();
-
-    const container = document.getElementById('li-wa-leads-list');
-    if (!container) return;
-
-    let itemsToRender = extractedLeads;
-    if (activeLeadFilter === 'pending') {
-      itemsToRender = extractedLeads.filter(l => l.status !== 'sent');
-    } else if (activeLeadFilter === 'sent') {
-      itemsToRender = extractedLeads.filter(l => l.status === 'sent');
-    }
-
-    if (itemsToRender.length === 0) {
-      container.innerHTML = `
-        <div class="li-wa-empty-state">
-          No ${activeLeadFilter !== 'all' ? activeLeadFilter : ''} WhatsApp leads found.<br>
-          Click <b>"🚀 Scan Feed & Match Leads"</b> to extract more!
-        </div>
-      `;
-      return;
-    }
-
-    container.innerHTML = '';
-    itemsToRender.forEach(lead => {
-      const isSent = lead.status === 'sent';
-      const isInvalid = lead.status === 'invalid';
-      const item = document.createElement('div');
-      item.className = `li-wa-lead-card ${isSent ? 'sent' : ''} ${isInvalid ? 'invalid' : ''}`;
-      
-      let statusPill = `<span class="lead-status-pill pending">⏳ Ready</span>`;
-      if (isSent) {
-        statusPill = `<span class="lead-status-pill sent">✅ Sent</span>`;
-      } else if (isInvalid) {
-        statusPill = `<span class="lead-status-pill" style="background:rgba(239,68,68,0.15); color:#f87171; border:1px solid rgba(239,68,68,0.3);">❌ Not on WA</span>`;
-      }
-
-      item.innerHTML = `
-        <div class="lead-header">
-          <div class="lead-name">
-            <b>${escapeHtml(lead.recruiterName)}</b>
-            ${lead.company ? `<span class="lead-company">@ ${escapeHtml(lead.company)}</span>` : ''}
-          </div>
-          ${statusPill}
-        </div>
-        <div class="lead-title">🎯 ${escapeHtml(lead.jobTitle)}</div>
-        <div class="lead-phone">📞 <b>+${lead.cleanPhone}</b></div>
-        <div class="lead-snippet">"${escapeHtml(lead.postSnippet)}..."</div>
-        <div class="lead-actions">
-          <button class="li-wa-btn li-wa-btn-wa ${isSent ? 'btn-sent' : ''}" id="btn-wa-${lead.id}" ${isInvalid ? 'style="opacity:0.6;"' : ''}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12.04 2c-5.46 0-9.91 4.45-9.91 9.91 0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38c1.45.79 3.08 1.21 4.74 1.21 5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.816 9.816 0 0 0 12.04 2z"/></svg>
-            <span>${isSent ? 'Message Again' : isInvalid ? 'Retry WhatsApp' : 'Send WhatsApp Message'}</span>
-          </button>
-        </div>
-      `;
-
-      item.querySelector(`#btn-wa-${lead.id}`)?.addEventListener('click', () => {
-        dispatchOutreach(lead);
-      });
-
-      container.appendChild(item);
-    });
+    isPaused = false;
+    sendProgress = '';
+    updateUi();
+    renderLeadsList();
+    logTerminal('Auto-Outreach queue stopped.', 'warning');
   }
 
   function exportLeadsToCSV() {
     if (extractedLeads.length === 0) {
-      alert('No leads available to export.');
+      logTerminal('No leads available to export yet.', 'warning');
       return;
     }
 
@@ -1721,46 +1605,16 @@ Parveen`,
     logTerminal(`Exported ${extractedLeads.length} leads to CSV file!`, 'success');
   }
 
+  // Activity feed: newest first, last ACTIVITY_CAP lines. Replaces the old terminal log.
   function logTerminal(text, type = 'info') {
-    const terminal = document.getElementById('li-wa-terminal');
-    if (!terminal) return;
-
-    const line = document.createElement('div');
-    line.className = `term-line ${type}`;
-    const time = new Date().toLocaleTimeString();
-    line.textContent = `[${time}] ${text}`;
-
-    terminal.insertBefore(line, terminal.firstChild);
-    while (terminal.children.length > 80) {
-      terminal.removeChild(terminal.lastChild);
-    }
-  }
-
-  function makeDraggable(el, handle) {
-    let posX = 0, posY = 0, mouseX = 0, mouseY = 0;
-    if (!handle) return;
-
-    handle.onmousedown = (e) => {
-      if (['BUTTON', 'INPUT', 'A', 'TEXTAREA'].includes(e.target.tagName)) return;
-      e.preventDefault();
-      mouseX = e.clientX;
-      mouseY = e.clientY;
-      document.onmouseup = () => {
-        document.onmouseup = null;
-        document.onmousemove = null;
-      };
-      document.onmousemove = (e2) => {
-        e2.preventDefault();
-        posX = mouseX - e2.clientX;
-        posY = mouseY - e2.clientY;
-        mouseX = e2.clientX;
-        mouseY = e2.clientY;
-        el.style.top = (el.offsetTop - posY) + 'px';
-        el.style.left = (el.offsetLeft - posX) + 'px';
-        el.style.right = 'auto';
-        el.style.bottom = 'auto';
-      };
-    };
+    const clean = String(text || '')
+      .replace(/[\u{1F000}-\u{1FFFF}\u{2300}-\u{23FF}\u{2600}-\u{27BF}\u{2B00}-\u{2BFF}\u{FE0F}]/gu, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+    if (!clean) return;
+    activityLog.unshift({ text: clean, type, ts: Date.now() });
+    if (activityLog.length > ACTIVITY_CAP) activityLog.length = ACTIVITY_CAP;
+    if (ui && ui.tab === 'activity') renderLeadsList();
   }
 
   function escapeHtml(str) {
@@ -1828,6 +1682,9 @@ Parveen`,
   function setupMessageListener() {
     chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       if (request.type === 'TRIGGER_AUTO_SEND_ALL') {
+        // Started from the popup: bring the panel up so the run is visible.
+        cpOwRememberModule('whatsapp');
+        checkModuleVisibility();
         startAutoSendingQueue();
         sendResponse({ success: true });
         return;
@@ -1838,7 +1695,7 @@ Parveen`,
         if (phone) {
           contactedPhones.add(phone);
           extractedLeads = extractedLeads.map(l => {
-            if (l.cleanPhone === phone) return { ...l, status: 'sent' };
+            if (l.cleanPhone === phone) return { ...l, status: 'sent', sentAt: l.sentAt || new Date().toISOString() };
             return l;
           });
           chrome.storage.local.set({ waLeads: extractedLeads, contactedPhones: Array.from(contactedPhones) });
@@ -1851,6 +1708,9 @@ Parveen`,
     // When returning to this LinkedIn tab from WhatsApp tab, re-sync and remove sent cards
     window.addEventListener('focus', async () => {
       await loadStorage();
+      renderQuickChips();
+      renderContactedChip();
+      refreshTemplateNote();
       renderLeadsList();
       // Remove any posts that have been contacted from DOM
       contactedPhones.forEach(phone => {
@@ -1862,6 +1722,7 @@ Parveen`,
   // Init
   async function init() {
     await loadStorage();
+    setupSettingsListener();
     injectFloatingWidget();
     checkModuleVisibility();
     window.addEventListener('hashchange', () => {

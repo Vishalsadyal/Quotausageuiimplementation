@@ -129,8 +129,11 @@ export async function POST(req: NextRequest) {
         passwordHash,
         currentCity: profile.city || null,
         linkedinUrl: profile.linkedinUrl || null,
-        // Name and phone are all onboarding requires, so skip it when the resume has both.
-        onboardingCompleted: Boolean(profile.name && profile.phone),
+        // Skip onboarding only when the resume gave every detail job search needs;
+        // otherwise the visitor answers the missing ones there.
+        onboardingCompleted: Boolean(
+          profile.name && profile.phone && profile.city && profile.yearsOfExperience && profile.jobTitles.length,
+        ),
       });
     } catch (error) {
       // Another request created this email a moment ago.

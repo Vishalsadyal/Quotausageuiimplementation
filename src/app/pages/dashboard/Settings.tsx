@@ -52,7 +52,11 @@ export default function Settings() {
                 <div className="text-gray-400 text-[10px] uppercase font-bold">Plan</div>
                 <div className="font-semibold text-gray-900 capitalize mt-0.5">{user?.plan || "-"}</div>
               </div>
-              <div className="p-2 bg-gray-50/50 rounded-lg border border-gray-100 md:col-span-2">
+              <div className="p-2 bg-gray-50/50 rounded-lg border border-gray-100">
+                <div className="text-gray-400 text-[10px] uppercase font-bold">User ID</div>
+                <div className="font-semibold font-mono text-gray-900 mt-0.5 break-all select-all">{user?.id || "-"}</div>
+              </div>
+              <div className="p-2 bg-gray-50/50 rounded-lg border border-gray-100">
                 <div className="text-gray-400 text-[10px] uppercase font-bold">Onboarding</div>
                 <div className="font-semibold text-gray-900 mt-0.5">{user?.onboardingCompleted ? "Completed" : "Pending"}</div>
               </div>

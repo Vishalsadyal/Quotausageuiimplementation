@@ -93,8 +93,10 @@
         "src/linkedin/jobs/22-modal.js",
         "src/linkedin/jobs/23-question-blocks.js",
         "src/linkedin/jobs/24-modal-buttons.js",
+        "src/linkedin/jobs/24-related-answer-groups.js",
         "src/linkedin/jobs/24a-answer-engine.js",
         "src/linkedin/jobs/25-form-fill.js",
+        "src/linkedin/jobs/25a-panel-ask.js",
         "src/linkedin/jobs/26-easy-apply-flow.js",
         "src/linkedin/jobs/27-run-cycle.js",
         "src/linkedin/jobs/28-run-loop.js",
@@ -111,12 +113,17 @@
         "https://*.linkedin.com/*"
       ],
       "js": [
+        "src/linkedin/outreach/outreach_ui.js",
         "src/linkedin/outreach/content_linkedin_wa.js",
         "src/linkedin/outreach/content_linkedin_email.js",
         "src/linkedin/outreach/content_linkedin_commenter.js",
         "src/linkedin/outreach/content_linkedin_hr.js"
       ],
       "css": [
+        "src/linkedin/outreach/outreach_base.css",
+        "src/linkedin/outreach/outreach_wa.css",
+        "src/linkedin/outreach/outreach_email.css",
+        "src/linkedin/outreach/outreach_comment.css",
         "src/linkedin/outreach/panel_outreach.css"
       ],
       "run_at": "document_idle"

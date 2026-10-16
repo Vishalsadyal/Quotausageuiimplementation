@@ -84,8 +84,8 @@
           <section id="quotaCard" class="quota-card">
             <div class="quota-header">
               <div class="quota-title-wrap">
-                <span class="quota-balance-title"><strong id="popupHiresCount">0</strong> Hires Available</span>
-                <span class="quota-sub-detail" id="popupQuotaDetail">Daily Free: 3/3 Used &bull; Spendable: 0</span>
+                <span class="quota-balance-title"><strong id="popupHiresCount">--</strong> Hires Available</span>
+                <span class="quota-sub-detail" id="popupQuotaDetail">Checking your Hires...</span>
               </div>
               <a id="popupTopupLink" href="https://autoapplycv.in/dashboard/pricing" target="_blank" class="quota-topup-btn">Top Up</a>
             </div>
@@ -156,8 +156,8 @@
           <section id="indeedQuotaCard" class="quota-card">
             <div class="quota-header">
               <div class="quota-title-wrap">
-                <span class="quota-balance-title"><strong id="indeedPopupHiresCount">0</strong> Hires Available</span>
-                <span class="quota-sub-detail" id="indeedPopupQuotaDetail">Daily Free: 3/3 Used &bull; Spendable: 0</span>
+                <span class="quota-balance-title"><strong id="indeedPopupHiresCount">--</strong> Hires Available</span>
+                <span class="quota-sub-detail" id="indeedPopupQuotaDetail">Checking your Hires...</span>
               </div>
               <a id="indeedPopupTopupLink" href="https://autoapplycv.in/dashboard/pricing" target="_blank" class="quota-topup-btn">Top Up</a>
             </div>
@@ -205,176 +205,95 @@
           </div>
         </div>
 
-        <!-- ═══════════════════════════════════════════════════════════ -->
-        <!-- TAB 3: WHATSAPP OUTREACH & CAMPAIGNS                        -->
-        <!-- ═══════════════════════════════════════════════════════════ -->
+        <!-- ═══ WHATSAPP OUTREACH ═══ -->
         <div id="tab-whatsapp" class="tab-pane">
           <section class="now-card">
-            <p class="now-title">WhatsApp Outreach Pro</p>
-            <p class="now-detail">Scrapes WhatsApp hiring contacts from LinkedIn posts & dispatches personalized messages.</p>
+            <p class="now-title">WhatsApp Outreach</p>
+            <p class="now-detail">Message recruiters who post a phone number in their hiring posts.</p>
           </section>
 
           <div class="stats-row">
-            <div class="stat-pill applied">
-              <span class="stat-val" id="waTotalLeads">0</span>
-              <span class="stat-lbl">Leads Found</span>
+            <div class="stat-pill applied"><span class="stat-val" id="waTotalLeads">0</span><span class="stat-lbl">Leads Found</span></div>
+            <div class="stat-pill skipped"><span class="stat-val" id="waContactedCount">0</span><span class="stat-lbl">Messages Sent</span></div>
+          </div>
+
+          <p class="hires-line" data-hires-line hidden><strong data-hires-text>--</strong><span>left. Each message or comment costs 1.</span></p>
+
+          <section class="msg-card" id="waMessageCard">
+            <div class="msg-card-head">
+              <strong>Your WhatsApp message</strong>
+              <span id="waMessageState" class="msg-state">Checking...</span>
             </div>
-            <div class="stat-pill" style="border-color: rgba(37, 211, 102, 0.4); color: #25D366;">
-              <span class="stat-val" id="waContactedCount">0</span>
-              <span class="stat-lbl">Messages Sent</span>
-            </div>
-          </div>
-
-          <div class="field-group">
-            <label class="field-label">Message Template ({name}, {job_title}, {company}):</label>
-            <textarea id="waTemplateInput" class="popup-textarea" rows="3" placeholder="Hi {name}! I saw your post for {job_title}..."></textarea>
-          </div>
-
-          <div class="mode-control">
-            <label class="mode-switch" for="waAutoSendToggle">
-              <input id="waAutoSendToggle" type="checkbox" />
-              <span class="mode-switch-ui"></span>
-              <span class="mode-switch-text">Auto-Click Send on WhatsApp Web</span>
-            </label>
-          </div>
-
-          <div class="mode-control" style="margin-top: 6px;">
-            <label class="mode-switch" for="waAutoCloseToggle">
-              <input id="waAutoCloseToggle" type="checkbox" />
-              <span class="mode-switch-ui"></span>
-              <span class="mode-switch-text">Auto-Close Tab After Send</span>
-            </label>
-          </div>
-
-          <div class="mode-control" style="margin-top: 6px;">
-            <label class="mode-switch" for="waShowContactedToggle">
-              <input id="waShowContactedToggle" type="checkbox" />
-              <span class="mode-switch-ui"></span>
-              <span class="mode-switch-text">Show Already Contacted Recruiter Posts</span>
-            </label>
-          </div>
+            <p id="waMessagePreview" class="msg-preview"></p>
+            <a id="waEditLink" class="btn-link-action" href="#" target="_blank">Edit in dashboard</a>
+          </section>
 
           <div class="actions primary">
-            <button id="waAutoSendAllBtn" class="btn-start" style="background:#25D366; color:#0f172a; font-weight:700;">⚡ Start Auto-Sending</button>
-            <button id="waSaveBtn" class="btn-pause" style="color:#ffffff;">Save Settings</button>
+            <button id="waAutoSendAllBtn" class="btn-start">Start sending</button>
           </div>
-          <div class="quick-links-row" style="margin-top:8px;">
-            <a href="https://www.linkedin.com/feed/#autoapply-module=whatsapp" target="_blank" class="btn-link-action" style="color:#25D366; border-color:rgba(37,211,102,0.4);">
-              🌐 Open Feed (WhatsApp Mode)
-            </a>
+          <div class="quick-links-row">
+            <a id="waOpenPosts" href="https://www.linkedin.com/search/results/content/?keywords=hiring%20whatsapp&sortBy=%5B%22date_posted%22%5D#autoapply-module=whatsapp" target="_blank" class="btn-link-action">Open hiring posts</a>
           </div>
         </div>
 
-        <!-- ═══════════════════════════════════════════════════════════ -->
-        <!-- TAB 4: LINKEDIN AUTO COMMENTER                              -->
-        <!-- ═══════════════════════════════════════════════════════════ -->
+        <!-- ═══ LINKEDIN COMMENTS ═══ -->
         <div id="tab-commenter" class="tab-pane">
           <section class="now-card">
-            <p class="now-title" id="acStatusTitle">Fast Auto Commenter</p>
-            <p class="now-detail" id="acStatusDetail">Auto-comments your portfolio & intro on LinkedIn hiring posts.</p>
+            <p class="now-title">LinkedIn Comments</p>
+            <p class="now-detail">Comment on recruiter hiring posts with your own message.</p>
           </section>
 
           <div class="stats-row">
-            <div class="stat-pill applied">
-              <span class="stat-val" id="acSessionCount">0</span>
-              <span class="stat-lbl">Session</span>
-            </div>
-            <div class="stat-pill skipped">
-              <span class="stat-val" id="acTotalCount">0</span>
-              <span class="stat-lbl">All-Time</span>
-            </div>
+            <div class="stat-pill applied"><span class="stat-val" id="acSessionCount">0</span><span class="stat-lbl">This run</span></div>
+            <div class="stat-pill skipped"><span class="stat-val" id="acTotalCount">0</span><span class="stat-lbl">All time</span></div>
           </div>
 
-          <div class="field-group">
-            <label class="field-label">Comment Pitch / Portfolio:</label>
-            <textarea id="acCommentInput" class="popup-textarea" rows="2" placeholder="Hi! I am actively looking for opportunities..."></textarea>
-          </div>
+          <p class="hires-line" data-hires-line hidden><strong data-hires-text>--</strong><span>left. Each message or comment costs 1.</span></p>
 
-          <div class="mode-control">
-            <label class="mode-switch" for="acSkipSeekersToggle">
-              <input id="acSkipSeekersToggle" type="checkbox" checked />
-              <span class="mode-switch-ui"></span>
-              <span class="mode-switch-text">Skip #OpenToWork / Job Seekers</span>
-            </label>
-          </div>
+          <section class="msg-card" id="acMessageCard">
+            <div class="msg-card-head">
+              <strong>Your comment</strong>
+              <span id="acMessageState" class="msg-state">Checking...</span>
+            </div>
+            <p id="acMessagePreview" class="msg-preview"></p>
+            <a id="acEditLink" class="btn-link-action" href="#" target="_blank">Edit in dashboard</a>
+          </section>
 
           <div class="actions primary">
-            <button id="acStartBtn" class="btn-start">Start Commenting</button>
+            <button id="acStartBtn" class="btn-start">Start commenting</button>
             <button id="acStopBtn" class="btn-stop">Stop</button>
           </div>
+
         </div>
 
-        <!-- ═══════════════════════════════════════════════════════════ -->
-        <!-- TAB 5: EMAIL OUTREACH PRO & COLD EMAIL CAMPAIGNS            -->
-        <!-- ═══════════════════════════════════════════════════════════ -->
+        <!-- ═══ EMAIL OUTREACH ═══ -->
         <div id="tab-emailoutreach" class="tab-pane">
           <section class="now-card">
-            <p class="now-title">Email Outreach Pro</p>
-            <p class="now-detail">Scrapes verified recruiter emails from LinkedIn posts & dispatches personalized cold pitches via Gmail / Mail client.</p>
+            <p class="now-title">Email Outreach</p>
+            <p class="now-detail">Email recruiters who post an address in their hiring posts.</p>
           </section>
 
           <div class="stats-row">
-            <div class="stat-pill applied">
-              <span class="stat-val" id="emailTotalLeads">0</span>
-              <span class="stat-lbl">Leads Found</span>
+            <div class="stat-pill applied"><span class="stat-val" id="emailTotalLeads">0</span><span class="stat-lbl">Leads Found</span></div>
+            <div class="stat-pill skipped"><span class="stat-val" id="emailContactedCount">0</span><span class="stat-lbl">Emails Sent</span></div>
+          </div>
+
+          <p class="hires-line" data-hires-line hidden><strong data-hires-text>--</strong><span>left. Each message or comment costs 1.</span></p>
+
+          <section class="msg-card" id="emailMessageCard">
+            <div class="msg-card-head">
+              <strong>Your email</strong>
+              <span id="emailMessageState" class="msg-state">Checking...</span>
             </div>
-            <div class="stat-pill" style="border-color: rgba(99, 102, 241, 0.4); color: #818cf8;">
-              <span class="stat-val" id="emailContactedCount">0</span>
-              <span class="stat-lbl">Emails Sent</span>
-            </div>
-          </div>
-
-          <div class="field-group">
-            <label class="field-label">Email Subject ({name}, {job_title}, {company}):</label>
-            <input id="emailSubjectInput" class="popup-input" type="text" placeholder="Application for {job_title} - Parveen" />
-          </div>
-
-          <div class="field-group">
-            <label class="field-label">Message Template ({name}, {job_title}, {company}, {email}):</label>
-            <textarea id="emailTemplateInput" class="popup-textarea" rows="3" placeholder="Hi {name}! I saw your hiring post for {job_title}..."></textarea>
-          </div>
-
-          <div class="field-group">
-            <label class="field-label">Email Client Mode:</label>
-            <select id="emailClientSelect" class="popup-input" style="background: rgba(15, 23, 42, 0.6); color: #f8fafc;">
-              <option value="gmail_web">🌐 Gmail Web Compose</option>
-              <option value="mailto">📧 System Default Mail Client (Mailto)</option>
-            </select>
-          </div>
-
-          <div class="mode-control" style="margin-top: 6px;">
-            <label class="mode-switch" for="emailAutoSendToggle">
-              <input id="emailAutoSendToggle" type="checkbox" checked />
-              <span class="mode-switch-ui"></span>
-              <span class="mode-switch-text">Auto-Submit Send on Gmail Web</span>
-            </label>
-          </div>
-
-          <div class="mode-control" style="margin-top: 6px;">
-            <label class="mode-switch" for="emailAutoCloseToggle">
-              <input id="emailAutoCloseToggle" type="checkbox" checked />
-              <span class="mode-switch-ui"></span>
-              <span class="mode-switch-text">Auto-Close Tab After Sending</span>
-            </label>
-          </div>
-
-          <div class="mode-control" style="margin-top: 6px;">
-            <label class="mode-switch" for="emailShowContactedToggle">
-              <input id="emailShowContactedToggle" type="checkbox" />
-              <span class="mode-switch-ui"></span>
-              <span class="mode-switch-text">Show Already Contacted Recruiter Posts</span>
-            </label>
-          </div>
+            <p id="emailMessagePreview" class="msg-preview"></p>
+            <a id="emailEditLink" class="btn-link-action" href="#" target="_blank">Edit in dashboard</a>
+          </section>
 
           <div class="actions primary">
-            <button id="emailAutoSendAllBtn" class="btn-start" style="background:linear-gradient(135deg, #6366f1, #4f46e5); color:#ffffff; font-weight:700;">⚡ Start Auto-Sending</button>
-            <button id="emailSaveBtn" class="btn-pause" style="color:#ffffff;">Save Settings</button>
+            <button id="emailAutoSendAllBtn" class="btn-start">Start sending</button>
           </div>
-
-          <div class="quick-links-row" style="margin-top:8px;">
-            <a href="https://www.linkedin.com/feed/#autoapply-module=email" target="_blank" class="btn-link-action" style="color:#818cf8; border-color:rgba(99, 102, 241, 0.4);">
-              🌐 Open Feed (Email Pro Mode)
-            </a>
+          <div class="quick-links-row">
+            <a id="emailOpenPosts" href="https://www.linkedin.com/search/results/content/?keywords=hiring%20email&sortBy=%5B%22date_posted%22%5D#autoapply-module=email" target="_blank" class="btn-link-action">Open hiring posts</a>
           </div>
         </div>
 

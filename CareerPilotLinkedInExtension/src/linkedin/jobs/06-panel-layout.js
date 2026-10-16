@@ -16,7 +16,9 @@ function loadPanelPrefs() {
     if (!parsed || typeof parsed !== "object") return;
     panelPrefs = {
       ...panelPrefs,
-      ...parsed
+      ...parsed,
+      minimized: false,
+      maximized: false
     };
   } catch {
     // ignore corrupted prefs
@@ -31,47 +33,41 @@ function savePanelPrefs() {
   }
 }
 
+function syncPageAdjustment(width) {
+  if (!document.body) return;
+  const isDocked = panelEl && !panelEl.classList.contains("cp-sidebar-collapsed") && !panelEl.classList.contains("cp-hidden");
+  if (isDocked) {
+    const w = width || (panelEl ? panelEl.getBoundingClientRect().width : 410) || 410;
+    document.documentElement.style.setProperty("--cp-sidebar-width", `${w}px`);
+    document.body.style.marginRight = `${w}px`;
+    document.body.classList.add("cp-has-docked-sidebar");
+  } else {
+    document.body.style.marginRight = "";
+    document.body.classList.remove("cp-has-docked-sidebar");
+  }
+}
+
 function applyPanelLayout() {
   if (!panelEl) return;
-  panelEl.classList.toggle("cp-minimized", Boolean(panelPrefs.minimized));
-  panelEl.classList.toggle("cp-maximized", Boolean(panelPrefs.maximized));
-  if (panelPrefs.maximized) {
-    panelEl.style.left = "12px";
-    panelEl.style.top = "12px";
-    panelEl.style.right = "12px";
-    panelEl.style.bottom = "12px";
-    panelEl.style.width = "auto";
-    panelEl.style.maxHeight = "none";
-    panelEl.style.height = "calc(100vh - 24px)";
-    return;
-  }
+  panelPrefs.minimized = false;
+  panelPrefs.maximized = false;
+  panelEl.classList.remove("cp-minimized", "cp-maximized", "cp-hidden", "cp-sidebar-collapsed");
 
-  panelEl.style.right = "auto";
-  panelEl.style.bottom = "auto";
-  const fallbackLeft = Math.max(8, window.innerWidth - 440);
-  const fallbackTop = 84;
-  if (typeof panelPrefs.left === "number") {
-    const maxLeft = Math.max(8, window.innerWidth - 140);
-    panelEl.style.left = `${Math.max(8, Math.min(maxLeft, panelPrefs.left))}px`;
-  } else {
-    panelEl.style.left = `${fallbackLeft}px`;
-    panelPrefs.left = fallbackLeft;
-  }
-  if (typeof panelPrefs.top === "number") {
-    const maxTop = Math.max(8, window.innerHeight - 90);
-    panelEl.style.top = `${Math.max(8, Math.min(maxTop, panelPrefs.top))}px`;
-  } else {
-    panelEl.style.top = `${fallbackTop}px`;
-    panelPrefs.top = fallbackTop;
-  }
-  if (typeof panelPrefs.width === "number" && panelPrefs.width >= 320) {
-    panelEl.style.width = `${Math.min(window.innerWidth - 16, panelPrefs.width)}px`;
-  } else {
-    panelEl.style.width = "min(520px, calc(100vw - 22px))";
-  }
-  // Give the flex column a definite height so the log can shrink and the composer stays visible.
-  panelEl.style.height = "78vh";
-  panelEl.style.maxHeight = "78vh";
+  panelEl.style.left = "auto";
+  panelEl.style.top = "0";
+  panelEl.style.right = "0";
+  panelEl.style.bottom = "0";
+  const fallbackWidth = 410;
+  const targetWidth = typeof panelPrefs.width === "number" && panelPrefs.width >= 320
+    ? Math.min(window.innerWidth - 24, panelPrefs.width)
+    : fallbackWidth;
+  panelEl.style.width = `${targetWidth}px`;
+  panelEl.style.height = "100vh";
+  panelEl.style.height = "100dvh";
+  panelEl.style.maxHeight = "100vh";
+  panelEl.style.maxHeight = "100dvh";
+
+  syncPageAdjustment(targetWidth);
   logPanelDebug("apply-layout");
 }
 
@@ -95,25 +91,22 @@ function enablePanelDragging() {
   const head = panelEl.querySelector(".cp-head");
   if (!head) return;
 
-  let dragging = false;
-  let offsetX = 0;
-  let offsetY = 0;
+  let resizing = false;
+  let startX = 0;
+  let startWidth = 410;
 
   const onMouseMove = (event) => {
-    if (!dragging || !panelEl) return;
-    const nextLeft = Math.max(8, Math.min(window.innerWidth - 120, event.clientX - offsetX));
-    const nextTop = Math.max(8, Math.min(window.innerHeight - 80, event.clientY - offsetY));
-    panelPrefs.left = nextLeft;
-    panelPrefs.top = nextTop;
-    panelEl.style.left = `${nextLeft}px`;
-    panelEl.style.top = `${nextTop}px`;
-    panelEl.style.right = "auto";
-    panelEl.style.bottom = "auto";
+    if (!resizing || !panelEl) return;
+    const delta = startX - event.clientX;
+    const nextWidth = Math.max(340, Math.min(Math.floor(window.innerWidth * 0.8), startWidth + delta));
+    panelPrefs.width = nextWidth;
+    panelEl.style.width = `${nextWidth}px`;
+    syncPageAdjustment(nextWidth);
   };
 
   const onMouseUp = () => {
-    if (!dragging) return;
-    dragging = false;
+    if (!resizing) return;
+    resizing = false;
     panelEl?.classList.remove("cp-dragging");
     savePanelPrefs();
     window.removeEventListener("mousemove", onMouseMove);
@@ -129,10 +122,9 @@ function enablePanelDragging() {
       setPanelMaximized(false);
     }
     if (!panelEl) return;
-    const rect = panelEl.getBoundingClientRect();
-    offsetX = event.clientX - rect.left;
-    offsetY = event.clientY - rect.top;
-    dragging = true;
+    resizing = true;
+    startX = event.clientX;
+    startWidth = panelEl.getBoundingClientRect().width;
     panelEl.classList.add("cp-dragging");
     window.addEventListener("mousemove", onMouseMove);
     window.addEventListener("mouseup", onMouseUp);

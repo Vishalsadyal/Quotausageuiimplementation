@@ -17,7 +17,8 @@ import {
   MessageSquare,
   Activity,
   BookOpen,
-  TrendingUp
+  TrendingUp,
+  ListChecks
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
@@ -36,6 +37,7 @@ export default function AdminLayout() {
     { name: 'Revenue', href: '/admin/revenue', icon: DollarSign },
     { name: 'Growth', href: '/admin/growth', icon: TrendingUp },
     { name: 'Support', href: '/admin/support', icon: MessageSquare },
+    { name: 'Global Screening Questions Mapping', href: '/admin/screening-questions', icon: ListChecks },
     { name: 'Blogs', href: '/admin/blogs', icon: BookOpen },
     { name: 'System Health', href: '/admin/health', icon: Activity },
     { name: 'Settings', href: '/admin/settings', icon: Settings },

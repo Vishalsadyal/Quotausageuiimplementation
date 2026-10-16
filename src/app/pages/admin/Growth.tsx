@@ -225,7 +225,7 @@ export default function Growth() {
                 </div>
               </div>
               <div className="rounded-lg bg-gradient-to-r from-indigo-600 via-purple-600 to-fuchsia-600 px-3 py-2 text-center text-sm text-white" aria-label="Preview">
-                {announcement.text} {announcement.code && <span className="ml-1 rounded border border-white/40 bg-white/15 px-1.5 font-mono text-xs">{announcement.code}</span>}
+                {announcement.text} {announcement.code && !announcement.text.toLowerCase().includes(announcement.code.toLowerCase()) && <span className="ml-1 rounded border border-white/40 bg-white/15 px-1.5 font-mono text-xs">{announcement.code}</span>}
                 {announcement.ctaLabel && <span className="ml-2 rounded-full bg-white px-2 py-0.5 text-xs font-bold text-indigo-700">{announcement.ctaLabel}</span>}
               </div>
               <button type="button" onClick={() => void saveBanner()} disabled={saving === "banner"} className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-60">

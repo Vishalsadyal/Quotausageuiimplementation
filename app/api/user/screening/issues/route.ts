@@ -9,6 +9,12 @@ const reportIssueSchema = z.object({
   questionKey: z.string().trim().min(1).max(160),
   questionLabel: z.string().trim().min(1).max(500),
   validationMessage: z.string().trim().max(500).optional().default(""),
+  // What the LinkedIn form asked for: the field type, the choices offered, a hint from its limits,
+  // and the answer LinkedIn refused. Lets the dashboard ask for the right kind of answer.
+  fieldType: z.string().trim().max(30).optional().default(""),
+  options: z.array(z.string().trim().max(120)).max(40).optional().default([]),
+  hint: z.string().trim().max(200).optional().default(""),
+  rejectedAnswer: z.string().trim().max(500).optional().default(""),
 });
 
 function asObject(value: unknown): Record<string, unknown> | null {
@@ -43,6 +49,10 @@ export async function GET(req: Request) {
         questionLabel: string;
         status: "pending" | "resolved";
         validationMessage: string;
+        fieldType: string;
+        options: string[];
+        hint: string;
+        rejectedAnswer: string;
         updatedAt: string;
       }
     >();
@@ -59,6 +69,10 @@ export async function GET(req: Request) {
         questionLabel,
         status: log.action === "user.screening_issue_detected" ? "pending" : "resolved",
         validationMessage,
+        fieldType: String(meta.fieldType || "").trim(),
+        options: Array.isArray(meta.options) ? meta.options.map((o) => String(o)).filter(Boolean) : [],
+        hint: String(meta.hint || "").trim(),
+        rejectedAnswer: String(meta.rejectedAnswer || "").trim(),
         updatedAt: log.createdAt.toISOString(),
       });
     }

@@ -51,15 +51,27 @@ function ensurePanel() {
     img.style.margin = "0 auto";
     img.style.borderRadius = "10px";
     toggle.appendChild(img);
+    const label = document.createElement("span");
+    label.textContent = "Copilot";
+    label.style.fontWeight = "700";
+    toggle.appendChild(label);
   } catch {
     toggle.textContent = "CP";
   }
+
+  function toggleInPageDockedSidebar() {
+    const p = document.getElementById(PANEL_ID);
+    if (!p) return;
+    p.classList.remove("cp-hidden");
+    p.classList.toggle("cp-sidebar-collapsed");
+    p.style.zIndex = "2147483646";
+    if (typeof syncPageAdjustment === "function") {
+      syncPageAdjustment();
+    }
+  }
+
   toggle.addEventListener("click", () => {
-    const panel = document.getElementById(PANEL_ID);
-    if (!panel) return;
-    // Keep panel always visible; toggle now acts as "bring to front/show".
-    panel.classList.remove("cp-hidden");
-    panel.style.zIndex = "2147483646";
+    toggleInPageDockedSidebar();
   });
   (document.body || document.documentElement).appendChild(toggle);
 
@@ -78,35 +90,15 @@ function ensurePanel() {
         <div class="cp-badge" id="cp-status-badge">Idle</div>
         <div class="cp-window-actions">
           <button id="cp-clear-logs" class="cp-icon-btn" title="Clear logs & reset counters">${ICONS.trash}</button>
-          <button id="cp-minimize" title="Minimize">–</button>
-          <button id="cp-maximize" title="Maximize">+</button>
-        </div>
-      </div>
-    </div>
-    <div class="cp-hero" id="cp-now-card">
-      <div class="cp-hero-header">
-        <div class="cp-hero-status-pulse"></div>
-        <span class="cp-hero-status-title" id="cp-now-title">AI Copilot Ready</span>
-      </div>
-      <div class="cp-hero-job-title" id="cp-now-job-title">Standing by for next task</div>
-      <div class="cp-hero-job-sub" id="cp-now-detail">Press Start or toggle Live Auto Submit</div>
-      <div class="cp-hero-metrics">
-        <div class="cp-metric-pill" id="cp-applied-pill">
-          <span class="cp-svg-icon cp-icon-success">${ICONS.rocket}</span>
-          <span class="cp-metric-val" id="cp-applied-count">0</span> applied
-        </div>
-        <div class="cp-metric-pill" id="cp-skipped-pill">
-          <span class="cp-svg-icon cp-icon-warning">${ICONS.skip}</span>
-          <span class="cp-metric-val" id="cp-skipped-count">0</span> skipped
-        </div>
-        <div class="cp-metric-pill cp-metric-quota" id="cp-wallet">
-          <span class="cp-svg-icon cp-icon-primary">${ICONS.coin}</span>
-          <span id="cp-wallet-text">Free Quota</span>
         </div>
       </div>
     </div>
     <div class="cp-controls">
       <div class="cp-run-mode">
+        <div class="cp-metric-pill cp-metric-quota" id="cp-wallet">
+          <span class="cp-svg-icon cp-icon-primary">${ICONS.coin}</span>
+          <span id="cp-wallet-text">Free Quota</span>
+        </div>
         <label class="cp-run-mode-toggle" for="cp-auto-submit-toggle">
           <input id="cp-auto-submit-toggle" type="checkbox" />
           <span class="cp-switch-ui" aria-hidden="true"></span>
@@ -121,20 +113,16 @@ function ensurePanel() {
       </div>
     </div>
     <div class="cp-tab-bar">
-      <button id="cp-tab-feed" class="cp-tab cp-active">${ICONS.sparkle} <span>Activity</span></button>
-      <button id="cp-tab-debug" class="cp-tab">${ICONS.activity} <span>Decision Chain</span></button>
-      <button id="cp-tab-logs" class="cp-tab">${ICONS.list} <span>Logs</span></button>
+      <button id="cp-tab-applied" class="cp-tab"><span>Applied</span><b class="cp-tab-count" id="cp-count-applied" hidden>0</b></button>
+      <button id="cp-tab-skipped" class="cp-tab"><span>Skipped</span><b class="cp-tab-count" id="cp-count-skipped" hidden>0</b></button>
+      <button id="cp-tab-feed" class="cp-tab cp-active"><span>Activity</span></button>
     </div>
     <div class="cp-log" id="cp-log" aria-live="polite"></div>
-    <div class="cp-composer">
-      <input id="cp-chat-input" type="text" placeholder="Type a command (e.g. pause, start, resume)..." />
-      <button id="cp-chat-send">Send</button>
-    </div>
   `;
   (document.body || document.documentElement).appendChild(panel);
   panelEl = panel;
   lastLogRenderSignature = "";
-  panelEl.classList.remove("cp-hidden");
+  panelEl.classList.remove("cp-hidden", "cp-sidebar-collapsed", "cp-minimized", "cp-maximized");
 
   try {
     const orbImg = panel.querySelector(".cp-orb-img");
@@ -147,20 +135,19 @@ function ensurePanel() {
   panel.querySelector("#cp-pause").addEventListener("click", async () => handleChatCommand("pause"));
   panel.querySelector("#cp-stop").addEventListener("click", async () => handleChatCommand("stop"));
 
-  const tabFeedBtn = panel.querySelector("#cp-tab-feed");
-  const tabDebugBtn = panel.querySelector("#cp-tab-debug");
-  const tabLogsBtn = panel.querySelector("#cp-tab-logs");
+  const tabButtons = {
+    applied: panel.querySelector("#cp-tab-applied"),
+    skipped: panel.querySelector("#cp-tab-skipped"),
+    feed: panel.querySelector("#cp-tab-feed"),
+  };
   const setTab = (tab) => {
     panelActiveTab = tab;
-    tabFeedBtn?.classList.toggle("cp-active", tab === "feed");
-    tabDebugBtn?.classList.toggle("cp-active", tab === "debug");
-    tabLogsBtn?.classList.toggle("cp-active", tab === "logs");
+    for (const [name, button] of Object.entries(tabButtons)) button?.classList.toggle("cp-active", name === tab);
     lastLogRenderSignature = "";
+    if (tab === "applied" || tab === "skipped") void refreshPanelHistory();
     void getBootstrap().then((b) => renderState(b.state));
   };
-  tabFeedBtn?.addEventListener("click", () => setTab("feed"));
-  tabDebugBtn?.addEventListener("click", () => setTab("debug"));
-  tabLogsBtn?.addEventListener("click", () => setTab("logs"));
+  for (const [name, button] of Object.entries(tabButtons)) button?.addEventListener("click", () => setTab(name));
 
   panel.querySelector("#cp-clear-logs")?.addEventListener("click", async () => {
     const res = await sendMessage({ type: "CP_CLEAR_LOGS" });
@@ -172,17 +159,6 @@ function ensurePanel() {
     }
   });
 
-  const logEl = panel.querySelector("#cp-log");
-  if (logEl) {
-    logAutoScrollPinnedToBottom = true;
-    logEl.addEventListener(
-      "scroll",
-      () => {
-        logAutoScrollPinnedToBottom = isLogNearBottom(logEl);
-      },
-      { passive: true }
-    );
-  }
   const liveModeToggle = panel.querySelector("#cp-auto-submit-toggle");
   liveModeToggle.addEventListener("change", async () => {
     const enableLive = Boolean(liveModeToggle?.checked);
@@ -213,26 +189,7 @@ function ensurePanel() {
   panel.querySelector("#cp-download-debug").addEventListener("click", () => {
     downloadDebugLogFile();
   });
-  panel.querySelector("#cp-minimize").addEventListener("click", () => {
-    setPanelMinimized(!panelPrefs.minimized);
-  });
-  panel.querySelector("#cp-maximize").addEventListener("click", () => {
-    setPanelMaximized(!panelPrefs.maximized);
-  });
-  const chatInput = panel.querySelector("#cp-chat-input");
-  const sendBtn = panel.querySelector("#cp-chat-send");
-  sendBtn.addEventListener("click", async () => {
-    const text = chatInput.value;
-    chatInput.value = "";
-    await handleChatCommand(text);
-  });
-  chatInput.addEventListener("keydown", async (e) => {
-    if (e.key !== "Enter") return;
-    e.preventDefault();
-    const text = chatInput.value;
-    chatInput.value = "";
-    await handleChatCommand(text);
-  });
+
   applyPanelLayout();
   enablePanelDragging();
   logPanelDebug("ensure-new");

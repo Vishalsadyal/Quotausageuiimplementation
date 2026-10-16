@@ -371,6 +371,30 @@ function portalAuthHeaders(settings) {
 // Where to reach the portal, best first: the last portal that worked, open portal tabs, the
 // configured API base, then every known address (autoapplycv.in and localhost:3000 / 3001), so a
 // local dev server and the live site both work whichever one the user is signed in to.
+// Dashboard tabs that are open right now, most recently used first. The one the user is looking at is the
+// account they expect to be charged, so it is asked before any default address (the live site otherwise
+// answered first for a user on a local dashboard, and its balance is not the one shown on screen).
+async function openPortalTabOrigins() {
+  const knownHosts = new Set(["localhost:3000", "localhost:3001", "127.0.0.1:3000", "127.0.0.1:3001"]);
+  try {
+    const tabs = await chrome.tabs.query({});
+    const found = [];
+    for (const tab of tabs || []) {
+      try {
+        const u = new URL(String(tab?.url || ""));
+        const host = u.host.toLowerCase();
+        const ours = knownHosts.has(host) || u.hostname === "autoapplycv.in" || u.hostname.endsWith(".autoapplycv.in") || u.hostname === "autoapplycv.vercel.app";
+        if (ours) found.push({ origin: u.origin, used: Number(tab.lastAccessed || 0) });
+      } catch {
+        // not a web address
+      }
+    }
+    return found.sort((a, b) => b.used - a.used).map((item) => item.origin);
+  } catch {
+    return [];
+  }
+}
+
 async function portalTargetOrigins(settings) {
   const configured = (() => {
     try {
@@ -379,7 +403,7 @@ async function portalTargetOrigins(settings) {
       return "";
     }
   })();
-  const all = [getPortalOrigin(), ...(await detectPortalOriginsFromTabs()), configured, ...PORTAL_FALLBACK_ORIGINS];
+  const all = [...(await openPortalTabOrigins()), getPortalOrigin(), ...(await detectPortalOriginsFromTabs()), configured, ...PORTAL_FALLBACK_ORIGINS];
   return [...new Set(all.map((o) => String(o || "").trim()).filter(Boolean))];
 }
 
@@ -398,6 +422,24 @@ const OUTREACH_REASON_TEXT = {
   PORTAL_UNREACHABLE: "Could not reach AutoApply CV to confirm Hires (tried autoapplycv.in and localhost:3000)",
   INSUFFICIENT_HIRES: "Out of Hires: each message costs 1 Hire"
 };
+
+// The Hires left, kept in storage so every panel (the three outreach widgets, the popup) shows the same live
+// number: it is rewritten after each allowance check and after each charge, and the panels listen for the change.
+const HIRES_BALANCE_KEY = "cpHiresBalance";
+async function storeHiresBalance({ spendable, unlimited }) {
+  try {
+    const previous = (await chrome.storage.local.get(HIRES_BALANCE_KEY))[HIRES_BALANCE_KEY] || {};
+    const next = {
+      spendable: Number.isFinite(Number(spendable)) ? Math.max(0, Number(spendable)) : Number(previous.spendable || 0),
+      unlimited: unlimited === undefined ? Boolean(previous.unlimited) : Boolean(unlimited),
+      at: Date.now()
+    };
+    if (next.spendable === previous.spendable && next.unlimited === previous.unlimited) return;
+    await chrome.storage.local.set({ [HIRES_BALANCE_KEY]: next });
+  } catch {
+    // the number is only for display
+  }
+}
 
 // Charges 1 Hire for one message (the portal charges each recipient / post once). contact = the
 // hiring post's details; the portal adds WhatsApp / email recipients to the HR Contacts pool.
@@ -418,10 +460,13 @@ async function chargeOutreachViaPortal(channel, rawTargetId, contact = null) {
       });
       const body = await res.json().catch(() => null);
       if (res.ok && body?.success) {
+        setPreferredPortalOrigin(origin, { resetFailures: true });
+        void storeHiresBalance({ spendable: body.data?.spendable });
         return { ok: true, charged: Number(body.data?.charged || 0), alreadyCharged: Boolean(body.data?.alreadyCharged), remaining: body.data?.spendable };
       }
       if (res.status === 402) {
-        return { ok: false, reason: "INSUFFICIENT_HIRES", error: OUTREACH_REASON_TEXT.INSUFFICIENT_HIRES, topUpUrl: `${origin}/dashboard/billing` };
+        void storeHiresBalance({ spendable: 0 });
+        return { ok: false, reason: "INSUFFICIENT_HIRES", error: `${OUTREACH_REASON_TEXT.INSUFFICIENT_HIRES} (checked on ${new URL(origin).host}). Signed in to a different site than your dashboard? Open your dashboard tab and try again.`, topUpUrl: `${origin}/dashboard/billing` };
       }
       reason = reasonForStatus(res.status, reason);
     } catch {
@@ -477,6 +522,7 @@ async function checkOutreachAllowance() {
       if (res.ok && body?.success && body.data) {
         const d = body.data;
         const allowed = Boolean(d.unlimited) || Number(d.spendable) > 0;
+        void storeHiresBalance({ spendable: d.spendable, unlimited: d.unlimited });
         return {
           allowed,
           ok: allowed,
@@ -484,7 +530,7 @@ async function checkOutreachAllowance() {
           unlimited: Boolean(d.unlimited),
           sent: d.sent || {},
           topUpUrl: `${origin}/dashboard/billing`,
-          ...(allowed ? {} : { reason: "INSUFFICIENT_HIRES", error: OUTREACH_REASON_TEXT.INSUFFICIENT_HIRES })
+          ...(allowed ? {} : { reason: "INSUFFICIENT_HIRES", error: `${OUTREACH_REASON_TEXT.INSUFFICIENT_HIRES} (checked on ${new URL(origin).host}). Signed in to a different site than your dashboard? Open your dashboard tab and try again.` })
         };
       }
       reason = reasonForStatus(res.status, reason);
@@ -558,7 +604,9 @@ async function detectPortalOriginsFromTabs() {
   const uniq = new Set();
   const out = [];
   const preferred = normalizePortalOrigin(getPortalOrigin());
-  for (const o of [preferred, ...sortedRemotes, ...PORTAL_REMOTE_ORIGIN_PRIORITY, ...PORTAL_FALLBACK_ORIGINS, ...sortedLocals]) {
+  // The dashboard tab the user has open (and used last) is the account they mean; defaults come after it.
+  const openFirst = await openPortalTabOrigins();
+  for (const o of [...openFirst, preferred, ...sortedRemotes, ...PORTAL_REMOTE_ORIGIN_PRIORITY, ...PORTAL_FALLBACK_ORIGINS, ...sortedLocals]) {
     const key = String(o || "").trim();
     if (!key || uniq.has(key)) continue;
     uniq.add(key);
@@ -644,7 +692,12 @@ async function reportPendingQuestionsToPortal(questions) {
         const questionLabel = String(q?.questionLabel || "").trim();
         const validationMessage = String(q?.validationMessage || "").trim();
         if (!questionKey || !questionLabel) continue;
-        const signature = `${questionLabel}::${validationMessage}`;
+        const fieldType = String(q?.fieldType || "").trim();
+        const hint = String(q?.hint || "").trim();
+        const rejectedAnswer = String(q?.rejectedAnswer || "").trim();
+        const options = Array.isArray(q?.options) ? q.options.filter(Boolean) : [];
+        // A new message, field type or rejected answer is worth reporting again.
+        const signature = `${questionLabel}::${validationMessage}::${fieldType}::${rejectedAnswer}::${options.length}`;
         if (reported[questionKey] === signature) continue;
 
         const res = await fetch(`${origin}/api/user/screening/issues`, {
@@ -652,7 +705,7 @@ async function reportPendingQuestionsToPortal(questions) {
           cache: "no-store",
           credentials: "include",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ questionKey, questionLabel, validationMessage }),
+          body: JSON.stringify({ questionKey, questionLabel, validationMessage, fieldType, options, hint, rejectedAnswer }),
         });
         if (res.status === 401 || res.status === 403) {
           unauthorized = true;
@@ -675,6 +728,75 @@ async function reportPendingQuestionsToPortal(questions) {
     return true;
   }
   return false;
+}
+
+// An answer typed in the LinkedIn panel is saved on the user's account too, so the dashboard
+// shows it as answered and the question is not asked again on the next job.
+async function saveAnswerToPortal({ questionKey, questionLabel, answer, answerType }) {
+  const preferred = getPortalOrigin();
+  const candidates = preferred ? [preferred, ...(await detectPortalOriginsFromTabs()).filter((o) => o !== preferred)] : await detectPortalOriginsFromTabs();
+  for (const origin of candidates) {
+    try {
+      const res = await fetch(`${origin}/api/user/screening/answers`, {
+        method: "POST",
+        cache: "no-store",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          questionKey,
+          questionLabel,
+          answer,
+          answerType: ["text", "boolean", "number", "choice", "multiselect"].includes(answerType) ? answerType : "text",
+          source: "extension_capture",
+        }),
+      });
+      if (res.status === 401 || res.status === 403) continue;
+      if (res.ok) {
+        setPreferredPortalOrigin(origin, { resetFailures: true });
+        return true;
+      }
+    } catch {
+      // try the next origin
+    }
+  }
+  return false;
+}
+
+// Answers typed in the panel wait here until the account has them, so a failed upload (offline, not
+// logged in to the dashboard, service worker restarted) is retried instead of lost.
+const ANSWER_UPLOAD_QUEUE_KEY = "cpAnswerUploadQueue";
+const ANSWER_UPLOAD_ALARM = "cpAnswerUploadRetry";
+
+async function queueAnswerUpload(item) {
+  const snap = await chrome.storage.local.get(ANSWER_UPLOAD_QUEUE_KEY);
+  const queue = Array.isArray(snap[ANSWER_UPLOAD_QUEUE_KEY]) ? snap[ANSWER_UPLOAD_QUEUE_KEY] : [];
+  const next = [...queue.filter((q) => q.questionKey !== item.questionKey), item].slice(-100);
+  await chrome.storage.local.set({ [ANSWER_UPLOAD_QUEUE_KEY]: next });
+}
+
+async function flushAnswerUploads() {
+  const snap = await chrome.storage.local.get(ANSWER_UPLOAD_QUEUE_KEY);
+  const queue = Array.isArray(snap[ANSWER_UPLOAD_QUEUE_KEY]) ? snap[ANSWER_UPLOAD_QUEUE_KEY] : [];
+  if (!queue.length) {
+    try { chrome.alarms.clear(ANSWER_UPLOAD_ALARM); } catch { /* alarms unavailable */ }
+    return 0;
+  }
+  const failed = [];
+  for (const item of queue) {
+    if (!(await saveAnswerToPortal(item))) failed.push(item);
+  }
+  // Keep anything queued while this ran, drop what was uploaded.
+  const latest = await chrome.storage.local.get(ANSWER_UPLOAD_QUEUE_KEY);
+  const current = Array.isArray(latest[ANSWER_UPLOAD_QUEUE_KEY]) ? latest[ANSWER_UPLOAD_QUEUE_KEY] : [];
+  const stillQueued = current.filter((q) => failed.some((f) => f.questionKey === q.questionKey) || !queue.some((o) => o.questionKey === q.questionKey));
+  await chrome.storage.local.set({ [ANSWER_UPLOAD_QUEUE_KEY]: stillQueued });
+  try {
+    if (stillQueued.length) chrome.alarms.create(ANSWER_UPLOAD_ALARM, { periodInMinutes: 2 });
+    else chrome.alarms.clear(ANSWER_UPLOAD_ALARM);
+  } catch {
+    // alarms unavailable: the next saved answer retries the queue
+  }
+  return queue.length - failed.length;
 }
 
 async function getPortalCooldown() {
@@ -1140,6 +1262,8 @@ const DEFAULT_SETTINGS = {
   randomizeSearchOrder: false,
   sortBy: "",
   datePosted: "Past week",
+  // Search radius in miles (5, 10, 25, 50, 100); empty keeps LinkedIn's own default (25 miles = 40 km).
+  distance: "",
   easyApplyOnly: true,
   salary: "",
   experienceLevel: [],
@@ -2027,17 +2151,7 @@ const DEFAULT_WA_SETTINGS = {
     'full stack', 'react', 'web designer', 'javascript', 'html',
     'developer', 'fresher', 'electrical', 'field engineer'
   ],
-  messageTemplate: `Hi {name}!
-
-I saw your hiring post on LinkedIn regarding the {job_title} role.
-
-I am actively looking for new opportunities. Feel free to check out my portfolio & recent work:
-🌐 https://parveen-portfolio-xi.vercel.app/
-
-I am available for immediate joining and would love to connect and share more details!
-
-Best regards,
-Parveen`,
+  messageTemplate: '', // written in the dashboard (Auto Apply > Messages)
   autoSendWhatsApp: true,
   autoCloseTab: true,
   autoLikePosts: true,
@@ -2070,20 +2184,8 @@ const DEFAULT_EMAIL_SETTINGS = {
     'python',
     'node'
   ],
-  subjectTemplate: 'Application for {job_title} - Parveen',
-  messageTemplate: `Hi {name},
-
-I saw your hiring post on LinkedIn regarding the {job_title} role at {company}.
-
-I am actively looking for new opportunities and have hands-on experience in modern web technologies, WordPress, Shopify, React, and Full Stack development.
-
-Feel free to check out my portfolio & recent work:
-🌐 https://parveen-portfolio-xi.vercel.app/
-
-I am available for immediate joining and would love to discuss how I can contribute to your team!
-
-Best regards,
-Parveen`,
+  subjectTemplate: '', // written in the dashboard (Auto Apply > Messages)
+  messageTemplate: '',
   emailClient: 'gmail_web', // 'gmail_web' or 'mailto'
   autoCloseTab: false,
   autoLikePosts: false,
@@ -2098,7 +2200,7 @@ Parveen`,
 };
 
 const DEFAULT_AC_SETTINGS = {
-  commentText: "Hi! I am actively looking for new opportunities. Feel free to check out my portfolio & recent work: https://parveen-portfolio-xi.vercel.app/",
+  commentText: '', // written in the dashboard (Auto Apply > Messages)
   delaySec: 4,
   maxComments: 25,
   autoLike: true,
@@ -2108,6 +2210,117 @@ const DEFAULT_AC_SETTINGS = {
   debugMode: true,
   filterKeywords: ""
 };
+
+// ── Outreach messages (WhatsApp / Email / LinkedIn comments) ─────────────────
+// The user writes these in the dashboard (Auto Apply > Messages); the dashboard writes them here.
+// Earlier versions shipped text that named one person and linked to one portfolio. It is never kept.
+const OUTREACH_DEFAULTS = { wa: DEFAULT_WA_SETTINGS, email: DEFAULT_EMAIL_SETTINGS, comment: DEFAULT_AC_SETTINGS };
+const OUTREACH_STORAGE_KEYS = { wa: "waSettings", email: "emailSettings", comment: "autoCommentSettings" };
+const OUTREACH_TEXT_FIELDS = { wa: ["messageTemplate"], email: ["subjectTemplate", "messageTemplate"], comment: ["commentText"] };
+
+function stripBuiltInOutreachText(kind, settings) {
+  const next = { ...settings };
+  for (const field of OUTREACH_TEXT_FIELDS[kind]) {
+    if (/parveen/i.test(String(next[field] || ""))) next[field] = "";
+  }
+  return next;
+}
+
+async function loadOutreachSettings() {
+  const data = await chrome.storage.local.get(Object.values(OUTREACH_STORAGE_KEYS));
+  const out = {};
+  for (const kind of Object.keys(OUTREACH_DEFAULTS)) {
+    out[kind] = stripBuiltInOutreachText(kind, { ...OUTREACH_DEFAULTS[kind], ...(data[OUTREACH_STORAGE_KEYS[kind]] || {}) });
+  }
+  return out;
+}
+
+// Keeps only the known settings, each coerced to the type of its default.
+function sanitizeOutreachGroup(kind, incoming) {
+  const defaults = OUTREACH_DEFAULTS[kind];
+  const out = {};
+  if (!incoming || typeof incoming !== "object") return out;
+  for (const key of Object.keys(defaults)) {
+    if (!(key in incoming)) continue;
+    const value = incoming[key];
+    const model = defaults[key];
+    if (typeof model === "boolean") out[key] = Boolean(value);
+    else if (typeof model === "number") {
+      const n = Number(value);
+      if (Number.isFinite(n)) out[key] = Math.max(0, Math.min(1000, n));
+    } else if (Array.isArray(model)) {
+      out[key] = (Array.isArray(value) ? value : String(value || "").split(","))
+        .map((item) => String(item).trim().slice(0, 120))
+        .filter(Boolean)
+        .slice(0, 100);
+    } else out[key] = String(value ?? "").slice(0, 5000);
+  }
+  return out;
+}
+
+async function saveOutreachSettings(incoming) {
+  const current = await loadOutreachSettings();
+  const next = {};
+  for (const kind of Object.keys(OUTREACH_DEFAULTS)) {
+    next[kind] = incoming && incoming[kind] ? { ...current[kind], ...sanitizeOutreachGroup(kind, incoming[kind]) } : current[kind];
+  }
+  await chrome.storage.local.set({
+    [OUTREACH_STORAGE_KEYS.wa]: next.wa,
+    [OUTREACH_STORAGE_KEYS.email]: next.email,
+    [OUTREACH_STORAGE_KEYS.comment]: next.comment,
+  });
+  return next;
+}
+
+// ── Come back to the LinkedIn tab that started a send ───────────────────────────────────────────
+// A WhatsApp or Gmail tab is opened for each message. When it closes, Chrome would pick any neighbouring tab,
+// so the id of the LinkedIn tab that asked is remembered here and brought back instead. It is kept in storage,
+// because the background script can be unloaded while WhatsApp is open.
+const OUTREACH_ORIGINS_KEY = "cpOutreachOrigins";
+
+async function rememberOutreachOrigin(outreachTabId, originTabId) {
+  if (!outreachTabId || !originTabId) return;
+  const data = await chrome.storage.local.get(OUTREACH_ORIGINS_KEY);
+  const map = data[OUTREACH_ORIGINS_KEY] && typeof data[OUTREACH_ORIGINS_KEY] === "object" ? data[OUTREACH_ORIGINS_KEY] : {};
+  const hourAgo = Date.now() - 3600000;
+  for (const key of Object.keys(map)) if (!map[key] || map[key].at < hourAgo) delete map[key];
+  map[String(outreachTabId)] = { originTabId, at: Date.now() };
+  await chrome.storage.local.set({ [OUTREACH_ORIGINS_KEY]: map });
+}
+
+// Reads and forgets the LinkedIn tab that belongs to a WhatsApp / Gmail tab.
+async function takeOutreachOrigin(outreachTabId) {
+  if (!outreachTabId) return null;
+  const data = await chrome.storage.local.get(OUTREACH_ORIGINS_KEY);
+  const map = data[OUTREACH_ORIGINS_KEY] && typeof data[OUTREACH_ORIGINS_KEY] === "object" ? data[OUTREACH_ORIGINS_KEY] : null;
+  const entry = map ? map[String(outreachTabId)] : null;
+  if (!entry) return null;
+  delete map[String(outreachTabId)];
+  await chrome.storage.local.set({ [OUTREACH_ORIGINS_KEY]: map });
+  return entry;
+}
+
+async function returnToTab(tabId) {
+  if (!tabId) return false;
+  try {
+    const tab = await chrome.tabs.get(tabId); // throws when the LinkedIn tab was closed
+    await chrome.tabs.update(tab.id, { active: true });
+    if (typeof tab.windowId === "number") await chrome.windows.update(tab.windowId, { focused: true });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+async function returnFromOutreachTab(outreachTabId) {
+  const origin = await takeOutreachOrigin(outreachTabId);
+  if (origin) await returnToTab(origin.originTabId);
+}
+
+// Closed by the extension after sending, by the Cancel button, or by the user: the result is the same.
+chrome.tabs.onRemoved.addListener((tabId) => {
+  void returnFromOutreachTab(tabId);
+});
 
 let activeOutreachTask = null;
 let activeEmailOutreachTask = null;
@@ -2170,7 +2383,7 @@ async function saveLeadToStorage(lead) {
   return { success: true, lead: leadRecord };
 }
 
-async function handleDispatchWhatsApp(lead) {
+async function handleDispatchWhatsApp(lead, sender) {
   const { waSettings, contactedPhones = [] } = await chrome.storage.local.get(['waSettings', 'contactedPhones']);
   const settings = waSettings || DEFAULT_WA_SETTINGS;
   const cleanPhone = cleanPhoneNumber(lead.phone);
@@ -2178,7 +2391,10 @@ async function handleDispatchWhatsApp(lead) {
     throw new Error('Invalid phone number: ' + lead.phone);
   }
 
-  let text = settings.messageTemplate || DEFAULT_WA_SETTINGS.messageTemplate;
+  let text = stripBuiltInOutreachText("wa", settings).messageTemplate || "";
+  if (!text.trim()) {
+    throw new Error("Write your WhatsApp message in your dashboard first (Auto Apply > Messages).");
+  }
   text = text.replace(/{name}/g, lead.recruiterName || 'Hiring Manager');
   text = text.replace(/{job_title}/g, lead.jobTitle || 'Engineer');
   text = text.replace(/{company}/g, lead.company || 'your team');
@@ -2192,6 +2408,7 @@ async function handleDispatchWhatsApp(lead) {
 
   // Strict single-tab policy: close any prior WhatsApp outreach tab before opening next
   if (activeOutreachTask && activeOutreachTask.tabId) {
+    await takeOutreachOrigin(activeOutreachTask.tabId); // replacing it: do not jump back to LinkedIn in between
     try {
       await chrome.tabs.remove(activeOutreachTask.tabId);
     } catch {
@@ -2212,8 +2429,14 @@ async function handleDispatchWhatsApp(lead) {
     startTime: Date.now()
   };
 
-  const tab = await chrome.tabs.create({ url: waUrl, active: true });
+  const originTabId = sender?.tab?.id || null;
+  const tab = await chrome.tabs.create({
+    url: waUrl,
+    active: true,
+    ...(originTabId ? { openerTabId: originTabId, windowId: sender.tab.windowId } : {})
+  });
   activeOutreachTask.tabId = tab.id;
+  await rememberOutreachOrigin(tab.id, originTabId);
   return { success: true, tabId: tab.id, phone: cleanPhone };
 }
 
@@ -2272,8 +2495,10 @@ async function handleMessageSent(payload, sender) {
   const shouldClose = payload.autoClose !== false;
   if (shouldClose && targetTabId) {
     setTimeout(() => {
-      chrome.tabs.remove(targetTabId).catch(() => {});
+      chrome.tabs.remove(targetTabId).catch(() => {}); // closing it brings the LinkedIn tab back
     }, 1000);
+  } else if (targetTabId) {
+    setTimeout(() => void returnFromOutreachTab(targetTabId), 800);
   }
 
   activeOutreachTask = null;
@@ -2316,7 +2541,7 @@ async function saveEmailLeadToStorage(lead) {
   return { success: true, lead: leadRecord };
 }
 
-async function handleDispatchEmail(payload) {
+async function handleDispatchEmail(payload, sender) {
   const lead = payload?.lead || payload;
   const { emailSettings, contactedEmails = [] } = await chrome.storage.local.get(['emailSettings', 'contactedEmails']);
   const settings = emailSettings || DEFAULT_EMAIL_SETTINGS;
@@ -2327,13 +2552,17 @@ async function handleDispatchEmail(payload) {
 
   const clientMode = payload?.client || settings.emailClient || 'gmail_web';
 
-  let subject = payload?.subjectTemplate || settings.subjectTemplate || DEFAULT_EMAIL_SETTINGS.subjectTemplate;
+  const cleanEmailSettings = stripBuiltInOutreachText("email", settings);
+  let subject = payload?.subjectTemplate || cleanEmailSettings.subjectTemplate || "";
   subject = subject.replace(/{name}/g, lead.recruiterName || 'Hiring Manager');
   subject = subject.replace(/{job_title}/g, lead.jobTitle || 'Developer');
   subject = subject.replace(/{company}/g, lead.company || 'your team');
   subject = subject.replace(/{email}/g, cleanEmail);
 
-  let body = payload?.messageTemplate || settings.messageTemplate || DEFAULT_EMAIL_SETTINGS.messageTemplate;
+  let body = payload?.messageTemplate || cleanEmailSettings.messageTemplate || "";
+  if (!subject.trim() || !body.trim()) {
+    throw new Error("Write your email subject and message in your dashboard first (Auto Apply > Messages).");
+  }
   body = body.replace(/{name}/g, lead.recruiterName || 'Hiring Manager');
   body = body.replace(/{job_title}/g, lead.jobTitle || 'Developer');
   body = body.replace(/{company}/g, lead.company || 'your team');
@@ -2341,6 +2570,7 @@ async function handleDispatchEmail(payload) {
 
   // Strict single-tab policy: close any prior Email outreach tab before opening next
   if (activeEmailOutreachTask && activeEmailOutreachTask.tabId) {
+    await takeOutreachOrigin(activeEmailOutreachTask.tabId);
     try {
       await chrome.tabs.remove(activeEmailOutreachTask.tabId);
     } catch {
@@ -2363,8 +2593,14 @@ async function handleDispatchEmail(payload) {
   let targetUrl = '';
   if (clientMode === 'gmail_web') {
     targetUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(cleanEmail)}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-    const tab = await chrome.tabs.create({ url: targetUrl, active: true });
+    const originTabId = sender?.tab?.id || null;
+    const tab = await chrome.tabs.create({
+      url: targetUrl,
+      active: true,
+      ...(originTabId ? { openerTabId: originTabId, windowId: sender.tab.windowId } : {})
+    });
     activeEmailOutreachTask.tabId = tab.id;
+    await rememberOutreachOrigin(tab.id, originTabId);
     // content_gmail.js will handle auto-send and send EMAIL_MESSAGE_SENT
     return { success: true, tabId: tab.id, email: cleanEmail, client: 'gmail_web' };
   } else {
@@ -2436,8 +2672,10 @@ async function handleEmailMessageSent(payload, sender) {
   const shouldClose = payload?.autoClose !== undefined ? payload.autoClose : (activeEmailOutreachTask ? activeEmailOutreachTask.autoClose : false);
   if (shouldClose && sender && sender.tab && sender.tab.id) {
     setTimeout(() => {
-      chrome.tabs.remove(sender.tab.id).catch(() => {});
+      chrome.tabs.remove(sender.tab.id).catch(() => {}); // closing it brings the LinkedIn tab back
     }, 1400);
+  } else if (sender && sender.tab && sender.tab.id) {
+    setTimeout(() => void returnFromOutreachTab(sender.tab.id), 800);
   }
 
   activeEmailOutreachTask = null;
@@ -2519,15 +2757,15 @@ chrome.runtime.onInstalled.addListener(async () => {
     cpFailedHistory: Array.isArray(existing.cpFailedHistory) ? existing.cpFailedHistory : [],
     cpExternalHistory: Array.isArray(existing.cpExternalHistory) ? existing.cpExternalHistory : [],
     cpSkippedHistory: Array.isArray(existing.cpSkippedHistory) ? existing.cpSkippedHistory : [],
-    waSettings: existing.waSettings ? { ...DEFAULT_WA_SETTINGS, ...existing.waSettings } : DEFAULT_WA_SETTINGS,
+    waSettings: stripBuiltInOutreachText("wa", { ...DEFAULT_WA_SETTINGS, ...(existing.waSettings || {}) }),
     waLeads: Array.isArray(existing.waLeads) ? existing.waLeads : [],
     contactedPhones: Array.isArray(existing.contactedPhones) ? existing.contactedPhones : [],
     contactedLog: Array.isArray(existing.contactedLog) ? existing.contactedLog : [],
-    emailSettings: existing.emailSettings ? { ...DEFAULT_EMAIL_SETTINGS, ...existing.emailSettings } : DEFAULT_EMAIL_SETTINGS,
+    emailSettings: stripBuiltInOutreachText("email", { ...DEFAULT_EMAIL_SETTINGS, ...(existing.emailSettings || {}) }),
     emailLeads: Array.isArray(existing.emailLeads) ? existing.emailLeads : [],
     contactedEmails: Array.isArray(existing.contactedEmails) ? existing.contactedEmails : [],
     contactedEmailLog: Array.isArray(existing.contactedEmailLog) ? existing.contactedEmailLog : [],
-    autoCommentSettings: existing.autoCommentSettings ? { ...DEFAULT_AC_SETTINGS, ...existing.autoCommentSettings } : DEFAULT_AC_SETTINGS,
+    autoCommentSettings: stripBuiltInOutreachText("comment", { ...DEFAULT_AC_SETTINGS, ...(existing.autoCommentSettings || {}) }),
     totalCommentedCount: typeof existing.totalCommentedCount === 'number' ? existing.totalCommentedCount : 0,
     commentedUrns: Array.isArray(existing.commentedUrns) ? existing.commentedUrns : [],
     [JSO_STORAGE_KEY]: Array.isArray(existing[JSO_STORAGE_KEY]) ? existing[JSO_STORAGE_KEY] : [],
@@ -2540,6 +2778,14 @@ chrome.runtime.onInstalled.addListener(async () => {
 });
 
 chrome.alarms.onAlarm.addListener(async (alarm) => {
+  if (alarm.name === ANSWER_UPLOAD_ALARM) {
+    try {
+      await flushAnswerUploads();
+    } catch {
+      // retried on the next alarm
+    }
+    return;
+  }
   if (alarm.name !== "cpPortalAnswerPoll") return;
   try {
     const snap = await chrome.storage.local.get("cpPendingQuestions");
@@ -2558,6 +2804,7 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   (async () => {
     if (!message || !message.type) return;
+
 
     if (message.type === "CP_GET_SELECTORS") {
       const selectors = await getRemoteSelectors();
@@ -2984,6 +3231,16 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       return;
     }
 
+    if (message.type === "CP_GET_OUTREACH_SETTINGS") {
+      sendResponse({ ok: true, settings: await loadOutreachSettings() });
+      return;
+    }
+
+    if (message.type === "CP_SAVE_OUTREACH_SETTINGS") {
+      sendResponse({ ok: true, settings: await saveOutreachSettings(message.settings || {}) });
+      return;
+    }
+
     if (message.type === "CP_LOAD_SETTINGS") {
       sendResponse({ ok: true, settings: await getSettings() });
       return;
@@ -3016,13 +3273,23 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         const key = String(q.questionKey || "").trim();
         const label = String(q.questionLabel || "").trim();
         if (!key || !label) continue;
-        if (!merged.find((m) => String(m.questionKey) === key)) {
-          merged.push({
-            questionKey: key,
-            questionLabel: label,
-            validationMessage: String(q.validationMessage || "").trim(),
-            createdAt: nowIso()
-          });
+        const details = {
+          validationMessage: String(q.validationMessage || "").trim(),
+          fieldType: String(q.fieldType || "").trim().slice(0, 30),
+          options: Array.isArray(q.options) ? q.options.map((o) => String(o || "").trim().slice(0, 120)).filter(Boolean).slice(0, 40) : [],
+          hint: String(q.hint || "").trim().slice(0, 160),
+          rejectedAnswer: String(q.rejectedAnswer || "").trim().slice(0, 300)
+        };
+        const existing = merged.find((m) => String(m.questionKey) === key);
+        if (!existing) {
+          merged.push({ questionKey: key, questionLabel: label, ...details, createdAt: nowIso() });
+        } else {
+          // Asked again (for example LinkedIn rejected the answer): keep the newest message and field details.
+          existing.validationMessage = details.validationMessage || existing.validationMessage || "";
+          existing.rejectedAnswer = details.rejectedAnswer;
+          if (details.fieldType) existing.fieldType = details.fieldType;
+          if (details.options.length) existing.options = details.options;
+          if (details.hint) existing.hint = details.hint;
         }
       }
       await chrome.storage.local.set({ cpPendingQuestions: merged });
@@ -3059,6 +3326,11 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         }
       };
       await chrome.storage.local.set({ cpSettings: nextSettings });
+      if (message.fromPanel) {
+        // Saved on the account too (so the dashboard shows it and it is used for future jobs); retried until it lands.
+        await queueAnswerUpload({ questionKey, questionLabel, answer, answerType: String(message.answerType || "") });
+        void flushAnswerUploads();
+      }
 
       const { cpPendingQuestions } = await chrome.storage.local.get("cpPendingQuestions");
       const nextQuestions = (Array.isArray(cpPendingQuestions) ? cpPendingQuestions : []).filter(
@@ -3208,7 +3480,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         sendResponse({ success: false, reason: allowance.reason, error: allowance.error, topUpUrl: allowance.topUpUrl });
         return;
       }
-      const result = await handleDispatchWhatsApp(message.payload);
+      const result = await handleDispatchWhatsApp(message.payload, sender);
       sendResponse(result);
       return;
     }
@@ -3284,7 +3556,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message.type === "WA_GET_STATUS" || (message.type === "GET_STATUS" && message.module === "wa")) {
       const data = await chrome.storage.local.get(['waSettings', 'waLeads', 'contactedPhones', 'contactedLog', 'duplicateStats']);
       sendResponse({
-        settings: data.waSettings || DEFAULT_WA_SETTINGS,
+        settings: stripBuiltInOutreachText("wa", { ...DEFAULT_WA_SETTINGS, ...(data.waSettings || {}) }),
         totalLeads: (data.waLeads || []).length,
         contactedCount: (data.contactedPhones || []).length,
         contactedLog: data.contactedLog || [],
@@ -3317,7 +3589,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
           return;
         }
       }
-      const result = await handleDispatchEmail(message.payload);
+      const result = await handleDispatchEmail(message.payload, sender);
       sendResponse(result);
       return;
     }
@@ -3361,7 +3633,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message.type === "EMAIL_GET_STATUS" || (message.type === "GET_STATUS" && message.module === "email")) {
       const data = await chrome.storage.local.get(['emailSettings', 'emailLeads', 'contactedEmails', 'contactedEmailLog', 'duplicateEmailStats']);
       sendResponse({
-        settings: data.emailSettings || DEFAULT_EMAIL_SETTINGS,
+        settings: stripBuiltInOutreachText("email", { ...DEFAULT_EMAIL_SETTINGS, ...(data.emailSettings || {}) }),
         totalLeads: (data.emailLeads || []).length,
         contactedCount: (data.contactedEmails || []).length,
         contactedLog: data.contactedEmailLog || [],
@@ -3382,7 +3654,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       const data = await chrome.storage.local.get(['autoCommentSettings', 'totalCommentedCount', 'commentedUrns']);
       sendResponse({
         state: acAppState,
-        settings: data.autoCommentSettings || DEFAULT_AC_SETTINGS,
+        settings: stripBuiltInOutreachText("comment", { ...DEFAULT_AC_SETTINGS, ...(data.autoCommentSettings || {}) }),
         totalCount: data.totalCommentedCount || 0,
         savedUrnsCount: (data.commentedUrns || []).length,
         debugLogs: acAppState.debugLogs

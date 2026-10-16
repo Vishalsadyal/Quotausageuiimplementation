@@ -174,10 +174,18 @@ function getActiveRunSearchUrl(settings) {
   const dateParam = datePostedToLinkedInParam(settings?.datePosted || "");
   const sortParam = sortByToLinkedInParam(settings?.sortBy || "");
   const workplaceParam = onSiteToLinkedInParam(settings?.onSite || "");
+  const distanceParam = searchRadiusToLinkedInParam(settings?.distance);
   if (dateParam) url.searchParams.set("f_TPR", dateParam);
   if (sortParam) url.searchParams.set("sortBy", sortParam);
   if (workplaceParam) url.searchParams.set("f_WT", workplaceParam);
+  if (distanceParam) url.searchParams.set("distance", distanceParam);
   return url.toString();
+}
+
+// LinkedIn takes the search radius in miles (it shows kilometres in some countries: 25 miles = 40 km).
+function searchRadiusToLinkedInParam(value) {
+  const miles = String(value ?? "").trim();
+  return ["5", "10", "25", "50", "100"].includes(miles) ? miles : "";
 }
 
 function datePostedToLinkedInParam(value) {
@@ -334,6 +342,10 @@ function buildCanonicalSearchUrl(settings, options = {}) {
 
   if (workplaceParam) url.searchParams.set("f_WT", workplaceParam);
   else url.searchParams.delete("f_WT");
+
+  // Only override the radius when one is chosen; otherwise LinkedIn's default stays.
+  const distanceParam = searchRadiusToLinkedInParam(settings?.distance);
+  if (distanceParam) url.searchParams.set("distance", distanceParam);
 
   if (settings?.easyApplyOnly !== false) {
     url.searchParams.set("f_AL", "true");

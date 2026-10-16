@@ -7,6 +7,7 @@ import {
   ChevronRight,
   Download,
   ExternalLink,
+  FileText,
   Loader2,
   Plus,
   Play,
@@ -20,6 +21,7 @@ import { useAuth } from "../../context/AuthContext";
 import { ExtensionInstallGuide, type ExtensionInstallGuideStep } from "../../components/ExtensionInstallGuide";
 import { getExtensionProviderConfig } from "src/lib/extension-providers";
 import { clearPendingResume, readHeroLead, readPendingResume } from "src/lib/heroLead";
+import { looksLikeAnswerList } from "src/lib/screening-groups";
 import { collectExtensionBridgeSnapshot } from "src/lib/extension-bridge-client";
 import {
   DASHBOARD_TOUR_EVENT_NAME,
@@ -346,7 +348,7 @@ function inferAnswerType(answer: string): ScreeningAnswerType {
   const lower = value.toLowerCase();
   if (lower === "yes" || lower === "no") return "boolean";
   if (/^\d+(\.\d+)?$/.test(value)) return "number";
-  if (value.includes(",")) return "multiselect";
+  if (looksLikeAnswerList(value)) return "multiselect";
   return "text";
 }
 
@@ -1396,12 +1398,22 @@ export default function Onboarding() {
       setScreeningRows(customRows.sort((a, b) => a.questionLabel.localeCompare(b.questionLabel)));
       setPendingQuestions(nextPending);
       setAnswerDrafts(suggestedDrafts);
-      setWizardStep(
-        typeof savedProgress?.currentStep === "number"
-          ? Math.max(0, Math.min(WIZARD_STEPS.length - 1, Math.floor(savedProgress.currentStep)))
-          : 0,
-      );
-      setProfileQuestionIndex(typeof savedProgress?.profileQuestionIndex === "number" ? Math.max(0, Math.floor(savedProgress.profileQuestionIndex)) : 0);
+      if (typeof savedProgress?.currentStep === "number") {
+        setWizardStep(Math.max(0, Math.min(WIZARD_STEPS.length - 1, Math.floor(savedProgress.currentStep))));
+        setProfileQuestionIndex(typeof savedProgress?.profileQuestionIndex === "number" ? Math.max(0, Math.floor(savedProgress.profileQuestionIndex)) : 0);
+      } else {
+        // First visit: open at the first key detail the resume didn't give (step, question index).
+        const [firstStep, firstQuestion] =
+          !nextProfile.fullName ? [0, 0]
+          : !extractPhoneNumber(nextProfile.phone) ? [0, 1]
+          : !nextProfile.city ? [0, 3]
+          : !nextProfile.yearsOfExperience ? [2, 0]
+          : !nextPreferences.searchTerms.length ? [3, 0]
+          : [0, 0];
+        setWizardStep(firstStep);
+        setActiveTab(WIZARD_STEPS[firstStep].tab);
+        setProfileQuestionIndex(firstQuestion);
+      }
       setDraftSavedAt(String(savedProgress?.savedAt || ""));
       setLastSyncAt(timestamps[timestamps.length - 1] || "");
     } catch (loadError) {
@@ -1813,48 +1825,48 @@ export default function Onboarding() {
           isComplete: () => true,
           render: () => (
             <div className="space-y-4">
-              <div className="flex flex-wrap items-center justify-between gap-3 p-4 bg-gradient-to-r from-indigo-50 via-purple-50 to-pink-50 border border-indigo-100/80 rounded-xl shadow-xs">
+              <div className="flex flex-wrap items-center justify-between gap-3 p-3.5 bg-gradient-to-r from-indigo-50 via-purple-50 to-pink-50 border border-indigo-100/80 rounded-xl shadow-xs">
                 <div>
                   <h4 className="text-xs font-bold uppercase tracking-wider text-indigo-950 flex items-center gap-1.5">
                     <Sparkles className="w-4 h-4 text-indigo-600" />
-                    Groq AI 100-Keyword & Profile Generator
+                    AI Resume Keyword Engine
                   </h4>
-                  <p className="text-xs text-indigo-800/80 mt-0.5 max-w-md">
-                    Extracts up to 100 high-converting search keywords, stack synonyms, and an ATS profile description directly from your resume.
+                  <p className="text-[11px] text-indigo-800/80 mt-0.5 max-w-md">
+                    Target titles, 1-word tags, 2-word combos, core stack, and danger/skip keywords are automatically tailored from your resume.
                   </p>
                 </div>
                 <button
                   type="button"
                   disabled={isGeneratingAiProfile}
                   onClick={handleAutoGenerateProfileWithGroq}
-                  className="px-4 py-2 rounded-lg bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white text-xs font-bold inline-flex items-center gap-2 shadow-sm transition-all hover:shadow-md disabled:opacity-60 cursor-pointer"
+                  className="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-[11px] font-bold inline-flex items-center gap-1.5 shadow-2xs transition-all disabled:opacity-60 cursor-pointer"
                 >
                   {isGeneratingAiProfile ? (
                     <>
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                      Generating 100 Keywords...
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      Updating...
                     </>
                   ) : (
                     <>
-                      <Sparkles className="w-4 h-4" />
-                      Auto-Generate 100 Keywords (Groq AI)
+                      <Sparkles className="w-3.5 h-3.5" />
+                      Re-generate with AI
                     </>
                   )}
                 </button>
               </div>
 
               {aiProfileGeneratedMsg && (
-                <div className="p-3 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs flex items-center gap-2">
+                <div className="p-2.5 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs flex items-center gap-2">
                   <Check className="w-4 h-4 text-emerald-600 flex-shrink-0" />
                   <span className="font-medium">{aiProfileGeneratedMsg}</span>
                 </div>
               )}
 
               <TagInput
-                label="Preferred Job Titles / Search Terms (Active Rotation)"
+                label="Target Job Titles / Search Terms"
                 values={preferences.searchTerms}
                 onChange={(values) => setPreferences((prev) => ({ ...prev, searchTerms: values }))}
-                placeholder="Add role or keyword and press Enter"
+                placeholder="Add role title and press Enter (e.g. Frontend Developer)"
               />
 
               <div className="space-y-1.5">
@@ -1873,48 +1885,15 @@ export default function Onboarding() {
                     setProfile((prev) => ({ ...prev, summary: val }));
                     void saveAnswer("description", "Professional Description / Summary", val, "text", "manual");
                   }}
-                  placeholder="E.g. Experienced Full Stack & WordPress Developer with 5+ years building custom themes, plugins, APIs, and scalable web apps..."
+                  placeholder="Tailored ATS summary generated from your resume..."
                   className="w-full rounded-lg border border-slate-200 bg-white p-3 text-xs text-slate-800 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 outline-none leading-relaxed"
                 />
               </div>
 
-              {generatedKeywords.length > 0 && (
-                <div className="space-y-2 pt-2 border-t border-slate-100">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-slate-700">
-                      Extracted Resume Keywords & Skills ({generatedKeywords.length})
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setPreferences((prev) => ({
-                          ...prev,
-                          searchTerms: Array.from(new Set([...prev.searchTerms, ...generatedKeywords])),
-                        }));
-                      }}
-                      className="text-xs text-indigo-600 hover:text-indigo-800 font-semibold"
-                    >
-                      + Add all to search terms
-                    </button>
-                  </div>
-                  <div className="flex flex-wrap gap-1.5 max-h-36 overflow-y-auto p-2 bg-slate-50 border border-slate-100 rounded-lg">
-                    {generatedKeywords.map((kw) => (
-                      <span
-                        key={kw}
-                        onClick={() => {
-                          if (!preferences.searchTerms.includes(kw)) {
-                            setPreferences((prev) => ({ ...prev, searchTerms: [...prev.searchTerms, kw] }));
-                          }
-                        }}
-                        className="inline-flex items-center text-[11px] bg-white border border-slate-200 text-slate-700 px-2 py-0.5 rounded cursor-pointer hover:bg-indigo-50 hover:text-indigo-700 hover:border-indigo-200 transition-colors"
-                        title="Click to add to search terms"
-                      >
-                        + {kw}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
+              <div className="p-2.5 rounded-lg bg-slate-50 border border-slate-200/80 text-[11px] text-slate-600 flex items-center justify-between">
+                <span>🛡️ Danger / skip keywords (e.g. unpaid, internship) &amp; technical stack phrases are configured in the background.</span>
+                <span className="font-semibold text-indigo-600">Active</span>
+              </div>
             </div>
           ),
         },
@@ -2089,6 +2068,9 @@ export default function Onboarding() {
 
   const validateBeforeSave = () => {
     const nextErrors: Record<string, string> = {};
+    if (!user?.resumeFileName && !profile.resumeUrl.trim()) {
+      nextErrors.resume = "Please upload your resume (PDF/DOCX) for auto-applying to jobs.";
+    }
     if (!profile.fullName || profile.fullName.trim().length < 2) {
       nextErrors.fullName = "Full name is required (at least 2 characters).";
     }
@@ -2096,6 +2078,18 @@ export default function Onboarding() {
       nextErrors.phone = "Phone number is required.";
     } else if (extractPhoneNumber(profile.phone).length < 6) {
       nextErrors.phone = "Enter a valid phone number (at least 6 digits).";
+    }
+    if (!profile.city || !profile.city.trim()) {
+      nextErrors.city = "Current city is required for job location matching.";
+    }
+    const expVal = String(profile.yearsOfExperience || preferences.yearsOfExperience || "").trim();
+    if (!expVal) {
+      nextErrors.yearsOfExperience = "Total years of experience is required.";
+    } else if (isNaN(Number(expVal)) || Number(expVal) < 0) {
+      nextErrors.yearsOfExperience = "Enter a valid number of years (e.g. 0, 2, 5).";
+    }
+    if (!profile.visaSponsorship) {
+      nextErrors.visaSponsorship = "Visa sponsorship status is required.";
     }
     if (profile.linkedinUrl && profile.linkedinUrl.trim() && !isValidUrl(profile.linkedinUrl)) {
       nextErrors.linkedinUrl = "Enter a valid URL (e.g. https://linkedin.com/in/username).";
@@ -2115,8 +2109,12 @@ export default function Onboarding() {
 
     setFieldErrors(nextErrors);
     const orderedKeys = [
+      "resume",
       "fullName",
       "phone",
+      "city",
+      "yearsOfExperience",
+      "visaSponsorship",
       "linkedinUrl",
       "portfolioUrl",
       "searchTerms",
@@ -2462,6 +2460,7 @@ export default function Onboarding() {
 
       const extracted = data?.data?.extracted || {};
       parsedDataRef.current = extracted;
+      clearFieldError("resume");
       setMessage("Resume parsed successfully!");
       setUploading(false);
       setParsingStatus("parsing");
@@ -2469,6 +2468,7 @@ export default function Onboarding() {
       const revealSequence: Array<{ key: string; apply: () => void }> = [];
 
       if (extracted.name) {
+        clearFieldError("fullName");
         revealSequence.push({
           key: "name",
           apply: () => setProfile((p) => ({ ...p, fullName: extracted.name, firstName: splitName(extracted.name).firstName, lastName: splitName(extracted.name).lastName })),
@@ -2481,12 +2481,14 @@ export default function Onboarding() {
         });
       }
       if (extracted.phone) {
+        clearFieldError("phone");
         revealSequence.push({
           key: "phone",
           apply: () => setProfile((p) => ({ ...p, phone: extracted.phone })),
         });
       }
       if (extracted.city || extracted.state || extracted.country) {
+        if (extracted.city) clearFieldError("city");
         revealSequence.push({
           key: "location",
           apply: () => {
@@ -2497,12 +2499,18 @@ export default function Onboarding() {
         });
       }
       if (extracted.yearsOfExperience) {
+        clearFieldError("yearsOfExperience");
         revealSequence.push({
           key: "experience",
-          apply: () => setProfile((p) => ({ ...p, yearsOfExperience: extracted.yearsOfExperience })),
+          apply: () => {
+            const exp = String(extracted.yearsOfExperience);
+            setProfile((p) => ({ ...p, yearsOfExperience: exp }));
+            setPreferences((p) => ({ ...p, yearsOfExperience: exp }));
+          },
         });
       }
       if (extracted.jobTitles) {
+        clearFieldError("searchTerms");
         revealSequence.push({
           key: "titles",
           apply: () => {
@@ -2527,6 +2535,17 @@ export default function Onboarding() {
         });
       }
 
+      if (extracted.screeningAnswers?.require_visa_sponsorship) {
+        const v = extracted.screeningAnswers.require_visa_sponsorship === "Yes" ? "Yes" : "No";
+        setProfile((p) => ({ ...p, visaSponsorship: v }));
+        clearFieldError("visaSponsorship");
+      } else if (extracted.workAuthorization) {
+        const isSponsorshipNeeded = /sponsorship/i.test(extracted.workAuthorization) && !/without sponsorship/i.test(extracted.workAuthorization);
+        const v = isSponsorshipNeeded ? "Yes" : "No";
+        setProfile((p) => ({ ...p, visaSponsorship: v }));
+        clearFieldError("visaSponsorship");
+      }
+
       for (let i = 0; i < revealSequence.length; i++) {
         await new Promise((r) => setTimeout(r, 400));
         revealSequence[i].apply();
@@ -2538,8 +2557,62 @@ export default function Onboarding() {
       setParsingStatus("done");
       const kwsCount = (Array.isArray(extracted.jobTitles) ? extracted.jobTitles.length : 0) + (Array.isArray(extracted.skills) ? extracted.skills.length : 0);
       setAiProfileGeneratedMsg(`✨ Groq AI extracted ${kwsCount || 100} keywords and generated your search profile!`);
-      setMessage(`Resume uploaded! Generated ${kwsCount || 100} search keywords & profile description with Groq AI.`);
       await refreshUser();
+
+      // Check for any missing required data
+      const finalName = String(extracted.name || profile.fullName || "").trim();
+      const finalPhone = String(extracted.phone || profile.phone || "").trim();
+      const finalCity = String(extracted.city || profile.city || "").trim();
+      const finalExp = String(extracted.yearsOfExperience || profile.yearsOfExperience || preferences.yearsOfExperience || "").trim();
+      const finalTitles = (Array.isArray(extracted.jobTitles) && extracted.jobTitles.length > 0)
+        ? extracted.jobTitles
+        : preferences.searchTerms;
+      const finalVisa = String(
+        profile.visaSponsorship ||
+        (extracted.screeningAnswers?.require_visa_sponsorship
+          ? (extracted.screeningAnswers.require_visa_sponsorship === "Yes" ? "Yes" : "No")
+          : "")
+      ).trim();
+
+      const missing: Array<{ key: string; label: string; errorMsg: string }> = [];
+      if (!finalName || finalName.length < 2) {
+        missing.push({ key: "fullName", label: "Full Name", errorMsg: "Full name was not found. Please enter it." });
+      }
+      if (!finalPhone || extractPhoneNumber(finalPhone).length < 6) {
+        missing.push({ key: "phone", label: "Phone Number", errorMsg: "Phone number was not found on your resume. Please enter it." });
+      }
+      if (!finalCity) {
+        missing.push({ key: "city", label: "Current City", errorMsg: "Current city is missing. Please enter it for location matching." });
+      }
+      if (!finalExp || isNaN(Number(finalExp)) || Number(finalExp) < 0) {
+        missing.push({ key: "yearsOfExperience", label: "Years of Experience", errorMsg: "Please specify your total years of experience." });
+      }
+      if (!finalVisa) {
+        missing.push({ key: "visaSponsorship", label: "Visa Sponsorship Status", errorMsg: "Please select your visa sponsorship status." });
+      }
+      if (!finalTitles || finalTitles.length === 0) {
+        missing.push({ key: "searchTerms", label: "Target Job Titles", errorMsg: "Please specify at least one target job title." });
+      }
+
+      setExtLocationsRaw(preferences.searchLocations.join(", "));
+      setExtSearchTermsRaw(finalTitles.join(", "));
+
+      // Automatically transition to the onboarding form to review or fill missing details
+      await new Promise((r) => setTimeout(r, 600));
+      setShowingExtensionPrefs(true);
+
+      if (missing.length > 0) {
+        const nextErrors: Record<string, string> = {};
+        for (const m of missing) {
+          nextErrors[m.key] = m.errorMsg;
+        }
+        setFieldErrors(nextErrors);
+        setError(`Resume parsed! Please fill in the missing required fields (${missing.map((m) => m.label).join(", ")}) below to finish setup.`);
+        focusField(missing[0].key);
+      } else {
+        await saveDraft();
+        setMessage(`Resume parsed successfully! All required details found. Review your preferences and click Finish.`);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Upload failed");
       setParsingStatus("idle");
@@ -2660,12 +2733,15 @@ export default function Onboarding() {
                           <UploadCloud className="h-7 w-7 text-indigo-500" />
                         </div>
                         <div>
-                          <p className="text-base font-semibold text-slate-800">
-                            Upload your resume
+                          <p className="text-base font-semibold text-slate-800 flex items-center justify-center gap-1.5">
+                            Upload your resume <span className="text-red-500">*</span>
                           </p>
                           <p className="text-sm text-slate-400 mt-1">
                             Drag & drop or click to browse · PDF, DOCX, TXT
                           </p>
+                          <span className="inline-block mt-2 text-[11px] font-semibold text-indigo-700 bg-indigo-50 border border-indigo-100 px-2.5 py-0.5 rounded-full">
+                            Required for Easy Apply Automation
+                          </span>
                         </div>
                       </div>
                     )}
@@ -2801,11 +2877,65 @@ export default function Onboarding() {
                     Applicant Details
                   </h3>
                   <span className="text-[11px] font-medium text-slate-400">
-                    Required for Auto-Fill & Easy Apply
+                    Fields with <span className="text-red-500 font-bold">*</span> are required for Easy Apply
                   </span>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                {/* Resume Document Status Card */}
+                <div
+                  ref={(el) => { fieldRefs.current.resume = el; }}
+                  className={`p-3.5 rounded-xl border transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
+                    fieldErrors.resume
+                      ? "border-red-500 bg-red-50/30 ring-2 ring-red-100"
+                      : user?.resumeFileName || profile.resumeUrl
+                      ? "border-emerald-200 bg-emerald-50/40"
+                      : "border-amber-200 bg-amber-50/40"
+                  }`}
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${
+                      user?.resumeFileName || profile.resumeUrl
+                        ? "bg-emerald-100 text-emerald-700"
+                        : "bg-amber-100 text-amber-700"
+                    }`}>
+                      <FileText className="w-5 h-5" />
+                    </div>
+                    <div className="min-w-0">
+                      <div className="text-xs font-bold text-slate-800 flex items-center gap-1.5 truncate">
+                        <span>Resume Document <span className="text-red-500">*</span></span>
+                        {user?.resumeFileName || profile.resumeUrl ? (
+                          <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full">
+                            <CheckCircle2 className="w-3 h-3" /> Ready
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full">
+                            Required
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-xs text-slate-500 truncate mt-0.5">
+                        {user?.resumeFileName || profile.resumeUrl || "Upload your resume so the bot can attach it to applications."}
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={uploading}
+                    className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 bg-white text-xs font-semibold text-slate-700 hover:bg-slate-50 shadow-2xs shrink-0 cursor-pointer disabled:opacity-50"
+                  >
+                    {uploading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <UploadCloud className="w-3.5 h-3.5" />}
+                    {user?.resumeFileName || profile.resumeUrl ? "Replace Resume" : "Upload Resume (PDF)"}
+                  </button>
+                </div>
+                {fieldErrors.resume && (
+                  <p className="text-xs text-red-600 font-medium flex items-center gap-1 -mt-2">
+                    <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                    {fieldErrors.resume}
+                  </p>
+                )}
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5 pt-1">
                   {/* Full Name */}
                   <div className="space-y-1.5">
                     <label className="text-sm font-semibold text-slate-700 flex items-center justify-between">
@@ -2862,6 +2992,102 @@ export default function Onboarding() {
                     )}
                   </div>
 
+                  {/* Current City / Base Location */}
+                  <div className="space-y-1.5">
+                    <label className="text-sm font-semibold text-slate-700 flex items-center justify-between">
+                      <span>Current City / Location <span className="text-red-500">*</span></span>
+                    </label>
+                    <input
+                      ref={(el) => { fieldRefs.current.city = el; }}
+                      type="text"
+                      value={profile.city}
+                      onChange={(e) => {
+                        setProfile((p) => ({ ...p, city: e.target.value }));
+                        clearFieldError("city");
+                      }}
+                      placeholder="e.g. New York, NY"
+                      className={`w-full rounded-lg border bg-white px-3 py-2.5 text-sm placeholder:text-slate-400 transition-colors ${
+                        fieldErrors.city
+                          ? "border-red-500 ring-2 ring-red-100 bg-red-50/10 text-red-900 focus:outline-none focus:ring-2 focus:ring-red-300"
+                          : "border-slate-200 text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                      }`}
+                    />
+                    {fieldErrors.city ? (
+                      <p className="text-xs text-red-600 font-medium flex items-center gap-1 mt-1">
+                        <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                        {fieldErrors.city}
+                      </p>
+                    ) : (
+                      <p className="text-xs text-slate-400">Used to match local or hybrid job listings</p>
+                    )}
+                  </div>
+
+                  {/* Total Experience (Years) */}
+                  <div className="space-y-1.5">
+                    <label className="text-sm font-semibold text-slate-700 flex items-center justify-between">
+                      <span>Total Experience (Years) <span className="text-red-500">*</span></span>
+                    </label>
+                    <input
+                      ref={(el) => { fieldRefs.current.yearsOfExperience = el; }}
+                      type="number"
+                      min="0"
+                      step="1"
+                      value={profile.yearsOfExperience || preferences.yearsOfExperience || ""}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setProfile((p) => ({ ...p, yearsOfExperience: val }));
+                        setPreferences((p) => ({ ...p, yearsOfExperience: val }));
+                        clearFieldError("yearsOfExperience");
+                      }}
+                      placeholder="e.g. 4"
+                      className={`w-full rounded-lg border bg-white px-3 py-2.5 text-sm placeholder:text-slate-400 transition-colors ${
+                        fieldErrors.yearsOfExperience
+                          ? "border-red-500 ring-2 ring-red-100 bg-red-50/10 text-red-900 focus:outline-none focus:ring-2 focus:ring-red-300"
+                          : "border-slate-200 text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                      }`}
+                    />
+                    {fieldErrors.yearsOfExperience ? (
+                      <p className="text-xs text-red-600 font-medium flex items-center gap-1 mt-1">
+                        <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                        {fieldErrors.yearsOfExperience}
+                      </p>
+                    ) : (
+                      <p className="text-xs text-slate-400">Fills LinkedIn's "How many years of experience" questions</p>
+                    )}
+                  </div>
+
+                  {/* Need Visa Sponsorship */}
+                  <div className="space-y-1.5">
+                    <label className="text-sm font-semibold text-slate-700 flex items-center justify-between">
+                      <span>Need Visa Sponsorship? <span className="text-red-500">*</span></span>
+                    </label>
+                    <select
+                      ref={(el) => { fieldRefs.current.visaSponsorship = el; }}
+                      value={profile.visaSponsorship || "No"}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setProfile((p) => ({ ...p, visaSponsorship: val }));
+                        clearFieldError("visaSponsorship");
+                      }}
+                      className={`w-full rounded-lg border bg-white px-3 py-2.5 text-sm transition-colors ${
+                        fieldErrors.visaSponsorship
+                          ? "border-red-500 ring-2 ring-red-100 bg-red-50/10 text-red-900 focus:outline-none focus:ring-2 focus:ring-red-300"
+                          : "border-slate-200 text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                      }`}
+                    >
+                      <option value="No">No (Authorized to work without sponsorship)</option>
+                      <option value="Yes">Yes (Require visa sponsorship)</option>
+                    </select>
+                    {fieldErrors.visaSponsorship ? (
+                      <p className="text-xs text-red-600 font-medium flex items-center gap-1 mt-1">
+                        <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                        {fieldErrors.visaSponsorship}
+                      </p>
+                    ) : (
+                      <p className="text-xs text-slate-400">Answer for standard work authorization screening questions</p>
+                    )}
+                  </div>
+
                   {/* LinkedIn Profile URL */}
                   <div className="space-y-1.5">
                     <label className="text-sm font-semibold text-slate-700">
@@ -2893,23 +3119,8 @@ export default function Onboarding() {
                         {fieldErrors.linkedinUrl}
                       </p>
                     ) : (
-                      <p className="text-xs text-slate-400">Used for LinkedIn Easy Apply automation</p>
+                      <p className="text-xs text-slate-400">Optional · Used for LinkedIn Easy Apply automation</p>
                     )}
-                  </div>
-
-                  {/* Current City / Base Location */}
-                  <div className="space-y-1.5">
-                    <label className="text-sm font-semibold text-slate-700">
-                      Current City / Base Location
-                    </label>
-                    <input
-                      type="text"
-                      value={profile.city}
-                      onChange={(e) => setProfile((p) => ({ ...p, city: e.target.value }))}
-                      placeholder="e.g. New York, NY"
-                      className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-400"
-                    />
-                    <p className="text-xs text-slate-400">Used to match local or hybrid job listings</p>
                   </div>
                 </div>
               </div>

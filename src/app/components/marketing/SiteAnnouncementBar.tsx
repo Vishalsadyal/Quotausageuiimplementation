@@ -61,6 +61,9 @@ export function SiteAnnouncementBar() {
     };
     // The label already says "Special offer", so drop a repeated prefix from the admin text.
     const text = announcement.text.replace(/^\s*special offer\s*[:\-–]\s*/i, "");
+    const code = announcement.code?.trim();
+    const hasCodeInText = Boolean(code && text.toLowerCase().includes(code.toLowerCase()));
+    const displayText = !hasCodeInText && code ? `${text.replace(/\.+$/, "")} with code ${code}.` : text;
     const label = (
       <>
         {announcement.ctaLabel} <ArrowRight className="w-3 h-3" />
@@ -71,12 +74,7 @@ export function SiteAnnouncementBar() {
         <strong className="shrink-0 inline-flex items-center gap-1.5 font-extrabold">
           <Clock className="w-3 h-3" /> Special offer
         </strong>
-        <p className="m-0 min-w-0 truncate text-[#496312]">{text}</p>
-        {announcement.code && (
-          <span className="hidden sm:inline shrink-0 rounded border border-[#17142e]/30 bg-white/60 px-1.5 font-mono text-[11px] font-bold tracking-wider text-[#17142e]">
-            {announcement.code}
-          </span>
-        )}
+        <p className="m-0 min-w-0 truncate text-[#496312]">{displayText}</p>
         {announcement.ctaLabel && announcement.ctaHref ? (
           announcement.ctaHref.startsWith("https://") ? (
             <a href={announcement.ctaHref} onClick={rememberCode} className={cta} target="_blank" rel="noreferrer">

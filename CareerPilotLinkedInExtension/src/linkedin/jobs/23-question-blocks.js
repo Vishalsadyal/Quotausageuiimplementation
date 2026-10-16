@@ -178,7 +178,74 @@ function isQuestionBlockInvalid(block, validationMessage = "") {
   return Boolean(block.querySelector("[aria-invalid='true'], .artdeco-text-input--error, .fb-dash-form-element--error"));
 }
 
+/**
+ * What kind of answer the field takes, so the dashboard can ask for the right thing:
+ * fieldType (text | number | email | tel | url | textarea | select | radio | checkbox | date | combobox),
+ * the offered options for select/radio, and a short hint from the input's limits.
+ */
+function describeQuestionField(block, state) {
+  const out = { fieldType: "", options: [], hint: "" };
+  if (!(block instanceof HTMLElement)) return out;
+  const stateType = String(state?.type || "");
+
+  if (stateType === "select") {
+    out.fieldType = "select";
+    out.options = Array.from(block.querySelector("select")?.options || [])
+      .map((o) => collapseValidationText(o.textContent))
+      .filter((text) => text && !isPlaceholderOptionText(text))
+      .slice(0, 40);
+    return out;
+  }
+  if (stateType === "radio") {
+    out.fieldType = "radio";
+    out.options = Array.from(block.querySelectorAll("input[type='radio']"))
+      .filter((r) => isVisibleElement(r))
+      .map((r) => collapseValidationText(typeof getRadioOptionText === "function" ? getRadioOptionText(r, block) : r.closest("label")?.textContent || r.value))
+      .filter(Boolean)
+      .slice(0, 40);
+    return out;
+  }
+  if (stateType === "checkbox" || stateType === "date" || stateType === "date-picker" || stateType === "combobox") {
+    out.fieldType = stateType === "date-picker" ? "date" : stateType;
+    return out;
+  }
+
+  const input = block.querySelector(
+    "input:not([type='hidden']):not([type='radio']):not([type='checkbox']):not([type='file']), textarea"
+  );
+  if (!input) return out;
+  if (input.tagName === "TEXTAREA") {
+    out.fieldType = "textarea";
+  } else {
+    const inputType = String(input.getAttribute("type") || "text").toLowerCase();
+    const inputMode = String(input.getAttribute("inputmode") || "").toLowerCase();
+    const label = typeof normalizeLabel === "function" ? normalizeLabel(state?.label || "") : "";
+    const validation = typeof normalizeLabel === "function" ? normalizeLabel(state?.validationMessage || "") : "";
+    if (["number", "email", "tel", "url", "date"].includes(inputType)) out.fieldType = inputType;
+    else if (inputMode === "numeric" || inputMode === "decimal") out.fieldType = "number";
+    else if (typeof NUMBER_VALIDATION_RE !== "undefined" && NUMBER_VALIDATION_RE.test(validation)) out.fieldType = "number";
+    else if (typeof NUMBER_LABEL_RE !== "undefined" && NUMBER_LABEL_RE.test(label)) out.fieldType = "number";
+    else out.fieldType = "text";
+  }
+  const parts = [];
+  const placeholder = collapseValidationText(input.getAttribute("placeholder") || "");
+  if (placeholder) parts.push(`e.g. ${placeholder}`);
+  const maxLength = Number(input.getAttribute("maxlength"));
+  if (Number.isFinite(maxLength) && maxLength > 0 && maxLength < 5000) parts.push(`max ${maxLength} characters`);
+  const min = input.getAttribute("min");
+  const max = input.getAttribute("max");
+  if (min !== null && min !== "") parts.push(`min ${min}`);
+  if (max !== null && max !== "") parts.push(`max ${max}`);
+  out.hint = parts.join(" · ").slice(0, 160);
+  return out;
+}
+
 function getQuestionBlockState(block) {
+  const state = getQuestionBlockStateBase(block);
+  return { ...state, ...describeQuestionField(block, state) };
+}
+
+function getQuestionBlockStateBase(block) {
   const rawLabel = getQuestionLabel(block) || "LinkedIn required field";
   const label = cleanQuestionLabel(rawLabel) || "LinkedIn required field";
   const required = isRequiredQuestionBlock(block, rawLabel);
@@ -400,7 +467,11 @@ function collectActionableQuestions(modal) {
     pending.push({
       questionKey,
       questionLabel,
-      validationMessage: d.validationMessage || ""
+      validationMessage: d.validationMessage || "",
+      fieldType: d.fieldType || "",
+      options: Array.isArray(d.options) ? d.options : [],
+      hint: d.hint || "",
+      rejectedAnswer: d.invalid ? String(d.value || "").slice(0, 300) : ""
     });
   }
   return pending;
@@ -449,7 +520,12 @@ function buildPendingQuestionsFromDiagnostics(unresolvedDiagnostics, validationM
       validationMessage:
         d.validationMessage ||
         validationMessage ||
-        (d.invalid ? "Please correct this answer" : "Required field answer missing")
+        (d.invalid ? "Please correct this answer" : "Required field answer missing"),
+      fieldType: d.fieldType || "",
+      options: Array.isArray(d.options) ? d.options : [],
+      hint: d.hint || "",
+      // The answer LinkedIn refused (empty when the field was simply left blank).
+      rejectedAnswer: d.invalid ? String(d.value || "").slice(0, 300) : ""
     });
   }
   return pending;

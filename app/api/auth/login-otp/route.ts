@@ -20,6 +20,12 @@ export async function POST(req: NextRequest) {
     const body = otpVerifySchema.parse(await req.json());
     const { email, otp } = body;
 
+    // Check the account first so a missing account doesn't use up a valid code.
+    const user = await prisma.user.findUnique({ where: { email } });
+    if (!user) {
+      return fail("No account found for this email. Sign up, or upload your resume on the home page to create one.", 404, "USER_NOT_FOUND");
+    }
+
     const result = await verifyOtp(email, otp, "login");
     if (!result.ok) {
       return fail(result.reason || "Invalid OTP", 401, "OTP_INVALID");
@@ -28,11 +34,6 @@ export async function POST(req: NextRequest) {
     const consumed = await consumeVerifiedOtp(email, "login");
     if (!consumed) {
       return fail("OTP already used or expired", 401, "OTP_CONSUMED");
-    }
-
-    const user = await prisma.user.findUnique({ where: { email } });
-    if (!user) {
-      return fail("Account not found", 404, "USER_NOT_FOUND");
     }
 
     const quotaAwareUser = await ensureHireWindow(user.id);

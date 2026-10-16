@@ -358,6 +358,8 @@ window.addEventListener("message", async (event) => {
       });
       if (settingsRes && settingsRes.ok) {
         response.screeningAnswers = settingsRes.settings?.screeningAnswers || {};
+        // Lets the site ignore answers saved for a different account.
+        response.accountEmail = String(settingsRes.settings?.contactEmail || "").trim().toLowerCase();
       }
 
       const historyRes = await new Promise((resolve) => {
@@ -484,14 +486,26 @@ window.addEventListener("message", async (event) => {
       return;
     }
 
+    // A different account logged in: drop the previous account's answers instead of merging them.
+    const previousEmail = String(loaded.settings?.contactEmail || "").trim().toLowerCase();
+    const incomingEmail = String(incoming.contactEmail || "").trim().toLowerCase();
+    const accountChanged = Boolean(previousEmail && incomingEmail && previousEmail !== incomingEmail);
     const merged = {
       ...(loaded.settings || {}),
       ...incoming,
       screeningAnswers: {
-        ...(loaded.settings?.screeningAnswers || {}),
+        ...(accountChanged ? {} : loaded.settings?.screeningAnswers || {}),
         ...(incoming.screeningAnswers || {}),
       },
     };
+    if (accountChanged) {
+      logBridge("account changed, cleared previous screening answers", {});
+      try {
+        await chrome.storage.local.set({ cpPendingQuestions: [] });
+      } catch {
+        // Pending questions are best effort.
+      }
+    }
     const saved = await new Promise((resolve) => {
       chrome.runtime.sendMessage({ type: "CP_SAVE_SETTINGS", settings: merged }, (res) => {
         if (chrome.runtime.lastError) {
@@ -513,6 +527,51 @@ window.addEventListener("message", async (event) => {
       type: "CP_WEB_SYNC_SETTINGS_ACK",
       requestId,
       ok: false,
+      error: String(error?.message || error),
+    });
+  }
+});
+
+// ── Outreach messages (WhatsApp / Email / LinkedIn comments) ─────────────────────────────────────
+// The dashboard page (Auto Apply > Messages) reads and writes these through the extension background.
+function callBackground(message) {
+  return new Promise((resolve) => {
+    chrome.runtime.sendMessage(message, (res) => {
+      if (chrome.runtime.lastError) {
+        resolve({ ok: false, error: chrome.runtime.lastError.message });
+        return;
+      }
+      resolve(res || { ok: false });
+    });
+  });
+}
+
+window.addEventListener("message", async (event) => {
+  if (!BRIDGE_ENABLED) return;
+  if (event.source !== window) return;
+  const data = event.data;
+  if (!data || (data.type !== "CP_WEB_GET_OUTREACH" && data.type !== "CP_WEB_SYNC_OUTREACH")) return;
+  const requestId = data.requestId || "";
+  const isSave = data.type === "CP_WEB_SYNC_OUTREACH";
+  try {
+    const res = await callBackground(
+      isSave
+        ? { type: "CP_SAVE_OUTREACH_SETTINGS", settings: data.settings && typeof data.settings === "object" ? data.settings : {} }
+        : { type: "CP_GET_OUTREACH_SETTINGS" },
+    );
+    safePost({
+      type: isSave ? "CP_WEB_SYNC_OUTREACH_ACK" : "CP_WEB_GET_OUTREACH_ACK",
+      requestId,
+      ok: Boolean(res && res.ok),
+      settings: res?.settings || null,
+      error: res?.error || null,
+    });
+  } catch (error) {
+    safePost({
+      type: isSave ? "CP_WEB_SYNC_OUTREACH_ACK" : "CP_WEB_GET_OUTREACH_ACK",
+      requestId,
+      ok: false,
+      settings: null,
       error: String(error?.message || error),
     });
   }

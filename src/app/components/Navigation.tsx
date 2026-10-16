@@ -63,7 +63,7 @@ export function Navigation() {
           New
         </span>
         <p className="m-0 min-w-0 truncate text-[#bdb8d4]">
-          <strong className="text-white">Free:</strong> Start applying with $0 signup + 30 Hires bonus credits.
+          <strong className="text-white">Free:</strong> Start applying with $0 signup + 30 Hires bonus credits + 3 Hires free everyday.
         </p>
         <Link to="/signup" className="hidden sm:inline-flex shrink-0 items-center gap-1 font-bold text-white hover:underline">
           Get started <ArrowRight className="w-3 h-3" />
@@ -269,7 +269,7 @@ export function Navigation() {
                   >
                     Sign In
                   </button>
-                  <button 
+                  <button
                     onClick={handleGetStarted}
                     className="min-h-[42px] px-[17px] bg-[#17142e] hover:bg-[#6047f5] text-white text-sm rounded-[10px] font-semibold hover:-translate-y-px transition-all duration-200"
                   >
@@ -353,43 +353,43 @@ export function Navigation() {
                   )}
                 </div>
 
-                <Link 
-                  to="/how-it-works" 
+                <Link
+                  to="/how-it-works"
                   className="text-gray-700 hover:text-[#6047f5] font-medium transition-colors px-1"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   How It Works
                 </Link>
-                <Link 
-                  to="/pricing" 
+                <Link
+                  to="/pricing"
                   className="text-gray-700 hover:text-[#6047f5] font-medium transition-colors px-1"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   Pricing
                 </Link>
-                <Link 
-                  to="/roadmap" 
+                <Link
+                  to="/roadmap"
                   className="text-gray-700 hover:text-[#6047f5] font-medium transition-colors px-1"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   Roadmap
                 </Link>
-                <Link 
-                  to="/about" 
+                <Link
+                  to="/about"
                   className="text-gray-700 hover:text-[#6047f5] font-medium transition-colors px-1"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   About Us
                 </Link>
-                <Link 
-                  to="/faq" 
+                <Link
+                  to="/faq"
                   className="text-gray-700 hover:text-[#6047f5] font-medium transition-colors px-1"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   FAQ
                 </Link>
-                <Link 
-                  to="/blog" 
+                <Link
+                  to="/blog"
                   className="text-gray-700 hover:text-[#6047f5] font-medium transition-colors px-1"
                   onClick={() => setMobileMenuOpen(false)}
                 >
@@ -421,7 +421,7 @@ export function Navigation() {
                       >
                         Sign In
                       </button>
-                      <button 
+                      <button
                         onClick={() => {
                           handleGetStarted();
                           setMobileMenuOpen(false);

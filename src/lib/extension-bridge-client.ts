@@ -21,6 +21,8 @@ export type ExtensionBridgeProviderSnapshot = {
   currentRunSummary?: Record<string, unknown> | null;
   pendingQuestions: Array<Record<string, unknown>>;
   screeningAnswers: Record<string, string>;
+  // Email of the account the extension's saved answers belong to (lowercase; absent on older versions).
+  accountEmail?: string;
   history: ExtensionHistoryBucket;
   linkedIn?: {
     hasLinkedInTab: boolean;
@@ -45,6 +47,7 @@ export type ExtensionBridgeSnapshot = {
   currentRunSummary?: Record<string, unknown> | null;
   pendingQuestions: Array<Record<string, unknown>>;
   screeningAnswers: Record<string, string>;
+  accountEmail?: string;
   history: ExtensionHistoryBucket;
   linkedIn?: ExtensionBridgeProviderSnapshot["linkedIn"];
   indeed?: ExtensionBridgeProviderSnapshot["indeed"];
@@ -120,6 +123,7 @@ function normalizeProviderSnapshot(data: any): ExtensionBridgeProviderSnapshot {
       data?.screeningAnswers && typeof data.screeningAnswers === "object" && !Array.isArray(data.screeningAnswers)
         ? (data.screeningAnswers as Record<string, string>)
         : {},
+    accountEmail: String(data?.accountEmail || "").trim().toLowerCase() || undefined,
     history: normalizeHistoryBucket(data?.history, provider),
     linkedIn: data?.linkedIn && typeof data.linkedIn === "object" ? data.linkedIn : undefined,
     indeed: data?.indeed && typeof data.indeed === "object" ? data.indeed : undefined,
@@ -216,6 +220,7 @@ export function collectExtensionBridgeSnapshot(opts?: {
         currentRunSummary: active?.currentRunSummary || null,
         pendingQuestions: mergePendingQuestions(providers),
         screeningAnswers,
+        accountEmail: active?.accountEmail || providers.find((item) => item.accountEmail)?.accountEmail,
         history: mergeHistories(providers),
         linkedIn: providerMap.get("linkedin")?.linkedIn,
         indeed: providerMap.get("indeed")?.indeed,

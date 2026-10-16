@@ -17,220 +17,97 @@ function sendMessage(message) {
 
 function setStatus(text, ok = true) {
   const el = document.getElementById("status");
+  if (!el) return;
   el.textContent = text;
   el.style.color = ok ? "#166534" : "#b91c1c";
 }
 
-function listToText(value) {
-  return Array.isArray(value) ? value.join(", ") : "";
+// Every setting on the page is an element with data-setting="<settings key>" and a data-kind:
+//   text | number | check | list (comma/newline separated) | chips (a group of checkboxes).
+// Only the settings that have a field here are read and saved, so values the dashboard owns
+// (name, phone, address, salary, screening answers...) are never overwritten from this page.
+function settingElements() {
+  return Array.from(document.querySelectorAll("[data-setting]"));
 }
 
-function parseList(id) {
-  return String(document.getElementById(id).value || "")
+function parseList(text) {
+  return String(text || "")
     .split(/[\n,]/g)
-    .map((v) => v.trim())
+    .map((item) => item.trim())
     .filter(Boolean);
 }
 
-function setValue(id, value = "") {
-  const el = document.getElementById(id);
-  if (!el) return;
-  el.value = value;
+const sameItem = (a, b) => String(a).trim().toLowerCase() === String(b).trim().toLowerCase();
+
+function writeField(el, value) {
+  const kind = el.dataset.kind || "text";
+  const fallback = el.dataset.default;
+
+  if (kind === "check") {
+    el.checked = value === undefined || value === null ? fallback === "true" : Boolean(value);
+    return;
+  }
+  if (kind === "chips") {
+    const values = Array.isArray(value) ? value.map(String) : [];
+    const boxes = Array.from(el.querySelectorAll("input[type='checkbox']"));
+    for (const box of boxes) box.checked = values.some((item) => sameItem(item, box.value));
+    // Values saved earlier that have no chip stay saved instead of being dropped.
+    el.dataset.extras = JSON.stringify(values.filter((item) => !boxes.some((box) => sameItem(item, box.value))));
+    return;
+  }
+  if (kind === "list") {
+    el.value = Array.isArray(value) ? value.join(", ") : "";
+    return;
+  }
+  const isBlank = value === undefined || value === null || value === "";
+  el.value = String(isBlank ? fallback ?? "" : value);
 }
 
-function setChecked(id, value) {
-  const el = document.getElementById(id);
-  if (!el) return;
-  el.checked = Boolean(value);
-}
+function readField(el) {
+  const kind = el.dataset.kind || "text";
 
-function getValue(id) {
-  const el = document.getElementById(id);
-  if (!el) return "";
+  if (kind === "check") return Boolean(el.checked);
+  if (kind === "chips") {
+    const chosen = Array.from(el.querySelectorAll("input[type='checkbox']"))
+      .filter((box) => box.checked)
+      .map((box) => box.value);
+    let extras = [];
+    try {
+      extras = JSON.parse(el.dataset.extras || "[]");
+    } catch {
+      extras = [];
+    }
+    return [...chosen, ...extras];
+  }
+  if (kind === "list") return parseList(el.value);
+  if (kind === "number") {
+    const raw = String(el.value ?? "").trim();
+    const parsed = raw === "" ? Number(el.dataset.default ?? 0) : Number(raw);
+    const min = el.dataset.min === undefined ? -Infinity : Number(el.dataset.min);
+    return Number.isFinite(parsed) ? Math.max(min, parsed) : Number(el.dataset.default ?? 0);
+  }
   return String(el.value || "").trim();
 }
 
-function getChecked(id) {
-  const el = document.getElementById(id);
-  if (!el) return false;
-  return Boolean(el.checked);
-}
-
 function setForm(settings) {
-  setValue("apiBaseUrl", settings.apiBaseUrl || "");
-  setValue("authToken", settings.authToken || "");
-  setChecked("enableBackendSync", settings.enableBackendSync);
-  setChecked("liveModeAcknowledged", settings.liveModeAcknowledged);
+  for (const el of settingElements()) writeField(el, settings[el.dataset.setting]);
 
-  setValue("maxApplicationsPerRun", String(settings.maxApplicationsPerRun ?? 200));
-  setValue("maxSkipsPerRun", String(settings.maxSkipsPerRun || 50));
-  setValue("switchNumber", String(settings.switchNumber || 30));
-
-  setChecked("easyApplyOnly", settings.easyApplyOnly ?? true);
-  setChecked("debugMode", settings.debugMode ?? false);
-  setChecked("dryRun", settings.dryRun ?? true);
-  setChecked("autoSubmit", settings.autoSubmit ?? false);
-  setChecked("autoResumeOnAnswer", settings.autoResumeOnAnswer ?? true);
-  setChecked("runNonStop", settings.runNonStop ?? false);
-  setChecked("alternateSortBy", settings.alternateSortBy ?? false);
-  setChecked("cycleDatePosted", settings.cycleDatePosted ?? false);
-  setChecked("stopDateCycleAt24hr", settings.stopDateCycleAt24hr ?? true);
-  setChecked("followCompanies", settings.followCompanies ?? false);
-  setChecked("pauseBeforeSubmit", settings.pauseBeforeSubmit ?? false);
-  setChecked("pauseAtFailedQuestion", settings.pauseAtFailedQuestion ?? true);
-  setChecked("overwritePreviousAnswers", settings.overwritePreviousAnswers ?? false);
-
-  setValue("searchTerms", listToText(settings.searchTerms));
-  setChecked("randomizeSearchOrder", settings.randomizeSearchOrder);
-  setValue("sortBy", settings.sortBy || "");
-  setValue("datePosted", settings.datePosted || "Past week");
-  setValue("salary", settings.salary || "");
-  setValue("searchLocation", settings.searchLocation || "");
-  setValue("experienceLevel", listToText(settings.experienceLevel));
-  setValue("jobType", listToText(settings.jobType));
-  setValue("onSite", listToText(settings.onSite));
-  setValue("companies", listToText(settings.companies));
-  setValue("filterLocations", listToText(settings.filterLocations));
-  setValue("industry", listToText(settings.industry));
-  setValue("jobFunction", listToText(settings.jobFunction));
-  setValue("jobTitles", listToText(settings.jobTitles));
-  setValue("benefits", listToText(settings.benefits));
-  setValue("commitments", listToText(settings.commitments));
-  setChecked("under10Applicants", settings.under10Applicants);
-  setChecked("inYourNetwork", settings.inYourNetwork);
-  setChecked("fairChanceEmployer", settings.fairChanceEmployer);
-  setChecked("didMasters", settings.didMasters);
-  setChecked("securityClearance", settings.securityClearance);
-  setValue("currentExperience", String(settings.currentExperience ?? -1));
-  setValue("blacklistedCompanies", listToText(settings.blacklistedCompanies));
-  setValue("aboutCompanyBadWords", listToText(settings.aboutCompanyBadWords));
-  setValue("aboutCompanyGoodWords", listToText(settings.aboutCompanyGoodWords));
-  setValue("badWords", listToText(settings.badWords));
-
-  setValue("currentCity", settings.currentCity || "");
-  setValue("contactEmail", settings.contactEmail || "");
-  setValue("phoneNumber", settings.phoneNumber || "");
-  setValue("phoneCountryCode", settings.phoneCountryCode || "");
-  setValue("marketingConsent", settings.marketingConsent || "No");
-  setValue("requireVisa", settings.requireVisa || "No");
-
-  setValue("usCitizenship", settings.usCitizenship || "");
-  setValue("veteranStatus", settings.veteranStatus || "");
-  setValue("disabilityStatus", settings.disabilityStatus || "");
-  setValue("gender", settings.gender || "");
-  setValue("ethnicity", settings.ethnicity || "");
-  setValue("yearsOfExperienceAnswer", settings.yearsOfExperienceAnswer || "");
-  setValue("desiredSalary", settings.desiredSalary || "");
-  setValue("currentCtc", settings.currentCtc || "");
-  setValue("noticePeriodDays", settings.noticePeriodDays || "");
-  setValue("confidenceLevel", settings.confidenceLevel || "");
-
-  setValue("linkedinUrl", settings.linkedinUrl || "");
-  setValue("websiteUrl", settings.websiteUrl || "");
-  setValue("recentEmployer", settings.recentEmployer || "");
-
-  setValue("firstName", settings.firstName || "");
-  setValue("middleName", settings.middleName || "");
-  setValue("lastName", settings.lastName || "");
-  setValue("fullName", settings.fullName || "");
-
-  setValue("streetAddress", settings.streetAddress || "");
-  setValue("stateRegion", settings.stateRegion || "");
-  setValue("postalCode", settings.postalCode || "");
-  setValue("country", settings.country || "");
-
-  setValue("linkedinHeadline", settings.linkedinHeadline || "");
-  setValue("linkedinSummary", settings.linkedinSummary || "");
-  setValue("coverLetter", settings.coverLetter || "");
+  const chip = document.getElementById("account-chip");
+  if (chip) {
+    const who = settings.fullName || settings.contactEmail;
+    chip.textContent = who ? `Connected as ${who}` : "Not connected. Open your dashboard to sync.";
+    chip.classList.toggle("connected", Boolean(who));
+  }
 }
 
 function readForm() {
   const settings = {
+    // The backend sync fields are no longer used; every save clears them.
     apiBaseUrl: "",
     authToken: "",
     enableBackendSync: false,
-    liveModeAcknowledged: getChecked("liveModeAcknowledged"),
-
-    maxApplicationsPerRun: Math.max(1, Number(getValue("maxApplicationsPerRun") || 200)),
-    maxSkipsPerRun: Math.max(1, Number(getValue("maxSkipsPerRun") || 50)),
-    switchNumber: Math.max(1, Number(getValue("switchNumber") || 30)),
-
-    easyApplyOnly: getChecked("easyApplyOnly"),
-    debugMode: getChecked("debugMode"),
-    autoResumeOnAnswer: getChecked("autoResumeOnAnswer"),
-    runNonStop: getChecked("runNonStop"),
-    alternateSortBy: getChecked("alternateSortBy"),
-    cycleDatePosted: getChecked("cycleDatePosted"),
-    stopDateCycleAt24hr: getChecked("stopDateCycleAt24hr"),
-    followCompanies: getChecked("followCompanies"),
-    pauseBeforeSubmit: getChecked("pauseBeforeSubmit"),
-    pauseAtFailedQuestion: getChecked("pauseAtFailedQuestion"),
-    overwritePreviousAnswers: getChecked("overwritePreviousAnswers"),
-
-    searchTerms: parseList("searchTerms"),
-    randomizeSearchOrder: getChecked("randomizeSearchOrder"),
-    sortBy: getValue("sortBy"),
-    datePosted: getValue("datePosted"),
-    salary: getValue("salary"),
-    searchLocation: getValue("searchLocation"),
-    experienceLevel: parseList("experienceLevel"),
-    jobType: parseList("jobType"),
-    onSite: parseList("onSite"),
-    companies: parseList("companies"),
-    filterLocations: parseList("filterLocations"),
-    industry: parseList("industry"),
-    jobFunction: parseList("jobFunction"),
-    jobTitles: parseList("jobTitles"),
-    benefits: parseList("benefits"),
-    commitments: parseList("commitments"),
-    under10Applicants: getChecked("under10Applicants"),
-    inYourNetwork: getChecked("inYourNetwork"),
-    fairChanceEmployer: getChecked("fairChanceEmployer"),
-    didMasters: getChecked("didMasters"),
-    securityClearance: getChecked("securityClearance"),
-    currentExperience: Number(getValue("currentExperience") || -1),
-    blacklistedCompanies: parseList("blacklistedCompanies"),
-    aboutCompanyBadWords: parseList("aboutCompanyBadWords"),
-    aboutCompanyGoodWords: parseList("aboutCompanyGoodWords"),
-    badWords: parseList("badWords"),
-
-    currentCity: getValue("currentCity"),
-    contactEmail: getValue("contactEmail"),
-    phoneNumber: getValue("phoneNumber"),
-    phoneCountryCode: getValue("phoneCountryCode"),
-    marketingConsent: getValue("marketingConsent") || "No",
-    requireVisa: getValue("requireVisa") || "No",
-
-    usCitizenship: getValue("usCitizenship"),
-    veteranStatus: getValue("veteranStatus"),
-    disabilityStatus: getValue("disabilityStatus"),
-    gender: getValue("gender"),
-    ethnicity: getValue("ethnicity"),
-    yearsOfExperienceAnswer: getValue("yearsOfExperienceAnswer"),
-    desiredSalary: getValue("desiredSalary"),
-    currentCtc: getValue("currentCtc"),
-    noticePeriodDays: getValue("noticePeriodDays"),
-    confidenceLevel: getValue("confidenceLevel"),
-
-    linkedinUrl: getValue("linkedinUrl"),
-    websiteUrl: getValue("websiteUrl"),
-    recentEmployer: getValue("recentEmployer"),
-
-    firstName: getValue("firstName"),
-    middleName: getValue("middleName"),
-    lastName: getValue("lastName"),
-    fullName: getValue("fullName"),
-
-    streetAddress: getValue("streetAddress"),
-    stateRegion: getValue("stateRegion"),
-    postalCode: getValue("postalCode"),
-    country: getValue("country"),
-
-    linkedinHeadline: getValue("linkedinHeadline"),
-    linkedinSummary: getValue("linkedinSummary"),
-    coverLetter: getValue("coverLetter")
   };
-
+  for (const el of settingElements()) settings[el.dataset.setting] = readField(el);
   return settings;
 }
 
@@ -268,9 +145,7 @@ function installAutoRefresh() {
 
 document.getElementById("settings-form").addEventListener("submit", async (e) => {
   e.preventDefault();
-  const settings = readForm();
-  if (!settings) return;
-  const saved = await sendMessage({ type: "CP_SAVE_SETTINGS", settings });
+  const saved = await sendMessage({ type: "CP_SAVE_SETTINGS", settings: readForm() });
   if (saved.ok) {
     setStatus("Settings saved");
     return;

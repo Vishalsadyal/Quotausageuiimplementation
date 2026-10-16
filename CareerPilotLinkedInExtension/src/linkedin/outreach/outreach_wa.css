@@ -1,0 +1,12 @@
+/*
+ * WhatsApp Outreach widget: only the few extras the shared kit (outreach_base.css) does not cover.
+ * Every selector is scoped under .cp-ow and the widget's own id so it cannot touch the other widgets.
+ */
+.cp-ow#li-wa-widget .cp-ow-body { overflow-y: auto; }
+.cp-ow#li-wa-widget .cp-ow-list { min-height: 140px; }
+.cp-ow#li-wa-widget .cp-ow-search .cp-ow-btn { flex-shrink: 0; }
+.cp-ow#li-wa-widget .cp-ow-hint { font-size: 11px; color: var(--cp-muted); line-height: 1.4; }
+.cp-ow#li-wa-widget .cp-ow-btn-sm { padding: 4px 10px; font-size: 11px; border-radius: 8px; }
+.cp-ow#li-wa-widget .cp-ow-wa-tools { padding-top: 2px; }
+.cp-ow#li-wa-widget .cp-ow-wa-tools .cp-ow-chip { font-size: 11px; padding: 3px 10px; }
+.cp-ow#li-wa-widget .cp-ow-card-sub { white-space: normal; }

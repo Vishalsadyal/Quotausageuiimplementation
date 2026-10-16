@@ -218,10 +218,12 @@ async function applyComboboxOption(block, label, answer, settings) {
   if (!trigger) return false;
 
   const triggerText = String(trigger.textContent || trigger.value || "").trim();
-  if (triggerText && !isPlaceholderOptionText(triggerText) && !String(answer || "").trim()) {
+  // A value LinkedIn already rejected ("Please enter a valid answer") is not a finished answer: redo it.
+  const holdsRejectedValue = isQuestionBlockInvalid(block, getQuestionBlockValidationMessage(block));
+  if (triggerText && !isPlaceholderOptionText(triggerText) && !String(answer || "").trim() && !holdsRejectedValue) {
     return false;
   }
-  if (!settings.overwritePreviousAnswers && triggerText && !isPlaceholderOptionText(triggerText)) {
+  if (!settings.overwritePreviousAnswers && triggerText && !isPlaceholderOptionText(triggerText) && !holdsRejectedValue) {
     return false;
   }
 
@@ -240,13 +242,30 @@ async function applyComboboxOption(block, label, answer, settings) {
     ).filter((el) => isVisibleElement(el));
   }
 
-  let optionEls = collectBlockOptions();
-  if (!optionEls.length) {
-    optionEls = Array.from(
+  function collectAllOptions() {
+    const inBlock = collectBlockOptions();
+    if (inBlock.length) return inBlock;
+    return Array.from(
       document.querySelectorAll(
         "[role='listbox'] [role='option'], [role='option'], .artdeco-typeahead__result, li[role='option']"
       )
     ).filter((el) => isVisibleElement(el));
+  }
+
+  let optionEls = collectAllOptions();
+  // A search-as-you-type box (like "Location (city)") only lists suggestions after you type into it.
+  if (!optionEls.length && trigger.tagName === "INPUT") {
+    const typed = String(answer || "").trim() || String(getSelectRuleAnswer(label, settings, [], triggerText) || "").trim();
+    if (typed) {
+      trigger.focus();
+      setNativeValue(trigger, "");
+      trigger.dispatchEvent(new Event("input", { bubbles: true, composed: true }));
+      setNativeValue(trigger, typed);
+      trigger.dispatchEvent(new Event("input", { bubbles: true, composed: true }));
+      trigger.dispatchEvent(new KeyboardEvent("keyup", { key: typed.slice(-1), bubbles: true }));
+      await sleep(1000);
+      optionEls = collectAllOptions();
+    }
   }
 
   const optionsForMatch = optionEls

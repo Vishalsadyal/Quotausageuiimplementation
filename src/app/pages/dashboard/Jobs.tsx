@@ -38,18 +38,27 @@ import {
   Layers,
   Globe,
   ChevronRight,
+  ChevronDown,
   CheckCircle,
   Smartphone,
   Target,
   Coins,
 } from "lucide-react";
 import { useParams, Link, Navigate } from "react-router";
-import { JOBS_SECTIONS, jobsSectionFromSlug, jobsSectionPath } from "./jobsSections";
+import { JOBS_SECTIONS, jobsSectionFromSlug, jobsSectionPath, SHOW_INDEED_SWITCH } from "./jobsSections";
+import OutreachMessages from "./OutreachMessages";
 import { useAuth } from "../../context/AuthContext";
 import { ExtensionInstallGuide, type ExtensionInstallGuideStep } from "../../components/ExtensionInstallGuide";
 import MagicAiDecisionModal from "../../components/jobs/MagicAiDecisionModal";
-import MobileBlocker from "../../components/MobileBlocker";
 import { getExtensionProviderConfig } from "src/lib/extension-providers";
+import {
+  answerTypeFromFormField,
+  forcedScreeningAnswerType,
+  looksLikeAnswerList,
+  screeningGroupFor,
+  screeningTypeTag,
+  SHAREABLE_SCREENING_GROUPS,
+} from "src/lib/screening-groups";
 import { collectExtensionBridgeSnapshot } from "src/lib/extension-bridge-client";
 import { syncProfileToExtension as syncProfileToExtensionBase } from "src/lib/sync-profile";
 import {
@@ -72,6 +81,8 @@ const OUTREACH_MODULE_CHANNEL: Record<string, OutreachChannel | undefined> = {
   commenter: "comment",
 };
 const OUTREACH_UNIT: Record<OutreachChannel, string> = { whatsapp: "messages", email: "emails", comment: "comments" };
+// Copilot cards still in beta: kept in the list but not shown until they are ready.
+const HIDDEN_BETA_MODULES = new Set(["indeed", "interview"]);
 
 type JobStatus = "queued" | "running" | "succeeded" | "failed" | "cancelled" | "dead_letter";
 
@@ -124,8 +135,14 @@ type ExtensionStatus = {
     questionLabel: string;
     validationMessage?: string;
     createdAt?: string;
+    // Detected on the LinkedIn form by the extension.
+    fieldType?: string;
+    options?: string[];
+    hint?: string;
+    rejectedAnswer?: string;
   }>;
   screeningAnswers?: Record<string, string>;
+  accountEmail?: string;
 };
 
 type ScreeningAnswerApiItem = {
@@ -190,6 +207,50 @@ const EXTENSION_PACKAGE_PREFIX = "AutoApplyCVExtensionVersion";
 const YES_NO_OPTIONS = ["No", "Yes"];
 const WORK_MODE_OPTIONS = ["Remote", "Hybrid", "Onsite", "Flexible"];
 const JOB_TYPE_OPTIONS = ["Full-time", "Part-time", "Contract", "Internship", "Temporary"];
+
+// Search filters on the Preferences page. They become the LinkedIn search the extension runs.
+// LinkedIn's hiring posts page (post search results, newest first) for the WhatsApp and Email tools.
+// The marker after # tells the extension which tool's panel to show on that page.
+function outreachPostsUrl(tool: "whatsapp" | "email", keyword: string) {
+  const query = `${keyword.trim()} hiring ${tool}`.trim();
+  return `https://www.linkedin.com/search/results/content/?keywords=${encodeURIComponent(query)}&sortBy=%5B%22date_posted%22%5D#autoapply-module=${tool}`;
+}
+
+const DATE_POSTED_OPTIONS = ["Any time", "Past month", "Past week", "Past 24 hours"];
+const SORT_BY_OPTIONS = ["No change", "Most recent", "Most relevant"];
+const EXPERIENCE_LEVEL_OPTIONS = ["Internship", "Entry level", "Associate", "Mid-Senior level", "Director", "Executive"];
+// LinkedIn takes the radius in miles and shows kilometres in some countries (25 miles = 40 km).
+const SEARCH_RADIUS_DEFAULT = "LinkedIn default";
+const SEARCH_RADIUS_OPTIONS = [SEARCH_RADIUS_DEFAULT, "5 miles (8 km)", "10 miles (16 km)", "25 miles (40 km)", "50 miles (80 km)", "100 miles (160 km)"];
+
+function searchRadiusMiles(label: string) {
+  return /^(\d+) miles/.exec(String(label || ""))?.[1] || "";
+}
+
+// What each preference pill shows, and whether it counts as switched on (green), like LinkedIn's filter bar.
+// Only filters whose default really is what the extension uses. Work mode and job types start empty (no filter).
+const PREFERENCE_DEFAULTS: Record<string, string> = {
+  cp_pref_date_posted: "Past week",
+  cp_pref_distance: SEARCH_RADIUS_DEFAULT,
+  cp_pref_sort_by: "No change",
+  cp_pref_easy_apply_only: "Yes",
+};
+// Saved in place of an empty experience list: a saved answer can't be empty, and this clears the old filter.
+const NO_EXPERIENCE_FILTER = "Any";
+const PREFERENCE_FORM_FIELDS: Array<{ key: string; label: string; type: ScreeningAnswerType }> = [
+  // Job titles are stored under two keys that other screens and the extension read; keep them equal.
+  { key: "cp_pref_search_terms", label: "Preferred Job Titles / Search Terms", type: "multiselect" },
+  { key: "preferred_job_titles", label: "Preferred Job Titles / Search Terms", type: "multiselect" },
+  { key: "cp_pref_search_locations", label: "Preferred Locations", type: "multiselect" },
+  { key: "cp_pref_work_mode", label: "Remote / Onsite / Hybrid", type: "choice" },
+  { key: "cp_pref_job_types", label: "Job Types", type: "multiselect" },
+  { key: "cp_pref_desired_salary", label: "Desired Salary", type: "text" },
+  { key: "cp_pref_date_posted", label: "Date Posted", type: "choice" },
+  { key: "cp_pref_distance", label: "Search Radius", type: "choice" },
+  { key: "cp_pref_experience_levels", label: "Experience Level", type: "multiselect" },
+  { key: "cp_pref_easy_apply_only", label: "Easy Apply Only", type: "choice" },
+  { key: "cp_pref_sort_by", label: "Sort By", type: "choice" },
+];
 const ENGLISH_PROFICIENCY_OPTIONS = ["Native or bilingual", "Professional", "Limited", "Basic"];
 const EDUCATION_LEVEL_OPTIONS = [
   "High School",
@@ -425,6 +486,16 @@ function isRemoteLikeValue(value: string) {
   );
 }
 
+// Remote / work-from-home / hybrid describe how you work, not where, so they are not locations.
+// They belong in the Work mode filter.
+function locationEntryProblem(item: string) {
+  const text = normalizeLabel(item);
+  if (/\b(remote|remotely|wfh|work from home|work from anywhere|home based|anywhere|worldwide|hybrid|on site|onsite|virtual|online|flexible)\b/.test(text)) {
+    return `"${item.trim()}" is not a location. For remote or hybrid jobs, use the Work mode filter.`;
+  }
+  return "";
+}
+
 function isRemoteWorkModeSelected(value: string) {
   return parsePreferenceListInput(value).some((item) => normalizeLabel(item) === "remote");
 }
@@ -461,7 +532,7 @@ function inferAnswerType(answer: string): ScreeningAnswerType {
   const lower = value.toLowerCase();
   if (lower === "yes" || lower === "no") return "boolean";
   if (/^\d+(\.\d+)?$/.test(value)) return "number";
-  if (value.includes(",")) return "multiselect";
+  if (looksLikeAnswerList(value)) return "multiselect";
   return "text";
 }
 
@@ -602,6 +673,11 @@ const SCREENING_FIELD_CATALOG: ScreeningCatalogField[] = [
   { key: "cp_pref_desired_salary", label: "Desired Salary", category: "preferences", order: 280 },
   { key: "cp_pref_excluded_companies", label: "Excluded Companies", category: "preferences", order: 290, answerType: "multiselect" },
   { key: "cp_pref_excluded_keywords", label: "Excluded Keywords", category: "preferences", order: 300, answerType: "multiselect" },
+  { key: "cp_pref_date_posted", label: "Date Posted", category: "preferences", order: 310, answerType: "choice", options: DATE_POSTED_OPTIONS },
+  { key: "cp_pref_distance", label: "Search Radius", category: "preferences", order: 320, answerType: "choice", options: SEARCH_RADIUS_OPTIONS },
+  { key: "cp_pref_experience_levels", label: "Experience Level", category: "preferences", order: 330, answerType: "multiselect", presets: EXPERIENCE_LEVEL_OPTIONS },
+  { key: "cp_pref_easy_apply_only", label: "Easy Apply Only", category: "preferences", order: 340, answerType: "choice", options: YES_NO_OPTIONS },
+  { key: "cp_pref_sort_by", label: "Sort By", category: "preferences", order: 350, answerType: "choice", options: SORT_BY_OPTIONS },
   { key: "comfortable_working_onsite", label: "Comfortable Working Onsite", category: "screening", order: 500, answerType: "boolean", options: YES_NO_OPTIONS },
   { key: "comfortable_commuting", label: "Comfortable Commuting", category: "screening", order: 510, answerType: "boolean", options: YES_NO_OPTIONS },
   { key: "comfortable_relocation", label: "Comfortable Relocation", category: "screening", order: 520, answerType: "boolean", options: YES_NO_OPTIONS },
@@ -683,7 +759,6 @@ export default function Jobs() {
     extensionRelease.downloadFileName || formatExtensionPackageFileName(extensionRelease.version || "1.1.3");
   const versionBadgeRef = useRef<HTMLSpanElement | null>(null);
   const checkExtensionButtonRef = useRef<HTMLButtonElement | null>(null);
-  const openLinkedInJobsButtonRef = useRef<HTMLAnchorElement | null>(null);
   const storeLinkButtonRef = useRef<HTMLAnchorElement | null>(null);
   const syncProfileButtonRef = useRef<HTMLButtonElement | null>(null);
   const [installGuideOpen, setInstallGuideOpen] = useState(false);
@@ -695,7 +770,26 @@ export default function Jobs() {
   const [siteAnswerTypes, setSiteAnswerTypes] = useState<Record<string, ScreeningAnswerType>>({});
   const [savingAnswerKey, setSavingAnswerKey] = useState<string | null>(null);
   const [syncingSettings, setSyncingSettings] = useState(false);
+  // Preferences page: which filter menu is open, and the save status.
+  const [openPrefFilter, setOpenPrefFilter] = useState<string | null>(null);
+  const [savingPrefs, setSavingPrefs] = useState(false);
+  const [prefsSavedAt, setPrefsSavedAt] = useState("");
+  const [prefsSynced, setPrefsSynced] = useState(true);
+  const [prefsError, setPrefsError] = useState("");
+  const [prefTitlesExpanded, setPrefTitlesExpanded] = useState(false);
+  useEffect(() => {
+    if (!openPrefFilter) return;
+    const closeOnOutsideClick = (event: MouseEvent) => {
+      if (!(event.target as HTMLElement | null)?.closest?.("[data-pref-pill]")) setOpenPrefFilter(null);
+    };
+    document.addEventListener("mousedown", closeOnOutsideClick);
+    return () => document.removeEventListener("mousedown", closeOnOutsideClick);
+  }, [openPrefFilter]);
   const syncedAnswerRef = useRef<Record<string, string>>({});
+  // The 20s poll keeps the first render's closures, so it reads these through refs.
+  const siteAnswersLoadedRef = useRef(false);
+  const userEmailRef = useRef("");
+  userEmailRef.current = String(user?.email || "").trim().toLowerCase();
   const reportedIssueRef = useRef<Record<string, string>>({});
   const linkedInProviderStatus = extensionStatus.providers?.linkedin;
   const indeedProviderStatus = extensionStatus.providers?.indeed;
@@ -745,15 +839,10 @@ export default function Jobs() {
     return defaultVal;
   };
 
-  const DEFAULT_TARGET_TITLES =
-    "SCADA Engineer, Industrial Automation Engineer, Control Systems Engineer, Instrumentation Engineer, Power Systems Engineer, Renewable Energy Engineer, Solar Energy Engineer, Solar Tracking Engineer, Automation Engineer, Electrical Design Engineer, Electrical Project Engineer, Control Panel Designer, Electrical Maintenance Engineer, Process Automation Engineer, Electrical Test Engineer, Electrical Installation Engineer, Electrical Draftsman, Electrical Controls Engineer, Electrical Systems Engineer, Electrical Protection Engineer, Power Distribution Engineer, Substation Engineer, Hydroelectric Power Engineer, Turbine Engineer, Generator Engineer, Electrical Safety Engineer, Electrical Wiring Engineer, Electrical Technician, Automation Technician, PLC Engineer, HMI Developer, Embedded Systems Engineer, Arduino Developer, Mechatronics Engineer, Electrical CAD Engineer, Electrical Field Engineer, Electrical Commissioning Engineer";
-
-  const DEFAULT_ONE_WORD =
-    "PLC, SCADA, HMI, DCS, VFD, Siemens, Modbus, Robotics, AutoCAD, MATLAB, React, TypeScript, Node, AWS, GraphQL, PostgreSQL, Docker, Python";
-  const DEFAULT_TWO_WORDS =
-    "PLC Programmer, SCADA Engineer, Automation Engineer, Control Engineer, Electrical Engineer, Control Systems, Industrial Automation, Robotics Engineer, Commissioning Engineer, Instrumentation Engineer, Fullstack Engineer, Shopify Liquid";
-  const DEFAULT_CORE_SKILLS =
-    "React, TypeScript, Next.js, Node.js, GraphQL, TailwindCSS, PostgreSQL, REST APIs, Shopify Liquid, AWS";
+  const DEFAULT_TARGET_TITLES = "";
+  const DEFAULT_ONE_WORD = "";
+  const DEFAULT_TWO_WORDS = "";
+  const DEFAULT_CORE_SKILLS = "";
   const DEFAULT_EXCLUDE = "Internship, Junior, Unpaid, Security Clearance";
 
   const activeSearchTermsList = useMemo(() => {
@@ -972,42 +1061,13 @@ export default function Jobs() {
         skills = Array.isArray(data.data.skills) ? data.data.skills : [];
       }
 
-      // If any category is empty, supply rich intelligent domain defaults
-      if (titles.length === 0) {
-        titles = [
-          "PLC Programmer", "SCADA Engineer", "Automation Engineer", "Control Engineer", "Electrical Engineer",
-          "Control Systems Specialist", "Industrial Automation Lead", "Robotics Integration Engineer", "Instrumentation Engineer",
-          "Senior Fullstack Developer", "Frontend React Architect", "Node.js Backend Engineer", "Shopify Liquid Developer",
-          "Embedded Systems Engineer", "Commissioning Engineer", "DCS Platform Engineer", "Mechatronics Engineer",
-          "Firmware Developer", "IIoT Solutions Architect", "Process Control Engineer"
-        ];
+      // If 2-word list was empty, extract 2-word phrases from titles
+      if (twoWords.length === 0 && titles.length > 0) {
+        twoWords = titles.filter((t) => t.split(/\s+/).length === 2);
       }
-
-      if (oneWords.length === 0) {
-        oneWords = [
-          "PLC", "SCADA", "HMI", "DCS", "VFD", "Siemens", "Modbus", "Robotics", "AutoCAD", "MATLAB",
-          "React", "TypeScript", "Node", "AWS", "GraphQL", "PostgreSQL", "Docker", "Python", "Ladder",
-          "Servo", "EtherCAT", "Profinet", "Rockwell", "Omron", "ABB", "KUKA", "Fanuc", "Sensors", "Telemetry", "Relay"
-        ];
-      }
-
-      if (twoWords.length === 0) {
-        twoWords = [
-          "PLC Programmer", "SCADA Engineer", "Automation Engineer", "Control Engineer", "Electrical Engineer",
-          "Control Systems", "Industrial Automation", "Robotics Engineer", "Commissioning Engineer", "Instrumentation Engineer",
-          "Fullstack Engineer", "Shopify Liquid", "Ladder Logic", "Variable Frequency", "Distributed Control",
-          "Human Machine", "Machine Vision", "Motion Control", "Safety Instrumented", "Power Electronics",
-          "Process Automation", "System Integration", "Embedded C", "Realtime OS", "Industrial IoT",
-          "Factory Automation", "Digital Twin", "Cyber Physical", "Fieldbus Protocols", "Predictive Maintenance"
-        ];
-      }
-
-      if (skills.length === 0) {
-        skills = [
-          "React", "TypeScript", "Next.js", "Node.js", "GraphQL", "TailwindCSS", "PostgreSQL", "REST APIs", "Shopify Liquid", "AWS",
-          "Siemens TIA Portal", "Rockwell Studio 5000", "Wonderware InTouch", "Ignition SCADA", "Schneider EcoStruxure",
-          "Modbus TCP/IP", "Profinet / Profibus", "EtherNet/IP", "ControlLogix", "Simatic S7-1500"
-        ];
+      // If skills list was empty, fall back to single-word skills
+      if (skills.length === 0 && oneWords.length > 0) {
+        skills = oneWords.slice(0, 15);
       }
 
       const joinedTitles = Array.from(new Set([...activeSearchTermsList, ...titles])).join(", ");
@@ -1051,6 +1111,7 @@ export default function Jobs() {
   const [aiAutoFillSuccess, setAiAutoFillSuccess] = useState<string>("");
   const [fieldAiLoading, setFieldAiLoading] = useState<Record<string, boolean>>({});
   const [screeningSearchQuery, setScreeningSearchQuery] = useState("");
+  const [screeningActiveTab, setScreeningActiveTab] = useState<string>("all");
   const [aiDecisionModalOpen, setAiDecisionModalOpen] = useState(false);
   const [targetModalJob, setTargetModalJob] = useState<{
     id?: string;
@@ -1357,6 +1418,7 @@ export default function Jobs() {
         }
         syncedAnswerRef.current[questionKey] = answer;
       }
+      siteAnswersLoadedRef.current = true;
       setSiteScreeningAnswers(answerMap);
       setSiteQuestionLabels(labelMap);
       setSiteAnswerTypes(typeMap);
@@ -1398,7 +1460,13 @@ export default function Jobs() {
     }
   };
 
+  // Uploads answers the extension captured on job forms that the site doesn't have yet.
+  // The site's own answers always win, so stale extension data can't overwrite them.
   const syncExtensionAnswersToSite = async (status: ExtensionStatus) => {
+    // Wait for the site's answers, or everything would look new.
+    if (!siteAnswersLoadedRef.current) return;
+    // The extension still holds another account's answers.
+    if (status.accountEmail && userEmailRef.current && status.accountEmail !== userEmailRef.current) return;
     const extensionAnswers = status.screeningAnswers || {};
     const entries = Object.entries(extensionAnswers);
     if (!entries.length) return;
@@ -1428,7 +1496,8 @@ export default function Jobs() {
       if (!answer) continue;
       const canonicalKey = toQuestionKey(rawKey);
       if (!canonicalKey) continue;
-      if (syncedAnswerRef.current[canonicalKey] === answer) continue;
+      // Already on the site or uploaded this session; also stops alias keys with different values flip-flopping.
+      if (canonicalKey in syncedAnswerRef.current) continue;
       const questionLabel =
         pendingLabelMap.get(canonicalKey) ||
         siteQuestionLabels[canonicalKey] ||
@@ -1508,6 +1577,7 @@ export default function Jobs() {
         state: snapshot.state || null,
         pendingQuestions: Array.isArray(snapshot.pendingQuestions) ? (snapshot.pendingQuestions as any) : [],
         screeningAnswers: snapshot.screeningAnswers || {},
+        accountEmail: snapshot.accountEmail,
         error: snapshot.error || null,
       };
       setExtensionStatus(result);
@@ -1573,18 +1643,22 @@ export default function Jobs() {
     return raw.replace(/[^\d]/g, "");
   };
 
-  const syncProfileToExtension = async () => {
-    if (typeof window === "undefined") return;
+  // Sends the profile, answers and search filters to the extension. Resolves true only when the
+  // extension confirmed it received them.
+  const syncProfileToExtension = async (): Promise<boolean> => {
+    if (typeof window === "undefined") return false;
     if (!extensionStatus.installed) {
       setError("Extension not detected. Install/reload extension first.");
-      return;
+      return false;
     }
     try {
       setSyncingSettings(true);
       setError("");
 
+      const extensionOwner = extensionStatus.accountEmail;
+      const extensionIsOtherAccount = Boolean(extensionOwner && userEmailRef.current && extensionOwner !== userEmailRef.current);
       const mergedAnswers: Record<string, string> = {
-        ...(extensionStatus.screeningAnswers || {}),
+        ...(extensionIsOtherAccount ? {} : extensionStatus.screeningAnswers || {}),
         ...siteScreeningAnswers,
       };
       for (const [rawKey, rawValue] of Object.entries(answerDrafts)) {
@@ -1686,6 +1760,27 @@ export default function Jobs() {
       const skillsRaw = pickFirstNonEmpty(mergedAnswers, ["core_skills", "skills"]);
       const skills = parsePreferenceListInput(skillsRaw);
 
+      // Search filters from the Preferences page. A value cleared in the form is sent empty so it
+      // clears in the extension too; filters never touched are left as the extension has them.
+      const draftHas = (key: string) => Object.prototype.hasOwnProperty.call(answerDrafts, key);
+      const prefValue = (key: string) => (draftHas(key) ? String(answerDrafts[key] ?? "").trim() : pickFirstNonEmpty(mergedAnswers, [key]));
+      const prefIsSet = (key: string) => draftHas(key) || Boolean(pickFirstNonEmpty(mergedAnswers, [key]));
+      const filterPayload: Record<string, unknown> = {};
+      if (prefIsSet("cp_pref_date_posted")) filterPayload.datePosted = prefValue("cp_pref_date_posted");
+      if (prefIsSet("cp_pref_sort_by")) {
+        const sortBy = prefValue("cp_pref_sort_by");
+        filterPayload.sortBy = sortBy === "No change" ? "" : sortBy;
+      }
+      if (prefIsSet("cp_pref_distance")) filterPayload.distance = searchRadiusMiles(prefValue("cp_pref_distance"));
+      if (prefIsSet("cp_pref_experience_levels")) {
+        filterPayload.experienceLevel = parsePreferenceListInput(prefValue("cp_pref_experience_levels")).filter(
+          (level) => level.toLowerCase() !== NO_EXPERIENCE_FILTER.toLowerCase(),
+        );
+      }
+      if (prefIsSet("cp_pref_easy_apply_only")) {
+        filterPayload.easyApplyOnly = prefValue("cp_pref_easy_apply_only").toLowerCase() !== "no";
+      }
+
       const settingsPayload = {
         currentCity,
         searchLocation: resolvedSearchLocation,
@@ -1725,6 +1820,7 @@ export default function Jobs() {
         stateRegion,
         country,
         screeningAnswers: screeningAnswersForSync,
+        ...filterPayload,
       };
 
       const ack = await new Promise<{ ok: boolean; error?: string }>((resolve) => {
@@ -1761,10 +1857,79 @@ export default function Jobs() {
       }
 
       await checkExtensionStatus();
+      return true;
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to sync extension settings");
+      return false;
     } finally {
       setSyncingSettings(false);
+    }
+  };
+
+  // What a Preferences filter currently holds: edited value, else the saved one, else its default.
+  const prefDisplay = (key: string) => String(answerDrafts[key] ?? siteScreeningAnswers[key] ?? PREFERENCE_DEFAULTS[key] ?? "").trim();
+  const setPref = (key: string, value: string) => setAnswerDrafts((prev) => ({ ...prev, [key]: value }));
+  const prefList = (key: string) =>
+    parsePreferenceListInput(prefDisplay(key)).filter((item) => item.toLowerCase() !== NO_EXPERIENCE_FILTER.toLowerCase());
+  // Job titles live under two keys (see PREFERENCE_FORM_FIELDS); read either, write both.
+  // Not cut at 25 entries like parsePreferenceListInput does: a resume can give 40 or more.
+  const prefTitles = String(
+    answerDrafts["cp_pref_search_terms"] ?? siteScreeningAnswers["cp_pref_search_terms"] ?? siteScreeningAnswers["preferred_job_titles"] ?? "",
+  )
+    .split(/[,\n;|]+/)
+    .map((item) => item.trim())
+    .filter(Boolean);
+  // A saved answer holds at most 1000 characters, so refuse a list that would be cut.
+  const setPrefListChecked = (keys: string[], values: string[]) => {
+    const value = stringifyPreferenceList(values);
+    if (value.length > 1000) {
+      setPrefsError("That list is too long to save (1000 characters). Remove a few entries first.");
+      return;
+    }
+    setPrefsError("");
+    setAnswerDrafts((prev) => {
+      const next = { ...prev };
+      for (const key of keys) next[key] = value;
+      return next;
+    });
+  };
+  const setPrefTitles = (values: string[]) => setPrefListChecked(["cp_pref_search_terms", "preferred_job_titles"], values);
+  const setPrefLocations = (values: string[]) => setPrefListChecked(["cp_pref_search_locations"], values);
+  // Locations already saved that are really work modes ("Remote"...). They are shown in red until changed.
+  const badLocations = prefList("cp_pref_search_locations").filter((place) => locationEntryProblem(place));
+  const togglePrefListItem = (key: string, option: string) => {
+    const current = prefList(key);
+    setPref(key, stringifyPreferenceList(current.includes(option) ? current.filter((item) => item !== option) : [...current, option]));
+  };
+
+  // Saves the Preferences filters on the account and pushes them to the extension.
+  const savePreferences = async () => {
+    if (!extensionStatus.installed) {
+      setPrefsError("The extension is not detected. Please connect the extension first, then try again.");
+      return;
+    }
+    if (badLocations.length) {
+      setPrefsError("Change or remove the red locations first. Remote and hybrid belong in the Work mode filter.");
+      return;
+    }
+    setSavingPrefs(true);
+    setPrefsError("");
+    try {
+      for (const field of PREFERENCE_FORM_FIELDS) {
+        // Untouched filters that still have their default are skipped: the extension already uses it.
+        let value = String(answerDrafts[field.key] ?? siteScreeningAnswers[field.key] ?? "").trim();
+        if (!value && field.key === "cp_pref_experience_levels" && siteScreeningAnswers[field.key]) value = NO_EXPERIENCE_FILTER;
+        if (!value) continue;
+        await saveAnswerToSite(field.key, field.label, value, field.type, "manual");
+      }
+      // Saved on the account either way; only say "sent" when the extension confirmed it.
+      const sentToExtension = await syncProfileToExtension();
+      setPrefsSynced(sentToExtension);
+      setPrefsSavedAt(new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }));
+    } catch (e) {
+      setPrefsError(e instanceof Error ? e.message : "Could not save preferences");
+    } finally {
+      setSavingPrefs(false);
     }
   };
 
@@ -1928,6 +2093,25 @@ export default function Jobs() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [extensionStatus.installed, user?.id, Object.keys(siteScreeningAnswers).length, Object.keys(extensionStatus.screeningAnswers || {}).length]);
 
+  // Keyword generation after a resume upload runs in the background and can fail without notice.
+  // If the account has a resume but none of the keyword lists, generate them once per account.
+  useEffect(() => {
+    if (!siteAnswersLoadedRef.current || !user?.id || !user.resumeFileName) return;
+    const hasLists = ["one_word_keywords", "two_words_keywords", "core_skills", "skills"].some((key) => siteScreeningAnswers[key]);
+    if (hasLists) return;
+    const triedKey = `autoapply:keywordsAutoGen:${user.id}`;
+    try {
+      if (window.localStorage.getItem(triedKey)) return;
+      window.localStorage.setItem(triedKey, "1");
+    } catch {
+      return;
+    }
+    void fetch("/api/user/ai/generate-search-profile", { method: "POST", credentials: "include" })
+      .then((res) => (res.ok ? loadSiteScreeningAnswers() : undefined))
+      .catch(() => undefined);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [siteScreeningAnswers, user?.id, user?.resumeFileName]);
+
   const filteredJobs = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
     if (!q) return jobs;
@@ -1962,6 +2146,7 @@ export default function Jobs() {
       answer: string,
       source: ScreeningFieldView["source"],
       explicitAnswerType?: ScreeningAnswerType,
+      explicitOptions?: string[],
     ) => {
       const catalogField = lookupCatalogField(rawKey, questionLabel);
       const questionKey = catalogField?.key || toQuestionKey(rawKey || questionLabel);
@@ -1986,7 +2171,7 @@ export default function Jobs() {
           answerType: resolvedAnswerType,
           category,
           order,
-          options: catalogField?.options,
+          options: catalogField?.options || explicitOptions,
           presets: catalogField?.presets,
           source,
         });
@@ -2001,10 +2186,11 @@ export default function Jobs() {
         ...existing,
         questionLabel: existing.questionLabel || cleanLabel,
         answer: shouldReplaceAnswer ? cleanAnswer : existing.answer,
-        answerType: catalogField?.answerType || existing.answerType || resolvedAnswerType,
+        // A pending question carries the type the LinkedIn form asked for; that wins over an older guess.
+        answerType: (source === "pending" && explicitAnswerType) || catalogField?.answerType || existing.answerType || resolvedAnswerType,
         category,
         order: Math.min(existing.order, order),
-        options: catalogField?.options || existing.options,
+        options: catalogField?.options || explicitOptions || existing.options,
         presets: catalogField?.presets || existing.presets,
         source:
           existing.source === source
@@ -2049,7 +2235,11 @@ export default function Jobs() {
           extensionStatus.screeningAnswers || {},
         ),
         "pending",
-        lookupCatalogField(pending.questionKey || pending.questionLabel, pending.questionLabel)?.answerType,
+        (answerTypeFromFormField(pending.fieldType, pending.options || []) ||
+          lookupCatalogField(pending.questionKey || pending.questionLabel, pending.questionLabel)?.answerType) as
+          | ScreeningAnswerType
+          | undefined,
+        pending.options?.length ? pending.options : undefined,
       );
     }
 
@@ -2060,7 +2250,9 @@ export default function Jobs() {
     };
 
     for (const field of merged.values()) {
-      grouped[field.category].push(field);
+      // Summary-type answers are typed text, even if an earlier save recorded them as multi-select.
+      const forced = forcedScreeningAnswerType(field.questionKey);
+      grouped[field.category].push(forced && field.answerType !== forced ? { ...field, answerType: forced } : field);
     }
 
     return (Object.keys(SCREENING_SECTION_META) as ScreeningFieldCategory[])
@@ -2282,6 +2474,161 @@ export default function Jobs() {
       .filter((sec) => sec.fields.length > 0);
   }, [screeningSections, screeningSearchQuery, answerDrafts]);
 
+  // Answers are shown grouped by what they ask (see src/lib/screening-groups.ts).
+  const displayScreeningSections = useMemo(() => {
+    type DisplaySection = { category: string; title: string; subtitle: string; fields: ScreeningFieldView[] };
+
+    const byGroup = new Map<string, ScreeningFieldView[]>();
+    const other: ScreeningFieldView[] = [];
+    for (const section of filteredScreeningSections) {
+      for (const field of section.fields) {
+        const group = screeningGroupFor(field.questionKey);
+        if (!group) {
+          other.push(field);
+          continue;
+        }
+        const list = byGroup.get(group);
+        if (list) list.push(field);
+        else byGroup.set(group, [field]);
+      }
+    }
+    const sections: DisplaySection[] = Array.from(byGroup.entries())
+      .sort((a, b) => b[1].length - a[1].length || a[0].localeCompare(b[0]))
+      .map(([name, fields]) => ({
+        category: name,
+        title: name,
+        subtitle:
+          fields.length < 2
+            ? "No other question like this yet"
+            : SHAREABLE_SCREENING_GROUPS.has(name)
+              ? `${fields.length} related questions. If one has no answer, the extension reuses the answer from another in this group`
+              : `${fields.length} related questions. Answers differ per question, so they are not shared`,
+        fields: [...fields].sort((a, b) => a.order - b.order),
+      }));
+    if (other.length) {
+      sections.push({
+        category: "__other__",
+        title: "Other questions",
+        subtitle: "Questions that are not related to any other",
+        fields: [...other].sort((a, b) => a.order - b.order),
+      });
+    }
+    return sections;
+  }, [filteredScreeningSections]);
+
+  const SCREENING_CATEGORY_TABS = useMemo(() => [
+    {
+      id: "all",
+      label: "All Questions",
+      shortLabel: "All",
+      icon: Layers,
+      match: () => true,
+    },
+    {
+      id: "summary",
+      label: "Professional Summary",
+      shortLabel: "Summary",
+      icon: FileText,
+      match: (category: string) => category === "Professional summary",
+    },
+    {
+      id: "blacklist",
+      label: "Exclude / Blacklist",
+      shortLabel: "Exclude",
+      icon: XCircle,
+      match: (category: string) => category === "Exclude / blacklist keywords",
+    },
+    {
+      id: "salary",
+      label: "Expected Salary / CTC",
+      shortLabel: "Salary & CTC",
+      icon: Coins,
+      match: (category: string) =>
+        category === "Expected salary / CTC" ||
+        category === "Current salary / CTC" ||
+        category === "Preferred salary range (min / max)",
+    },
+    {
+      id: "availability",
+      label: "Notice Period & Availability",
+      shortLabel: "Notice Period",
+      icon: Clock,
+      match: (category: string) =>
+        category === "Notice period / joining time" ||
+        category === "Work mode (remote / onsite / hybrid)",
+    },
+    {
+      id: "experience",
+      label: "Experience & Skills",
+      shortLabel: "Experience",
+      icon: Briefcase,
+      match: (category: string) =>
+        category === "Years of experience (overall)" ||
+        category === "Technical skills" ||
+        category === "1-word keywords" ||
+        category === "2-word keywords" ||
+        category === "Experience with one technology" ||
+        category === "Preferred job titles",
+    },
+    {
+      id: "authorization",
+      label: "Visa & Relocation",
+      shortLabel: "Visa & Location",
+      icon: ShieldCheck,
+      match: (category: string) =>
+        category === "Visa sponsorship" ||
+        category === "Willing to relocate" ||
+        category === "U.S. work authorization" ||
+        category === "Current city / location" ||
+        category === "Postal / ZIP code" ||
+        category === "Preferred locations" ||
+        category === "Preferred countries",
+    },
+    {
+      id: "other",
+      label: "Other Questions",
+      shortLabel: "Other",
+      icon: SlidersHorizontal,
+      match: (category: string) =>
+        category === "__other__" ||
+        category === "Other questions" ||
+        category === "Where did you hear about us" ||
+        category === "Reason for leaving current job" ||
+        category === "Industry worked in" ||
+        category === "Name (first / last / full)" ||
+        category === "Phone / email" ||
+        category === "Resume upload" ||
+        category === "Confidence level" ||
+        category === "Job types",
+    },
+  ], []);
+
+  const screeningTabCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    for (const tab of SCREENING_CATEGORY_TABS) {
+      if (tab.id === "all") {
+        counts.all = displayScreeningSections.reduce((sum, s) => sum + s.fields.length, 0);
+      } else {
+        counts[tab.id] = displayScreeningSections
+          .filter((s) => tab.match(s.category))
+          .reduce((sum, s) => sum + s.fields.length, 0);
+      }
+    }
+    return counts;
+  }, [displayScreeningSections, SCREENING_CATEGORY_TABS]);
+
+  const isScreeningTabVisible = (tabId: string) => {
+    if (tabId === "all" || tabId === "summary" || tabId === "blacklist" || tabId === "salary") return true;
+    return (screeningTabCounts[tabId] || 0) > 0;
+  };
+
+  const visibleScreeningSections = useMemo(() => {
+    if (screeningActiveTab === "all") return displayScreeningSections;
+    const tabDef = SCREENING_CATEGORY_TABS.find((t) => t.id === screeningActiveTab);
+    if (!tabDef) return displayScreeningSections;
+    return displayScreeningSections.filter((s) => tabDef.match(s.category));
+  }, [displayScreeningSections, screeningActiveTab, SCREENING_CATEGORY_TABS]);
+
   // Outreach billing: each WhatsApp message, email and LinkedIn comment costs 1 Hire. The cards show
   // what was sent and how many Hires are left, and lock Start when there are none (Pro is unlimited).
   const [outreachStats, setOutreachStats] = useState<OutreachStats | null>(null);
@@ -2345,14 +2692,14 @@ export default function Jobs() {
       id: "whatsapp",
       name: "WhatsApp Recruiter Outreach",
       tagline: "LinkedIn Phone Scraper & Multi-Chat",
-      description: "Opens LinkedIn feed to auto-scrape recruiter phone numbers, then auto-dispatches personalized intro messages directly to WhatsApp Web with duplicate protection.",
+      description: "Opens LinkedIn's hiring posts to auto-scrape recruiter phone numbers, then auto-dispatches personalized intro messages directly to WhatsApp Web with duplicate protection.",
       icon: MessageCircle,
       badge: "Auto-Send Ready",
       badgeColor: "bg-emerald-100 text-emerald-800 border-emerald-200",
       activeRoute: "/dashboard/marketing/whatsapp",
       isCurrent: false,
-      launchUrl: "https://www.linkedin.com/feed/#autoapply-module=whatsapp",
-      launchLabel: "⚡ Start Auto-Outreach",
+      launchUrl: outreachPostsUrl("whatsapp", prefTitles[0] || ""),
+      launchLabel: "Open hiring posts",
       secondaryUrl: "https://web.whatsapp.com",
       secondaryLabel: "WhatsApp Web",
       installed: true,
@@ -2364,14 +2711,14 @@ export default function Jobs() {
       id: "email",
       name: "Email Recruiter Outreach",
       tagline: "LinkedIn Email Scraper & Gmail Sender",
-      description: "Scans LinkedIn hiring posts for recruiter emails, then sends personalized intro emails with your resume from Gmail, with duplicate protection.",
+      description: "Opens LinkedIn's hiring posts and scans them for recruiter emails, then sends personalized intro emails with your resume from Gmail, with duplicate protection.",
       icon: Mail,
       badge: "Auto-Send Ready",
       badgeColor: "bg-sky-100 text-sky-800 border-sky-200",
       activeRoute: "/dashboard/jobs/linkedin",
       isCurrent: false,
-      launchUrl: "https://www.linkedin.com/feed/#autoapply-module=email",
-      launchLabel: "⚡ Start Email Outreach",
+      launchUrl: outreachPostsUrl("email", prefTitles[0] || ""),
+      launchLabel: "Open hiring posts",
       secondaryUrl: "https://mail.google.com",
       secondaryLabel: "Gmail",
       installed: true,
@@ -2425,14 +2772,7 @@ export default function Jobs() {
   }
 
   return (
-    <>
-      {/* Mobile Blocker ONLY for this Desktop Browser Extension Page (< 768px) */}
-      <div className="md:hidden">
-        <MobileBlocker />
-      </div>
-
-      {/* Desktop Extension View (≥ 768px) */}
-      <div className="hidden md:block space-y-4">
+    <div className="space-y-4">
         {/* Compact Header Bar: section, provider, status, stats and actions in one row */}
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="bg-white/90 backdrop-blur-md rounded-xl border border-gray-200/80 px-3 py-2 shadow-2xs flex flex-wrap items-center gap-x-3 gap-y-2">
           <div className="flex items-center gap-2">
@@ -2442,20 +2782,22 @@ export default function Jobs() {
             <h1 className="text-sm font-bold text-gray-900 leading-none">{activeSection.label}</h1>
           </div>
 
-          {/* LinkedIn / Indeed switch keeps you on the same section */}
-          <div className="bg-gray-100 p-0.5 rounded-lg flex items-center gap-0.5 border border-gray-200/70">
-            {(["linkedin", "indeed"] as const).map((provider) => (
-              <Link
-                key={provider}
-                to={jobsSectionPath(provider, activeJobsTab)}
-                className={`px-2 py-0.5 rounded-md text-[11px] font-semibold transition-colors ${
-                  selectedProvider === provider ? "bg-white text-purple-700 shadow-2xs" : "text-gray-500 hover:text-gray-900"
-                }`}
-              >
-                {provider === "linkedin" ? "LinkedIn" : "Indeed"}
-              </Link>
-            ))}
-          </div>
+          {/* LinkedIn / Indeed switch keeps you on the same section (hidden while Indeed is in beta) */}
+          {SHOW_INDEED_SWITCH ? (
+            <div className="bg-gray-100 p-0.5 rounded-lg flex items-center gap-0.5 border border-gray-200/70">
+              {(["linkedin", "indeed"] as const).map((provider) => (
+                <Link
+                  key={provider}
+                  to={jobsSectionPath(provider, activeJobsTab)}
+                  className={`px-2 py-0.5 rounded-md text-[11px] font-semibold transition-colors ${
+                    selectedProvider === provider ? "bg-white text-purple-700 shadow-2xs" : "text-gray-500 hover:text-gray-900"
+                  }`}
+                >
+                  {provider === "linkedin" ? "LinkedIn" : "Indeed"}
+                </Link>
+              ))}
+            </div>
+          ) : null}
 
           {/* Status + stats; clicking the status re-checks the extension bridge */}
           <div className="flex items-center gap-3 text-[11px] text-gray-600">
@@ -2490,28 +2832,17 @@ export default function Jobs() {
             {!isCurrentProviderInstalled && (
               <a
                 ref={storeLinkButtonRef}
-                href={currentProviderStoreUrl || currentProviderZipUrl}
-                {...(currentProviderStoreUrl
-                  ? { target: "_blank", rel: "noreferrer" }
-                  : { download: `${showLinkedIn ? "LinkedIn" : "Indeed"}_Extension.zip` })}
-                className="px-2.5 py-1.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white rounded-lg text-[11px] font-bold inline-flex items-center gap-1"
+                href={currentProviderStoreUrl || "https://chromewebstore.google.com/detail/mcfmniiniaigfhhjlaegpmhecbdoikjd"}
+                target="_blank"
+                rel="noreferrer"
+                className="px-2.5 py-1.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white rounded-lg text-[11px] font-bold inline-flex items-center gap-1"
               >
-                <Download className="w-3 h-3" />
-                <span>{currentProviderStoreUrl ? "Install" : "Download .ZIP"}</span>
+                <ExternalLink className="w-3 h-3" />
+                <span>Install from Chrome Store</span>
               </a>
             )}
 
-            <a
-              ref={openLinkedInJobsButtonRef}
-              href={showLinkedIn ? "https://www.linkedin.com/jobs/search/?f_AL=true&f_TPR=r604800" : "https://www.indeed.com/jobs?q=engineer"}
-              target="_blank"
-              rel="noreferrer"
-              className="px-2.5 py-1.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white rounded-lg text-[11px] font-bold inline-flex items-center gap-1"
-            >
-              <ExternalLink className="w-3 h-3" />
-              <span>{showLinkedIn ? "Open LinkedIn Jobs" : "Open Indeed Jobs"}</span>
-            </a>
-
+            {/* Opening LinkedIn / Indeed jobs is done from the copilot cards below. */}
             <button
               type="button"
               onClick={() => void autoFillAllWithAI()}
@@ -2579,25 +2910,14 @@ export default function Jobs() {
               </div>
 
               <div className="flex items-center flex-wrap gap-2 shrink-0">
-                {currentProviderStoreUrl && (
-                  <a
-                    href={currentProviderStoreUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white rounded-xl text-xs font-bold transition-all shadow-xs hover:shadow-sm inline-flex items-center gap-1.5"
-                  >
-                    <ExternalLink className="w-3.5 h-3.5" />
-                    <span>Install from Chrome Store</span>
-                  </a>
-                )}
-
                 <a
-                  href={currentProviderZipUrl}
-                  download={`${showLinkedIn ? "LinkedIn" : "Indeed"}_Extension.zip`}
-                  className="px-3.5 py-2 bg-white hover:bg-amber-50 text-amber-900 border border-amber-300 rounded-xl text-xs font-bold transition-colors inline-flex items-center gap-1.5 shadow-2xs"
+                  href={currentProviderStoreUrl || "https://chromewebstore.google.com/detail/mcfmniiniaigfhhjlaegpmhecbdoikjd"}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white rounded-xl text-xs font-bold transition-all shadow-xs hover:shadow-sm inline-flex items-center gap-1.5"
                 >
-                  <Download className="w-3.5 h-3.5 text-amber-700" />
-                  <span>Download .ZIP</span>
+                  <ExternalLink className="w-3.5 h-3.5" />
+                  <span>Install from Chrome Store</span>
                 </a>
 
                 <button
@@ -2654,7 +2974,7 @@ export default function Jobs() {
             {/* Unified Extension Fleet Grid */}
             <div className="space-y-3">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                {extensionSuiteModules.map((module) => {
+                {extensionSuiteModules.filter((module) => !HIDDEN_BETA_MODULES.has(module.id)).map((module) => {
                   const Icon = module.icon;
                   const isExternal = module.launchUrl.startsWith("http");
                   const outreachChannel = OUTREACH_MODULE_CHANNEL[module.id];
@@ -2762,21 +3082,12 @@ export default function Jobs() {
                                 href={module.storeUrl}
                                 target="_blank"
                                 rel="noreferrer"
-                                className="flex-1 px-3 py-1.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white rounded-xl text-xs font-bold transition-colors inline-flex items-center justify-center gap-1.5 shadow-2xs"
+                                className="flex-1 px-3 py-1.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white rounded-xl text-xs font-bold transition-colors inline-flex items-center justify-center gap-1.5 shadow-2xs"
                               >
-                                <Download className="w-3 h-3" />
-                                <span>Install Extension</span>
+                                <ExternalLink className="w-3 h-3" />
+                                <span>Install from Chrome Store</span>
                               </a>
-                            ) : (
-                              <a
-                                href={module.id === "indeed" ? indeedExtensionZipUrl : linkedInExtensionZipUrl}
-                                download
-                                className="flex-1 px-3 py-1.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white rounded-xl text-xs font-bold transition-colors inline-flex items-center justify-center gap-1.5 shadow-2xs"
-                              >
-                                <Download className="w-3 h-3" />
-                                <span>Download .ZIP</span>
-                              </a>
-                            )}
+                            ) : null}
                             <button
                               type="button"
                               onClick={() => openInstallGuide()}
@@ -2803,6 +3114,16 @@ export default function Jobs() {
                             {module.id === "email" ? <Mail className="w-3.5 h-3.5" /> : <MessageCircle className="w-3.5 h-3.5" />}
                             <span>{module.id === "email" ? "Gmail" : "Web"}</span>
                           </a>
+                        )}
+
+                        {(["whatsapp", "email", "commenter"] as string[]).includes(module.id) && (
+                          <Link
+                            to={jobsSectionPath(selectedProvider, "messages")}
+                            title="Write the message this tool sends"
+                            className="px-2.5 py-1.5 rounded-xl text-xs font-bold transition-colors inline-flex items-center gap-1 shrink-0 border border-gray-200 bg-white text-gray-700 hover:bg-gray-50"
+                          >
+                            <span>Message</span>
+                          </Link>
                         )}
 
                         {module.storeUrl && (
@@ -2908,7 +3229,7 @@ export default function Jobs() {
                 onKeyDown={(e) => {
                   if (e.key === "Enter") void handleAddSearchTitleTerm(newTitleTermInput);
                 }}
-                placeholder="e.g. PLC Programmer, SCADA Engineer, Automation Engineer..."
+                placeholder="e.g. Full Stack Developer, Product Manager, Data Analyst..."
                 className="flex-1 px-3 py-2 rounded-xl bg-gray-50 border border-gray-200 text-xs text-gray-900 focus:bg-white focus:outline-none focus:border-indigo-500"
               />
               <button
@@ -2985,7 +3306,7 @@ export default function Jobs() {
                 onKeyDown={(e) => {
                   if (e.key === "Enter") void handleAddOneWordTerm(newOneWordInput);
                 }}
-                placeholder="e.g. PLC, SCADA, HMI, VFD, DCS, Siemens, Modbus, Robotics..."
+                placeholder="e.g. React, Python, SQL, Docker, AWS, Figma, Kubernetes..."
                 className="flex-1 px-3 py-2 rounded-xl bg-white border border-cyan-200 text-xs text-gray-900 focus:outline-none focus:border-cyan-500"
               />
               <button
@@ -3062,7 +3383,7 @@ export default function Jobs() {
                 onKeyDown={(e) => {
                   if (e.key === "Enter") void handleAddTwoWordsTerm(newTwoWordsInput);
                 }}
-                placeholder="e.g. PLC Programmer, SCADA Engineer, Industrial Automation, Control Systems..."
+                placeholder="e.g. Machine Learning, Cloud Architecture, REST APIs, Product Design..."
                 className="flex-1 px-3 py-2 rounded-xl bg-white border border-blue-200 text-xs text-gray-900 focus:outline-none focus:border-blue-500"
               />
               <button
@@ -3278,13 +3599,24 @@ export default function Jobs() {
                   const pendingKey = toQuestionKey(q.questionKey || q.questionLabel);
                   const pendingCatalog = lookupCatalogField(q.questionKey || q.questionLabel, q.questionLabel);
                   const pendingDraftValue = answerDrafts[pendingKey] || "";
-                  const pendingAnswerType = pendingCatalog?.answerType || siteAnswerTypes[pendingKey] || inferAnswerType(pendingDraftValue);
+                  // The field type LinkedIn's form actually asked for wins over a guess from the label.
+                  const pendingOptions = q.options?.length ? q.options : pendingCatalog?.options;
+                  const pendingAnswerType = (answerTypeFromFormField(q.fieldType, q.options || []) ||
+                    forcedScreeningAnswerType(pendingKey) ||
+                    pendingCatalog?.answerType ||
+                    siteAnswerTypes[pendingKey] ||
+                    inferAnswerType(pendingDraftValue)) as ScreeningAnswerType;
                   const isFieldAiBusy = fieldAiLoading[pendingKey];
 
                   return (
                     <div key={q.questionKey} className="rounded-lg border border-amber-200/80 bg-white p-3 space-y-2 shadow-2xs">
                       <div className="flex flex-wrap items-center justify-between gap-2">
-                        <div className="text-xs font-bold text-gray-900">{q.questionLabel}</div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-bold text-gray-900">{q.questionLabel}</span>
+                          <span className={`text-[9px] font-bold px-1.5 py-0.2 rounded ${screeningTypeTag(pendingAnswerType).className}`}>
+                            {screeningTypeTag(pendingAnswerType).label}
+                          </span>
+                        </div>
                         <button
                           type="button"
                           onClick={() => void generateAIAnswerForField(pendingKey, q.questionLabel, pendingAnswerType, pendingCatalog?.options)}
@@ -3296,8 +3628,19 @@ export default function Jobs() {
                         </button>
                       </div>
 
-                      {q.validationMessage ? (
+                      {q.rejectedAnswer ? (
+                        <div className="rounded-md border border-red-200 bg-red-50 px-2.5 py-1.5 text-[11px] text-red-700">
+                          <span className="font-bold">LinkedIn rejected &ldquo;{q.rejectedAnswer}&rdquo;</span>
+                          {q.validationMessage ? <span>: {q.validationMessage}</span> : null}
+                        </div>
+                      ) : q.validationMessage ? (
                         <div className="text-[11px] text-red-600 font-medium">{q.validationMessage}</div>
+                      ) : null}
+                      {q.hint || (q.fieldType && pendingAnswerType === "choice") ? (
+                        <div className="text-[11px] text-gray-500">
+                          {pendingAnswerType === "choice" && q.options?.length ? `Pick one of the ${q.options.length} options. ` : ""}
+                          {q.hint}
+                        </div>
                       ) : null}
 
                       <div className="flex flex-col sm:flex-row gap-2">
@@ -3311,7 +3654,7 @@ export default function Jobs() {
                                 [pendingKey]: value,
                               }))
                             }
-                            options={withCurrentSelectOption(pendingCatalog?.options || (pendingAnswerType === "boolean" ? YES_NO_OPTIONS : []), pendingDraftValue)}
+                            options={withCurrentSelectOption(pendingOptions || (pendingAnswerType === "boolean" ? YES_NO_OPTIONS : []), pendingDraftValue)}
                             presets={pendingCatalog?.presets || []}
                             placeholder="Enter answer or click AI Suggest"
                             variant="amber"
@@ -3333,93 +3676,201 @@ export default function Jobs() {
           ) : null}
 
           {/* Search Filter for Screening Fields */}
-          <div className="relative">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
-            <input
-              type="text"
-              value={screeningSearchQuery}
-              onChange={(e) => setScreeningSearchQuery(e.target.value)}
-              placeholder="Search saved screening answers..."
-              className="w-full pl-9 pr-3 py-1.5 text-xs rounded-lg border border-gray-200 focus:border-purple-400 focus:ring-2 focus:ring-purple-100 outline-none bg-white shadow-xs"
-            />
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5">
+            <div className="relative flex-1">
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
+              <input
+                type="text"
+                value={screeningSearchQuery}
+                onChange={(e) => setScreeningSearchQuery(e.target.value)}
+                placeholder="Search saved screening answers..."
+                className="w-full pl-9 pr-8 py-2 text-xs rounded-xl border border-gray-200 focus:border-purple-400 focus:ring-2 focus:ring-purple-100 outline-none bg-white shadow-2xs"
+              />
+              {screeningSearchQuery && (
+                <button
+                  type="button"
+                  onClick={() => setScreeningSearchQuery("")}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 p-0.5"
+                  title="Clear search"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
+
+            <div className="flex items-center gap-2 shrink-0">
+              <button
+                type="button"
+                onClick={() => void autoFillAllWithAI()}
+                disabled={isAutoFillingAI}
+                className="px-3 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white rounded-xl text-xs font-bold transition-all shadow-2xs hover:shadow-xs inline-flex items-center gap-1.5 disabled:opacity-60"
+              >
+                {isAutoFillingAI ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
+                <span>Auto-Fill All with AI</span>
+              </button>
+            </div>
           </div>
 
-          {/* Categorized Screening Answers */}
-          <div className="space-y-3">
-            {filteredScreeningSections.map((section) => (
-              <div key={section.category} className="rounded-xl border border-gray-200/80 bg-white overflow-hidden shadow-xs">
-                <div className="bg-gray-50/80 px-4 py-2.5 border-b border-gray-100 flex flex-wrap items-center justify-between gap-2">
-                  <div>
-                    <h4 className="text-xs font-bold text-gray-900 uppercase tracking-wider">{section.title}</h4>
-                    <p className="text-[11px] text-gray-500">{section.subtitle}</p>
-                  </div>
-                  <span className="text-[10px] font-bold text-purple-600 bg-purple-50 px-2 py-0.5 rounded-full border border-purple-100">
-                    {section.fields.length} fields
+          {/* Easy Categorized Tabs Navigation */}
+          <div className="bg-white/90 backdrop-blur-md rounded-2xl border border-gray-200/80 p-1.5 shadow-2xs flex items-center gap-1.5 overflow-x-auto">
+            {SCREENING_CATEGORY_TABS.filter((t) => isScreeningTabVisible(t.id)).map((tab) => {
+              const Icon = tab.icon;
+              const isActive = screeningActiveTab === tab.id;
+              const count = screeningTabCounts[tab.id] ?? 0;
+              return (
+                <button
+                  key={tab.id}
+                  type="button"
+                  onClick={() => setScreeningActiveTab(tab.id)}
+                  className={`shrink-0 px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all duration-150 ${
+                    isActive
+                      ? "bg-purple-600 text-white shadow-xs"
+                      : "text-gray-700 hover:text-gray-900 hover:bg-gray-100/80 bg-gray-50/50 border border-gray-100"
+                  }`}
+                >
+                  <Icon className={`w-3.5 h-3.5 ${isActive ? "text-white" : "text-gray-500"}`} />
+                  <span>{tab.label}</span>
+                  <span
+                    className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
+                      isActive
+                        ? "bg-white/20 text-white"
+                        : "bg-purple-50 text-purple-700 border border-purple-100"
+                    }`}
+                  >
+                    {count}
                   </span>
-                </div>
-
-                <div className="divide-y divide-gray-100">
-                  {section.fields.map((field) => {
-                    const draftValue = answerDrafts[field.questionKey] ?? field.answer;
-                    const isPending = field.source === "pending";
-                    const isFieldAiBusy = fieldAiLoading[field.questionKey];
-
-                    return (
-                      <div key={field.questionKey} className={`p-3 space-y-2 ${isPending ? "bg-amber-50/30" : "bg-white"}`}>
-                        <div className="flex flex-wrap items-center justify-between gap-2">
-                          <div className="flex items-center gap-2">
-                            <span className="text-xs font-semibold text-gray-900">{field.questionLabel}</span>
-                            <span className={`text-[9px] font-bold px-1.5 py-0.2 rounded uppercase ${isPending ? "bg-amber-100 text-amber-700" :
-                                field.source === "site" ? "bg-emerald-100 text-emerald-700" :
-                                  "bg-gray-100 text-gray-600"
-                              }`}>
-                              {field.source === "site" ? "Saved" : field.source === "pending" ? "Pending" : "Merged"}
-                            </span>
-                          </div>
-
-                          <button
-                            type="button"
-                            onClick={() => void generateAIAnswerForField(field.questionKey, field.questionLabel, field.answerType, field.options)}
-                            disabled={isFieldAiBusy}
-                            className="px-2 py-0.5 rounded bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-100 text-[10px] font-semibold flex items-center gap-1 transition-colors disabled:opacity-60"
-                          >
-                            {isFieldAiBusy ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3 text-purple-600" />}
-                            <span>AI Suggest</span>
-                          </button>
-                        </div>
-
-                        <div className="flex flex-col sm:flex-row gap-2">
-                          <div className="flex-1">
-                            <AnswerValueEditor
-                              answerType={field.answerType}
-                              value={draftValue}
-                              onChange={(value) =>
-                                setAnswerDrafts((prev) => ({
-                                  ...prev,
-                                  [field.questionKey]: value,
-                                }))
-                              }
-                              options={withCurrentSelectOption(field.options || (field.answerType === "boolean" ? YES_NO_OPTIONS : []), draftValue)}
-                              presets={field.presets || []}
-                              placeholder="Type answer or click AI Suggest"
-                              variant={isPending ? "amber" : "default"}
-                            />
-                          </div>
-                          <button
-                            onClick={() => void saveAnswerForQuestion(field.questionKey, field.questionLabel, field.answerType)}
-                            disabled={savingAnswerKey === field.questionKey || !String(draftValue || "").trim()}
-                            className="px-3 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-700 text-white text-xs font-semibold disabled:opacity-50 transition-colors"
-                          >
-                            {savingAnswerKey === field.questionKey ? "Saving..." : "Save"}
-                          </button>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            ))}
+                </button>
+              );
+            })}
           </div>
+
+          {/* Categorized Screening Answers Content */}
+          {visibleScreeningSections.length === 0 ? (
+            <div className="rounded-2xl border border-dashed border-gray-200 bg-white p-8 text-center space-y-3 shadow-2xs">
+              <div className="w-10 h-10 rounded-2xl bg-purple-50 text-purple-600 flex items-center justify-center mx-auto">
+                <Sparkles className="w-5 h-5" />
+              </div>
+              <div className="space-y-1">
+                <h4 className="text-sm font-bold text-gray-900">
+                  {screeningSearchQuery ? "No matching questions found" : `No questions in ${SCREENING_CATEGORY_TABS.find((t) => t.id === screeningActiveTab)?.label || "this tab"} yet`}
+                </h4>
+                <p className="text-xs text-gray-500 max-w-md mx-auto">
+                  {screeningSearchQuery
+                    ? `No screening questions match "${screeningSearchQuery}". Try clearing the search or switching tabs.`
+                    : "LinkedIn hasn't encountered questions for this category in your applications yet, or you can auto-fill answers using AI."}
+                </p>
+              </div>
+              <div className="flex items-center justify-center gap-2 pt-1">
+                {screeningSearchQuery ? (
+                  <button
+                    type="button"
+                    onClick={() => setScreeningSearchQuery("")}
+                    className="px-3.5 py-1.5 rounded-xl border border-gray-200 bg-white hover:bg-gray-50 text-gray-700 text-xs font-semibold shadow-2xs"
+                  >
+                    Clear Search
+                  </button>
+                ) : (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => void autoFillAllWithAI()}
+                      disabled={isAutoFillingAI}
+                      className="px-3.5 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-semibold inline-flex items-center gap-1.5 shadow-2xs"
+                    >
+                      <Sparkles className="w-3.5 h-3.5" />
+                      <span>Auto-Fill with AI</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setScreeningActiveTab("all")}
+                      className="px-3.5 py-1.5 rounded-xl border border-gray-200 bg-white hover:bg-gray-50 text-gray-700 text-xs font-semibold shadow-2xs"
+                    >
+                      View All Questions
+                    </button>
+                  </>
+                )}
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {visibleScreeningSections.map((section) => (
+                <div key={section.category} className="rounded-xl border border-gray-200/80 bg-white overflow-hidden shadow-xs">
+                  <div className="bg-gray-50/80 px-4 py-2.5 border-b border-gray-100 flex flex-wrap items-center justify-between gap-2">
+                    <div>
+                      <h4 className="text-xs font-bold text-gray-900 uppercase tracking-wider">{section.title}</h4>
+                      <p className="text-[11px] text-gray-500">{section.subtitle}</p>
+                    </div>
+                    <span className="text-[10px] font-bold text-purple-600 bg-purple-50 px-2 py-0.5 rounded-full border border-purple-100">
+                      {section.fields.length} fields
+                    </span>
+                  </div>
+
+                  <div className="divide-y divide-gray-100">
+                    {section.fields.map((field) => {
+                      const draftValue = answerDrafts[field.questionKey] ?? field.answer;
+                      const isPending = field.source === "pending";
+                      const isFieldAiBusy = fieldAiLoading[field.questionKey];
+
+                      return (
+                        <div key={field.questionKey} className={`p-3 space-y-2 ${isPending ? "bg-amber-50/30" : "bg-white"}`}>
+                          <div className="flex flex-wrap items-center justify-between gap-2">
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs font-semibold text-gray-900">{field.questionLabel}</span>
+                              <span className={`text-[9px] font-bold px-1.5 py-0.2 rounded uppercase ${isPending ? "bg-amber-100 text-amber-700" :
+                                  field.source === "site" ? "bg-emerald-100 text-emerald-700" :
+                                    "bg-gray-100 text-gray-600"
+                                }`}>
+                                {field.source === "site" ? "Saved" : field.source === "pending" ? "Pending" : "Merged"}
+                              </span>
+                              <span className={`text-[9px] font-bold px-1.5 py-0.2 rounded ${screeningTypeTag(field.answerType).className}`}>
+                                {screeningTypeTag(field.answerType).label}
+                              </span>
+                            </div>
+
+                            <button
+                              type="button"
+                              onClick={() => void generateAIAnswerForField(field.questionKey, field.questionLabel, field.answerType, field.options)}
+                              disabled={isFieldAiBusy}
+                              className="px-2 py-0.5 rounded bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-100 text-[10px] font-semibold flex items-center gap-1 transition-colors disabled:opacity-60"
+                            >
+                              {isFieldAiBusy ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3 text-purple-600" />}
+                              <span>AI Suggest</span>
+                            </button>
+                          </div>
+
+                          <div className="flex flex-col sm:flex-row gap-2">
+                            <div className="flex-1">
+                              <AnswerValueEditor
+                                answerType={field.answerType}
+                                value={draftValue}
+                                onChange={(value) =>
+                                  setAnswerDrafts((prev) => ({
+                                    ...prev,
+                                    [field.questionKey]: value,
+                                  }))
+                                }
+                                options={withCurrentSelectOption(field.options || (field.answerType === "boolean" ? YES_NO_OPTIONS : []), draftValue)}
+                                presets={field.presets || []}
+                                placeholder="Type answer or click AI Suggest"
+                                variant={isPending ? "amber" : "default"}
+                              />
+                            </div>
+                            <button
+                              onClick={() => void saveAnswerForQuestion(field.questionKey, field.questionLabel, field.answerType)}
+                              disabled={savingAnswerKey === field.questionKey || !String(draftValue || "").trim()}
+                              className="px-3 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-700 text-white text-xs font-semibold disabled:opacity-50 transition-colors"
+                            >
+                              {savingAnswerKey === field.questionKey ? "Saving..." : "Save"}
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
 
@@ -3652,54 +4103,251 @@ export default function Jobs() {
       )}
 
       {/* TAB 4: Preferences & Targets */}
+      {/* TAB 5: Preferences — the search filters, laid out like LinkedIn's own filter bar */}
       {activeJobsTab === "settings" && (
         <div className="space-y-4 animate-in fade-in duration-150">
-          <div className="bg-white rounded-xl p-4 border border-gray-200/80 shadow-xs space-y-3">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-              <div>
-                <label className="block text-[11px] font-semibold text-gray-700 mb-1">Preferred Locations</label>
-                <AnswerValueEditor
-                  answerType="multiselect"
-                  value={answerDrafts["cp_pref_search_locations"] ?? siteScreeningAnswers["cp_pref_search_locations"] ?? ""}
-                  onChange={(val) => setAnswerDrafts((prev) => ({ ...prev, cp_pref_search_locations: val }))}
-                  placeholder="e.g. Mohali, Remote, India"
-                />
+          {!extensionStatus.installed ? (
+            <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-amber-300 bg-amber-50 px-4 py-3">
+              <div className="text-xs text-amber-900">
+                <div className="font-bold">The extension is not detected</div>
+                <div className="mt-0.5">
+                  Please connect the extension first, then try again. Install it and turn it on, then refresh this page. If you just reloaded the
+                  extension, refreshing this page is enough.
+                </div>
               </div>
+              <button
+                type="button"
+                onClick={() => void checkExtensionStatus()}
+                disabled={checkingExtension}
+                className="inline-flex items-center gap-1.5 rounded-full border border-amber-400 bg-white px-3.5 py-1.5 text-xs font-semibold text-amber-900 hover:bg-amber-100 disabled:opacity-60"
+              >
+                {checkingExtension ? <RefreshCw className="h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5" />}
+                Check again
+              </button>
+            </div>
+          ) : null}
+          <div className="bg-white rounded-xl border border-gray-200/80 shadow-xs p-4 space-y-4">
+            <div>
+              <h3 className="text-sm font-bold text-gray-900">Search filters</h3>
+              <p className="text-xs text-gray-500 mt-0.5">
+                These set the LinkedIn search the extension runs. A green filter is switched on.
+              </p>
+            </div>
 
-              <div>
-                <label className="block text-[11px] font-semibold text-gray-700 mb-1">Work Mode</label>
-                <AnswerValueEditor
-                  answerType="choice"
-                  value={answerDrafts["cp_pref_work_mode"] ?? siteScreeningAnswers["cp_pref_work_mode"] ?? "Remote"}
-                  onChange={(val) => setAnswerDrafts((prev) => ({ ...prev, cp_pref_work_mode: val }))}
-                  options={WORK_MODE_OPTIONS}
-                  placeholder="Select mode"
-                />
-              </div>
+            <div className="flex flex-wrap items-center gap-2.5">
+              {(() => {
+                const date = prefDisplay("cp_pref_date_posted");
+                return (
+                  <PrefPill id="date" openId={openPrefFilter} setOpenId={setOpenPrefFilter} label={date || "Date posted"} active={date !== "Any time"}>
+                    <PrefRadioList
+                      options={DATE_POSTED_OPTIONS}
+                      value={date}
+                      onChange={(option) => {
+                        setPref("cp_pref_date_posted", option);
+                        setOpenPrefFilter(null);
+                      }}
+                    />
+                  </PrefPill>
+                );
+              })()}
 
-              <div>
-                <label className="block text-[11px] font-semibold text-gray-700 mb-1">Job Types</label>
-                <AnswerValueEditor
-                  answerType="multiselect"
-                  value={answerDrafts["cp_pref_job_types"] ?? siteScreeningAnswers["cp_pref_job_types"] ?? "Full-time"}
-                  onChange={(val) => setAnswerDrafts((prev) => ({ ...prev, cp_pref_job_types: val }))}
-                  presets={JOB_TYPE_OPTIONS}
-                  placeholder="e.g. Full-time"
-                />
-              </div>
+              <PrefPill
+                id="easy"
+                openId={openPrefFilter}
+                setOpenId={setOpenPrefFilter}
+                label="Easy Apply"
+                active={prefDisplay("cp_pref_easy_apply_only") !== "No"}
+                onClick={() => setPref("cp_pref_easy_apply_only", prefDisplay("cp_pref_easy_apply_only") === "No" ? "Yes" : "No")}
+              />
 
-              <div>
-                <label className="block text-[11px] font-semibold text-gray-700 mb-1">Desired Salary / CTC</label>
-                <AnswerValueEditor
-                  answerType="text"
-                  value={answerDrafts["cp_pref_desired_salary"] ?? siteScreeningAnswers["cp_pref_desired_salary"] ?? ""}
-                  onChange={(val) => setAnswerDrafts((prev) => ({ ...prev, cp_pref_desired_salary: val }))}
-                  placeholder="e.g. ₹12,00,000 / $80,000"
-                />
-              </div>
+              {(() => {
+                const radius = prefDisplay("cp_pref_distance");
+                const km = /\((\d+) km\)/.exec(radius)?.[1];
+                return (
+                  <PrefPill
+                    id="distance"
+                    openId={openPrefFilter}
+                    setOpenId={setOpenPrefFilter}
+                    label={km ? `${km} km` : "Distance"}
+                    active={radius !== SEARCH_RADIUS_DEFAULT}
+                  >
+                    <PrefRadioList
+                      options={SEARCH_RADIUS_OPTIONS}
+                      value={radius}
+                      onChange={(option) => {
+                        setPref("cp_pref_distance", option);
+                        setOpenPrefFilter(null);
+                      }}
+                    />
+                  </PrefPill>
+                );
+              })()}
+
+              {(() => {
+                const levels = prefList("cp_pref_experience_levels");
+                return (
+                  <PrefPill
+                    id="experience"
+                    openId={openPrefFilter}
+                    setOpenId={setOpenPrefFilter}
+                    label={levels.length ? `Experience level (${levels.length})` : "Experience level"}
+                    active={levels.length > 0}
+                  >
+                    <PrefCheckList options={EXPERIENCE_LEVEL_OPTIONS} values={levels} onToggle={(option) => togglePrefListItem("cp_pref_experience_levels", option)} />
+                  </PrefPill>
+                );
+              })()}
+
+              {(() => {
+                const mode = prefDisplay("cp_pref_work_mode");
+                return (
+                  <PrefPill id="workmode" openId={openPrefFilter} setOpenId={setOpenPrefFilter} label={mode || "Work mode"} active={Boolean(mode)}>
+                    <PrefRadioList
+                      options={WORK_MODE_OPTIONS}
+                      value={mode}
+                      onChange={(option) => {
+                        setPref("cp_pref_work_mode", option);
+                        setOpenPrefFilter(null);
+                      }}
+                    />
+                  </PrefPill>
+                );
+              })()}
+
+              {(() => {
+                const types = prefList("cp_pref_job_types");
+                return (
+                  <PrefPill
+                    id="jobtype"
+                    openId={openPrefFilter}
+                    setOpenId={setOpenPrefFilter}
+                    label={types.length ? `Job type (${types.length})` : "Job type"}
+                    active={types.length > 0}
+                  >
+                    <PrefCheckList options={JOB_TYPE_OPTIONS} values={types} onToggle={(option) => togglePrefListItem("cp_pref_job_types", option)} />
+                  </PrefPill>
+                );
+              })()}
+
+              {(() => {
+                const titles = prefTitles;
+                return (
+                  <PrefPill
+                    id="titles"
+                    openId={openPrefFilter}
+                    setOpenId={setOpenPrefFilter}
+                    label={titles.length ? `Job titles (${titles.length})` : "Job titles"}
+                    active={titles.length > 0}
+                    wide
+                  >
+                    <PrefAddInput placeholder="Add a job title" onAdd={(raw) => setPrefTitles(mergeUniqueItems(titles, raw))} />
+                  </PrefPill>
+                );
+              })()}
+
+              {(() => {
+                const places = prefList("cp_pref_search_locations");
+                return (
+                  <PrefPill
+                    id="location"
+                    openId={openPrefFilter}
+                    setOpenId={setOpenPrefFilter}
+                    label={places.length ? `${places[0]}${places.length > 1 ? ` +${places.length - 1}` : ""}` : "Location"}
+                    active={places.length > 0}
+                    wide
+                  >
+                    <PrefAddInput placeholder="Add a location, e.g. Mohali" validate={locationEntryProblem} onAdd={(raw) => setPrefLocations(mergeUniqueItems(places, raw))} />
+                  </PrefPill>
+                );
+              })()}
+
+              {(() => {
+                const salary = prefDisplay("cp_pref_desired_salary");
+                return (
+                  <PrefPill id="salary" openId={openPrefFilter} setOpenId={setOpenPrefFilter} label={salary ? `Salary: ${salary}` : "Salary"} active={Boolean(salary)} wide>
+                    <AnswerValueEditor
+                      answerType="text"
+                      value={prefDisplay("cp_pref_desired_salary")}
+                      onChange={(value) => setPref("cp_pref_desired_salary", value)}
+                      placeholder="e.g. ₹12,00,000 / $80,000"
+                    />
+                  </PrefPill>
+                );
+              })()}
+
+              {(() => {
+                const sort = prefDisplay("cp_pref_sort_by");
+                return (
+                  <PrefPill id="sort" openId={openPrefFilter} setOpenId={setOpenPrefFilter} label={sort === "No change" ? "Sort by" : sort} active={sort !== "No change"}>
+                    <PrefRadioList
+                      options={SORT_BY_OPTIONS}
+                      value={sort}
+                      onChange={(option) => {
+                        setPref("cp_pref_sort_by", option);
+                        setOpenPrefFilter(null);
+                      }}
+                    />
+                  </PrefPill>
+                );
+              })()}
+            </div>
+
+            {/* The searched job titles and locations, always visible; remove one with its x */}
+            <div className="space-y-2.5 border-t border-gray-100 pt-3">
+              <PrefChipRow
+                title="Job titles"
+                values={prefTitles}
+                onChange={setPrefTitles}
+                addPlaceholder="Add a job title and press Enter"
+                limit={prefTitlesExpanded ? prefTitles.length : 12}
+                onShowMore={() => setPrefTitlesExpanded((value) => !value)}
+                expanded={prefTitlesExpanded}
+              />
+              <PrefChipRow
+                title="Locations"
+                values={prefList("cp_pref_search_locations")}
+                onChange={setPrefLocations}
+                addPlaceholder="Add a location, e.g. Mohali, and press Enter"
+                validate={locationEntryProblem}
+              />
+            </div>
+
+            <div className="flex flex-wrap items-center gap-3 pt-1">
+              <button
+                type="button"
+                onClick={() => void savePreferences()}
+                disabled={savingPrefs || badLocations.length > 0 || !extensionStatus.installed}
+                className="px-4 py-2 rounded-full bg-purple-600 hover:bg-purple-700 text-white text-xs font-semibold disabled:opacity-60 transition-colors"
+              >
+                {savingPrefs ? "Saving..." : "Save preferences"}
+              </button>
+              {prefsSavedAt && prefsSynced ? (
+                <span className="text-xs text-emerald-600 font-medium">Saved at {prefsSavedAt} and sent to the extension</span>
+              ) : null}
+              {prefsSavedAt && !prefsSynced ? (
+                <span className="text-xs text-amber-700 font-medium">
+                  Saved on your account at {prefsSavedAt}, but the extension did not confirm it received them. Try Save again.
+                </span>
+              ) : null}
+              {badLocations.length && !prefsError ? (
+                <span className="text-xs text-red-600 font-medium">Change or remove the red locations to save.</span>
+              ) : null}
+              {prefsError ? <span className="text-xs text-red-600 font-medium">{prefsError}</span> : null}
             </div>
           </div>
         </div>
+      )}
+
+      {/* TAB 6: Messages — what the WhatsApp, Email and LinkedIn comment tools send */}
+      {activeJobsTab === "messages" && (
+        <OutreachMessages
+          extensionInstalled={extensionStatus.installed}
+          checkingExtension={checkingExtension}
+          onCheckExtension={() => void checkExtensionStatus()}
+          userName={String(user?.name || "")}
+          userLink={String(user?.portfolioUrl || user?.linkedinUrl || "")}
+          suggestedKeywords={Array.from(new Set(prefTitles.slice(0, 12).map((title) => title.toLowerCase())))}
+        />
       )}
 
       {/* Guide Modal */}
@@ -3786,8 +4434,273 @@ export default function Jobs() {
         linkedInConnected={linkedInInstalled}
         extensionVersion={linkedInInstalledVersion || "2.6.0"}
       />
+    </div>
+  );
+}
+
+// A filter pill like LinkedIn's: outlined when off, green when on, with a menu underneath.
+// Without children it is a plain toggle (onClick).
+function PrefPill({
+  id,
+  openId,
+  setOpenId,
+  label,
+  active,
+  onClick,
+  wide = false,
+  children,
+}: {
+  id: string;
+  openId: string | null;
+  setOpenId: (id: string | null) => void;
+  label: string;
+  active: boolean;
+  onClick?: () => void;
+  wide?: boolean;
+  children?: React.ReactNode;
+}) {
+  const open = openId === id;
+  return (
+    <div className="relative" data-pref-pill>
+      <button
+        type="button"
+        onClick={() => (onClick ? onClick() : setOpenId(open ? null : id))}
+        aria-expanded={children ? open : undefined}
+        className={`inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-[13px] font-semibold transition-colors ${
+          active
+            ? "border-[#01754f] bg-[#01754f] text-white hover:bg-[#015c3f]"
+            : "border-gray-400 bg-white text-gray-700 hover:bg-gray-50"
+        }`}
+      >
+        <span className="max-w-[200px] truncate">{label}</span>
+        {children ? <ChevronDown className={`h-3.5 w-3.5 transition-transform ${open ? "rotate-180" : ""}`} /> : null}
+      </button>
+      {children && open ? (
+        <div className={`absolute left-0 top-full z-30 mt-2 rounded-xl border border-gray-200 bg-white p-3 shadow-xl ${wide ? "w-72" : "min-w-[220px]"}`}>
+          {children}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+// Adds the comma/newline separated items in `raw` to a list, skipping ones already there (any letter case).
+function mergeUniqueItems(current: string[], raw: string) {
+  const seen = new Set(current.map((item) => item.toLowerCase()));
+  const next = [...current];
+  for (const item of String(raw || "").split(/[,\n;|]+/).map((part) => part.trim()).filter(Boolean)) {
+    if (seen.has(item.toLowerCase())) continue;
+    seen.add(item.toLowerCase());
+    next.push(item);
+  }
+  return next;
+}
+
+// A text box that adds what you type when you press Enter (or click Add). `validate` returns a message
+// for an entry that is not allowed; allowed entries in the same text are still added.
+function PrefAddInput({
+  placeholder,
+  onAdd,
+  validate,
+}: {
+  placeholder: string;
+  onAdd: (raw: string) => void;
+  validate?: (item: string) => string;
+}) {
+  const [text, setText] = useState("");
+  const [problem, setProblem] = useState("");
+  const submit = () => {
+    const items = text.split(/[,\n;|]+/).map((part) => part.trim()).filter(Boolean);
+    if (!items.length) return;
+    const bad = validate ? items.find((item) => validate(item)) : undefined;
+    const good = validate ? items.filter((item) => !validate(item)) : items;
+    if (good.length) onAdd(good.join(", "));
+    setProblem(bad && validate ? validate(bad) : "");
+    setText(bad ? "" : "");
+  };
+  return (
+    <div>
+      <div className="flex items-center gap-2">
+        <input
+          value={text}
+          onChange={(event) => {
+            setText(event.target.value);
+            if (problem) setProblem("");
+          }}
+          onKeyDown={(event) => {
+            if (event.key === "Enter") {
+              event.preventDefault();
+              submit();
+            }
+          }}
+          placeholder={placeholder}
+          className="min-w-0 flex-1 rounded-lg border border-gray-300 px-2.5 py-1.5 text-xs outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-100"
+        />
+        <button type="button" onClick={submit} className="rounded-lg bg-purple-600 px-2.5 py-1.5 text-xs font-semibold text-white hover:bg-purple-700">
+          Add
+        </button>
       </div>
-    </>
+      {problem ? <p className="mt-1 text-[11px] font-medium text-red-600">{problem}</p> : null}
+    </div>
+  );
+}
+
+// A labelled row of tags (job titles, locations) you can edit in place: type to add, click a tag to
+// rename it, or remove it with its x.
+function PrefChipRow({
+  title,
+  values,
+  onChange,
+  addPlaceholder,
+  validate,
+  limit,
+  expanded = false,
+  onShowMore,
+}: {
+  title: string;
+  values: string[];
+  onChange: (values: string[]) => void;
+  addPlaceholder: string;
+  validate?: (item: string) => string;
+  limit?: number;
+  expanded?: boolean;
+  onShowMore?: () => void;
+}) {
+  const [editing, setEditing] = useState<string | null>(null);
+  const [draft, setDraft] = useState("");
+  const [renameProblem, setRenameProblem] = useState("");
+  const shown = typeof limit === "number" ? values.slice(0, limit) : values;
+  const hidden = values.length - shown.length;
+
+  const finishEdit = (original: string, save: boolean) => {
+    setEditing(null);
+    if (!save) return;
+    const renamed = draft.trim();
+    if (renamed === original) return;
+    const problem = renamed && validate ? validate(renamed) : "";
+    setRenameProblem(problem);
+    if (problem) return;
+    // An empty name removes the tag; renaming to something already listed just merges them.
+    const without = values.filter((value) => value !== original);
+    const index = values.indexOf(original);
+    if (!renamed) return onChange(without);
+    const exists = without.some((value) => value.toLowerCase() === renamed.toLowerCase());
+    onChange(exists ? without : [...without.slice(0, index), renamed, ...without.slice(index)]);
+  };
+
+  return (
+    <div>
+      <div className="mb-1.5 text-[11px] font-bold uppercase tracking-wider text-gray-500">
+        {title} {values.length ? <span className="text-gray-400">({values.length})</span> : null}
+      </div>
+      <div className="flex flex-wrap items-center gap-1.5">
+        {shown.map((value) => {
+          // An entry that is not allowed (already saved before the rule existed) is shown in red.
+          const reason = validate ? validate(value) : "";
+          return editing === value ? (
+            <input
+              key={value}
+              autoFocus
+              value={draft}
+              onChange={(event) => setDraft(event.target.value)}
+              onBlur={() => finishEdit(value, true)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter") finishEdit(value, true);
+                if (event.key === "Escape") finishEdit(value, false);
+              }}
+              className="w-44 rounded-full border border-purple-400 px-2.5 py-0.5 text-xs outline-none ring-2 ring-purple-100"
+            />
+          ) : (
+            <span
+              key={value}
+              title={reason || undefined}
+              className={`inline-flex items-center gap-1 rounded-full border py-0.5 pl-2.5 pr-1.5 text-xs ${reason ? "border-red-300 bg-red-50 text-red-700" : "border-gray-200 bg-gray-50 text-gray-800"}`}
+            >
+              <button
+                type="button"
+                title={reason ? "Change this entry" : "Click to rename"}
+                onClick={() => {
+                  setEditing(value);
+                  setDraft(value);
+                }}
+                className={reason ? "font-semibold hover:underline" : "hover:text-purple-700"}
+              >
+                {value}
+              </button>
+              <button type="button" onClick={() => onChange(values.filter((item) => item !== value))} aria-label={`Remove ${value}`} className="rounded-full p-0.5 text-gray-400 hover:bg-gray-200 hover:text-gray-700">
+                <X className="h-3 w-3" />
+              </button>
+            </span>
+          );
+        })}
+        {onShowMore && (hidden > 0 || expanded) && values.length > 12 ? (
+          <button type="button" onClick={onShowMore} className="text-xs font-semibold text-purple-600 hover:text-purple-700">
+            {expanded ? "Show less" : `+${hidden} more`}
+          </button>
+        ) : null}
+      </div>
+      {validate && values.some((value) => validate(value)) ? (
+        <div className="mt-2 space-y-0.5">
+          {values
+            .filter((value) => validate(value))
+            .map((value) => (
+              <p key={value} className="text-[11px] font-medium text-red-600">
+                {validate(value)} Click it to change it, or remove it.
+              </p>
+            ))}
+        </div>
+      ) : null}
+      <div className="mt-2 max-w-md">
+        <PrefAddInput placeholder={addPlaceholder} validate={validate} onAdd={(raw) => onChange(mergeUniqueItems(values, raw))} />
+        {renameProblem ? <p className="mt-1 text-[11px] font-medium text-red-600">{renameProblem}</p> : null}
+      </div>
+    </div>
+  );
+}
+
+function PrefRadioList({ options, value, onChange }: { options: string[]; value: string; onChange: (option: string) => void }) {
+  return (
+    <div className="flex flex-col gap-0.5">
+      {options.map((option) => {
+        const selected = option === value;
+        return (
+          <button
+            key={option}
+            type="button"
+            onClick={() => onChange(option)}
+            className="flex items-center gap-2.5 rounded-lg px-2 py-1.5 text-left text-[13px] text-gray-800 hover:bg-gray-50"
+          >
+            <span className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-full border ${selected ? "border-[#01754f]" : "border-gray-400"}`}>
+              {selected ? <span className="h-2 w-2 rounded-full bg-[#01754f]" /> : null}
+            </span>
+            {option}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+function PrefCheckList({ options, values, onToggle }: { options: string[]; values: string[]; onToggle: (option: string) => void }) {
+  return (
+    <div className="flex flex-col gap-0.5">
+      {options.map((option) => {
+        const checked = values.includes(option);
+        return (
+          <button
+            key={option}
+            type="button"
+            onClick={() => onToggle(option)}
+            className="flex items-center gap-2.5 rounded-lg px-2 py-1.5 text-left text-[13px] text-gray-800 hover:bg-gray-50"
+          >
+            <span className={`flex h-4 w-4 shrink-0 items-center justify-center rounded border ${checked ? "border-[#01754f] bg-[#01754f]" : "border-gray-400 bg-white"}`}>
+              {checked ? <Check className="h-3 w-3 text-white" /> : null}
+            </span>
+            {option}
+          </button>
+        );
+      })}
+    </div>
   );
 }
 

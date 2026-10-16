@@ -147,20 +147,42 @@ async function processEasyApplyModal(settings) {
         continue;
       }
 
-      // ── TIER 1: Ask user in Dashboard & Wait up to 3 minutes (180s) ──
-      if (stepState.manualAnswerWaits === 0 && shouldPauseForInput) {
+      // ── TIER 1: Ask the user, in the panel first (the dashboard still works), wait up to 3 minutes ──
+      // Asked again (up to 3 times a step) when LinkedIn rejects an answer, so the user sees its message.
+      if (stepState.manualAnswerWaits < 3 && shouldPauseForInput) {
         const pendingQuestions = buildPendingQuestionsFromDiagnostics(unresolvedAfter, modalValidationBeforeActionRaw);
         if (pendingQuestions.length > 0) {
           await sendMessage({ type: "CP_REGISTER_PENDING_QUESTIONS", questions: pendingQuestions });
           const firstLabel = pendingQuestions[0].questionLabel || "Required field";
           await logLine(
-            `⏳ Unresolved question: "${firstLabel.slice(0, 55)}". Please answer in Dashboard (Jobs). Waiting 3 minutes...`,
+            `⏳ Unresolved question: "${firstLabel.slice(0, 55)}". Answer it in this panel (or in the Dashboard). Waiting 3 minutes...`,
             "warn"
           );
           stepState.manualAnswerWaits += 1;
           stepStateBySignature.set(stepSignature, stepState);
 
-          const waitResult = await waitForPendingAnswersFromSettings(pendingQuestions, 180000, 1500);
+          // Both run together: whichever answer comes first wins.
+          const dashboardWait = waitForPendingAnswersFromSettings(pendingQuestions, 180000, 1500).catch(() => ({ ok: false, screeningAnswers: {} }));
+          const asked = await Promise.race([
+            askQuestionsInPanel(modal, pendingQuestions, activeSettings, 180000),
+            dashboardWait.then((r) => (r.ok ? { result: "dashboard-answered", answers: {} } : new Promise(() => {}))),
+          ]);
+          if (asked.result === "answered") {
+            for (const [key, value] of Object.entries(asked.answers || {})) {
+              activeSettings.screeningAnswers[key] = value;
+              const pq = pendingQuestions.find((item) => item.questionKey === key);
+              if (pq) activeSettings.screeningAnswers[normalizeLabel(pq.questionLabel)] = value;
+            }
+            await logLine("✅ Got your answer in the panel. Continuing...", "info");
+            for (const block of questionBlocks) {
+              await fillQuestionBlock(block, activeSettings);
+            }
+            previousSignature = getModalSignature(modal);
+            await sleep(350);
+            continue;
+          }
+          cancelPanelAsk();
+          const waitResult = await dashboardWait;
           if (waitResult.ok) {
             activeSettings.screeningAnswers = { ...activeSettings.screeningAnswers, ...waitResult.screeningAnswers };
             await logLine("✅ Received user answers from Dashboard! Applying to form...", "info");

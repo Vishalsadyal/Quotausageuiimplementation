@@ -4,6 +4,7 @@ import { requireAuth } from "src/lib/guards";
 import { ok, fail, handleApiError, parsePagination } from "src/lib/api";
 import { prisma } from "src/lib/prisma";
 import { writeAuditLog } from "src/lib/audit";
+import { forcedScreeningAnswerType } from "src/lib/screening-groups";
 import {
   AnswerType,
   SourceType,
@@ -171,6 +172,11 @@ export async function POST(req: NextRequest) {
 
     if (!answersList.length) {
       return fail("Invalid answer payload", 400);
+    }
+
+    // A summary or other free-text answer is text, even when it has commas and was sent as multiselect.
+    for (const item of answersList) {
+      if (forcedScreeningAnswerType(item.questionKey)) item.answerType = "text";
     }
 
     const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || req.headers.get("x-real-ip") || undefined;

@@ -5,6 +5,7 @@ import { parseResumeFile } from "src/lib/resume-parser";
 import { parseResumeWithAi } from "src/lib/resume-ai-parser";
 import { mergeResumeFields, saveResumeForUser } from "src/lib/resume-store";
 import { enforceRateLimit, rateLimitKey } from "src/lib/rate-limit";
+import { generateSearchProfileForUser } from "src/lib/search-profile";
 
 export async function POST(req: NextRequest) {
   try {
@@ -42,7 +43,23 @@ export async function POST(req: NextRequest) {
     const mergedExtracted = mergeResumeFields(parsed, aiParsed);
     await saveResumeForUser(authResult.auth.user.id, file, parsed, mergedExtracted);
 
-    return ok("Resume parsed and 100 keywords generated with Groq AI", {
+    // Auto-generate full 5-tier keyword profile (titles, 1-word, 2-word, core skills, danger/exclude keywords)
+    try {
+      const searchProfile = await generateSearchProfileForUser(authResult.auth.user.id);
+      if (searchProfile.searchTerms?.length) {
+        mergedExtracted.jobTitles = searchProfile.searchTerms;
+      }
+      if (searchProfile.description) {
+        mergedExtracted.summary = searchProfile.description;
+      }
+      if (searchProfile.allKeywords?.length) {
+        mergedExtracted.skills = searchProfile.allKeywords;
+      }
+    } catch {
+      // Non-critical; fallback to basic extracted fields
+    }
+
+    return ok("Resume parsed and full keyword profile generated with Groq AI", {
       fileName: file.name,
       extracted: mergedExtracted,
     });

@@ -3,63 +3,91 @@
 // Verified comment posting with TipTap/ProseMirror submit confirmation & deduplication.
 // ─────────────────────────────────────────────────────────────────────────────
 
+
 (function () {
   'use strict';
 
   if (window.__linkedInAutoCommenterInjected) return;
   window.__linkedInAutoCommenterInjected = true;
 
+  const WIDGET_ID = 'li-autocommenter-widget';
+  const LOG_CAP = 200;
+  const ACTIVITY_CAP = 100;
 
   // State
   let isRunning = false;
   let isPaused = false;
+  // Settings are edited in the web dashboard (Auto Apply > Messages) and arrive via chrome.storage.local.
   let currentSettings = {
-    commentText: "Hi! I am actively looking for new opportunities. Feel free to check out my portfolio & recent work: https://parveen-portfolio-xi.vercel.app/",
+    commentText: '',
     delaySec: 4,
     maxComments: 25,
     autoLike: true,
     autoScroll: true,
     skipJobSeekers: true,    // Skip job seekers / #OpenToWork
     skipAlreadyLiked: true,  // Skip already liked posts
-    debugMode: true,
-    filterKeywords: ""
+    debugMode: false,
+    filterKeywords: ''
   };
   let sessionCount = 0;
+  let totalCommented = 0;
   let processedUrns = new Set();
+  let commentedLog = [];   // newest first
+  let skippedLog = [];     // newest first
+  let activityLog = [];    // newest first
+  let currentAction = '';
+  let ctl = null;          // controller from cpOwInit
   let widgetEl = null;
-  let isMinimized = false;
-  let currentTab = 'main';
-  let debugLogList = [];
 
   const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-  // Logging & Debug
+  function stripEmoji(text) {
+    return String(text == null ? '' : text)
+      .replace(/[\u{1F000}-\u{1FFFF}\u{2190}-\u{21FF}\u{2300}-\u{23FF}\u{2600}-\u{27BF}\u{2B00}-\u{2BFF}️‍]/gu, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+
+  function shorten(text, max) {
+    const t = String(text == null ? '' : text).replace(/\s+/g, ' ').trim();
+    return t.length > max ? `${t.slice(0, max - 1).trimEnd()}...` : t;
+  }
+
+  function applySettings(incoming) {
+    if (!incoming || typeof incoming !== 'object') return;
+    const merged = { ...currentSettings, ...incoming };
+    merged.commentText = typeof merged.commentText === 'string' ? merged.commentText : '';
+    merged.filterKeywords = typeof merged.filterKeywords === 'string' ? merged.filterKeywords : '';
+    merged.delaySec = Math.max(1, Number(merged.delaySec) || 4);
+    merged.maxComments = Math.max(1, Number(merged.maxComments) || 25);
+    currentSettings = merged;
+  }
+
+  // Logging: the Activity tab (newest first, last ~100 lines) + the background.
   function logMessage(text, type = 'info') {
-    const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-    appendWidgetLog(text, type, time);
+    const clean = stripEmoji(text);
+    activityLog.unshift({ text: clean, type, ts: Date.now() });
+    if (activityLog.length > ACTIVITY_CAP) activityLog.length = ACTIVITY_CAP;
+    if (type !== 'error' && type !== 'warning') currentAction = clean;
+    renderWidget();
     chrome.runtime.sendMessage({
       type: 'EVENT_LOG',
       payload: { message: text, logType: type }
     }).catch(() => {});
   }
 
+  // Debug detail goes to the console only (and to the background).
   function dbgLog(category, text, details = null) {
-    const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit', fractionalSecondDigits: 3 });
-    const logObj = { category, text, details, time };
-    debugLogList.unshift(logObj);
-    if (debugLogList.length > 100) debugLogList.pop();
-
     if (currentSettings.debugMode) {
-      appendDebugLog(logObj);
+      try { console.debug(`[AutoCommenter][${category}] ${text}`, details || ''); } catch (e) {}
     }
-
     chrome.runtime.sendMessage({
       type: 'DEBUG_LOG',
       payload: { category, message: text, details }
     }).catch(() => {});
   }
 
-  // Visual Element Highlighter
+  // Visual Element Highlighter (page overlay, only when debugMode is on in the dashboard)
   function highlightElement(el, label, color = '#6366f1', duration = 2200) {
     if (!el || !currentSettings.debugMode) return;
     try {
@@ -73,7 +101,7 @@
 
       const badge = document.createElement('div');
       badge.className = 'li-ac-debug-tag';
-      badge.textContent = label;
+      badge.textContent = stripEmoji(label);
       badge.style.cssText = `
         position: absolute;
         top: -12px;
@@ -107,471 +135,264 @@
   // Load storage
   async function loadInitialData() {
     try {
-      const data = await chrome.storage.local.get(['autoCommentSettings', 'commentedUrns']);
-      if (data.autoCommentSettings) {
-        currentSettings = { ...currentSettings, ...data.autoCommentSettings };
-      }
+      const data = await chrome.storage.local.get(['autoCommentSettings', 'commentedUrns', 'totalCommentedCount', 'commentedLog', 'commentSkipped']);
+      applySettings(data.autoCommentSettings);
       if (Array.isArray(data.commentedUrns)) {
         data.commentedUrns.forEach((urn) => processedUrns.add(urn));
       }
-      dbgLog('INIT', `Loaded ${processedUrns.size} saved processed posts`, { settings: currentSettings });
+      totalCommented = typeof data.totalCommentedCount === 'number' ? data.totalCommentedCount : processedUrns.size;
+      if (Array.isArray(data.commentedLog)) commentedLog = data.commentedLog.slice(0, LOG_CAP);
+      if (Array.isArray(data.commentSkipped)) skippedLog = data.commentSkipped.slice(0, LOG_CAP);
+      dbgLog('INIT', `Loaded ${processedUrns.size} saved processed posts`);
     } catch (e) {
       console.error('[AutoCommenter] Error loading data:', e);
     }
   }
 
-  // Check if Auto-Commenter module is active for this tab
-  function checkModuleVisibility() {
-    const widget = document.getElementById('li-autocommenter-widget');
-    if (!widget) return;
-    const hash = (window.location.hash || '').toLowerCase();
+  // Keep settings fresh when the dashboard changes them.
+  try {
+    chrome.storage.onChanged.addListener((changes, areaName) => {
+      if (areaName !== 'local') return;
+      if (changes.autoCommentSettings) {
+        applySettings(changes.autoCommentSettings.newValue);
+      }
+      if (changes.totalCommentedCount && typeof changes.totalCommentedCount.newValue === 'number') {
+        totalCommented = changes.totalCommentedCount.newValue;
+      }
+      if (changes.autoCommentSettings || changes.totalCommentedCount) renderWidget();
+    });
+  } catch (e) {}
 
-    // If explicit module requested
-    if (hash.includes('autoapply-module=commenter') || hash.includes('module=commenter')) {
-      widget.style.display = 'block';
-      return;
-    }
-
-    // If another module was requested (whatsapp, easy_apply, hr_leads) or on jobs page
-    if (
-      hash.includes('autoapply-module=whatsapp') ||
-      hash.includes('module=whatsapp') ||
-      hash.includes('autoapply-module=easy_apply') ||
-      hash.includes('module=easy_apply') ||
-      hash.includes('autoapply-module=hr_leads') ||
-      hash.includes('module=hr_leads') ||
-      window.location.pathname.startsWith('/jobs')
-    ) {
-      widget.style.display = 'none';
-      return;
-    }
-
-    // On feed without explicit hash, default to hidden so it doesn't collide with WhatsApp Outreach
-    widget.style.display = 'none';
+  // Commented / skipped records (newest first, persisted, capped)
+  function postLink(urn, url) {
+    if (url) return url;
+    const m = /urn:li:(activity|ugcPost|share):\d+/.exec(String(urn || ''));
+    return m ? `https://www.linkedin.com/feed/update/${m[0]}/` : '';
   }
 
-  // Inject UI Widget
+  function getPostUrl(postEl) {
+    try {
+      const a = postEl.querySelector('a[href*="/feed/update/"]');
+      if (a && a.href) return a.href.split('?')[0];
+      const el = postEl.matches('[data-urn]') ? postEl : postEl.querySelector('[data-urn*="urn:li:"]');
+      const urn = el ? el.getAttribute('data-urn') : '';
+      return postLink(urn, '');
+    } catch (e) {
+      return '';
+    }
+  }
+
+  function getPostSnippet(postEl) {
+    try {
+      const body = postEl.querySelector('[data-testid="expandable-text-box"], .feed-shared-update-v2__description, .update-components-text');
+      return shorten((body ? body.innerText : postEl.innerText) || '', 140);
+    } catch (e) {
+      return '';
+    }
+  }
+
+  function addCommented(entry) {
+    commentedLog.unshift(entry);
+    if (commentedLog.length > LOG_CAP) commentedLog.length = LOG_CAP;
+    totalCommented += 1;
+    try { chrome.storage.local.set({ commentedLog }); } catch (e) {}
+    renderWidget();
+  }
+
+  function recordSkip(urn, author, snippet, reason, url) {
+    // The feed is re-scanned often; record each post once.
+    if (skippedLog.some((s) => s.urn === urn)) return;
+    skippedLog.unshift({ urn, author, snippet: shorten(snippet, 140), reason, url: url || '', ts: Date.now() });
+    if (skippedLog.length > LOG_CAP) skippedLog.length = LOG_CAP;
+    try { chrome.storage.local.set({ commentSkipped: skippedLog }); } catch (e) {}
+    renderWidget();
+  }
+
+  // Check if Auto-Commenter module is active for this tab
+  // Shown only when the comment tool was asked for in this tab (see cpOwRequestedModule in outreach_ui.js).
+  function checkModuleVisibility() {
+    if (!ctl) return;
+    if (cpOwRequestedModule() === 'commenter') ctl.show();
+    else ctl.hide();
+  }
+
+  // ── WIDGET UI ─────────────────────────────────────────────────────────────
+
+  function commentTextMissing() {
+    return !String(currentSettings.commentText || '').trim();
+  }
+
   function injectFloatingWidget() {
-    if (document.getElementById('li-autocommenter-widget')) return;
+    if (document.getElementById(WIDGET_ID)) return;
 
-    widgetEl = document.createElement('div');
-    widgetEl.id = 'li-autocommenter-widget';
-    widgetEl.className = 'li-ac-container';
+    const html = cpOwShell({
+      id: WIDGET_ID,
+      title: 'Auto-Commenter',
+      subtitle: 'Comment on recruiter hiring posts',
+      icon: 'comment',
+      tabs: [
+        { id: 'commented', label: 'Commented' },
+        { id: 'skipped', label: 'Skipped' },
+        { id: 'activity', label: 'Activity' }
+      ],
+      controls: `${cpOwQuickRow('li-ac')}
+        ${cpOwStats([
+          { id: 'run', label: 'This run', value: 0 },
+          { id: 'total', label: 'Commented', value: 0 },
+          { id: 'skipped', label: 'Skipped', value: 0 },
+          { id: 'limit', label: 'Run limit', value: currentSettings.maxComments }
+        ])}
+        <div data-warn></div>`,
+      foot: `<div data-comment-preview></div>${cpOwDashboardNote()}`
+    });
 
-    widgetEl.innerHTML = `
-      <div class="li-ac-header" id="li-ac-drag-handle">
-        <div class="li-ac-title-box">
-          <div class="li-ac-icon">⚡</div>
-          <div class="li-ac-title">Auto Commenter</div>
-        </div>
-        <div class="li-ac-header-actions">
-          <span class="li-ac-badge badge-idle" id="li-ac-status-badge">Idle</span>
-          <button class="li-ac-btn-icon" id="li-ac-minimize-btn" title="Minimize / Expand">_</button>
-        </div>
-      </div>
-
-      <div class="li-ac-nav">
-        <button class="li-ac-nav-btn active" id="li-ac-tab-main">Controls</button>
-        <button class="li-ac-nav-btn" id="li-ac-tab-debug">🛠️ Live Debug</button>
-      </div>
-
-      <div class="li-ac-body" id="li-ac-body">
-        <!-- Main Tab Pane -->
-        <div id="li-ac-pane-main" class="li-ac-tab-pane">
-          <div class="li-ac-section">
-            <label class="li-ac-label">Your Comment / Pitch:</label>
-            <textarea id="li-ac-comment-input" class="li-ac-textarea" rows="3" placeholder="Type comment message here...">${currentSettings.commentText}</textarea>
-            <div class="li-ac-quick-links">
-              <button type="button" class="li-ac-chip" id="li-ac-chip-portfolio">🔗 Portfolio Link</button>
-              <button type="button" class="li-ac-chip" id="li-ac-chip-short">⚡ Short Pitch</button>
-            </div>
-          </div>
-
-          <div class="li-ac-row">
-            <div class="li-ac-col">
-              <label class="li-ac-label">Delay (sec):</label>
-              <input type="number" id="li-ac-delay-input" class="li-ac-input" min="1" max="60" value="${currentSettings.delaySec}" />
-            </div>
-            <div class="li-ac-col">
-              <label class="li-ac-label">Max Posts:</label>
-              <input type="number" id="li-ac-max-input" class="li-ac-input" min="1" max="200" value="${currentSettings.maxComments}" />
-            </div>
-          </div>
-
-          <div class="li-ac-options">
-            <label class="li-ac-checkbox-label">
-              <input type="checkbox" id="li-ac-avoid-jobseekers" ${currentSettings.skipJobSeekers ? 'checked' : ''} />
-              <span>🛡️ Avoid Job Seeker / #OpenToWork posts</span>
-            </label>
-            <label class="li-ac-checkbox-label">
-              <input type="checkbox" id="li-ac-skip-liked" ${currentSettings.skipAlreadyLiked ? 'checked' : ''} />
-              <span>❤️ Skip posts already Liked / Commented</span>
-            </label>
-            <label class="li-ac-checkbox-label">
-              <input type="checkbox" id="li-ac-like-checkbox" ${currentSettings.autoLike ? 'checked' : ''} />
-              <span>Auto-Like post before commenting</span>
-            </label>
-            <label class="li-ac-checkbox-label">
-              <input type="checkbox" id="li-ac-scroll-checkbox" ${currentSettings.autoScroll ? 'checked' : ''} />
-              <span>Auto-scroll feed continuously</span>
-            </label>
-            <label class="li-ac-checkbox-label">
-              <input type="checkbox" id="li-ac-debug-checkbox" ${currentSettings.debugMode ? 'checked' : ''} />
-              <span>Enable Visual Debug & Highlighting</span>
-            </label>
-          </div>
-
-          <div class="li-ac-stats">
-            <div class="li-ac-stat-box">
-              <span class="li-ac-stat-num" id="li-ac-stat-session">0</span>
-              <span class="li-ac-stat-lbl">Session Comments</span>
-            </div>
-            <div class="li-ac-stat-box">
-              <span class="li-ac-stat-num" id="li-ac-stat-total">${processedUrns.size}</span>
-              <span class="li-ac-stat-lbl">Total Processed</span>
-            </div>
-          </div>
-
-          <div class="li-ac-controls">
-            <button class="li-ac-btn li-ac-btn-start" id="li-ac-start-btn">
-              <span>🚀 Start Commenting</span>
-            </button>
-            <button class="li-ac-btn li-ac-btn-pause" id="li-ac-pause-btn" style="display:none;">
-              <span>⏸️ Pause</span>
-            </button>
-            <button class="li-ac-btn li-ac-btn-stop" id="li-ac-stop-btn" style="display:none;">
-              <span>⏹️ Stop</span>
-            </button>
-          </div>
-
-          <div class="li-ac-logs-container">
-            <div class="li-ac-logs-header">
-              <span>Activity Log:</span>
-              <button class="li-ac-btn-link" id="li-ac-clear-logs">Clear</button>
-            </div>
-            <div class="li-ac-logs-list" id="li-ac-logs-list">
-              <div class="li-ac-log-item info">Ready. Auto verification & deduplication active.</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Debug Tab Pane -->
-        <div id="li-ac-pane-debug" class="li-ac-tab-pane" style="display:none;">
-          <div class="li-ac-debug-tools">
-            <button class="li-ac-btn li-ac-btn-test" id="li-ac-btn-test-single">
-              <span>🧪 Test 1 Post Now</span>
-            </button>
-            <button class="li-ac-btn li-ac-btn-secondary" id="li-ac-btn-scan-dom">
-              <span>🔍 Scan Feed DOM</span>
-            </button>
-          </div>
-
-          <div class="li-ac-debug-diagnostics" id="li-ac-debug-diag">
-            <div class="diag-item"><span>Visible Posts Found:</span> <b id="diag-posts-count">0</b></div>
-            <div class="diag-item"><span>Job Seeker Filter:</span> <b id="diag-filter-status">${currentSettings.skipJobSeekers ? 'Active (ON)' : 'OFF'}</b></div>
-            <div class="diag-item"><span>Skip Already Liked:</span> <b id="diag-liked-status">${currentSettings.skipAlreadyLiked ? 'Active (ON)' : 'OFF'}</b></div>
-          </div>
-
-          <div class="li-ac-logs-container">
-            <div class="li-ac-logs-header">
-              <span>Live Console Feed:</span>
-              <button class="li-ac-btn-link" id="li-ac-copy-debug">Copy Logs</button>
-            </div>
-            <div class="li-ac-debug-terminal" id="li-ac-debug-terminal">
-              <div class="term-line info">[System] Debug logger ready.</div>
-            </div>
-          </div>
-        </div>
-      </div>
-    `;
-
+    const holder = document.createElement('div');
+    holder.innerHTML = html.trim();
+    widgetEl = holder.firstElementChild;
     document.body.appendChild(widgetEl);
+
+    ctl = cpOwInit(widgetEl, { defaultTab: 'activity', onTab: () => renderWidget() });
     setupWidgetEvents();
   }
 
   function setupWidgetEvents() {
-    const commentInput = document.getElementById('li-ac-comment-input');
-    const delayInput = document.getElementById('li-ac-delay-input');
-    const maxInput = document.getElementById('li-ac-max-input');
-    const avoidJobSeekersCheckbox = document.getElementById('li-ac-avoid-jobseekers');
-    const skipLikedCheckbox = document.getElementById('li-ac-skip-liked');
-    const likeCheckbox = document.getElementById('li-ac-like-checkbox');
-    const scrollCheckbox = document.getElementById('li-ac-scroll-checkbox');
-    const debugCheckbox = document.getElementById('li-ac-debug-checkbox');
+    const startBtn = widgetEl.querySelector('#li-ac-start');
+    const pauseBtn = widgetEl.querySelector('#li-ac-pause');
+    const stopBtn = widgetEl.querySelector('#li-ac-stop');
 
-    const startBtn = document.getElementById('li-ac-start-btn');
-    const pauseBtn = document.getElementById('li-ac-pause-btn');
-    const stopBtn = document.getElementById('li-ac-stop-btn');
-    const minimizeBtn = document.getElementById('li-ac-minimize-btn');
-    const chipPortfolio = document.getElementById('li-ac-chip-portfolio');
-    const chipShort = document.getElementById('li-ac-chip-short');
-    const clearLogsBtn = document.getElementById('li-ac-clear-logs');
-
-    // Tab Navigation
-    const tabMain = document.getElementById('li-ac-tab-main');
-    const tabDebug = document.getElementById('li-ac-tab-debug');
-    const paneMain = document.getElementById('li-ac-pane-main');
-    const paneDebug = document.getElementById('li-ac-pane-debug');
-
-    tabMain?.addEventListener('click', () => {
-      tabMain.classList.add('active');
-      tabDebug.classList.remove('active');
-      paneMain.style.display = 'block';
-      paneDebug.style.display = 'none';
-      currentTab = 'main';
-    });
-
-    tabDebug?.addEventListener('click', () => {
-      tabDebug.classList.add('active');
-      tabMain.classList.remove('active');
-      paneMain.style.display = 'none';
-      paneDebug.style.display = 'block';
-      currentTab = 'debug';
-      updateDebugDiagnostics();
-    });
-
-    // Debug Action Buttons
-    const testSingleBtn = document.getElementById('li-ac-btn-test-single');
-    const scanDomBtn = document.getElementById('li-ac-btn-scan-dom');
-    const copyDebugBtn = document.getElementById('li-ac-copy-debug');
-
-    testSingleBtn?.addEventListener('click', () => {
-      saveCurrentSettings();
-      dbgLog('TEST', 'Triggered test on single post');
-      testSinglePost();
-    });
-
-    scanDomBtn?.addEventListener('click', () => {
-      scanDomDiagnostics();
-    });
-
-    copyDebugBtn?.addEventListener('click', () => {
-      const text = debugLogList.map(l => `[${l.time}][${l.category}] ${l.text} ${l.details ? JSON.stringify(l.details) : ''}`).join('\n');
-      navigator.clipboard.writeText(text).then(() => {
-        dbgLog('CLIPBOARD', 'Copied debug logs to clipboard');
-        alert('Debug logs copied to clipboard!');
-      });
-    });
-
-    clearLogsBtn?.addEventListener('click', () => {
-      const logsList = document.getElementById('li-ac-logs-list');
-      if (logsList) logsList.innerHTML = '<div class="li-ac-log-item info">Logs cleared.</div>';
-    });
-
-    // Quick chips
-    chipPortfolio?.addEventListener('click', () => {
-      commentInput.value = "Hi! I am actively looking for new opportunities. Feel free to check out my portfolio & recent work: https://parveen-portfolio-xi.vercel.app/";
-      saveCurrentSettings();
-    });
-
-    chipShort?.addEventListener('click', () => {
-      commentInput.value = "Great post! I'm currently exploring new opportunities. Check out my work: https://parveen-portfolio-xi.vercel.app/";
-      saveCurrentSettings();
-    });
-
-    // Save inputs
-    [commentInput, delayInput, maxInput, avoidJobSeekersCheckbox, skipLikedCheckbox, likeCheckbox, scrollCheckbox, debugCheckbox].forEach((el) => {
-      el?.addEventListener('input', saveCurrentSettings);
-      el?.addEventListener('change', saveCurrentSettings);
-    });
-
-    // Minimize toggle
-    minimizeBtn?.addEventListener('click', () => {
-      isMinimized = !isMinimized;
-      const body = document.getElementById('li-ac-body');
-      const nav = document.querySelector('.li-ac-nav');
-      if (body) body.style.display = isMinimized ? 'none' : 'block';
-      if (nav) nav.style.display = isMinimized ? 'none' : 'flex';
-      minimizeBtn.textContent = isMinimized ? '+' : '_';
-    });
-
-    // Start / Pause / Stop
     startBtn?.addEventListener('click', () => {
-      saveCurrentSettings();
       startAutomation();
     });
 
     pauseBtn?.addEventListener('click', () => {
-      if (isPaused) {
-        resumeAutomation();
-      } else {
-        pauseAutomation();
-      }
+      if (!isRunning) return;
+      if (isPaused) resumeAutomation();
+      else pauseAutomation();
     });
 
     stopBtn?.addEventListener('click', () => {
-      stopAutomation();
+      if (isRunning) stopAutomation();
     });
-
-    makeDraggable(widgetEl, document.getElementById('li-ac-drag-handle'));
   }
 
-  function saveCurrentSettings() {
-    const commentInput = document.getElementById('li-ac-comment-input');
-    const delayInput = document.getElementById('li-ac-delay-input');
-    const maxInput = document.getElementById('li-ac-max-input');
-    const avoidJobSeekersCheckbox = document.getElementById('li-ac-avoid-jobseekers');
-    const skipLikedCheckbox = document.getElementById('li-ac-skip-liked');
-    const likeCheckbox = document.getElementById('li-ac-like-checkbox');
-    const scrollCheckbox = document.getElementById('li-ac-scroll-checkbox');
-    const debugCheckbox = document.getElementById('li-ac-debug-checkbox');
-
-    currentSettings.commentText = commentInput ? commentInput.value.trim() : currentSettings.commentText;
-    currentSettings.delaySec = delayInput ? Math.max(1, parseInt(delayInput.value, 10) || 4) : 4;
-    currentSettings.maxComments = maxInput ? Math.max(1, parseInt(maxInput.value, 10) || 25) : 25;
-    currentSettings.skipJobSeekers = avoidJobSeekersCheckbox ? avoidJobSeekersCheckbox.checked : true;
-    currentSettings.skipAlreadyLiked = skipLikedCheckbox ? skipLikedCheckbox.checked : true;
-    currentSettings.autoLike = likeCheckbox ? likeCheckbox.checked : true;
-    currentSettings.autoScroll = scrollCheckbox ? scrollCheckbox.checked : true;
-    currentSettings.debugMode = debugCheckbox ? debugCheckbox.checked : true;
-
-    chrome.storage.local.set({ autoCommentSettings: currentSettings });
-    dbgLog('SETTINGS', 'Settings saved', currentSettings);
+  function commentedCard(e) {
+    return cpOwCard({
+      kind: 'sent',
+      icon: 'check',
+      title: e.author || 'LinkedIn member',
+      titleUrl: postLink(e.urn, e.url),
+      sub: e.snippet ? shorten(e.snippet, 110) : '',
+      reason: e.comment ? `Comment: ${shorten(e.comment, 120)}` : '',
+      time: cpOwClock(e.ts)
+    });
   }
 
-  function appendWidgetLog(text, type, time) {
-    const logsList = document.getElementById('li-ac-logs-list');
-    if (!logsList) return;
+  function skippedCard(s) {
+    return cpOwCard({
+      kind: 'skipped',
+      icon: 'skip',
+      title: s.author || 'LinkedIn member',
+      titleUrl: postLink(s.urn, s.url),
+      sub: s.snippet ? shorten(s.snippet, 110) : '',
+      reason: s.reason || '',
+      time: cpOwClock(s.ts)
+    });
+  }
 
-    const logItem = document.createElement('div');
-    logItem.className = `li-ac-log-item ${type}`;
-    logItem.textContent = `[${time}] ${text}`;
+  function activityCard(a) {
+    const type = a.type;
+    return cpOwCard({
+      kind: type === 'error' ? 'error' : type === 'success' ? 'sent' : type === 'warning' ? 'skipped' : '',
+      icon: type === 'error' || type === 'warning' ? 'alert' : type === 'success' ? 'check' : 'clock',
+      title: a.text,
+      time: cpOwClock(a.ts)
+    });
+  }
 
-    logsList.insertBefore(logItem, logsList.firstChild);
-    while (logsList.children.length > 25) {
-      logsList.removeChild(logsList.lastChild);
+  function buildListHtml() {
+    const tab = ctl ? ctl.tab : 'activity';
+    if (tab === 'commented') {
+      return commentedLog.length
+        ? commentedLog.map(commentedCard).join('')
+        : cpOwEmpty('comment', 'No comments yet. Press Start to comment on hiring posts in your feed.');
     }
-  }
-
-  function appendDebugLog(logObj) {
-    const terminal = document.getElementById('li-ac-debug-terminal');
-    if (!terminal) return;
-
-    const line = document.createElement('div');
-    line.className = `term-line ${logObj.category.toLowerCase()}`;
-    const detailStr = logObj.details ? ` ${JSON.stringify(logObj.details)}` : '';
-    line.textContent = `[${logObj.time}][${logObj.category}] ${logObj.text}${detailStr}`;
-
-    terminal.insertBefore(line, terminal.firstChild);
-    while (terminal.children.length > 50) {
-      terminal.removeChild(terminal.lastChild);
+    if (tab === 'skipped') {
+      return skippedLog.length
+        ? skippedLog.map(skippedCard).join('')
+        : cpOwEmpty('skip', 'No skipped posts yet.');
     }
+    let html = '';
+    if (commentTextMissing()) {
+      html += cpOwCard({
+        kind: 'error',
+        icon: 'alert',
+        title: 'No comment text yet',
+        reason: 'Write your comment in your dashboard (Auto Apply > Messages), then press Start.'
+      });
+    }
+    if (isRunning) {
+      html += cpOwBanner({
+        title: isPaused ? 'Paused' : 'Auto-Commenter is running',
+        main: isPaused ? 'Paused. Press Resume to continue.' : (currentAction || 'Looking for hiring posts...'),
+        detail: `${sessionCount} of ${currentSettings.maxComments} comments this run`
+      });
+    }
+    html += activityLog.length
+      ? activityLog.map(activityCard).join('')
+      : (isRunning ? '' : cpOwEmpty('clock', 'Ready. Press Start to comment on hiring posts.'));
+    return html;
   }
 
-  function updateDebugDiagnostics() {
-    const countEl = document.getElementById('diag-posts-count');
-    const filterStatusEl = document.getElementById('diag-filter-status');
-    const likedStatusEl = document.getElementById('diag-liked-status');
-    const posts = findAllPostElements();
-    if (countEl) countEl.textContent = `${posts.length} posts (${processedUrns.size} processed)`;
-    if (filterStatusEl) filterStatusEl.textContent = currentSettings.skipJobSeekers ? 'Active (ON)' : 'OFF';
-    if (likedStatusEl) likedStatusEl.textContent = currentSettings.skipAlreadyLiked ? 'Active (ON)' : 'OFF';
-  }
+  function renderWidget() {
+    if (!ctl || !widgetEl) return;
+    const root = widgetEl;
 
-  function scanDomDiagnostics() {
-    const posts = findAllPostElements();
-    dbgLog('DOM_SCAN', `Scanned page: found ${posts.length} post containers`, {
-      posts: posts.map((p, i) => {
-        const isJobSeeker = isJobSeekerPost(p);
-        const isLiked = isPostAlreadyLiked(p);
-        const isDone = p.hasAttribute('data-ac-done');
-        return {
-          index: i + 1,
-          urn: getPostUrn(p),
-          author: getPostAuthor(p),
-          isJobSeeker,
-          isAlreadyLiked: isLiked,
-          isDone,
-          status: isDone ? 'SKIP (Already Done)' : (isJobSeeker ? 'SKIP (Job Seeker)' : (isLiked ? 'SKIP (Already Liked)' : 'ELIGIBLE'))
-        };
-      })
-    });
-    updateDebugDiagnostics();
-    posts.slice(0, 3).forEach((p, idx) => {
-      const isJobSeeker = isJobSeekerPost(p);
-      const isLiked = isPostAlreadyLiked(p);
-      const isDone = p.hasAttribute('data-ac-done');
-      const label = isDone ? `✅ Already Commented #${idx + 1}` : (isJobSeeker ? `🚫 Job Seeker #${idx + 1}` : (isLiked ? `❤️ Liked #${idx + 1}` : `🎯 Eligible #${idx + 1}`));
-      const color = isDone ? '#64748b' : (isJobSeeker ? '#f87171' : (isLiked ? '#fbbf24' : '#10b981'));
-      highlightElement(p, label, color, 3000);
-    });
+    const setStat = (id, v) => {
+      const el = root.querySelector(`[data-stat="${id}"]`);
+      if (el) el.textContent = String(v);
+    };
+    setStat('run', sessionCount);
+    setStat('total', totalCommented);
+    setStat('skipped', skippedLog.length);
+    setStat('limit', currentSettings.maxComments);
+
+    if (isRunning) ctl.setBadge(isPaused ? 'Paused' : 'Running', isPaused ? 'pause' : 'run');
+    else ctl.setBadge('Idle', '');
+    ctl.setCount('commented', commentedLog.length);
+    ctl.setCount('skipped', skippedLog.length);
+    ctl.setCount('activity', activityLog.length);
+
+    const startBtn = root.querySelector('#li-ac-start');
+    const pauseBtn = root.querySelector('#li-ac-pause');
+    const stopBtn = root.querySelector('#li-ac-stop');
+    if (startBtn) startBtn.disabled = isRunning;
+    if (pauseBtn) {
+      pauseBtn.disabled = !isRunning;
+      const label = pauseBtn.querySelector('span');
+      if (label) label.textContent = isPaused ? 'Resume' : 'Pause';
+    }
+    if (stopBtn) stopBtn.disabled = !isRunning;
+
+    // Missing comment warning + read-only comment preview
+    const missing = commentTextMissing();
+    const warn = root.querySelector('[data-warn]');
+    if (warn) warn.innerHTML = missing ? cpOwDashboardNote('Write your comment in your dashboard first.', true) : '';
+    const preview = root.querySelector('[data-comment-preview]');
+    if (preview) {
+      preview.innerHTML = missing
+        ? ''
+        : `<div class="cp-ow-comment-preview"><span class="cp-ow-comment-label">Your comment</span><span class="cp-ow-comment-text">${cpOwEscape(shorten(currentSettings.commentText, 160))}</span></div>`;
+    }
+
+    // List, newest first, kept at the top
+    ctl.setList(buildListHtml());
+    if (ctl.list) ctl.list.scrollTop = 0;
   }
 
   function updateWidgetUI() {
-    const statusBadge = document.getElementById('li-ac-status-badge');
-    const startBtn = document.getElementById('li-ac-start-btn');
-    const pauseBtn = document.getElementById('li-ac-pause-btn');
-    const stopBtn = document.getElementById('li-ac-stop-btn');
-    const statSession = document.getElementById('li-ac-stat-session');
-    const statTotal = document.getElementById('li-ac-stat-total');
-
-    if (statSession) statSession.textContent = sessionCount;
-    if (statTotal) statTotal.textContent = processedUrns.size;
-
-    if (!statusBadge) return;
-
-    if (isRunning) {
-      if (isPaused) {
-        statusBadge.textContent = 'Paused';
-        statusBadge.className = 'li-ac-badge badge-paused';
-        if (startBtn) startBtn.style.display = 'none';
-        if (pauseBtn) {
-          pauseBtn.style.display = 'block';
-          pauseBtn.innerHTML = '<span>▶️ Resume</span>';
-        }
-        if (stopBtn) stopBtn.style.display = 'block';
-      } else {
-        statusBadge.textContent = 'Active';
-        statusBadge.className = 'li-ac-badge badge-active';
-        if (startBtn) startBtn.style.display = 'none';
-        if (pauseBtn) {
-          pauseBtn.style.display = 'block';
-          pauseBtn.innerHTML = '<span>⏸️ Pause</span>';
-        }
-        if (stopBtn) stopBtn.style.display = 'block';
-      }
-    } else {
-      statusBadge.textContent = 'Idle';
-      statusBadge.className = 'li-ac-badge badge-idle';
-      if (startBtn) startBtn.style.display = 'block';
-      if (pauseBtn) pauseBtn.style.display = 'none';
-      if (stopBtn) stopBtn.style.display = 'none';
-    }
+    renderWidget();
   }
 
-  // Draggable helper
-  function makeDraggable(el, handle) {
-    let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
-    if (!handle || !el) return;
-
-    handle.onmousedown = dragMouseDown;
-
-    function dragMouseDown(e) {
-      if (e.target.tagName === 'BUTTON') return;
-      e.preventDefault();
-      pos3 = e.clientX;
-      pos4 = e.clientY;
-      document.onmouseup = closeDragElement;
-      document.onmousemove = elementDrag;
-    }
-
-    function elementDrag(e) {
-      e.preventDefault();
-      pos1 = pos3 - e.clientX;
-      pos2 = pos4 - e.clientY;
-      pos3 = e.clientX;
-      pos4 = e.clientY;
-      el.style.top = `${el.offsetTop - pos2}px`;
-      el.style.left = `${el.offsetLeft - pos1}px`;
-      el.style.right = 'auto';
-      el.style.bottom = 'auto';
-    }
-
-    function closeDragElement() {
-      document.onmouseup = null;
-      document.onmousemove = null;
-    }
-  }
 
   // ── JOB SEEKER DETECTION ──────────────────────────────────────────────────
 
@@ -697,14 +518,17 @@
       // Check 1: Already processed Set
       if (urn && processedUrns.has(urn)) {
         post.setAttribute('data-ac-done', 'true');
+        recordSkip(urn, author, getPostSnippet(post), 'Already commented on this post', getPostUrl(post));
         continue;
       }
 
-      // Check 2: Existing comment already containing your portfolio link
-      if (post.innerText.includes('parveen-portfolio-xi.vercel.app')) {
+      // Check 2: Existing comment already containing the link from your comment text
+      const ownLink = ownLinkSnippet();
+      if (ownLink && post.innerText.toLowerCase().includes(ownLink)) {
         dbgLog('SKIP_ALREADY_COMMENTED', `Skipping post by ${author} - already contains your comment`, { urn });
         post.setAttribute('data-ac-done', 'true');
         processedUrns.add(urn);
+        recordSkip(urn, author, getPostSnippet(post), 'Already commented on this post', getPostUrl(post));
         continue;
       }
 
@@ -713,6 +537,7 @@
         dbgLog('SKIP_LIKED', `Skipping post by ${author} - already liked/engaged`, { urn });
         post.setAttribute('data-ac-done', 'true');
         processedUrns.add(urn);
+        recordSkip(urn, author, getPostSnippet(post), 'Already liked this post', getPostUrl(post));
         continue;
       }
 
@@ -721,6 +546,15 @@
         dbgLog('SKIP_JOBSEEKER', `Skipping post by ${author} - Job Seeker / #OpenToWork detected`, { urn });
         post.setAttribute('data-ac-done', 'true');
         processedUrns.add(urn);
+        recordSkip(urn, author, getPostSnippet(post), 'Job seeker post (#OpenToWork)', getPostUrl(post));
+        continue;
+      }
+
+      // Check 4b: Keyword filter from the dashboard (empty = every hiring post)
+      if (!postMatchesKeywords(post)) {
+        dbgLog('SKIP_KEYWORDS', `Skipping post by ${author} - no keyword match`, { urn });
+        post.setAttribute('data-ac-done', 'true');
+        recordSkip(urn, author, getPostSnippet(post), 'Does not mention your keywords', getPostUrl(post));
         continue;
       }
 
@@ -732,6 +566,22 @@
       }
     }
     return null;
+  }
+
+  // The link inside the user's comment text (e.g. their portfolio), used to spot their own earlier comment.
+  function ownLinkSnippet() {
+    const m = /https?:\/\/\S+/i.exec(currentSettings.commentText || '');
+    return m ? m[0].replace(/^https?:\/\//i, '').replace(/[\/.,;)]+$/, '').toLowerCase() : '';
+  }
+
+  function postMatchesKeywords(postEl) {
+    const words = String(currentSettings.filterKeywords || '')
+      .split(',')
+      .map((w) => w.trim().toLowerCase())
+      .filter(Boolean);
+    if (!words.length) return true;
+    const text = (postEl.innerText || '').toLowerCase();
+    return words.some((w) => text.includes(w));
   }
 
   function getPostUrn(postEl) {
@@ -862,8 +712,9 @@
 
   function startAutomation() {
     if (isRunning) return;
-    if (!currentSettings.commentText.trim()) {
-      alert('Please enter a comment message or portfolio link before starting!');
+    if (commentTextMissing()) {
+      if (ctl) ctl.setTab('activity');
+      logMessage('Write your comment in your dashboard first.', 'warning');
       return;
     }
 
@@ -979,6 +830,8 @@
   async function processPost(postEl, isTest = false) {
     const urn = getPostUrn(postEl);
     const author = getPostAuthor(postEl);
+    const snippet = getPostSnippet(postEl);
+    const postUrl = getPostUrl(postEl);
 
     dbgLog('PROCESS', `Processing hiring post by ${author}`, { urn, isTest });
     highlightElement(postEl, `🎯 Hiring Post: ${author}`, '#6366f1', 3500);
@@ -1033,6 +886,7 @@
       if (!editor) {
         logMessage(`⚠️ Could not open comment editor for ${author}. Skipping.`, 'warning');
         dbgLog('EDITOR_ERROR', 'TipTap editor not mounted in post', { author, urn });
+        recordSkip(urn, author, snippet, 'Comment box not found', postUrl);
         return false;
       }
 
@@ -1119,6 +973,8 @@
         dbgLog('VERIFY_TIMEOUT', 'Comment submitted, proceeding to next post.');
       }
 
+      addCommented({ urn, author, snippet, comment: messageToPost, url: postUrl, ts: Date.now() });
+
       chrome.runtime.sendMessage({
         type: 'EVENT_COMMENTED',
         payload: { urn, author, message: messageToPost }
@@ -1135,7 +991,7 @@
   // Robust Verification function: polls for up to timeoutMs
   async function verifyCommentPosted(postEl, editor, commentText, timeoutMs = 6000) {
     const startTime = Date.now();
-    const portfolioSnippet = 'parveen-portfolio-xi.vercel.app';
+    const portfolioSnippet = ownLinkSnippet();
     const firstFewWords = (commentText || '').trim().slice(0, 25).toLowerCase();
 
     while (Date.now() - startTime < timeoutMs) {
@@ -1145,7 +1001,7 @@
       const renderedComments = postEl.querySelectorAll('div[componentkey*="replaceableComment"], [data-testid*="commentList"] div, .comments-comments-list div, div[componentkey*="comment:"]');
       for (const c of renderedComments) {
         const cText = (c.innerText || '').toLowerCase();
-        if (cText.includes('• you') || cText.includes(portfolioSnippet) || (firstFewWords && cText.includes(firstFewWords))) {
+        if (cText.includes('• you') || (portfolioSnippet && cText.includes(portfolioSnippet)) || (firstFewWords && cText.includes(firstFewWords))) {
           return true;
         }
       }
@@ -1156,7 +1012,7 @@
 
       // Check 3: Full post element text includes the user's comment snippet
       const postText = postEl.innerText || '';
-      const postHasComment = postText.includes(portfolioSnippet) || (firstFewWords && postText.toLowerCase().includes(firstFewWords));
+      const postHasComment = (portfolioSnippet && postText.toLowerCase().includes(portfolioSnippet)) || (firstFewWords && postText.toLowerCase().includes(firstFewWords));
 
       if (isEditorCleared && postHasComment) {
         return true;
@@ -1298,9 +1154,7 @@
     switch (type) {
       case 'CMD_START': {
         if (payload?.settings) {
-          currentSettings = { ...currentSettings, ...payload.settings };
-          const commentInput = document.getElementById('li-ac-comment-input');
-          if (commentInput) commentInput.value = currentSettings.commentText;
+          applySettings(payload.settings);
         }
         startAutomation();
         sendResponse({ success: true });
@@ -1309,7 +1163,7 @@
 
       case 'CMD_TEST_SINGLE': {
         if (payload?.settings) {
-          currentSettings = { ...currentSettings, ...payload.settings };
+          applySettings(payload.settings);
         }
         testSinglePost();
         sendResponse({ success: true });
@@ -1336,9 +1190,8 @@
 
       case 'SETTINGS_UPDATED': {
         if (payload?.settings) {
-          currentSettings = { ...currentSettings, ...payload.settings };
-          const commentInput = document.getElementById('li-ac-comment-input');
-          if (commentInput) commentInput.value = currentSettings.commentText;
+          applySettings(payload.settings);
+          renderWidget();
         }
         sendResponse({ success: true });
         break;
@@ -1355,7 +1208,7 @@
     injectFloatingWidget();
     checkModuleVisibility();
     window.addEventListener('hashchange', checkModuleVisibility);
-    updateWidgetUI();
+    renderWidget();
   }
 
   if (document.body) {

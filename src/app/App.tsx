@@ -84,6 +84,7 @@ const Support = lazy(() => import('./pages/admin/Support'));
 const Health = lazy(() => import('./pages/admin/Health'));
 const AdminSettings = lazy(() => import('./pages/admin/AdminSettings'));
 const AdminGrowth = lazy(() => import('./pages/admin/Growth'));
+const AdminScreeningQuestions = lazy(() => import('./pages/admin/ScreeningQuestions'));
 const AdminBlogs = lazy(() => import('./pages/admin/Blogs'));
 const AdminBlogEditor = lazy(() => import('./pages/admin/BlogEditor'));
 
@@ -240,6 +241,7 @@ const routes = createRoutesFromElements(
       <Route path="blogs/:id/edit" element={<Suspense fallback={<PageLoader />}><AdminBlogEditor /></Suspense>} />
       <Route path="settings" element={<Suspense fallback={<PageLoader />}><AdminSettings /></Suspense>} />
       <Route path="growth" element={<Suspense fallback={<PageLoader />}><AdminGrowth /></Suspense>} />
+      <Route path="screening-questions" element={<Suspense fallback={<PageLoader />}><AdminScreeningQuestions /></Suspense>} />
     </Route>
 
     {/* Catch-all */}

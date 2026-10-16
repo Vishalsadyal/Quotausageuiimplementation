@@ -24,7 +24,7 @@
 const ANSWER_BANK_KEY = "cpAnswerBank";
 const ANSWER_BANK_MAX_ENTRIES = 1500;
 // Trust order of sources (higher wins at equal track record).
-const ANSWER_SOURCE_WEIGHT = { user: 6, stored: 5, profile: 3, ai: 2, rule: 1 };
+const ANSWER_SOURCE_WEIGHT = { user: 6, stored: 5, profile: 3, related: 2, ai: 2, rule: 1 };
 
 let answerBankState = null; // { entries: { [key]: { label, type, answers: [{ value, source, ok, fail, at }] } } }
 let answerBankSaveTimer = 0;
@@ -340,6 +340,10 @@ async function gatherAnswerCandidates(q, settings) {
   }
   const common = answerCommonQuestion(norm, settings);
   if (common) raw.push({ value: common, source: "profile", via: "profile" });
+  // Nothing exact: borrow the user's answer to a related question (24-related-answer-groups.js).
+  for (const related of relatedGroupAnswers(label, saved, q.type)) {
+    raw.push({ value: related.value, source: "related", via: related.via });
+  }
   if (q.type === "select") {
     const rule = getSelectRuleAnswer(norm, settings, q.options || [], "");
     if (rule) raw.push({ value: rule, source: "rule", via: "select rule" });
@@ -493,7 +497,24 @@ async function retryRejectedAnswers(modal, settings) {
         }
       }
     }
-    if (!next) continue;
+    if (!next) {
+      // Out of answers to try: tell the dashboard what LinkedIn said, the field type and the refused answer,
+      // so the user knows what kind of answer to give (text, number, one of the options...).
+      const stuck = getQuestionBlockState(block);
+      await sendMessage({
+        type: "CP_REGISTER_PENDING_QUESTIONS",
+        questions: [{
+          questionKey: stuck.questionKey || questionKeyFromLabel(q.label),
+          questionLabel: stuck.label || q.label,
+          validationMessage: error,
+          fieldType: stuck.fieldType,
+          options: stuck.options,
+          hint: stuck.hint,
+          rejectedAnswer: current || ""
+        }]
+      }).catch(() => null);
+      continue;
+    }
     const ok = await applyEngineAnswer(block, q, next.value, settings);
     markEngineAnswer(block, q, next, tried);
     if (next.source === "ai") await rememberAnswer(q.label, q.type, next.value, "ai");

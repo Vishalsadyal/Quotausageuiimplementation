@@ -185,12 +185,20 @@ export async function getAuthUserFromRequest() {
   if (accessToken) {
     try {
       const payload = verifyAccessToken(accessToken);
+      const user = await prisma.user.findUnique({
+        where: { id: payload.id },
+        select: { id: true, email: true, role: true },
+      });
+      if (!user) {
+        await clearAuthCookies().catch(() => null);
+        return null;
+      }
       return {
         sessionId: payload.sessionId,
         user: {
-          id: payload.id,
-          email: payload.email,
-          role: payload.role,
+          id: user.id,
+          email: user.email,
+          role: user.role,
         } as AuthUser,
       };
     } catch {
@@ -213,6 +221,7 @@ export async function getAuthUserFromRequest() {
       } as AuthUser,
     };
   } catch {
+    await clearAuthCookies().catch(() => null);
     return null;
   }
 }

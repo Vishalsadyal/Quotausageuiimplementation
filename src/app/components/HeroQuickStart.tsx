@@ -90,6 +90,7 @@ export function HeroQuickStart({ className = '' }: { className?: string }) {
     let profile: ReadResult = {};
     let next: 'dashboard' | 'login' | 'signup' = 'signup';
     let existingEmail = '';
+    let onboardingDone = false;
     try {
       const formData = new FormData();
       formData.append('resume', file);
@@ -100,6 +101,7 @@ export function HeroQuickStart({ className = '' }: { className?: string }) {
       profile = (data?.data?.profile || {}) as ReadResult;
       next = data?.data?.next || 'signup';
       existingEmail = data?.data?.email || '';
+      onboardingDone = Boolean(data?.data?.user?.onboardingCompleted);
     } catch (error) {
       setStatus('error');
       await aiSay(`${error instanceof Error ? error.message : 'Could not read this file.'} Try another file.`, 300);
@@ -111,11 +113,23 @@ export function HeroQuickStart({ className = '' }: { className?: string }) {
     const greeting = `${firstName ? `Got it, ${firstName}!` : 'Got it!'}${found ? ` I found: ${found}.` : ''}`;
 
     if (next === 'dashboard') {
-      // The resume is already saved to the new account, so nothing waits in the browser.
+      // The resume is already saved to the new account; the lead only pre-fills onboarding.
       setStatus('done');
+      if (!onboardingDone) {
+        saveHeroLead({
+          linkedinUrl: profile.linkedinUrl ? normalizeLinkedinInput(profile.linkedinUrl) || undefined : undefined,
+          jobTitle: profile.jobTitles?.[0] || undefined,
+          yearsOfExperience: profile.yearsOfExperience || undefined,
+        });
+      }
       await refreshUser();
-      await aiSay(`${greeting} Your account is ready and your profile is filled in. Opening your dashboard…`, 500);
-      window.setTimeout(() => navigate('/dashboard'), 1200);
+      await aiSay(
+        onboardingDone
+          ? `${greeting} Your account is ready and your profile is filled in. Opening your dashboard…`
+          : `${greeting} Your account is ready. Your resume didn't have a few details, so let's fill them in…`,
+        500,
+      );
+      window.setTimeout(() => navigate(onboardingDone ? '/dashboard' : '/dashboard/onboarding'), 1200);
       return;
     }
 

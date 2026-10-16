@@ -18,32 +18,6 @@ function trimLogPrefix(raw) {
   return text;
 }
 
-function summarizeMeta(meta) {
-  if (!meta || typeof meta !== "object") return "";
-  const parts = [];
-  const add = (label, value) => {
-    const text = String(value ?? "").trim();
-    if (!text) return;
-    parts.push(`${label}: ${text}`);
-  };
-  add("reason", meta.reasonCode);
-  add("step", meta.stepAttempt);
-  add("validation", meta.validation);
-  add("pending", meta.unresolvedRequired);
-  add("cards", meta.cards);
-  add("url", meta.url);
-  if (Array.isArray(meta.unresolvedFields) && meta.unresolvedFields.length) {
-    add("fields", meta.unresolvedFields.slice(0, 2).join(" | "));
-  }
-  if (parts.length) return parts.join(" | ");
-  try {
-    const raw = JSON.stringify(meta);
-    return raw.length > 220 ? `${raw.slice(0, 219)}...` : raw;
-  } catch {
-    return "";
-  }
-}
-
 function isUserFacingAiLog(entry) {
   const msg = String(entry?.message || "").trim();
   const norm = normalizeLabel(msg);
@@ -108,90 +82,6 @@ function formatAiFeedCard(entry) {
   }
 
   return `<div class="cp-ai-card ${cardClass}"><span class="cp-ai-icon">${icon}</span><span class="cp-ai-text">${formattedHtml}</span><span class="cp-ai-time">${escapeHtml(time)}</span></div>`;
-}
-
-function formatDecisionChainCard(entry) {
-  const rawMsg = trimLogPrefix(entry?.message || "");
-  const norm = normalizeLabel(rawMsg);
-  const time = String(entry?.ts?.slice(11, 19) || "");
-  const meta = entry?.meta && typeof entry.meta === "object" ? entry.meta : {};
-  const reasonCode = String(meta?.reasonCode || "").toUpperCase();
-
-  let chainClass = "cp-diag-info";
-  let badge = "DECISION";
-  let icon = ICONS.activity;
-
-  if (norm.includes("application submitted") || norm.includes("submitted successfully")) {
-    chainClass = "cp-diag-success";
-    badge = "SUBMITTED";
-    icon = ICONS.check;
-  } else if (norm.includes("mismatch") || norm.includes("does not match")) {
-    chainClass = "cp-diag-warn";
-    badge = "KEYWORD FILTER";
-    icon = ICONS.search;
-  } else if (norm.includes("already applied") || reasonCode === "APPLIED_CACHE_HIT") {
-    chainClass = "cp-diag-muted";
-    badge = "DUPLICATE GUARD";
-    icon = ICONS.check;
-  } else if (norm.includes("experience") || reasonCode === "EXPERIENCE_TOO_HIGH") {
-    chainClass = "cp-diag-warn";
-    badge = "EXPERIENCE RULE";
-    icon = ICONS.target;
-  } else if (norm.includes("modal") || norm.includes("easy apply")) {
-    chainClass = "cp-diag-warn";
-    badge = "APPLY FLOW";
-    icon = ICONS.bolt;
-  } else if (entry?.level === "error") {
-    chainClass = "cp-diag-error";
-    badge = "ERROR";
-    icon = ICONS.alert;
-  }
-
-  const metaHtml = reasonCode ? `<span class="cp-diag-code">${escapeHtml(reasonCode)}</span>` : "";
-
-  return `<div class="cp-diag-card ${chainClass}"><div class="cp-diag-head"><span class="cp-diag-badge">${badge}</span>${metaHtml}<span class="cp-diag-time">${escapeHtml(time)}</span></div><div class="cp-diag-body"><span class="cp-diag-icon">${icon}</span><span class="cp-diag-msg">${escapeHtml(rawMsg)}</span></div></div>`;
-}
-
-const AI_KIND_KEYWORDS = [
-  "analyzing", "reviewing", "processing", "evaluating", "preparing",
-  "checking", "scanning", "optimizing", "verifying", "reading",
-  "thinking", "examining", "inspecting", "studying", "assessing"
-];
-
-function getLogVisual(entry) {
-  const level = String(entry?.level || "info").toLowerCase();
-  const raw = String(entry?.message || "");
-  const isUser = level === "user" || raw.startsWith("You:");
-  const isDebug = raw.startsWith("[debug]");
-  const isBotChat = raw.startsWith("Copilot:");
-  const role = isUser ? "cp-user" : "cp-bot";
-  const sender = isUser ? "You" : "Copilot";
-
-  let kind;
-  if (level === "error") {
-    kind = "Error";
-  } else if (level === "warn") {
-    kind = "Warning";
-  } else if (isDebug) {
-    kind = "Debug";
-  } else if (isUser) {
-    kind = "Command";
-  } else if (isBotChat) {
-    const norm = normalizeLabel(trimLogPrefix(raw));
-    const matched = AI_KIND_KEYWORDS.some((kw) => norm.includes(kw));
-    kind = matched ? "Thinking" : "Update";
-  } else {
-    kind = "Update";
-  }
-
-  return {
-    level,
-    role,
-    sender,
-    kind,
-    isDebug,
-    message: trimLogPrefix(raw)
-  };
 }
 
 const AI_THINKING_TITLES = [
@@ -273,11 +163,88 @@ function deriveNowCard(state, logs) {
   return { title, jobTitle, detail };
 }
 
-function isLogNearBottom(logEl, threshold = 36) {
-  if (!logEl) return true;
-  const maxScrollTop = Math.max(0, Number(logEl.scrollHeight || 0) - Number(logEl.clientHeight || 0));
-  const current = Math.max(0, Number(logEl.scrollTop || 0));
-  return maxScrollTop - current <= Math.max(0, Number(threshold || 0));
+// ---------------------------------------------------------------- applied / skipped lists
+// Why a job was skipped, in plain words. Unknown codes fall back to the reason the run recorded.
+const SKIP_REASON_TEXT = {
+  APPLIED_CACHE_HIT: "Already applied before",
+  ALREADY_APPLIED: "Already applied before",
+  NO_APPLY_BUTTON: "No Easy Apply button on this job",
+  EXTERNAL_APPLY_ONLY: "You apply on the company website",
+  EXTERNAL_APPLY_OPENED: "Opened the company website to apply",
+  MODAL_NOT_FOUND: "The Easy Apply form did not open",
+  VIEW_MODAL_SKIPPED: "Could not finish the application form",
+  VIEW_MODAL_FAILED: "Could not finish the application form",
+  MODAL_FLOW_ERROR: "Could not finish the application form",
+  BLACKLISTED_COMPANY: "Company is on your blocked list",
+  BAD_WORD_TITLE: "Job title has a word you excluded",
+  KEYWORD_MISMATCH: "Title does not match your keywords",
+  BAD_WORD_DESCRIPTION: "Description has a word you excluded",
+  SECURITY_CLEARANCE_REQUIRED: "Needs a security clearance",
+  EXPERIENCE_TOO_HIGH: "Asks for more experience than you have",
+  ABOUT_COMPANY_BAD_WORD: "Company description has a word you excluded",
+  DAILY_EASY_APPLY_LIMIT: "LinkedIn daily Easy Apply limit reached",
+};
+
+function skipReasonParts(entry) {
+  const data = entry?.data && typeof entry.data === "object" ? entry.data : {};
+  const code = String(data.reasonCode || "").trim().toUpperCase();
+  const detail = String(data.reason || data.errorMessage || "").replace(/\s+/g, " ").trim();
+  const mapped = SKIP_REASON_TEXT[code];
+  if (mapped) return { primary: mapped, secondary: detail && detail.length <= 120 && detail !== mapped ? detail : "" };
+  const human = code ? code.toLowerCase().replace(/_/g, " ").replace(/^./, (c) => c.toUpperCase()) : "";
+  return { primary: detail || human || "Skipped", secondary: "" };
+}
+
+function formatJobHistoryCard(entry, listKind) {
+  const data = entry?.data && typeof entry.data === "object" ? entry.data : {};
+  const jobId = String(data.jobId || data.externalJobId || "").trim();
+  const title = cleanJobTitle(String(data.title || "").trim()) || (jobId ? `LinkedIn job ${jobId}` : "LinkedIn job");
+  const company = String(data.company || "").trim();
+  const time = String(entry?.ts || "").slice(11, 19);
+  const url = String(data.jobUrl || data.pageUrl || "");
+  const titleHtml = /^https:\/\/([a-z]+\.)?linkedin\.com\//i.test(url)
+    ? `<a href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(title)}</a>`
+    : escapeHtml(title);
+  const sub = [company, time].filter(Boolean).map(escapeHtml).join(" · ");
+
+  if (listKind === "applied") {
+    return `<div class="cp-job-card cp-job-applied"><span class="cp-job-icon">${ICONS.check}</span><div class="cp-job-main"><div class="cp-job-title">${titleHtml}</div><div class="cp-job-sub">${sub}</div></div></div>`;
+  }
+  const { primary, secondary } = skipReasonParts(entry);
+  const tag = entry?.kind === "failed" ? "Failed" : entry?.kind === "external" ? "External" : "";
+  return `<div class="cp-job-card cp-job-skipped"><span class="cp-job-icon">${ICONS.skip}</span><div class="cp-job-main"><div class="cp-job-title">${titleHtml}${tag ? `<span class="cp-job-tag">${tag}</span>` : ""}</div><div class="cp-job-sub">${sub}</div><div class="cp-job-reason">${escapeHtml(primary)}</div>${secondary ? `<div class="cp-job-sub">${escapeHtml(secondary)}</div>` : ""}</div></div>`;
+}
+
+/** Newest first, only this run's entries, and none at all after "Clear logs & reset counters". */
+function historyForPanel(list, state, countNow) {
+  if (!Number(countNow || 0)) return [];
+  const since = Date.parse(String(state?.startedAt || ""));
+  return (Array.isArray(list) ? list : [])
+    .filter((entry) => !Number.isFinite(since) || Date.parse(String(entry?.ts || "")) >= since)
+    .sort((a, b) => String(b?.ts || "").localeCompare(String(a?.ts || "")))
+    .slice(0, 60);
+}
+
+async function refreshPanelHistory() {
+  const res = await sendMessage({ type: "CP_GET_RUN_HISTORY" });
+  if (!res?.ok || !res.history) return;
+  const h = res.history;
+  const tag = (list, kind) => (Array.isArray(list) ? list : []).map((entry) => ({ ...entry, kind }));
+  panelHistory = {
+    applied: tag(h.applied, "applied"),
+    skipped: [...tag(h.skipped, "skipped"), ...tag(h.external, "external"), ...tag(h.failed, "failed")],
+  };
+  panelHistoryVersion += 1;
+  lastLogRenderSignature = "";
+  if (panelLastState) renderState(panelLastState);
+}
+
+function nowBannerHtml(nowCard) {
+  return `<div class="cp-now-banner"><div class="cp-now-head"><span class="cp-hero-status-pulse"></span><span class="cp-now-title">${escapeHtml(nowCard.title)}</span></div><div class="cp-now-job">${escapeHtml(nowCard.jobTitle)}</div><div class="cp-now-detail">${escapeHtml(nowCard.detail)}</div></div>`;
+}
+
+function emptyListHtml(icon, text) {
+  return `<div class="cp-empty-state"><span>${icon}</span><span>${text}</span></div>`;
 }
 
 function buildLogRenderSignature(logs, state, settings, activeTab) {
@@ -301,9 +268,17 @@ function buildLogRenderSignature(logs, state, settings, activeTab) {
 function renderState(state) {
   ensurePanelConnected();
   if (!panelEl) return;
-  panelEl.classList.remove("cp-hidden");
+  panelLastState = state;
+  panelEl.classList.remove("cp-hidden", "cp-sidebar-collapsed");
   if (state.running && panelPrefs.minimized) {
     setPanelMinimized(false);
+  }
+
+  // The lists come from the run history; read it again whenever a count changes.
+  const historyKey = `${Number(state.applied || 0)}|${Number(state.skipped || 0)}|${Number(state.failed || 0)}`;
+  if (historyKey !== panelHistoryKey) {
+    panelHistoryKey = historyKey;
+    void refreshPanelHistory();
   }
 
   const s = lastBootstrapSettings || {};
@@ -323,11 +298,17 @@ function renderState(state) {
     modeChip.className = `cp-run-mode-chip ${liveAutoSubmitEnabled ? "cp-live" : s?.dryRun ? "cp-dry" : "cp-manual"}`;
   }
 
-  // Update hero stats
-  const appliedCountEl = panelEl.querySelector("#cp-applied-count");
-  if (appliedCountEl) appliedCountEl.textContent = String(Number(state.applied || 0));
-  const skippedCountEl = panelEl.querySelector("#cp-skipped-count");
-  if (skippedCountEl) skippedCountEl.textContent = String(Number(state.skipped || 0));
+  // Counts sit on the Applied / Skipped tabs; they stay hidden while zero.
+  const setTabCount = (selector, count) => {
+    const el = panelEl.querySelector(selector);
+    if (!el) return;
+    el.textContent = String(count);
+    el.hidden = count <= 0;
+  };
+  const appliedNow = Number(state.applied || 0);
+  const skippedNow = Number(state.skipped || 0) + Number(state.failed || 0);
+  setTabCount("#cp-count-applied", appliedNow);
+  setTabCount("#cp-count-skipped", skippedNow);
 
   const walletTextEl = panelEl.querySelector("#cp-wallet-text");
   if (walletTextEl) {
@@ -350,12 +331,6 @@ function renderState(state) {
 
   const logs = state.logs || [];
   const nowCard = deriveNowCard(state, logs);
-  const nowTitle = panelEl.querySelector("#cp-now-title");
-  const nowJobTitle = panelEl.querySelector("#cp-now-job-title");
-  const nowDetail = panelEl.querySelector("#cp-now-detail");
-  if (nowTitle) nowTitle.textContent = nowCard.title;
-  if (nowJobTitle) nowJobTitle.textContent = nowCard.jobTitle;
-  if (nowDetail) nowDetail.textContent = nowCard.detail;
 
   const logEl = panelEl.querySelector("#cp-log");
   const typingKind = s?.dryRun ? "Dry Run" : s?.autoSubmit ? "Auto" : "Manual";
@@ -374,58 +349,42 @@ function renderState(state) {
     : "";
 
   const logsWindow = logs.slice(-80);
-  const logSignature = buildLogRenderSignature(logsWindow, state, s, panelActiveTab);
+  const logSignature = `${buildLogRenderSignature(logsWindow, state, s, panelActiveTab)}|${panelHistoryVersion}|${nowCard.jobTitle}|${nowCard.detail}`;
   if (logSignature !== lastLogRenderSignature && logEl) {
-    const previousDistanceFromBottom = Math.max(
-      0,
-      Number(logEl.scrollHeight || 0) - Number(logEl.clientHeight || 0) - Number(logEl.scrollTop || 0)
-    );
-    const wasNearBottom = isLogNearBottom(logEl);
-    const shouldStickToBottom = logAutoScrollPinnedToBottom || wasNearBottom;
+    const previousTop = Number(logEl.scrollTop || 0);
+    const previousHeight = Number(logEl.scrollHeight || 0);
+    const tabChanged = panelRenderedTab !== panelActiveTab;
 
-    if (panelActiveTab === "feed") {
+    if (panelActiveTab === "applied") {
+      const items = historyForPanel(panelHistory.applied, state, appliedNow);
+      logEl.innerHTML = items.length
+        ? items.map((entry) => formatJobHistoryCard(entry, "applied")).join("")
+        : emptyListHtml(ICONS.check, "No applications yet. Click <strong>Start</strong> and the jobs you apply to will be listed here.");
+    } else if (panelActiveTab === "skipped") {
+      const items = historyForPanel(panelHistory.skipped, state, skippedNow);
+      logEl.innerHTML = items.length
+        ? items.map((entry) => formatJobHistoryCard(entry, "skipped")).join("")
+        : emptyListHtml(ICONS.skip, "Nothing skipped yet. Skipped jobs will be listed here with the reason.");
+    } else if (panelActiveTab === "feed") {
       const feedItems = logsWindow.filter((l) => isUserFacingAiLog(l));
+      const banner = state.running || state.paused ? nowBannerHtml(nowCard) : "";
       if (!feedItems.length && !state.running) {
-        logEl.innerHTML = `<div style="text-align:center;padding:28px 12px;color:#94a3b8;font-size:11.5px;display:flex;flex-direction:column;align-items:center;gap:8px;"><span style="color:#6366f1;">${ICONS.sparkle}</span><span>AI Copilot is standing by. Click <strong>Start</strong> to begin auto-applying.</span></div>`;
+        logEl.innerHTML = banner + emptyListHtml(ICONS.sparkle, "AI Copilot is standing by. Click <strong>Start</strong> to begin auto-applying.");
       } else {
-        logEl.innerHTML = feedItems.map((l) => formatAiFeedCard(l)).join("") + typingCard;
+        // Newest first, like the Applied and Skipped lists.
+        logEl.innerHTML = banner + typingCard + [...feedItems].reverse().map((l) => formatAiFeedCard(l)).join("");
       }
-    } else if (panelActiveTab === "debug") {
-      const diagItems = logsWindow.filter((l) => !String(l?.message || "").startsWith("{") && !String(l?.message || "").includes("automation engine"));
-      if (!diagItems.length && !state.running) {
-        logEl.innerHTML = `<div style="text-align:center;padding:28px 12px;color:#94a3b8;font-size:11.5px;display:flex;flex-direction:column;align-items:center;gap:8px;"><span style="color:#6366f1;">${ICONS.activity}</span><span>No decision chain entries yet. Start a run to trace decision checks in real time.</span></div>`;
-      } else {
-        logEl.innerHTML = diagItems.map((l) => formatDecisionChainCard(l)).join("") + typingCard;
-      }
-    } else {
-      logEl.innerHTML =
-        logsWindow
-          .map((l) => {
-            const visual = getLogVisual(l);
-            const level = escapeHtml(visual.level || "info");
-            const role = escapeHtml(visual.role || "cp-bot");
-            const sender = escapeHtml(visual.sender || "Copilot");
-            const kind = escapeHtml(visual.kind || "Update");
-            const msg = escapeHtml(visual.message || "");
-            const metaText = summarizeMeta(l?.meta);
-            const metaHtml = metaText ? `<div class="cp-msg-meta">${escapeHtml(metaText)}</div>` : "";
-            const debugClass = visual.isDebug ? " cp-debug" : "";
-            return `<div class="cp-line ${role} cp-${level}${debugClass}"><div class="cp-bubble"><div class="cp-msg-head"><span class="cp-sender">${sender}</span><span class="cp-kind">${kind}</span><span class="cp-time">${escapeHtml(l.ts?.slice(11, 19) || "")}</span></div><div class="cp-msg-text">${msg}</div>${metaHtml}</div></div>`;
-          })
-          .join("") + typingCard;
     }
 
     lastLogRenderSignature = logSignature;
+    panelRenderedTab = panelActiveTab;
 
-    if (shouldStickToBottom) {
-      logEl.scrollTop = logEl.scrollHeight;
-      logAutoScrollPinnedToBottom = true;
+    // The newest item is at the top: stay there, or keep the user's place after they scrolled down
+    // (new items add height above, so shift by that much).
+    if (tabChanged || previousTop <= 36) {
+      logEl.scrollTop = 0;
     } else {
-      const nextTop = Math.max(
-        0,
-        Number(logEl.scrollHeight || 0) - Number(logEl.clientHeight || 0) - previousDistanceFromBottom
-      );
-      logEl.scrollTop = nextTop;
+      logEl.scrollTop = previousTop + Math.max(0, Number(logEl.scrollHeight || 0) - previousHeight);
     }
   }
   logPanelDebug("render");

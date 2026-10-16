@@ -99,9 +99,13 @@ async function updateLinkedInState() {
   }
 
   // Quota
-  const spendable = Number(portalQuota?.data?.spendable ?? portalQuota?.data?.hireBalance ?? 0);
-  document.getElementById("popupHiresCount").textContent = spendable;
-  document.getElementById("popupQuotaDetail").textContent = `Daily Free: ${dailyCap.used || 0}/${dailyCap.cap || 3} &bull; Spendable: ${spendable}`;
+  // Only write a number the extension really has. Its short-term quota cache is empty right after it restarts,
+  // and showing 0 then made the count flash 0 until the next refresh.
+  const spendable = knownSpendable(portalQuota);
+  if (spendable !== null) {
+    document.getElementById("popupHiresCount").textContent = spendable;
+    document.getElementById("popupQuotaDetail").textContent = `Daily Free: ${dailyCap.used || 0}/${dailyCap.cap || 3} \u2022 Spendable: ${spendable}`;
+  }
 
   // Account Card
   const accountCard = document.getElementById("accountCard");
@@ -199,12 +203,12 @@ async function updateIndeedState() {
   }
 
   // Quota
-  const spendable = Number(portalQuota?.data?.spendable ?? portalQuota?.data?.hireBalance ?? 0);
+  const spendable = knownSpendable(portalQuota);
   const hiresEl = document.getElementById("indeedPopupHiresCount");
   const quotaDetailEl = document.getElementById("indeedPopupQuotaDetail");
-  if (hiresEl) hiresEl.textContent = spendable;
+  if (hiresEl && spendable !== null) hiresEl.textContent = spendable;
   if (quotaDetailEl) {
-    quotaDetailEl.innerHTML = `Daily Free: ${dailyCap.used || 0}/${dailyCap.cap || 3} &bull; Spendable: ${spendable}`;
+    if (spendable !== null) quotaDetailEl.textContent = `Daily Free: ${dailyCap.used || 0}/${dailyCap.cap || 3} \u2022 Spendable: ${spendable}`;
   }
 
   // Account Card
@@ -262,92 +266,91 @@ function setupIndeedControls() {
   });
 }
 
-// ── Module 3: WhatsApp Outreach ──
+// ── Modules 3-5: WhatsApp, LinkedIn comments, Email ──
+// The message and the options are written in the dashboard (Auto Apply > Messages) and handed to the
+// extension from there. These tabs only show what will be sent and start the tool.
+function dashboardMessagesUrl() {
+  return `${portalBaseUrl}/dashboard/jobs/linkedin/messages`;
+}
+
+// Shows whether the message exists. Without one the Start button is off, because nothing can be sent.
+function showMessageState(prefix, text, startButtonId) {
+  const clean = String(text || "").trim();
+  const state = document.getElementById(`${prefix}MessageState`);
+  const preview = document.getElementById(`${prefix}MessagePreview`);
+  const link = document.getElementById(`${prefix}EditLink`);
+  if (link) link.href = dashboardMessagesUrl();
+  if (state) {
+    state.textContent = clean ? "Ready" : "Not written yet";
+    state.className = `msg-state ${clean ? "ready" : "empty"}`;
+  }
+  if (preview) {
+    preview.textContent = clean
+      ? clean.length > 220 ? `${clean.slice(0, 217)}...` : clean
+      : "Write it in your dashboard first. Nothing is sent until you do.";
+  }
+  const start = startButtonId ? document.getElementById(startButtonId) : null;
+  if (start) {
+    start.disabled = !clean;
+    start.title = clean ? "" : "Write your message in the dashboard first";
+  }
+}
+
+// LinkedIn's hiring posts page for a tool, searching the user's first keyword (set in the dashboard).
+function outreachPostsUrl(moduleName, keyword) {
+  const query = `${String(keyword || "").trim()} hiring ${moduleName}`.trim();
+  return `https://www.linkedin.com/search/results/content/?keywords=${encodeURIComponent(query)}&sortBy=%5B%22date_posted%22%5D#autoapply-module=${moduleName}`;
+}
+
+const outreachKeyword = { whatsapp: "", email: "" };
+
+function showOpenPostsLink(moduleName, linkId, keywords) {
+  outreachKeyword[moduleName] = Array.isArray(keywords) && keywords[0] ? String(keywords[0]) : "";
+  const link = document.getElementById(linkId);
+  if (link) link.href = outreachPostsUrl(moduleName, outreachKeyword[moduleName]);
+}
+
+// Opens the hiring posts page in the right mode, or tells the LinkedIn tab that is already open to start.
+async function startOutreachOnLinkedIn(triggerType, moduleName) {
+  const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
+  const currentTab = tabs[0];
+  const feedUrl = outreachPostsUrl(moduleName, outreachKeyword[moduleName]);
+  if (currentTab && currentTab.url && currentTab.url.includes("linkedin.com")) {
+    chrome.tabs.sendMessage(currentTab.id, { type: triggerType }, () => {
+      if (chrome.runtime.lastError) chrome.tabs.create({ url: feedUrl });
+    });
+  } else {
+    chrome.tabs.create({ url: feedUrl });
+  }
+}
+
 async function loadWhatsAppStatus() {
   const res = await sendMessage({ type: "WA_GET_STATUS" });
-  if (res) {
-    document.getElementById("waTotalLeads").textContent = res.totalLeads || 0;
-    document.getElementById("waContactedCount").textContent = res.contactedCount || 0;
-    const templateInput = document.getElementById("waTemplateInput");
-    if (templateInput && res.settings?.messageTemplate) {
-      templateInput.value = res.settings.messageTemplate;
-    }
-    const autoSendToggle = document.getElementById("waAutoSendToggle");
-    if (autoSendToggle && res.settings) {
-      autoSendToggle.checked = res.settings.autoSendWhatsApp !== false;
-    }
-    const autoCloseToggle = document.getElementById("waAutoCloseToggle");
-    if (autoCloseToggle && res.settings) {
-      autoCloseToggle.checked = res.settings.autoCloseTab !== false;
-    }
-    const showContactedToggle = document.getElementById("waShowContactedToggle");
-    if (showContactedToggle && res.settings) {
-      showContactedToggle.checked = Boolean(res.settings.showAlreadyContacted);
-    }
-  }
+  if (!res) return;
+  document.getElementById("waTotalLeads").textContent = res.totalLeads || 0;
+  document.getElementById("waContactedCount").textContent = res.contactedCount || 0;
+  showMessageState("wa", res.settings?.messageTemplate, "waAutoSendAllBtn");
+  showOpenPostsLink("whatsapp", "waOpenPosts", res.settings?.targetKeywords);
 }
 
 function setupWhatsAppControls() {
-  document.getElementById("waAutoSendAllBtn")?.addEventListener("click", async () => {
-    const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
-    const currentTab = tabs[0];
-    if (currentTab && currentTab.url && currentTab.url.includes("linkedin.com")) {
-      chrome.tabs.sendMessage(currentTab.id, { type: "TRIGGER_AUTO_SEND_ALL" }, (res) => {
-        if (chrome.runtime.lastError) {
-          chrome.tabs.create({ url: "https://www.linkedin.com/feed/#autoapply-module=whatsapp" });
-        }
-      });
-    } else {
-      chrome.tabs.create({ url: "https://www.linkedin.com/feed/#autoapply-module=whatsapp" });
-    }
-  });
-
-  document.getElementById("waSaveBtn")?.addEventListener("click", async () => {
-    const template = document.getElementById("waTemplateInput").value;
-    const autoSend = document.getElementById("waAutoSendToggle").checked;
-    const autoClose = document.getElementById("waAutoCloseToggle")?.checked ?? true;
-    const showContacted = document.getElementById("waShowContactedToggle")?.checked || false;
-    await sendMessage({
-      type: "WA_SAVE_SETTINGS",
-      payload: {
-        settings: {
-          messageTemplate: template,
-          autoSendWhatsApp: autoSend,
-          autoCloseTab: autoClose,
-          showAlreadyContacted: showContacted
-        }
-      }
-    });
-    alert("WhatsApp outreach settings saved!");
+  document.getElementById("waAutoSendAllBtn")?.addEventListener("click", () => {
+    void startOutreachOnLinkedIn("TRIGGER_AUTO_SEND_ALL", "whatsapp");
   });
 }
 
-// ── Module 4: Auto Commenter ──
 async function loadCommenterStatus() {
   const res = await sendMessage({ type: "AC_GET_STATUS" });
-  if (res) {
-    document.getElementById("acSessionCount").textContent = res.state?.sessionCount || 0;
-    document.getElementById("acTotalCount").textContent = res.totalCount || 0;
-    const commentInput = document.getElementById("acCommentInput");
-    if (commentInput && res.settings?.commentText) {
-      commentInput.value = res.settings.commentText;
-    }
-  }
+  if (!res) return;
+  document.getElementById("acSessionCount").textContent = res.state?.sessionCount || 0;
+  document.getElementById("acTotalCount").textContent = res.totalCount || 0;
+  showMessageState("ac", res.settings?.commentText, "acStartBtn");
 }
 
 function setupCommenterControls() {
   document.getElementById("acStartBtn")?.addEventListener("click", async () => {
-    const commentText = document.getElementById("acCommentInput").value;
-    const skipSeekers = document.getElementById("acSkipSeekersToggle").checked;
-    await sendMessage({
-      type: "START_COMMENTING",
-      payload: {
-        settings: {
-          commentText,
-          skipJobSeekers: skipSeekers
-        }
-      }
-    });
+    // The comment text and options come from the saved settings (written in the dashboard).
+    await sendMessage({ type: "START_COMMENTING", payload: {} });
     await loadCommenterStatus();
   });
 
@@ -357,88 +360,25 @@ function setupCommenterControls() {
   });
 }
 
-// ── Module 5: Email Outreach Pro ──
 async function loadEmailOutreachStatus() {
   const res = await sendMessage({ type: "EMAIL_GET_STATUS" });
-  if (res) {
-    const totalLeadsEl = document.getElementById("emailTotalLeads");
-    const contactedCountEl = document.getElementById("emailContactedCount");
-    if (totalLeadsEl) totalLeadsEl.textContent = res.totalLeads || 0;
-    if (contactedCountEl) contactedCountEl.textContent = res.contactedCount || 0;
+  if (!res) return;
+  const totalLeadsEl = document.getElementById("emailTotalLeads");
+  const contactedCountEl = document.getElementById("emailContactedCount");
+  if (totalLeadsEl) totalLeadsEl.textContent = res.totalLeads || 0;
+  if (contactedCountEl) contactedCountEl.textContent = res.contactedCount || 0;
+  const subject = String(res.settings?.subjectTemplate || "").trim();
+  const body = String(res.settings?.messageTemplate || "").trim();
+  // An email needs both a subject and a body.
+  showMessageState("email", subject && body ? `${subject}
 
-    const subjInput = document.getElementById("emailSubjectInput");
-    if (subjInput && res.settings?.subjectTemplate) {
-      subjInput.value = res.settings.subjectTemplate;
-    }
-
-    const templateInput = document.getElementById("emailTemplateInput");
-    if (templateInput && res.settings?.messageTemplate) {
-      templateInput.value = res.settings.messageTemplate;
-    }
-
-    const clientSelect = document.getElementById("emailClientSelect");
-    if (clientSelect && res.settings?.emailClient) {
-      clientSelect.value = res.settings.emailClient;
-    }
-
-    const autoSendToggle = document.getElementById("emailAutoSendToggle");
-    if (autoSendToggle && res.settings) {
-      autoSendToggle.checked = res.settings.autoSendEmail !== false;
-    }
-
-    const autoCloseToggle = document.getElementById("emailAutoCloseToggle");
-    if (autoCloseToggle && res.settings) {
-      autoCloseToggle.checked = res.settings.autoCloseTab !== false;
-    }
-
-    const showContactedToggle = document.getElementById("emailShowContactedToggle");
-    if (showContactedToggle && res.settings) {
-      showContactedToggle.checked = Boolean(res.settings.showAlreadyContacted);
-    }
-  }
+${body}` : "", "emailAutoSendAllBtn");
+  showOpenPostsLink("email", "emailOpenPosts", res.settings?.targetKeywords);
 }
 
 function setupEmailOutreachControls() {
-  document.getElementById("emailAutoSendAllBtn")?.addEventListener("click", async () => {
-    const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
-    const currentTab = tabs[0];
-    if (currentTab && currentTab.url && currentTab.url.includes("linkedin.com")) {
-      chrome.tabs.sendMessage(currentTab.id, { type: "TRIGGER_EMAIL_AUTO_SEND_ALL" }, (res) => {
-        if (chrome.runtime.lastError) {
-          chrome.tabs.create({ url: "https://www.linkedin.com/feed/#autoapply-module=email" });
-        }
-      });
-    } else {
-      chrome.tabs.create({ url: "https://www.linkedin.com/feed/#autoapply-module=email" });
-    }
-  });
-
-  document.getElementById("emailSaveBtn")?.addEventListener("click", async () => {
-    const subject = document.getElementById("emailSubjectInput")?.value || "";
-    const template = document.getElementById("emailTemplateInput")?.value || "";
-    const client = document.getElementById("emailClientSelect")?.value || "gmail_web";
-    const autoSend = document.getElementById("emailAutoSendToggle")?.checked !== false;
-    const autoClose = document.getElementById("emailAutoCloseToggle")?.checked !== false;
-    const showContacted = document.getElementById("emailShowContactedToggle")?.checked || false;
-
-    const res = await sendMessage({ type: "EMAIL_GET_STATUS" });
-    const currentSettings = res?.settings || {};
-
-    await sendMessage({
-      type: "EMAIL_SAVE_SETTINGS",
-      payload: {
-        settings: {
-          ...currentSettings,
-          subjectTemplate: subject,
-          messageTemplate: template,
-          emailClient: client,
-          autoSendEmail: autoSend,
-          autoCloseTab: autoClose,
-          showAlreadyContacted: showContacted
-        }
-      }
-    });
-    alert("Email Outreach settings saved!");
+  document.getElementById("emailAutoSendAllBtn")?.addEventListener("click", () => {
+    void startOutreachOnLinkedIn("TRIGGER_EMAIL_AUTO_SEND_ALL", "email");
   });
 }
 
@@ -466,6 +406,50 @@ function setupSettingsControls() {
   });
 }
 
+// The spendable Hires from the extension's quota cache, or null when it has none yet (never 0 by default).
+function knownSpendable(portalQuota) {
+  const raw = portalQuota?.data?.spendable ?? portalQuota?.data?.hireBalance;
+  const n = Number(raw);
+  return raw === undefined || raw === null || raw === "" || !Number.isFinite(n) ? null : n;
+}
+
+// ── Hires left (WhatsApp, Comments and Email tabs) ──
+// The background rewrites `cpHiresBalance` after every allowance check and every charge, so the number
+// drops live while messages are being sent, even with this popup open.
+function showHires(balance) {
+  if (!balance) return;
+  const n = Number(balance.spendable || 0);
+  const text = balance.unlimited ? "Unlimited" : `${n} ${n === 1 ? "Hire" : "Hires"}`;
+  // The counters on the LinkedIn and Indeed tabs fill from the same stored balance, so they show the real
+  // number as soon as the popup opens instead of waiting for the extension to answer.
+  for (const id of ["popupHiresCount", "indeedPopupHiresCount"]) {
+    const el = document.getElementById(id);
+    if (el) el.textContent = balance.unlimited ? "Unlimited" : String(n);
+  }
+  document.querySelectorAll("[data-hires-line]").forEach((line) => {
+    const before = line.dataset.last === undefined || line.dataset.last === "" ? null : Number(line.dataset.last);
+    line.hidden = false;
+    line.querySelector("[data-hires-text]").textContent = text;
+    line.classList.toggle("is-low", !balance.unlimited && n > 0 && n <= 3);
+    line.classList.toggle("is-empty", !balance.unlimited && n <= 0);
+    if (!balance.unlimited && before !== null && n < before) {
+      line.classList.remove("is-drop");
+      void line.offsetWidth; // restart the animation
+      line.classList.add("is-drop");
+    }
+    line.dataset.last = balance.unlimited ? "" : String(n);
+  });
+}
+
+function setupHires() {
+  chrome.storage.local.get("cpHiresBalance", (data) => showHires(data && data.cpHiresBalance));
+  chrome.storage.onChanged.addListener((changes, area) => {
+    if (area === "local" && changes.cpHiresBalance) showHires(changes.cpHiresBalance.newValue);
+  });
+  // A fresh number now; it arrives through the storage listener above.
+  chrome.runtime.sendMessage({ type: "CP_OUTREACH_STATUS" }, () => void chrome.runtime.lastError);
+}
+
 // ── Initialize Suite ──
 document.addEventListener("DOMContentLoaded", async () => {
   setupTabs();
@@ -476,6 +460,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   setupEmailOutreachControls();
   setupMeetCopilotControls();
   setupSettingsControls();
+  setupHires();
 
   await Promise.all([updateLinkedInState(), updateIndeedState()]);
   setInterval(() => {

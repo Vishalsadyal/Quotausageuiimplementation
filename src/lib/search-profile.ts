@@ -8,7 +8,28 @@ export class SearchProfileError extends Error {
   }
 }
 
-// Generates 50 job titles + 50 single-word keywords and a summary from the user's
+function toStringList(value: unknown): string[] {
+  return Array.isArray(value) ? value.map((v) => String(v ?? "").trim()).filter(Boolean) : [];
+}
+
+/** Trims, de-duplicates (case-insensitive) and enforces a word count / length on an AI keyword list. */
+function cleanKeywordList(value: unknown, opts: { max: number; words?: 1 | 2; minLength?: number }): string[] {
+  const out: string[] = [];
+  const seen = new Set<string>();
+  for (const raw of toStringList(value)) {
+    const item = raw.replace(/\s+/g, " ").replace(/^[^a-zA-Z0-9+#.]+|[^a-zA-Z0-9+#.)]+$/g, "").trim();
+    if (item.length < (opts.minLength ?? 2) || item.length > 60) continue;
+    if (opts.words && item.split(" ").length !== opts.words) continue;
+    const key = item.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push(item);
+    if (out.length >= opts.max) break;
+  }
+  return out;
+}
+
+// Generates job titles, 1-word keywords, 2-word phrases, core skills and exclude keywords + 50 single-word keywords and a summary from the user's
 // saved resume, and saves them as screening answers the dashboard and extension read.
 export async function generateSearchProfileForUser(userId: string) {
   const apiKey = process.env.GROQ_API_KEY || "";
@@ -43,18 +64,28 @@ export async function generateSearchProfileForUser(userId: string) {
   }
 
   const systemPrompt = `You are an expert AI Career Strategist and ATS Search Specialist.
-Analyze the applicant's resume carefully and generate STRICTLY 100 keywords total, consisting of EXACTLY 50 multi-word job titles/search phrases and EXACTLY 50 single-word core technical keywords:
+Read the applicant's resume and build their job-search keyword profile. Use ONLY the applicant's real
+field, seniority and skills: the examples below show the FORMAT for different professions, never copy them
+unless they truly match this resume.
 
-1. "searchTerms": Array of EXACTLY 50 specific multi-word job titles and search phrases for LinkedIn/Indeed based on the resume (e.g. "PLC Programmer", "SCADA Engineer", "Industrial Automation Engineer", "Control Systems Engineer", "Electrical Engineer", "Junior Electrical Engineer", "Automation Engineer", "Instrumentation Engineer", "Power Systems Engineer", "Renewable Energy Engineer", "Solar Energy Engineer", "Electrical Design Engineer", "HMI Developer", "Embedded Systems Engineer", "Arduino Developer", "Mechatronics Engineer", "Automation Technician", "Electrical Maintenance Engineer", "Process Automation Engineer", "Control Panel Designer", "Electrical Project Engineer", "Junior PLC Engineer", "SCADA Developer", etc.).
-2. "singleWordKeywords": Array of EXACTLY 50 single-word technical skills, tools, components, protocols, and domain terms from the resume (e.g. "PLC", "SCADA", "Automation", "Electrical", "Solar", "HMI", "Arduino", "Circuits", "Sensors", "Robotics", "Wiring", "Schematics", "Switchgear", "Earthing", "Voltage", "Inverters", "Microcontrollers", "Firmware", "MATLAB", "Simulink", "AutoCAD", "Instrumentation", "Relays", "Transformers", "Motors", "Drives", "VFD", "IoT", "Modbus", "Profibus", "Ethernet", "Safety", "Power", "Energy", "Embedded", "PCB", "Diagnostics", "Commissioning", "Maintenance", "Calibration", "Telemetry", "Hydraulics", "Pneumatics", "Actuators", "Soldering", "Testing", "Prototyping", "Multimeter", "Oscilloscope", "Profinet"). Each item in this array MUST BE A STRICT SINGLE WORD (no spaces).
-3. "description": A high-impact 3-4 sentence professional ATS summary highlighting core technical strengths, projects, and domain experience.
+Return ONLY a JSON object with these keys:
+1. "searchTerms": 40 job titles / search queries to type into LinkedIn or Indeed for this person
+   (e.g. a frontend developer: "React Developer", "Frontend Engineer"; a data engineer: "Data Engineer", "ETL Developer";
+   an electrical engineer: "PLC Programmer", "Automation Engineer").
+2. "singleWordKeywords": 40 single-word skills, tools, languages, protocols or acronyms from the resume
+   (e.g. "React", "TypeScript", "Kafka", "SQL", "PLC", "AutoCAD"). Each item MUST be ONE word, no spaces.
+3. "twoWordPhrases": 30 two-word skill / technology / domain phrases recruiters search for
+   (e.g. "React Native", "REST APIs", "Data Pipelines", "Machine Learning", "Ladder Logic", "Power BI").
+   Each item MUST be EXACTLY two words. Do NOT repeat job titles here.
+4. "coreSkills": 25 core technical skills and stack items the applicant is strongest in, most important first
+   (e.g. "React", "Node.js", "PostgreSQL", "AWS", "Apache Spark", "Siemens TIA Portal"). Not job titles.
+5. "excludeKeywords": 12 words or short phrases in job titles that are WRONG for this applicant and should be
+   auto-skipped: wrong seniority (e.g. "Intern" for a senior, "Director" or "Principal" for a junior), unrelated
+   functions (e.g. "Sales", "Telecaller", "Nurse"), unpaid roles. Tailor them to this resume.
+6. "description": a high-impact 3-4 sentence professional ATS summary of their strengths and experience.
 
-Return ONLY a valid JSON object matching this schema:
-{
-"searchTerms": ["Title 1", "Title 2", ... exactly 50 items ...],
-"singleWordKeywords": ["Keyword1", "Keyword2", ... exactly 50 single words ...],
-"description": "Professional summary..."
-}`;
+JSON shape:
+{"searchTerms": [...], "singleWordKeywords": [...], "twoWordPhrases": [...], "coreSkills": [...], "excludeKeywords": [...], "description": "..."}`;
 
   const userPrompt = `Applicant Resume & Details:
 Candidate: ${user?.name || "Applicant"}
@@ -63,70 +94,84 @@ Location: ${user?.currentCity || "Remote"}
 Resume Content:
 ${resumeContent.slice(0, 15000)}
 
-Generate the strict 50 job titles + 50 single-word keywords (100 total) and description JSON:`;
+Generate the keyword profile JSON for this applicant:`;
 
-  const groqRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      "Authorization": `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      model: "openai/gpt-oss-120b",
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: userPrompt },
-      ],
-      temperature: 0.2,
-      max_tokens: 3500,
-      response_format: { type: "json_object" },
-    }),
-  });
+  // The model sometimes spends its whole token budget reasoning and returns nothing usable, so retry once.
+  const requestKeywordProfile = async (): Promise<Record<string, unknown>> => {
+    const groqRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "openai/gpt-oss-120b",
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: userPrompt },
+        ],
+        temperature: 0.2,
+        max_tokens: 8000,
+        reasoning_effort: "low",
+        response_format: { type: "json_object" },
+      }),
+    });
 
-  if (!groqRes.ok) {
-    const errText = await groqRes.text().catch(() => "");
-    throw new SearchProfileError(`Groq AI request failed: ${errText}`, 502);
-  }
+    if (!groqRes.ok) {
+      const errText = await groqRes.text().catch(() => "");
+      throw new SearchProfileError(`Groq AI request failed: ${errText}`, 502);
+    }
 
-  const groqData = await groqRes.json();
-  const rawContent = groqData?.choices?.[0]?.message?.content || "{}";
-  const parsed = JSON.parse(rawContent);
-
-  const rawSearchTerms: string[] = Array.isArray(parsed.searchTerms)
-    ? parsed.searchTerms.map((t: unknown) => String(t).trim()).filter(Boolean)
-    : [];
-  const description: string = String(parsed.description || "").trim();
-  const rawSingleWords: string[] = Array.isArray(parsed.singleWordKeywords || parsed.keywords)
-    ? (parsed.singleWordKeywords || parsed.keywords).map((k: unknown) => String(k).trim()).filter(Boolean)
-    : [];
-
-  // Ensure single words are strictly 1 word each
-  const singleWordList: string[] = [];
-  const seenSingle = new Set<string>();
-  for (const item of rawSingleWords) {
-    const parts = item.split(/[\s/,|]+/g).map((p) => p.trim().replace(/[^a-zA-Z0-9+#.-]/g, "")).filter(Boolean);
-    for (const p of parts) {
-      const lower = p.toLowerCase();
-      if (!seenSingle.has(lower) && p.length >= 2) {
-        seenSingle.add(lower);
-        singleWordList.push(p);
+    const groqData = await groqRes.json();
+    const choice = groqData?.choices?.[0];
+    try {
+      const result = JSON.parse(choice?.message?.content || "{}") as Record<string, unknown>;
+      if (!Array.isArray(result.singleWordKeywords) && !Array.isArray(result.searchTerms)) {
+        throw new Error(`no keyword lists (finish_reason: ${choice?.finish_reason})`);
       }
+      return result;
+    } catch (error) {
+      console.error("Groq keyword profile unusable:", error instanceof Error ? error.message : error);
+      throw new SearchProfileError("AI returned an unreadable answer. Please try again.", 502);
     }
+  };
+
+  let parsed: Record<string, unknown>;
+  try {
+    parsed = await requestKeywordProfile();
+  } catch {
+    parsed = await requestKeywordProfile();
   }
 
-  // Ensure multi-word search terms
-  const searchTermsList: string[] = [];
-  const seenTerms = new Set<string>();
-  for (const term of rawSearchTerms) {
-    const lower = term.toLowerCase();
-    if (!seenTerms.has(lower) && term.length > 2) {
-      seenTerms.add(lower);
-      searchTermsList.push(term);
-    }
+  const description: string = String(parsed.description || "").trim();
+  const searchTermsList = cleanKeywordList(parsed.searchTerms, { max: 50, minLength: 3 });
+  // Single words: split anything multi-word the model sent ("React Native" -> "React", "Native").
+  const singleWordList = cleanKeywordList(
+    toStringList(parsed.singleWordKeywords || parsed.keywords).flatMap((k) => k.split(/[\s/,|]+/g)),
+    { max: 50, words: 1, minLength: 2 }
+  );
+  const titleSet = new Set(searchTermsList.map((t) => t.toLowerCase()));
+  let twoWordsList = cleanKeywordList(parsed.twoWordPhrases || parsed.twoWordKeywords, { max: 40, words: 2 }).filter(
+    (p) => !titleSet.has(p.toLowerCase())
+  );
+  let coreSkillsList = cleanKeywordList(parsed.coreSkills || parsed.skills, { max: 30, minLength: 2 }).filter(
+    (s) => !titleSet.has(s.toLowerCase())
+  );
+  let excludeList = cleanKeywordList(parsed.excludeKeywords || parsed.negativeKeywords, { max: 20, minLength: 2 });
+
+  // Fallbacks built from this applicant's own results (never another profession's defaults).
+  if (twoWordsList.length < 5) {
+    twoWordsList = Array.from(new Set([...twoWordsList, ...searchTermsList.filter((t) => t.split(/\s+/).length === 2)])).slice(0, 40);
+  }
+  if (coreSkillsList.length < 5) coreSkillsList = Array.from(new Set([...coreSkillsList, ...singleWordList])).slice(0, 25);
+  if (!excludeList.length) excludeList = ["Unpaid", "Internship", "Sales", "Telecaller"];
+
+  if (!searchTermsList.length && !singleWordList.length) {
+    throw new SearchProfileError("AI could not build keywords from your resume. Please try again.", 502);
   }
 
-  // Deduplicate and combine strictly 100 keywords total
-  const allKeywords = Array.from(new Set([...searchTermsList, ...singleWordList])).slice(0, 100);
+  // Everything, for the resume profile / extension (titles first, then skills).
+  const allKeywords = Array.from(new Set([...searchTermsList, ...singleWordList, ...twoWordsList, ...coreSkillsList])).slice(0, 150);
 
   // Save directly to userResume.parsedData so /api/user/resume immediately returns all 100 keywords
   const existingResume = await prisma.userResume.findUnique({
@@ -137,7 +182,13 @@ Generate the strict 50 job titles + 50 single-word keywords (100 total) and desc
   const updatedParsed = {
     ...currentParsed,
     jobTitles: searchTermsList,
-    skills: allKeywords,
+    skills: Array.from(new Set([...coreSkillsList, ...singleWordList])),
+    keywordCategories: {
+      singleWord: singleWordList,
+      twoWord: twoWordsList,
+      coreSkills: coreSkillsList,
+      exclude: excludeList,
+    },
     summary: description || (currentParsed.summary as string) || "",
   };
 
@@ -184,138 +235,40 @@ Generate the strict 50 job titles + 50 single-word keywords (100 total) and desc
     }).catch(() => null);
   }
 
-  const titlesJoined = searchTermsList.join(", ");
-  const singleWordJoined = singleWordList.slice(0, 50).join(", ");
-  const twoWordsList = searchTermsList.filter((t) => t.includes(" "));
-  const twoWordsJoined = twoWordsList.join(", ");
-  const skillsJoined = allKeywords.slice(0, 30).join(", ");
-  const excludeDefault = "Internship, Junior, Unpaid, Security Clearance";
-
-  if (titlesJoined) {
+  const lastUsed = new Date().toISOString();
+  const keywordAnswers: Array<[string, string, string[]]> = [
+    ["preferred_job_titles", "Preferred Job Titles / Search Terms", searchTermsList],
+    ["cp_pref_search_terms", "Preferred Job Titles / Search Terms", searchTermsList],
+    ["one_word_keywords", "1-Word Keywords & Acronyms", singleWordList],
+    ["two_words_keywords", "2-Word Phrases & Combos", twoWordsList],
+    ["core_skills", "Technical Skills & Competencies", coreSkillsList],
+    ["skills", "Technical Skills & Competencies", coreSkillsList],
+    ["bad_words", "Blacklist / Exclude Keywords", excludeList],
+    ["exclude_keywords", "Blacklist / Exclude Keywords", excludeList],
+  ];
+  for (const [questionKey, questionLabel, list] of keywordAnswers) {
+    if (!list.length) continue;
     await writeAuditLog({
       actorUserId: userId,
       action: "user.screening_answer_saved",
       targetType: "screening_answer",
-      targetId: "preferred_job_titles",
-      metadataJson: {
-        questionKey: "preferred_job_titles",
-        questionLabel: "Preferred Job Titles / Search Terms",
-        answer: titlesJoined,
-        answerType: "multiselect",
-        source: "system",
-        lastUsed: new Date().toISOString(),
-      },
-    }).catch(() => null);
-
-    await writeAuditLog({
-      actorUserId: userId,
-      action: "user.screening_answer_saved",
-      targetType: "screening_answer",
-      targetId: "cp_pref_search_terms",
-      metadataJson: {
-        questionKey: "cp_pref_search_terms",
-        questionLabel: "Preferred Job Titles / Search Terms",
-        answer: titlesJoined,
-        answerType: "multiselect",
-        source: "system",
-        lastUsed: new Date().toISOString(),
-      },
+      targetId: questionKey,
+      metadataJson: { questionKey, questionLabel, answer: list.join(", "), answerType: "multiselect", source: "system", lastUsed },
     }).catch(() => null);
   }
-
-  if (singleWordJoined) {
-    await writeAuditLog({
-      actorUserId: userId,
-      action: "user.screening_answer_saved",
-      targetType: "screening_answer",
-      targetId: "one_word_keywords",
-      metadataJson: {
-        questionKey: "one_word_keywords",
-        questionLabel: "1-Word Keywords & Acronyms",
-        answer: singleWordJoined,
-        answerType: "multiselect",
-        source: "system",
-        lastUsed: new Date().toISOString(),
-      },
-    }).catch(() => null);
-  }
-
-  if (twoWordsJoined) {
-    await writeAuditLog({
-      actorUserId: userId,
-      action: "user.screening_answer_saved",
-      targetType: "screening_answer",
-      targetId: "two_words_keywords",
-      metadataJson: {
-        questionKey: "two_words_keywords",
-        questionLabel: "2-Word Phrases & Combos",
-        answer: twoWordsJoined,
-        answerType: "multiselect",
-        source: "system",
-        lastUsed: new Date().toISOString(),
-      },
-    }).catch(() => null);
-  }
-
-  if (skillsJoined) {
-    await writeAuditLog({
-      actorUserId: userId,
-      action: "user.screening_answer_saved",
-      targetType: "screening_answer",
-      targetId: "core_skills",
-      metadataJson: {
-        questionKey: "core_skills",
-        questionLabel: "Technical Skills & Competencies",
-        answer: skillsJoined,
-        answerType: "multiselect",
-        source: "system",
-        lastUsed: new Date().toISOString(),
-      },
-    }).catch(() => null);
-
-    await writeAuditLog({
-      actorUserId: userId,
-      action: "user.screening_answer_saved",
-      targetType: "screening_answer",
-      targetId: "skills",
-      metadataJson: {
-        questionKey: "skills",
-        questionLabel: "Technical Skills & Competencies",
-        answer: skillsJoined,
-        answerType: "multiselect",
-        source: "system",
-        lastUsed: new Date().toISOString(),
-      },
-    }).catch(() => null);
-  }
-
-  await writeAuditLog({
-    actorUserId: userId,
-    action: "user.screening_answer_saved",
-    targetType: "screening_answer",
-    targetId: "bad_words",
-    metadataJson: {
-      questionKey: "bad_words",
-      questionLabel: "Blacklist / Exclude Keywords",
-      answer: excludeDefault,
-      answerType: "multiselect",
-      source: "system",
-      lastUsed: new Date().toISOString(),
-    },
-  }).catch(() => null);
 
   // Invalidate cached screening answers so GET /api/user/screening/answers immediately returns the new answers
   invalidateUserAnswersCache(userId);
 
   return {
     searchTerms: searchTermsList,
-    singleWordKeywords: singleWordList.slice(0, 50),
+    singleWordKeywords: singleWordList,
     twoWordsKeywords: twoWordsList,
-    skills: allKeywords.slice(0, 30),
-    excludeKeywords: ["Internship", "Junior", "Unpaid", "Security Clearance"],
+    skills: coreSkillsList,
+    excludeKeywords: excludeList,
     allKeywords,
     totalCount: allKeywords.length,
-    singleWordCount: singleWordList.filter((w) => !w.includes(" ")).length,
+    singleWordCount: singleWordList.length,
     description,
   };
 }

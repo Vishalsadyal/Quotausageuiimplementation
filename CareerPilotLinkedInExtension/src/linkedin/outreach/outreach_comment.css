@@ -1,0 +1,15 @@
+/* Auto-Commenter extras. Base look comes from outreach_base.css; everything here is scoped under .cp-ow. */
+.cp-ow .cp-ow-comment-preview {
+  display: flex; flex-direction: column; gap: 3px;
+  margin-bottom: 8px; padding: 8px 10px; border-radius: 12px;
+  background: rgba(99, 102, 241, 0.06);
+  border: 1px solid rgba(99, 102, 241, 0.15);
+}
+.cp-ow .cp-ow-comment-label {
+  font-size: 10px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase;
+  color: var(--cp-primary);
+}
+.cp-ow .cp-ow-comment-text {
+  font-size: 11.5px; color: var(--cp-text); word-break: break-word;
+}
+.cp-ow .cp-ow-btn:disabled { opacity: 0.5; cursor: not-allowed; }
