@@ -4,6 +4,7 @@ import { requireAuth } from "src/lib/guards";
 import { fail, handleApiError, ok } from "src/lib/api";
 import { getOrCreatePlanRazorpayId, getRazorpayClient } from "src/lib/billing";
 import { prisma } from "src/lib/prisma";
+import { getRazorpayKeyId } from "src/lib/payment-mode";
 import { PLAN_RAZORPAY_ENV } from "src/lib/plans";
 
 export async function POST(req: NextRequest) {
@@ -17,6 +18,10 @@ export async function POST(req: NextRequest) {
     const body = checkoutSchema.parse(await req.json());
     const user = await prisma.user.findUnique({ where: { id: authResult.auth.user.id } });
     if (!user) return fail("User not found", 404, "USER_NOT_FOUND");
+    const existingSub = await prisma.subscription.findUnique({ where: { userId: user.id } });
+    if (existingSub && existingSub.status === "active" && !existingSub.cancelAtPeriodEnd && existingSub.providerSubscriptionId && !existingSub.providerSubscriptionId.startsWith("one_time_")) {
+      return fail("You already have an active monthly subscription. Cancel it first to change plan.", 409, "ALREADY_SUBSCRIBED");
+    }
     const devMockEnabled =
       process.env.NODE_ENV !== "production" &&
       (process.env.BILLING_DEV_MOCK_CHECKOUT || "false").toLowerCase() === "true";
@@ -48,7 +53,7 @@ export async function POST(req: NextRequest) {
           provider: "razorpay",
           subscriptionId: mockSubscriptionId,
           plan: body.plan,
-          keyId: process.env.RZP_KEY_ID || "",
+          keyId: await getRazorpayKeyId(),
           mock: true,
         });
       }
@@ -56,7 +61,7 @@ export async function POST(req: NextRequest) {
 
     planId = await getOrCreatePlanRazorpayId(body.plan);
 
-    const razorpay = getRazorpayClient();
+    const razorpay = await getRazorpayClient();
 
     const subscription = await razorpay.subscriptions.create({
       plan_id: planId,
@@ -90,7 +95,7 @@ export async function POST(req: NextRequest) {
       provider: "razorpay",
       subscriptionId: subscription.id,
       plan: body.plan,
-      keyId: process.env.RZP_KEY_ID || "",
+      keyId: await getRazorpayKeyId(),
     });
   } catch (error) {
     return handleApiError(error, "Failed to create checkout");

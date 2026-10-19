@@ -355,7 +355,7 @@ export default function Applications() {
         animate={{ opacity: 1, y: 0 }}
         className="flex flex-wrap items-center justify-between gap-2.5"
       >
-        <div>
+        <div data-guide="applications-header">
           <h1 className="text-lg font-bold text-gray-900 leading-tight">Applications</h1>
           <p className="text-xs text-gray-500 mt-0.5">Real application pipeline from your auto-apply jobs.</p>
           {extensionStats.loaded ? (

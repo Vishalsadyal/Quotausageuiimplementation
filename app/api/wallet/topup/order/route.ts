@@ -5,6 +5,7 @@ import { requireAuth } from "src/lib/guards";
 import { fail, handleApiError, ok } from "src/lib/api";
 import { getRazorpayClient } from "src/lib/billing";
 import { prisma } from "src/lib/prisma";
+import { getRazorpayKeyId } from "src/lib/payment-mode";
 import { enforceRateLimit, rateLimitKey } from "src/lib/rate-limit";
 import { hiresFromRupees, MIN_TOPUP_RUPEES } from "src/lib/hires";
 import { DiscountValidationError, evaluateDiscountForOrder } from "src/lib/discounts";
@@ -53,7 +54,7 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    const razorpay = getRazorpayClient();
+    const razorpay = await getRazorpayClient();
     const order = await razorpay.orders.create({
       amount: amountPaise,
       currency: "INR",
@@ -83,7 +84,7 @@ export async function POST(req: NextRequest) {
       discountRupees,
       discountCode: appliedDiscount?.code || null,
       hires,
-      keyId: process.env.RZP_KEY_ID || "",
+      keyId: await getRazorpayKeyId(),
       minTopupRupees: MIN_TOPUP_RUPEES,
       conversion: "1 INR = 1 Hire",
     };

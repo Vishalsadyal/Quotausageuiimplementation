@@ -43,7 +43,7 @@ export async function POST(req: NextRequest) {
     const userId = authResult.auth.user.id;
 
     const body = verifyOrderSchema.parse(await req.json());
-    const valid = verifyRazorpayOrderPaymentSignature({
+    const valid = await verifyRazorpayOrderPaymentSignature({
       orderId: body.razorpay_order_id,
       paymentId: body.razorpay_payment_id,
       signature: body.razorpay_signature,
@@ -55,7 +55,7 @@ export async function POST(req: NextRequest) {
       return ok("Payment already processed", { paymentId: body.razorpay_payment_id });
     }
 
-    const razorpay = getRazorpayClient();
+    const razorpay = await getRazorpayClient();
     const [order, payment] = await Promise.all([
       razorpay.orders.fetch(body.razorpay_order_id),
       razorpay.payments.fetch(body.razorpay_payment_id),

@@ -469,6 +469,7 @@ export default function Resume() {
         }}
       />
       <div
+        data-guide="resume-upload"
         onClick={() => !isUploading && fileInputRef.current?.click()}
         className={`rounded-xl p-3.5 border cursor-pointer transition-all shadow-xs ${
           isUploading

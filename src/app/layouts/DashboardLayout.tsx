@@ -37,13 +37,34 @@ import {
 import { APPLICATIONS_PATH, JOBS_SECTIONS, jobsSectionPath, type JobsProvider } from '../pages/dashboard/jobsSections';
 import { usePendingQuestions } from '../hooks/usePendingQuestions';
 import PendingQuestionsPrompt from '../components/PendingQuestionsPrompt';
+import { GuideLauncher, GuideProvider } from '../components/guide/LiveGuide';
 
 const AssistantPanel = lazy(() =>
   import('../pages/dashboard/Assistant').then((m) => ({ default: m.AssistantChat })),
 );
 
+/** Hosts the live guides around the dashboard, so the "Guide me" button and the spotlight work on every dashboard page. */
 export default function DashboardLayout() {
+  const { user } = useAuth();
+  const openMenuRef = useRef<(() => void) | null>(null);
+  const onboardingDone = hasCompletedRequiredOnboarding(user) && Boolean(user?.onboardingCompleted);
+  return (
+    <GuideProvider
+      user={user ? { id: String(user.id), resumeFileName: user.resumeFileName, onboardingCompleted: user.onboardingCompleted } : null}
+      offerEnabled={onboardingDone}
+      openMenu={() => openMenuRef.current?.()}
+    >
+      <DashboardLayoutInner registerOpenMenu={(open) => { openMenuRef.current = open; }} />
+    </GuideProvider>
+  );
+}
+
+function DashboardLayoutInner({ registerOpenMenu }: { registerOpenMenu: (open: () => void) => void }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  // On phones the menu is closed, and the guide needs it open to point at a menu item.
+  useEffect(() => {
+    registerOpenMenu(() => setMobileMenuOpen(true));
+  }, [registerOpenMenu]);
   const [profileOpen, setProfileOpen] = useState(false);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [assistantOpen, setAssistantOpen] = useState(false);
@@ -265,6 +286,7 @@ export default function DashboardLayout() {
               <div key={item.name}>
                 <Link
                   to={item.href}
+                  data-guide={`nav-${item.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`}
                   state={item.href === '/dashboard/assistant' && !isActive ? { from: location.pathname } : undefined}
                   onClick={() => setMobileMenuOpen(false)}
                   className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all duration-200 group ${
@@ -300,6 +322,7 @@ export default function DashboardLayout() {
                         <Link
                           key={sub.id}
                           to={sub.href}
+                          data-guide={`sub-${sub.id}`}
                           onClick={() => setMobileMenuOpen(false)}
                           className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-colors ${
                             isSubActive
@@ -437,16 +460,8 @@ export default function DashboardLayout() {
 
               {/* Right Utility Group */}
               <div className="flex items-center gap-1.5 sm:gap-3 ml-auto">
-                {/* Tour Button */}
-                <button
-                  type="button"
-                  onClick={handleStartTour}
-                  className="inline-flex items-center gap-1 rounded-xl border border-sky-200 bg-sky-50 px-2 sm:px-3 py-1.5 text-xs font-semibold text-sky-700 transition-all hover:border-sky-300 hover:bg-sky-100 hover:shadow-xs"
-                  title="Start Interactive Tour"
-                >
-                  <PlayCircle className="w-3.5 h-3.5 text-sky-600" />
-                  <span className="hidden sm:inline">Tour</span>
-                </button>
+                {/* Guide me: live walkthroughs, plus the extension install walkthrough */}
+                <GuideLauncher onInstallTour={handleStartTour} />
 
                 {/* Hires Top Pill */}
                 <Link

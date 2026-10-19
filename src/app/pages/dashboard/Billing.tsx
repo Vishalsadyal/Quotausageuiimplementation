@@ -128,6 +128,8 @@ export default function Billing() {
   const [loading, setLoading] = useState(true);
   const [processingTopup, setProcessingTopup] = useState(false);
   const [upgradingPlan, setUpgradingPlan] = useState<string | null>(null);
+  const [subInfo, setSubInfo] = useState<{ active: boolean; plan: string | null; cancelAtPeriodEnd: boolean; accessUntil: string | null } | null>(null);
+  const [cancelling, setCancelling] = useState(false);
   const [applyingDiscount, setApplyingDiscount] = useState(false);
   const [usdAmount, setUsdAmount] = useState(1.0);
   const [discountCode, setDiscountCode] = useState("");
@@ -263,7 +265,7 @@ export default function Billing() {
     });
   }, [computedRupees]);
 
-  const handlePlanUpgrade = async (targetPlan: "pro" | "coach" | "connect") => {
+  const handlePlanPayOnce = async (targetPlan: "pro" | "coach" | "connect") => {
     try {
       setUpgradingPlan(targetPlan);
       setError("");
@@ -355,6 +357,107 @@ export default function Billing() {
       setUpgradingPlan(null);
     }
   };
+
+  // Monthly subscription: Razorpay charges the card or UPI mandate every month until the user cancels.
+  const handlePlanSubscribe = async (targetPlan: "pro" | "coach" | "connect") => {
+    try {
+      setUpgradingPlan(targetPlan);
+      setError("");
+      setMessage("");
+      const ready = await ensureRazorpayScript();
+      if (!ready) throw new Error("Unable to load Razorpay payment gateway");
+
+      const res = await fetch("/api/billing/checkout", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ plan: targetPlan }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data?.success) throw new Error(data?.message || "Failed to start subscription");
+      const checkout = data.data;
+      if (checkout.mock) throw new Error("Subscriptions are not configured on this server");
+
+      const rzp = new (window.Razorpay as any)({
+        key: checkout.keyId,
+        subscription_id: checkout.subscriptionId,
+        name: "AutoApply CV",
+        description: `${PLAN_UPGRADE_DESCRIPTION[targetPlan].split(" - ")[0]} - monthly, cancel anytime`,
+        prefill: { name: user?.name || "", email: user?.email || "", contact: user?.phone || "" },
+        theme: { color: "#7C3AED" },
+        handler: async (response: { razorpay_payment_id: string; razorpay_subscription_id: string; razorpay_signature: string }) => {
+          try {
+            setUpgradingPlan(targetPlan);
+            const verifyRes = await fetch("/api/billing/verify", {
+              method: "POST",
+              credentials: "include",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                plan: targetPlan,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_subscription_id: response.razorpay_subscription_id,
+                razorpay_signature: response.razorpay_signature,
+              }),
+            });
+            const verifyData = await verifyRes.json();
+            if (!verifyRes.ok || !verifyData?.success) throw new Error(verifyData?.message || "Payment verification failed");
+            toast.success(`You are subscribed to ${targetPlan.toUpperCase()}. Cancel anytime from this page.`);
+            setMessage(`You are subscribed to ${targetPlan.toUpperCase()}. It renews monthly until you cancel.`);
+            await loadWallet();
+            await refreshUser();
+            await loadSubscription();
+          } catch (err) {
+            toast.error(err instanceof Error ? err.message : "Payment verification failed");
+            setError(err instanceof Error ? err.message : "Payment verification failed");
+          } finally {
+            setUpgradingPlan(null);
+          }
+        },
+        modal: { ondismiss: () => setUpgradingPlan(null) },
+      });
+      rzp.open();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to start subscription");
+      setError(err instanceof Error ? err.message : "Failed to start subscription");
+      setUpgradingPlan(null);
+    }
+  };
+
+  // With a coupon the plan is a one-time 30-day purchase at the coupon price; otherwise it is the monthly subscription.
+  const handlePlanUpgrade = (targetPlan: "pro" | "coach" | "connect") =>
+    planCouponPrices[targetPlan] ? handlePlanPayOnce(targetPlan) : handlePlanSubscribe(targetPlan);
+
+  const loadSubscription = async () => {
+    try {
+      const res = await fetch("/api/billing/cancel", { credentials: "include" });
+      const body = await res.json();
+      if (res.ok && body?.success) setSubInfo(body.data);
+    } catch {
+      // the Billing page works without it
+    }
+  };
+
+  const cancelSubscription = async () => {
+    if (!window.confirm("Cancel your monthly subscription? Your plan stays active until the end of the period you already paid for.")) return;
+    try {
+      setCancelling(true);
+      setError("");
+      const res = await fetch("/api/billing/cancel", { method: "POST", credentials: "include" });
+      const body = await res.json();
+      if (!res.ok || !body?.success) throw new Error(body?.message || "Could not cancel");
+      toast.success(body.message || "Subscription cancelled");
+      await loadSubscription();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Could not cancel");
+    } finally {
+      setCancelling(false);
+    }
+  };
+
+  useEffect(() => {
+    void loadSubscription();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const applyDiscount = async () => {
     try {
@@ -557,6 +660,31 @@ export default function Billing() {
           </div>
         </div>
 
+        {subInfo?.active ? (
+          <div className="mb-3 flex flex-col gap-2 rounded-xl border border-purple-200 bg-purple-50 px-4 py-3 text-xs text-purple-900 sm:flex-row sm:items-center sm:justify-between">
+            <span>
+              {subInfo.cancelAtPeriodEnd ? (
+                <>
+                  Your <b className="uppercase">{subInfo.plan}</b> subscription is cancelled and will not renew.
+                  {subInfo.accessUntil ? <> You keep access until <b>{new Date(subInfo.accessUntil).toLocaleDateString()}</b>.</> : null}
+                </>
+              ) : (
+                <>
+                  You are subscribed to <b className="uppercase">{subInfo.plan}</b>. It renews monthly. Cancel anytime and keep access until the period ends.
+                </>
+              )}
+            </span>
+            {subInfo.cancelAtPeriodEnd ? null : (
+              <button
+                onClick={() => void cancelSubscription()}
+                disabled={cancelling}
+                className="shrink-0 rounded-lg border border-purple-300 bg-white px-3 py-1.5 font-semibold text-purple-700 hover:bg-purple-100 disabled:opacity-60"
+              >
+                {cancelling ? "Cancelling..." : "Cancel subscription"}
+              </button>
+            )}
+          </div>
+        ) : null}
         {(Object.keys(planCouponPrices).length > 0 || planCouponError) && (
           <div className="flex justify-end -mt-1">
             {Object.keys(planCouponPrices).length > 0 ? (
@@ -707,11 +835,14 @@ export default function Billing() {
                 <span>Active Plan</span>
               ) : (
                 <>
-                  <span>Upgrade to Pro for ₹99</span>
+                  <span>{planCouponPrices.pro ? `Pay once ₹${planCouponPrices.pro.finalRupees} (${planCouponPrices.pro.code})` : "Subscribe monthly"}</span>
                   <ArrowRight className="w-3.5 h-3.5" />
                 </>
               )}
             </button>
+            <p className="mt-1.5 text-center text-[10px] text-gray-500">
+              {planCouponPrices.pro ? "One-time payment for 30 days, no auto-renewal." : "Renews monthly. Cancel anytime, you keep access until the period ends."}
+            </p>
           </div>
 
           {/* Plan 3: Pro Connect (Pro + HR Contacts) */}
@@ -787,11 +918,14 @@ export default function Billing() {
                 <span>Active Plan</span>
               ) : (
                 <>
-                  <span>Upgrade to Pro Connect (₹{planCouponPrices.connect?.finalRupees ?? 500})</span>
+                  <span>{planCouponPrices.connect ? `Pay once ₹${planCouponPrices.connect.finalRupees} (${planCouponPrices.connect.code})` : "Subscribe monthly"}</span>
                   <ArrowRight className="w-3.5 h-3.5" />
                 </>
               )}
             </button>
+            <p className="mt-1.5 text-center text-[10px] text-gray-500">
+              {planCouponPrices.connect ? "One-time payment for 30 days, no auto-renewal." : "Renews monthly. Cancel anytime, you keep access until the period ends."}
+            </p>
           </div>
 
           {/* Plan 4: Coach Plan */}
@@ -860,9 +994,12 @@ export default function Billing() {
               ) : currentPlan === "coach" ? (
                 <span>Active Plan</span>
               ) : (
-                <span>Upgrade to Coach (₹1,849)</span>
+                <span>{planCouponPrices.coach ? `Pay once ₹${planCouponPrices.coach.finalRupees} (${planCouponPrices.coach.code})` : "Subscribe monthly"}</span>
               )}
             </button>
+            <p className="mt-1.5 text-center text-[10px] text-gray-500">
+              {planCouponPrices.coach ? "One-time payment for 30 days, no auto-renewal." : "Renews monthly. Cancel anytime, you keep access until the period ends."}
+            </p>
           </div>
         </div>
       </div>

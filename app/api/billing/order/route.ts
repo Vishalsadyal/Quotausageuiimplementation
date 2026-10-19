@@ -5,6 +5,7 @@ import { requireAuth } from "src/lib/guards";
 import { fail, handleApiError, ok } from "src/lib/api";
 import { getRazorpayClient } from "src/lib/billing";
 import { prisma } from "src/lib/prisma";
+import { getRazorpayKeyId } from "src/lib/payment-mode";
 import { enforceRateLimit, rateLimitKey } from "src/lib/rate-limit";
 import { planAmountPaise } from "src/lib/plans";
 import { DiscountValidationError, evaluateDiscountForOrder, planDiscountContext } from "src/lib/discounts";
@@ -53,7 +54,7 @@ export async function POST(req: NextRequest) {
         })
       : null;
     const amount = applied ? applied.finalRupees * 100 : planAmountPaise(body.plan);
-    const razorpay = getRazorpayClient();
+    const razorpay = await getRazorpayClient();
 
     const order = await razorpay.orders.create({
       amount,
@@ -84,7 +85,7 @@ export async function POST(req: NextRequest) {
       baseRupees,
       finalRupees: Math.round(Number(order.amount) / 100),
       discountCode: applied?.code || null,
-      keyId: process.env.RZP_KEY_ID || "",
+      keyId: await getRazorpayKeyId(),
     };
 
     if (idempotencyKey) {

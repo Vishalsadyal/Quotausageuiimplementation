@@ -2804,6 +2804,7 @@ export default function Jobs() {
             <button
               ref={checkExtensionButtonRef}
               type="button"
+              data-guide="extension-status"
               onClick={() => void checkExtensionStatus()}
               disabled={checkingExtension}
               title="Re-check extension"
@@ -3058,6 +3059,7 @@ export default function Jobs() {
                         ) : module.installed ? (
                           isExternal ? (
                             <a
+                              data-guide={`launch-${module.id}`}
                               href={module.launchUrl}
                               target="_blank"
                               rel="noreferrer"
@@ -3183,6 +3185,7 @@ export default function Jobs() {
             </div>
             <button
               type="button"
+              data-guide="keywords-generate"
               onClick={() => void handleGenerate100Keywords()}
               disabled={isGeneratingAiProfile}
               className="px-2.5 py-1.5 rounded-lg bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white text-[11px] font-bold inline-flex items-center gap-1 shrink-0 disabled:opacity-60"
@@ -3701,6 +3704,7 @@ export default function Jobs() {
             <div className="flex items-center gap-2 shrink-0">
               <button
                 type="button"
+                data-guide="screening-autofill"
                 onClick={() => void autoFillAllWithAI()}
                 disabled={isAutoFillingAI}
                 className="px-3 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white rounded-xl text-xs font-bold transition-all shadow-2xs hover:shadow-xs inline-flex items-center gap-1.5 disabled:opacity-60"
@@ -3712,7 +3716,7 @@ export default function Jobs() {
           </div>
 
           {/* Easy Categorized Tabs Navigation */}
-          <div className="bg-white/90 backdrop-blur-md rounded-2xl border border-gray-200/80 p-1.5 shadow-2xs flex items-center gap-1 overflow-x-auto">
+          <div data-guide="screening-tabs" className="bg-white/90 backdrop-blur-md rounded-2xl border border-gray-200/80 p-1.5 shadow-2xs flex items-center gap-1 overflow-x-auto">
             {SCREENING_CATEGORY_TABS.filter((t) => isScreeningTabVisible(t.id)).map((tab) => {
               const Icon = tab.icon;
               const isActive = screeningActiveTab === tab.id;
@@ -4088,6 +4092,7 @@ export default function Jobs() {
             <div className="flex flex-wrap items-center gap-3 pt-1">
               <button
                 type="button"
+                data-guide="prefs-save"
                 onClick={() => void savePreferences()}
                 disabled={savingPrefs || badLocations.length > 0 || !extensionStatus.installed}
                 className="px-4 py-2 rounded-full bg-purple-600 hover:bg-purple-700 text-white text-xs font-semibold disabled:opacity-60 transition-colors"

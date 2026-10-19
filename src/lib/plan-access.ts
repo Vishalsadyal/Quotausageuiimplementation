@@ -86,6 +86,20 @@ export async function activatePurchasedPlan(db: Db, userId: string, plan: UserPl
   return { plan, planExpiresAt: period.planExpiresAt };
 }
 
+/** Days a subscriber keeps the plan after the paid period ends, so a slightly late renewal never cuts them off. */
+export const SUBSCRIPTION_GRACE_DAYS = 3;
+
+/** After a successful subscription charge: the plan until the end of the paid period plus a short grace. */
+export async function activateSubscriptionPlan(db: Db, userId: string, plan: UserPlan, paidUntil: Date, now = new Date()) {
+  const current = await db.user.findUnique({ where: { id: userId }, select: { plan: true, planExpiresAt: true, planAfterExpiry: true } });
+  if (!current) throw new Error("User not found");
+  if (current.plan === plan && !current.planExpiresAt) return { plan, planExpiresAt: null as Date | null };
+  const period = nextPeriod(current, plan, 0, now);
+  const planExpiresAt = new Date(Math.max(paidUntil.getTime(), now.getTime()) + SUBSCRIPTION_GRACE_DAYS * DAY_MS);
+  await db.user.update({ where: { id: userId }, data: { ...planData(plan), planAfterExpiry: period.planAfterExpiry, planExpiresAt } });
+  return { plan, planExpiresAt };
+}
+
 /**
  * Referral reward: `plan` for `days`. Applied now if it is an upgrade or extends the same timed
  * plan; kept "pending" while the user has a higher timed plan (applied when that ends); marked

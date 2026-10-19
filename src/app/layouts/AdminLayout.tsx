@@ -18,7 +18,8 @@ import {
   Activity,
   BookOpen,
   TrendingUp,
-  ListChecks
+  ListChecks,
+  CreditCard
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
@@ -40,6 +41,7 @@ export default function AdminLayout() {
     { name: 'Global Screening Questions Mapping', href: '/admin/screening-questions', icon: ListChecks },
     { name: 'Blogs', href: '/admin/blogs', icon: BookOpen },
     { name: 'System Health', href: '/admin/health', icon: Activity },
+    { name: 'Payments', href: '/admin/payments', icon: CreditCard },
     { name: 'Settings', href: '/admin/settings', icon: Settings },
   ];
 
@@ -49,7 +51,7 @@ export default function AdminLayout() {
   };
 
   return (
-    <div className="min-h-screen bg-[#FAFBFC] relative overflow-hidden">
+    <div className="admin-compact min-h-screen bg-[#FAFBFC] relative overflow-hidden">
       {/* Ambient background (shared across all admin pages) */}
       <div
         aria-hidden="true"

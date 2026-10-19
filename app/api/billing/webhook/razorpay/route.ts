@@ -3,9 +3,8 @@ import { NextRequest } from "next/server";
 import { fail, handleApiError, ok } from "src/lib/api";
 import { prisma } from "src/lib/prisma";
 import { verifyRazorpayWebhook } from "src/lib/billing";
-import { getPlanQuota } from "src/lib/quota";
+import { recordSubscriptionCharge } from "src/lib/subscriptions";
 import { isPaidPlan } from "src/lib/plans";
-import { writeAuditLog } from "src/lib/audit";
 
 function toPlan(value: string | undefined) {
   return isPaidPlan(value) ? value : "free";
@@ -41,75 +40,41 @@ export async function POST(req: NextRequest) {
     const userId = subscriptionEntity?.notes?.userId as string | undefined;
     const plan = toPlan(subscriptionEntity?.notes?.plan as string | undefined);
 
-    if (providerSubscriptionId && userId) {
-      const statusMap: Record<string, "trialing" | "active" | "past_due" | "cancelled" | "expired"> = {
-        "subscription.authenticated": "active",
-        "subscription.activated": "active",
-        "subscription.charged": "active",
-        "subscription.cancelled": "cancelled",
-        "subscription.halted": "past_due",
-        "subscription.completed": "expired",
-      };
-      const mappedStatus = statusMap[eventType] || "active";
-
-      await prisma.subscription.upsert({
-        where: { userId },
-        create: {
-          userId,
-          provider: "razorpay",
-          providerSubscriptionId,
-          providerPlanId: subscriptionEntity?.plan_id,
-          status: mappedStatus,
-          plan,
-          currentPeriodStart: subscriptionEntity?.current_start
-            ? new Date(subscriptionEntity.current_start * 1000)
-            : null,
-          currentPeriodEnd: subscriptionEntity?.current_end
-            ? new Date(subscriptionEntity.current_end * 1000)
-            : null,
-          cancelAtPeriodEnd: Boolean(subscriptionEntity?.remaining_count === 0),
-        },
-        update: {
-          providerSubscriptionId,
-          providerPlanId: subscriptionEntity?.plan_id,
-          status: mappedStatus,
-          plan,
-          currentPeriodStart: subscriptionEntity?.current_start
-            ? new Date(subscriptionEntity.current_start * 1000)
-            : null,
-          currentPeriodEnd: subscriptionEntity?.current_end
-            ? new Date(subscriptionEntity.current_end * 1000)
-            : null,
-          cancelAtPeriodEnd: Boolean(subscriptionEntity?.remaining_count === 0),
-        },
-      });
-
-      const userPlan = mappedStatus === "active" || mappedStatus === "trialing" ? plan : "free";
-      await prisma.user.update({
-        where: { id: userId },
-        data: {
-          plan: userPlan,
-          quotaTotal: getPlanQuota(userPlan),
-        },
-      });
-    }
-
-    // A successful charge (first payment or renewal) goes in Billing > Transaction History, with the amount paid.
     const paymentEntity = payload.payload?.payment?.entity;
-    if (eventType === "subscription.charged" && userId && providerSubscriptionId && paymentEntity?.id && plan !== "free") {
-      await writeAuditLog({
-        actorUserId: userId,
-        action: "billing.plan_purchased",
-        targetType: "payment",
-        targetId: String(paymentEntity.id),
-        metadataJson: {
+    if (providerSubscriptionId && userId) {
+      const periodStart = subscriptionEntity?.current_start ? new Date(subscriptionEntity.current_start * 1000) : null;
+      const periodEnd = subscriptionEntity?.current_end ? new Date(subscriptionEntity.current_end * 1000) : null;
+
+      if (eventType === "subscription.charged" && paymentEntity?.id && plan !== "free") {
+        // A successful charge (first payment or renewal): the only event that grants or extends access.
+        await recordSubscriptionCharge({
+          userId,
           plan,
-          finalRupees: Math.round(Number(paymentEntity.amount || 0) / 100),
-          discountCode: null,
-          expiresAt: subscriptionEntity?.current_end ? new Date(subscriptionEntity.current_end * 1000).toISOString() : null,
-          source: "subscription",
-        },
-      }).catch(() => null);
+          subscriptionId: providerSubscriptionId,
+          providerPlanId: subscriptionEntity?.plan_id,
+          paymentId: String(paymentEntity.id),
+          amountPaise: Number(paymentEntity.amount) || 0,
+          periodStart,
+          periodEnd,
+        });
+      } else {
+        // Everything else only keeps the status in step. The user's plan is never changed here: a cancelled
+        // or failed subscription simply stops renewing, and the plan ends when the paid period does.
+        const statusMap: Record<string, "active" | "past_due" | "cancelled" | "expired"> = {
+          "subscription.activated": "active",
+          "subscription.cancelled": "cancelled",
+          "subscription.halted": "past_due",
+          "subscription.completed": "expired",
+        };
+        const mappedStatus = statusMap[eventType];
+        const existingSub = await prisma.subscription.findUnique({ where: { userId } });
+        if (mappedStatus && existingSub?.providerSubscriptionId === providerSubscriptionId) {
+          await prisma.subscription.update({
+            where: { userId },
+            data: { status: mappedStatus, cancelAtPeriodEnd: mappedStatus === "cancelled" ? true : existingSub.cancelAtPeriodEnd },
+          });
+        }
+      }
     }
 
     await prisma.paymentEvent.update({

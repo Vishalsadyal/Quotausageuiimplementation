@@ -79,6 +79,7 @@ const Users = lazy(() => import('./pages/admin/Users'));
 const AdminAnalytics = lazy(() => import('./pages/admin/Analytics'));
 const AdminJobs = lazy(() => import('./pages/admin/Jobs'));
 const AdminApplications = lazy(() => import('./pages/admin/AdminApplications'));
+const AdminPayments = lazy(() => import('./pages/admin/Payments'));
 const Revenue = lazy(() => import('./pages/admin/Revenue'));
 const Support = lazy(() => import('./pages/admin/Support'));
 const Health = lazy(() => import('./pages/admin/Health'));
@@ -240,6 +241,7 @@ const routes = createRoutesFromElements(
       <Route path="blogs" element={<Suspense fallback={<PageLoader />}><AdminBlogs /></Suspense>} />
       <Route path="blogs/new" element={<Suspense fallback={<PageLoader />}><AdminBlogEditor /></Suspense>} />
       <Route path="blogs/:id/edit" element={<Suspense fallback={<PageLoader />}><AdminBlogEditor /></Suspense>} />
+      <Route path="payments" element={<Suspense fallback={<PageLoader />}><AdminPayments /></Suspense>} />
       <Route path="settings" element={<Suspense fallback={<PageLoader />}><AdminSettings /></Suspense>} />
       <Route path="growth" element={<Suspense fallback={<PageLoader />}><AdminGrowth /></Suspense>} />
       <Route path="screening-questions" element={<Suspense fallback={<PageLoader />}><AdminScreeningQuestions /></Suspense>} />

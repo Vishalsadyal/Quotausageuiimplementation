@@ -31,7 +31,7 @@ export async function POST(req: NextRequest) {
     }
 
     const body = verifySchema.parse(await req.json());
-    const valid = verifyRazorpayOrderPaymentSignature({
+    const valid = await verifyRazorpayOrderPaymentSignature({
       orderId: body.razorpay_order_id,
       paymentId: body.razorpay_payment_id,
       signature: body.razorpay_signature,
@@ -49,7 +49,7 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    const razorpay = getRazorpayClient();
+    const razorpay = await getRazorpayClient();
     const [payment, order] = await Promise.all([
       razorpay.payments.fetch(body.razorpay_payment_id),
       razorpay.orders.fetch(body.razorpay_order_id),
