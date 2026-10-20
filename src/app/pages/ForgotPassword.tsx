@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router";
 import { motion } from "motion/react";
 import { Mail, KeyRound, Lock, Eye, EyeOff, RefreshCcw } from "lucide-react";
+import { trackFormFailed, trackFormSucceeded } from "src/lib/posthog-client";
 
 export default function ForgotPassword() {
   const navigate = useNavigate();
@@ -35,7 +36,9 @@ export default function ForgotPassword() {
       if (!res.ok || !data?.success) throw new Error(data?.message || "Failed to send OTP");
       setOtpSent(true);
       setSuccessMessage("OTP sent to your email. Enter it below to reset password.");
+      trackFormSucceeded("password_reset_otp_request");
     } catch (error) {
+      trackFormFailed("password_reset_otp_request", error);
       setErrorMessage(error instanceof Error ? error.message : "Failed to send OTP");
     } finally {
       setSendingOtp(false);
@@ -74,8 +77,10 @@ export default function ForgotPassword() {
       const data = await res.json();
       if (!res.ok || !data?.success) throw new Error(data?.message || "Failed to reset password");
       setSuccessMessage("Password reset successful. Redirecting to login...");
+      trackFormSucceeded("password_reset");
       window.setTimeout(() => navigate("/login"), 1200);
     } catch (error) {
+      trackFormFailed("password_reset", error);
       setErrorMessage(error instanceof Error ? error.message : "Failed to reset password");
     } finally {
       setSubmitting(false);

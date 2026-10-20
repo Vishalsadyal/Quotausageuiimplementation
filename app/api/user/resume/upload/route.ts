@@ -31,7 +31,13 @@ export async function POST(req: NextRequest) {
     }
 
     const bytes = Buffer.from(await file.arrayBuffer());
-    const parsed = await parseResumeFile(file.name, bytes);
+    // An unreadable or unsupported file is the user's problem, not a server error (same as the public resume routes).
+    let parsed;
+    try {
+      parsed = await parseResumeFile(file.name, bytes);
+    } catch (error) {
+      return fail(error instanceof Error ? error.message : "Could not read this file", 400, "UNREADABLE_FILE");
+    }
 
     let aiParsed = null;
     try {

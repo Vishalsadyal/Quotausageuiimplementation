@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { trackActionFailed, trackCheckoutAbandoned } from "src/lib/posthog-client";
 import {
   Coins,
   Tag,
@@ -266,6 +267,7 @@ export default function Billing() {
   }, [computedRupees]);
 
   const handlePlanPayOnce = async (targetPlan: "pro" | "coach" | "connect") => {
+    let stage = "script_load";
     try {
       setUpgradingPlan(targetPlan);
       setError("");
@@ -276,6 +278,7 @@ export default function Billing() {
         throw new Error("Unable to load Razorpay payment gateway");
       }
 
+      stage = "order_create";
       const orderRes = await fetch("/api/billing/order", {
         method: "POST",
         credentials: "include",
@@ -292,6 +295,7 @@ export default function Billing() {
       }
 
       const order = orderData.data;
+      let paymentSubmitted = false;
 
       const rzp = new (window.Razorpay as any)({
         key: order.keyId,
@@ -313,6 +317,7 @@ export default function Billing() {
           razorpay_order_id: string;
           razorpay_signature: string;
         }) => {
+          paymentSubmitted = true;
           try {
             setUpgradingPlan(targetPlan);
             const verifyRes = await fetch("/api/billing/order/verify", {
@@ -337,6 +342,7 @@ export default function Billing() {
             await loadWallet();
             await refreshUser();
           } catch (err) {
+            trackActionFailed("plan_purchase", "payment_verification", err, { plan: targetPlan });
             toast.error(err instanceof Error ? err.message : "Payment verification failed");
             setError(err instanceof Error ? err.message : "Payment verification failed");
           } finally {
@@ -345,13 +351,16 @@ export default function Billing() {
         },
         modal: {
           ondismiss: () => {
+            if (!paymentSubmitted) trackCheckoutAbandoned("plan_purchase", { plan: targetPlan });
             setUpgradingPlan(null);
           },
         },
       });
 
+      stage = "checkout_open";
       rzp.open();
     } catch (err) {
+      trackActionFailed("plan_purchase", stage, err, { plan: targetPlan });
       toast.error(err instanceof Error ? err.message : "Failed to initiate checkout");
       setError(err instanceof Error ? err.message : "Failed to initiate checkout");
       setUpgradingPlan(null);
@@ -360,6 +369,7 @@ export default function Billing() {
 
   // Monthly subscription: Razorpay charges the card or UPI mandate every month until the user cancels.
   const handlePlanSubscribe = async (targetPlan: "pro" | "coach" | "connect") => {
+    let stage = "script_load";
     try {
       setUpgradingPlan(targetPlan);
       setError("");
@@ -367,6 +377,7 @@ export default function Billing() {
       const ready = await ensureRazorpayScript();
       if (!ready) throw new Error("Unable to load Razorpay payment gateway");
 
+      stage = "subscription_create";
       const res = await fetch("/api/billing/checkout", {
         method: "POST",
         credentials: "include",
@@ -377,6 +388,7 @@ export default function Billing() {
       if (!res.ok || !data?.success) throw new Error(data?.message || "Failed to start subscription");
       const checkout = data.data;
       if (checkout.mock) throw new Error("Subscriptions are not configured on this server");
+      let paymentSubmitted = false;
 
       const rzp = new (window.Razorpay as any)({
         key: checkout.keyId,
@@ -386,6 +398,7 @@ export default function Billing() {
         prefill: { name: user?.name || "", email: user?.email || "", contact: user?.phone || "" },
         theme: { color: "#7C3AED" },
         handler: async (response: { razorpay_payment_id: string; razorpay_subscription_id: string; razorpay_signature: string }) => {
+          paymentSubmitted = true;
           try {
             setUpgradingPlan(targetPlan);
             const verifyRes = await fetch("/api/billing/verify", {
@@ -407,16 +420,24 @@ export default function Billing() {
             await refreshUser();
             await loadSubscription();
           } catch (err) {
+            trackActionFailed("plan_subscription", "payment_verification", err, { plan: targetPlan });
             toast.error(err instanceof Error ? err.message : "Payment verification failed");
             setError(err instanceof Error ? err.message : "Payment verification failed");
           } finally {
             setUpgradingPlan(null);
           }
         },
-        modal: { ondismiss: () => setUpgradingPlan(null) },
+        modal: {
+          ondismiss: () => {
+            if (!paymentSubmitted) trackCheckoutAbandoned("plan_subscription", { plan: targetPlan });
+            setUpgradingPlan(null);
+          },
+        },
       });
+      stage = "checkout_open";
       rzp.open();
     } catch (err) {
+      trackActionFailed("plan_subscription", stage, err, { plan: targetPlan });
       toast.error(err instanceof Error ? err.message : "Failed to start subscription");
       setError(err instanceof Error ? err.message : "Failed to start subscription");
       setUpgradingPlan(null);
@@ -426,6 +447,17 @@ export default function Billing() {
   // With a coupon the plan is a one-time 30-day purchase at the coupon price; otherwise it is the monthly subscription.
   const handlePlanUpgrade = (targetPlan: "pro" | "coach" | "connect") =>
     planCouponPrices[targetPlan] ? handlePlanPayOnce(targetPlan) : handlePlanSubscribe(targetPlan);
+
+  // ?plan=pro (a plan picked at the end of onboarding) opens that plan's checkout once, after loading.
+  const planFromUrlStartedRef = useRef(false);
+  useEffect(() => {
+    if (loading || planFromUrlStartedRef.current) return;
+    const wanted = new URLSearchParams(window.location.search).get("plan");
+    if (wanted !== "pro" && wanted !== "coach" && wanted !== "connect") return;
+    planFromUrlStartedRef.current = true;
+    if (currentPlan !== wanted) void handlePlanUpgrade(wanted);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loading, currentPlan]);
 
   const loadSubscription = async () => {
     try {
@@ -496,6 +528,7 @@ export default function Billing() {
   };
 
   const startTopup = async () => {
+    let stage = "validation";
     try {
       const cents = Math.round((Number.isFinite(usdAmount) ? usdAmount : 0) * 100);
       if (!Number.isFinite(usdAmount) || cents < minTopupUsdCents) {
@@ -505,6 +538,7 @@ export default function Billing() {
       setMessage("");
       setError("");
 
+      stage = "order_create";
       const orderRes = await fetch("/api/wallet/topup/order", {
         method: "POST",
         credentials: "include",
@@ -523,8 +557,10 @@ export default function Billing() {
       }
 
       const order = orderBody.data as TopupOrder;
+      stage = "script_load";
       await ensureRazorpayScript();
       if (!window.Razorpay) throw new Error("Razorpay checkout is not available");
+      let paymentSubmitted = false;
 
       const razorpay = new window.Razorpay({
         key: order.keyId,
@@ -548,6 +584,7 @@ export default function Billing() {
         },
         theme: { color: "#6047f5" },
         handler: async (response: Record<string, string>) => {
+          paymentSubmitted = true;
           const verifyRes = await fetch("/api/wallet/topup/verify", {
             method: "POST",
             credentials: "include",
@@ -560,6 +597,7 @@ export default function Billing() {
           });
           const verifyBody = await verifyRes.json();
           if (!verifyRes.ok || !verifyBody?.success) {
+            trackActionFailed("wallet_topup", "payment_verification", new Error("verification_rejected"));
             setError(verifyBody?.message || "Payment verification failed");
             return;
           }
@@ -568,10 +606,18 @@ export default function Billing() {
           await loadWallet();
           await refreshUser();
         },
+        modal: {
+          ondismiss: () => {
+            if (!paymentSubmitted) trackCheckoutAbandoned("wallet_topup");
+          },
+        },
       });
 
+      stage = "checkout_open";
       razorpay.open();
     } catch (e) {
+      // A below-minimum amount is a local validation message, not a failed action.
+      if (stage !== "validation") trackActionFailed("wallet_topup", stage, e);
       setError(e instanceof Error ? e.message : "Failed to process top-up");
     } finally {
       setProcessingTopup(false);

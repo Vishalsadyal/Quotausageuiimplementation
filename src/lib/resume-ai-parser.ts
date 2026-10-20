@@ -56,7 +56,7 @@ const SYSTEM_PROMPT = `You extract structured data, 100 target search keywords, 
   "portfolioUrl": "Portfolio or personal website URL",
   "yearsOfExperience": "Total years of professional experience (integer number only as string, e.g. '5')",
   "educationLevel": "Highest education level (e.g. 'Bachelor\\'s Degree', 'Master\\'s Degree', 'Doctorate / PhD', 'Associate Degree', 'High School')",
-  "skills": ["Array of EXACTLY 50 single-word technical skills, tools, frameworks, protocols, and domain keywords extracted from and relevant to the resume (e.g. 'PLC', 'SCADA', 'Automation', 'Wiring', 'Schematics', 'Switchgear', 'Earthing', 'Voltage', 'Relays', 'Motors', 'Drives', 'VFD', 'Modbus', 'Profibus', 'Ethernet', 'Safety', 'Python', 'MATLAB', 'Simulink', 'AutoCAD')"],
+  "skills": ["Array of EXACTLY 50 technical skills, tools, frameworks, protocols, and domain keywords extracted from and relevant to the resume, each written exactly as it is officially spelled, keeping dots, spaces and symbols (e.g. 'Next.js', 'Node.js', 'React Query', 'C++', 'CI/CD', not 'Nextjs' or 'Nodejs') (e.g. 'PLC', 'SCADA', 'Automation', 'Wiring', 'Schematics', 'Switchgear', 'Earthing', 'Voltage', 'Relays', 'Motors', 'Drives', 'VFD', 'Modbus', 'Profibus', 'Ethernet', 'Safety', 'Python', 'MATLAB', 'Simulink', 'AutoCAD')"],
   "skillsWithYears": {
     "JavaScript": 5,
     "React": 4,
@@ -64,19 +64,11 @@ const SYSTEM_PROMPT = `You extract structured data, 100 target search keywords, 
     "Adobe XD": 3
   },
   "jobTitles": ["Array of EXACTLY 50 specific multi-word job titles and search terms matching the candidate's exact tech stack, variations, and seniority (e.g. 'PLC Programmer', 'SCADA Engineer', 'Industrial Automation Engineer', 'Control Systems Engineer', 'Electrical Engineer', 'Junior Electrical Engineer', 'Automation Engineer', 'Instrumentation Engineer', etc.)"],
-  "workAuthorization": "Authorized to work without sponsorship",
+  "workAuthorization": "Work authorization / visa status ONLY if the resume states it explicitly, otherwise an empty string",
   "summary": "High-impact keyword-rich professional summary (3-4 sentences) highlighting core stack, years of experience, and key accomplishments",
   "screeningAnswers": {
-    "bachelors_degree_completed": "Yes",
-    "masters_degree_completed": "No",
-    "require_visa_sponsorship": "No",
-    "authorized_to_work": "Yes",
-    "comfortable_commuting": "Yes",
-    "comfortable_working_onsite": "Yes",
-    "willing_background_check": "Yes",
-    "valid_drivers_license": "Yes",
-    "english_proficiency": "Professional",
-    "notice_period_days": 30
+    "bachelors_degree_completed": "Yes or No, from the education section",
+    "masters_degree_completed": "Yes or No, from the education section"
   },
   "experience": [
     {
@@ -118,8 +110,9 @@ const SYSTEM_PROMPT = `You extract structured data, 100 target search keywords, 
 Rules:
 1. Generate a total of 100 rich, unique keywords across 'jobTitles' (30-50 titles/search queries) and 'skills' (50-70 technical skills/tools/frameworks).
 2. Populate 'summary' with a compelling ATS summary tailored to the candidate's actual projects and experience.
-3. Populate screeningAnswers with standard answers matching typical LinkedIn Easy Apply questions.
-4. Return ONLY the JSON object. Do not include markdown explanation.`;
+3. Never guess facts about the candidate. Visa sponsorship, work authorization, notice period, driving licence, background checks, commuting and relocation are answered by the candidate later: leave them out unless the resume states them word for word.
+4. portfolioUrl is the candidate's own website or portfolio only, never a client or project site. Empty string if there is none.
+5. Return ONLY the JSON object. Do not include markdown explanation.`;
 
 export async function parseResumeWithAi(
   resumeText: string,

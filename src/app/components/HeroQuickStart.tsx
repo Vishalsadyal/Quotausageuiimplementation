@@ -5,6 +5,7 @@ import { FileText, Loader2, Sparkles, Upload } from 'lucide-react';
 import { normalizeLinkedinInput, saveHeroLead, savePendingResume } from 'src/lib/heroLead';
 import { useAuth } from '../context/AuthContext';
 import { AuthPanel } from './DashboardAuthGate';
+import { trackAuthSucceeded, trackFormFailed, trackFormSucceeded } from 'src/lib/posthog-client';
 
 const MAX_MB = 5;
 const ACCEPTED = '.pdf,.docx,.txt';
@@ -102,7 +103,11 @@ export function HeroQuickStart({ className = '' }: { className?: string }) {
       next = data?.data?.next || 'signup';
       existingEmail = data?.data?.email || '';
       onboardingDone = Boolean(data?.data?.user?.onboardingCompleted);
+      trackFormSucceeded('resume_quick_start');
+      // For a new email the server has just created the account and signed the visitor in.
+      if (next === 'dashboard') trackAuthSucceeded('resume_upload', true);
     } catch (error) {
+      trackFormFailed('resume_quick_start', error);
       setStatus('error');
       await aiSay(`${error instanceof Error ? error.message : 'Could not read this file.'} Try another file.`, 300);
       return;
@@ -123,10 +128,11 @@ export function HeroQuickStart({ className = '' }: { className?: string }) {
         });
       }
       await refreshUser();
+      // An account that already finished onboarding (older accounts) goes to the dashboard.
       await aiSay(
         onboardingDone
-          ? `${greeting} Your account is ready and your profile is filled in. Opening your dashboard…`
-          : `${greeting} Your account is ready. Your resume didn't have a few details, so let's fill them in…`,
+          ? `${greeting} Welcome back! Opening your dashboard…`
+          : `${greeting} Your account is ready. Let's set up your job search: it takes about a minute…`,
         500,
       );
       window.setTimeout(() => navigate(onboardingDone ? '/dashboard' : '/dashboard/onboarding'), 1200);
@@ -224,7 +230,7 @@ export function HeroQuickStart({ className = '' }: { className?: string }) {
               </motion.div>
             ) : (
             <>
-            <div ref={scrollRef} className="flex-1 min-h-48 max-h-60 overflow-y-auto px-4 py-3 space-y-2.5 bg-[#f8f8fc]" aria-live="polite">
+            <div ref={scrollRef} className="ph-no-capture flex-1 min-h-48 max-h-60 overflow-y-auto px-4 py-3 space-y-2.5 bg-[#f8f8fc]" aria-live="polite">
               <AnimatePresence initial={false}>
                 {messages.map((m, i) => (
                   <motion.div

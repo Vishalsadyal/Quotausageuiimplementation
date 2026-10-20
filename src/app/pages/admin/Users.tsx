@@ -19,6 +19,7 @@ type AdminUser = {
   dailyHireCap: number;
   createdAt: string;
   updatedAt: string;
+  registerMethod?: "google" | "email" | "resume_upload" | "unknown";
 };
 
 type EditUserForm = {
@@ -37,6 +38,13 @@ type EditUserForm = {
 const roleBadgeClass: Record<AdminUser["role"], string> = {
   admin: "bg-indigo-100 text-indigo-800 border-indigo-200",
   user: "bg-slate-100 text-slate-700 border-slate-200",
+};
+
+const registerMethodLabel: Record<NonNullable<AdminUser["registerMethod"]>, { label: string; className: string }> = {
+  google: { label: "Google", className: "bg-blue-100 text-blue-800 border-blue-200" },
+  email: { label: "Email", className: "bg-emerald-100 text-emerald-800 border-emerald-200" },
+  resume_upload: { label: "Resume upload", className: "bg-teal-100 text-teal-800 border-teal-200" },
+  unknown: { label: "Unknown", className: "bg-gray-100 text-gray-600 border-gray-200" },
 };
 
 const planBadgeClass: Record<AdminUser["plan"], string> = {
@@ -303,6 +311,7 @@ export default function Users() {
                 <th className="px-4 py-3 text-left font-semibold">User</th>
                 <th className="px-4 py-3 text-left font-semibold">Phone</th>
                 <th className="px-4 py-3 text-left font-semibold">Role</th>
+                <th className="px-4 py-3 text-left font-semibold">Register method</th>
                 <th className="px-4 py-3 text-left font-semibold">Plan</th>
                 <th className="px-4 py-3 text-left font-semibold">Daily Usage</th>
                 <th className="px-4 py-3 text-left font-semibold">Hires</th>
@@ -339,6 +348,16 @@ export default function Users() {
                       </span>
                     </td>
                     <td className="px-4 py-4">
+                      {(() => {
+                        const method = registerMethodLabel[u.registerMethod ?? "unknown"];
+                        return (
+                          <span className={`inline-flex rounded-full border px-2.5 py-1 text-xs font-semibold ${method.className}`}>
+                            {method.label}
+                          </span>
+                        );
+                      })()}
+                    </td>
+                    <td className="px-4 py-4">
                       <span className={`inline-flex rounded-full border px-2.5 py-1 text-xs font-semibold uppercase ${planBadgeClass[u.plan]}`}>
                         {u.plan}
                       </span>
@@ -370,28 +389,31 @@ export default function Users() {
                         <button
                           onClick={() => openEditUser(u)}
                           disabled={savingUserId === u.id || deletingUserId === u.id}
-                          className="inline-flex items-center gap-2 rounded-lg border border-indigo-200 bg-indigo-50 px-3 py-1.5 font-medium text-indigo-700 transition hover:bg-indigo-100 disabled:cursor-not-allowed disabled:opacity-60"
+                          title="Edit user"
+                          aria-label={`Edit ${u.name}`}
+                          className="inline-flex items-center justify-center rounded-lg border border-indigo-200 bg-indigo-50 p-2 text-indigo-700 transition hover:bg-indigo-100 disabled:cursor-not-allowed disabled:opacity-60"
                         >
                           <Pencil className="h-4 w-4" />
-                          Edit
                         </button>
                         {u.role === "user" && (
                           <button
                             onClick={() => void impersonateUser(u)}
                             disabled={impersonatingUserId !== null}
-                            className="inline-flex items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-1.5 font-medium text-amber-800 transition hover:bg-amber-100 disabled:cursor-not-allowed disabled:opacity-60"
+                            title={impersonatingUserId === u.id ? "Opening..." : "Impersonate user"}
+                            aria-label={`Impersonate ${u.name}`}
+                            className="inline-flex items-center justify-center rounded-lg border border-amber-200 bg-amber-50 p-2 text-amber-800 transition hover:bg-amber-100 disabled:cursor-not-allowed disabled:opacity-60"
                           >
-                            <UserCheck className="h-4 w-4" />
-                            {impersonatingUserId === u.id ? "Opening..." : "Impersonate"}
+                            {impersonatingUserId === u.id ? <RefreshCw className="h-4 w-4 animate-spin" /> : <UserCheck className="h-4 w-4" />}
                           </button>
                         )}
                         <button
                           onClick={() => void deleteUser(u)}
                           disabled={deletingUserId === u.id || savingUserId === u.id}
-                          className="inline-flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 font-medium text-red-700 transition hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-60"
+                          title={deletingUserId === u.id ? "Deleting..." : "Delete user"}
+                          aria-label={`Delete ${u.name}`}
+                          className="inline-flex items-center justify-center rounded-lg border border-red-200 bg-red-50 p-2 text-red-700 transition hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-60"
                         >
-                          <Trash2 className="h-4 w-4" />
-                          {deletingUserId === u.id ? "Deleting..." : "Delete"}
+                          {deletingUserId === u.id ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
                         </button>
                       </div>
                     </td>
@@ -400,7 +422,7 @@ export default function Users() {
               })}
               {!loading && filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="px-4 py-10 text-center text-gray-500">
+                  <td colSpan={9} className="px-4 py-10 text-center text-gray-500">
                     No users found
                   </td>
                 </tr>

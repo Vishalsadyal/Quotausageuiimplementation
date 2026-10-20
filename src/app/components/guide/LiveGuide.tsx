@@ -443,8 +443,6 @@ export function GuideLauncher({ onInstallTour }: { onInstallTour?: () => void })
   const { state, start, markLauncherSeen } = useGuide();
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
-  // Until it has been opened once (or a guide started), the button glows so a new user notices it.
-  const attention = !state.launcherSeen && !state.active && state.done.length === 0;
 
   useEffect(() => {
     if (!open) return;
@@ -473,19 +471,12 @@ export function GuideLauncher({ onInstallTour }: { onInstallTour?: () => void })
         aria-expanded={open}
         aria-haspopup="menu"
         aria-label="Guide me"
-        className={`relative inline-flex items-center gap-1.5 rounded-xl border px-2.5 py-1.5 text-xs font-bold transition-all sm:px-3.5 ${
-          attention
-            ? "border-transparent bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-md hover:shadow-lg"
-            : "border-purple-300 bg-purple-50 text-purple-700 hover:border-purple-400 hover:bg-purple-100 hover:shadow-xs"
-        }`}
+        className="relative inline-flex items-center gap-1.5 rounded-xl border border-purple-300 bg-purple-50 px-2.5 py-1.5 text-xs font-bold text-purple-700 transition-all hover:border-purple-400 hover:bg-purple-100 hover:shadow-xs sm:px-3.5"
         title="Guided walkthroughs: it shows you where to click"
         data-guide="guide-launcher"
-        data-attention={attention ? "true" : "false"}
       >
-        {attention ? <span aria-hidden="true" className="pointer-events-none absolute -inset-1 animate-pulse rounded-2xl" style={{ boxShadow: "0 0 0 2px rgba(167, 139, 250, 0.85), 0 0 14px 2px rgba(139, 92, 246, 0.45)" }} /> : null}
-        <PlayCircle className={`h-3.5 w-3.5 ${attention ? "text-white" : "text-purple-600"}`} />
+        <PlayCircle className="h-3.5 w-3.5 text-purple-600" />
         <span className="hidden sm:inline">Guide me</span>
-        {attention ? <span className="rounded-full bg-white/25 px-1.5 text-[9px] font-black uppercase tracking-wide text-white">New</span> : null}
       </button>
 
       {open ? (

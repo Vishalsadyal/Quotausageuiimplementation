@@ -6,6 +6,7 @@ import CookieConsentBanner from "./CookieConsentBanner";
 import AnalyticsScripts from "./AnalyticsScripts";
 import GoogleConsentMode from "./GoogleConsentMode";
 import ChatWidget from "./ChatWidget";
+import PostHogConsentBridge from "./PostHogConsentBridge";
 import DeferredAdSense from "./DeferredAdSense";
 import { OG_IMAGE } from "../src/app/seo/seoConfig";
 
@@ -87,14 +88,14 @@ const CONSENT_DEFAULT_SCRIPT = `
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://www.autoapplycv.in"),
-  title: "Free Auto Apply CV | AI-Powered Job Application Automation",
-  description: "Free auto apply CV tool for LinkedIn and Indeed. Save hours with AI resume matching, smart application tracking and automated job search.",
+  title: "AutoApply Free | AI-Powered Job Application Automation",
+  description: "AutoApply free to LinkedIn and Indeed jobs. Save hours with AI resume matching, smart application tracking and automated job search.",
   manifest: "/site.webmanifest",
   // AdSense site verification (the ad script itself loads deferred, see DeferredAdSense).
   other: ADSENSE_CLIENT ? { "google-adsense-account": ADSENSE_CLIENT } : {},
-  keywords: ["free auto apply cv", "free job application automation", "auto apply jobs free", "automated job applications", "LinkedIn auto apply", "Indeed auto apply", "free AI job search", "resume automation free"],
+  keywords: ["autoapply free", "auto apply free", "free auto apply cv", "free job application automation", "auto apply jobs free", "automated job applications", "LinkedIn auto apply", "Indeed auto apply", "free AI job search", "resume automation free"],
   openGraph: {
-    title: "Free Auto Apply CV | Automate Your Job Search",
+    title: "AutoApply Free | Automate Your Job Search",
     description: "Apply to hundreds of jobs automatically for free! AI-powered job application automation for LinkedIn and Indeed. Smart resume matching and application tracking included.",
     type: "website",
     url: "https://www.autoapplycv.in",
@@ -103,7 +104,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Free Auto Apply CV | AI Job Application Automation",
+    title: "AutoApply Free | AI Job Application Automation",
     description: "Free tool to auto-apply to jobs on LinkedIn & Indeed. Save time with AI-powered automation. Start now!",
     images: [OG_IMAGE.url],
   },
@@ -152,6 +153,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           </noscript>
         ) : null}
         <AnalyticsScripts googleTagId={GOOGLE_TAG_ID} clarityProjectId={CLARITY_TAG_ID} />
+        <PostHogConsentBridge />
         {children}
         <CookieConsentBanner clarityProjectId={CLARITY_TAG_ID} googleTagId={GOOGLE_TAG_ID} gtmId={GTM_ID} />
         <ChatWidget />

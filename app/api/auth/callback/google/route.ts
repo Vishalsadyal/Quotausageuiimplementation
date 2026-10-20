@@ -230,6 +230,16 @@ export async function GET(req: NextRequest) {
       maxAge: Number(process.env.REFRESH_TOKEN_TTL_SECONDS || 30 * 24 * 60 * 60),
     });
 
+    // One-shot hint for the browser (read and deleted by posthog-client): which sign-in method just
+    // succeeded and whether the account is new. Holds no personal data and expires in 2 minutes.
+    response.cookies.set("cp_auth_event", isNewUser ? "google_signup" : "google_login", {
+      httpOnly: false,
+      sameSite: "lax",
+      secure: isProd,
+      path: "/",
+      maxAge: 120,
+    });
+
     return response;
   } catch (error) {
     console.error("Google OAuth callback error:", error);

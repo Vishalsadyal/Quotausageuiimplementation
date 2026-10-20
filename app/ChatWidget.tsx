@@ -149,7 +149,7 @@ export default function ChatWidget() {
       }
     >
       {open ? (
-        <div className="flex h-[520px] max-h-[70vh] w-[340px] flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-2xl">
+        <div className="ph-no-capture flex h-[520px] max-h-[70vh] w-[340px] flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-2xl">
           <div
             className="flex items-center justify-between border-b border-gray-100 px-4 py-3 text-white"
             style={{

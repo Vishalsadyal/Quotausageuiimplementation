@@ -17,6 +17,7 @@ import {
   writeSession,
   type ConsentPreferences,
 } from "./cookieConsent";
+import { isPostHogConfigured } from "../src/lib/posthog-client";
 
 function applyClarityConsent(projectId: string, prefs: ConsentPreferences | null) {
   const id = String(projectId || "").trim();
@@ -54,7 +55,8 @@ export default function CookieConsentBanner({
     return Boolean(
       String(clarityProjectId || "").trim() ||
         String(googleTagId || "").trim() ||
-        String(gtmId || "").trim(),
+        String(gtmId || "").trim() ||
+        isPostHogConfigured,
     );
   }, [clarityProjectId, googleTagId, gtmId]);
 
@@ -160,7 +162,7 @@ export default function CookieConsentBanner({
   };
 
   const hasGoogle = Boolean(String(googleTagId || "").trim() || String(gtmId || "").trim());
-  const hasClarity = Boolean(String(clarityProjectId || "").trim());
+  const hasClarity = Boolean(String(clarityProjectId || "").trim()) || isPostHogConfigured;
   const supportsAdvertising = true;
 
   const confirmSelected = () => {

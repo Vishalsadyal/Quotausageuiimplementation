@@ -28,11 +28,13 @@ import {
   DASHBOARD_TOUR_ONBOARDING_EXTENSION,
   consumeDashboardTourRequest,
 } from "src/lib/dashboard-tour";
+import OnboardingFlow from "./OnboardingFlow";
+import { startPlanPurchase } from "src/lib/plan-checkout";
 
 type TabKey = "profile" | "preferences" | "screening";
 
-type ScreeningAnswerType = "text" | "boolean" | "number" | "choice" | "multiselect";
-type ScreeningSource = "manual" | "linkedin_import" | "resume_parse" | "extension_capture" | "system";
+export type ScreeningAnswerType = "text" | "boolean" | "number" | "choice" | "multiselect";
+export type ScreeningSource = "manual" | "linkedin_import" | "resume_parse" | "extension_capture" | "system";
 
 type ScreeningAnswerApiItem = {
   questionKey?: string;
@@ -106,14 +108,14 @@ type ScreeningRow = {
   lastUsed: string;
 };
 
-type PendingQuestion = {
+export type PendingQuestion = {
   questionKey: string;
   questionLabel: string;
   validationMessage: string;
   updatedAt: string;
 };
 
-type MasterProfile = {
+export type MasterProfile = {
   fullName: string;
   firstName: string;
   lastName: string;
@@ -137,7 +139,7 @@ type MasterProfile = {
   summary?: string;
 };
 
-type JobPreferences = {
+export type JobPreferences = {
   searchTerms: string[];
   searchLocations: string[];
   confidenceLevel: string;
@@ -259,12 +261,25 @@ function normalizeLabel(value: string) {
 function isRemoteLikeValue(value: string) {
   const normalized = normalizeLabel(value);
   return (
-    normalized === "remote" ||
-    normalized === "work from home" ||
+    /^(fully |100 |completely )?remote( work| only| job| jobs)?$/.test(normalized) ||
+    /^work(ing)? (from|at) (home|anywhere)$/.test(normalized) ||
     normalized === "wfh" ||
+    normalized === "home office" ||
     normalized === "anywhere" ||
     normalized === "worldwide"
   );
+}
+
+// Remote / work from home is a work mode (chosen under "Remote / Onsite / Hybrid"), not a place.
+const LOCATION_NOT_ALLOWED_MESSAGE =
+  "Remote / work from home is not a location. Enter a city or region, and pick Remote under Remote / Onsite / Hybrid.";
+
+function stripNonLocations(values: string[]) {
+  return values.filter((value) => !isRemoteLikeValue(value));
+}
+
+function splitLocationInput(raw: string) {
+  return raw.split(",").map((s) => s.trim()).filter(Boolean);
 }
 
 function isRemoteWorkModeSelected(value: string) {
@@ -1306,8 +1321,8 @@ export default function Onboarding() {
         educationLevel: readAnswer("education_level", "bachelors_degree_completed"),
         resumeUrl: readAnswer("resume_url"),
         preferredJobTitles: parseTags(readAnswer("preferred_job_titles", LEGACY_PREFERENCE_KEYS.searchTerms)),
-        preferredLocations: parseTags(
-          readAnswer("preferred_locations", "cp_pref_search_locations", LEGACY_PREFERENCE_KEYS.searchLocation),
+        preferredLocations: stripNonLocations(
+          parseTags(readAnswer("preferred_locations", "cp_pref_search_locations", LEGACY_PREFERENCE_KEYS.searchLocation)),
         ),
         workModePreference: readAnswer("work_mode_preference", "cp_pref_work_mode") || "Remote",
       };
@@ -1316,9 +1331,11 @@ export default function Onboarding() {
 
       const nextPreferences: JobPreferences = {
         searchTerms: parseTags(readAnswer(LEGACY_PREFERENCE_KEYS.searchTerms) || stringifyTags(nextProfile.preferredJobTitles)),
-        searchLocations: parseTags(
-          readAnswer("cp_pref_search_locations", LEGACY_PREFERENCE_KEYS.searchLocation) ||
-            stringifyTags(nextProfile.preferredLocations),
+        searchLocations: stripNonLocations(
+          parseTags(
+            readAnswer("cp_pref_search_locations", LEGACY_PREFERENCE_KEYS.searchLocation) ||
+              stringifyTags(nextProfile.preferredLocations),
+          ),
         ),
         confidenceLevel: readAnswer(LEGACY_PREFERENCE_KEYS.confidenceLevel) || "8",
         yearsOfExperience: readAnswer(LEGACY_PREFERENCE_KEYS.yearsOfExperience) || nextProfile.yearsOfExperience,
@@ -1908,6 +1925,7 @@ export default function Onboarding() {
               values={preferences.searchLocations}
               onChange={(values) => setPreferences((prev) => ({ ...prev, searchLocations: values }))}
               placeholder="Add location and press Enter"
+              rejectValue={(value) => (isRemoteLikeValue(value) ? LOCATION_NOT_ALLOWED_MESSAGE : null)}
             />
           ),
         },
@@ -2622,6 +2640,54 @@ export default function Onboarding() {
   };
   handleResumeUploadRef.current = handleResumeUpload;
 
+  // One question per screen flow (default). The classic all-in-one form stays at ?classic=1.
+  const classicMode = typeof window !== "undefined" && new URLSearchParams(window.location.search).get("classic") === "1";
+  if (!classicMode) {
+    return (
+      <OnboardingFlow
+        resumeFileName={String(user?.resumeFileName || "")}
+        profile={profile}
+        setProfile={setProfile}
+        preferences={preferences}
+        setPreferences={setPreferences}
+        pendingQuestions={pendingQuestions}
+        answerDrafts={answerDrafts}
+        setAnswerDrafts={setAnswerDrafts}
+        saveAnswer={saveAnswer}
+        onResumeUpload={handleResumeUpload}
+        uploading={uploading}
+        parsingStatus={parsingStatus}
+        generatedKeywords={generatedKeywords}
+        generatingAi={isGeneratingAiProfile}
+        onGenerateAi={handleAutoGenerateProfileWithGroq}
+        // The upload's "fill in the missing fields below" note is for the classic form; the flow asks itself.
+        error={error.startsWith("Resume parsed!") ? "" : error}
+        setError={setError}
+        extensionInstalled={extensionStatus.installed}
+        onCheckExtension={() => checkExtensionStatus({ silent: true })}
+        onFinish={async (plan) => {
+          // Pay first, right here: finishing onboarding first would redirect away from this screen.
+          if (plan && user?.plan !== plan) {
+            // One-time 30-day payment: a simple checkout with no auto-renewal mandate.
+            const result = await startPlanPurchase(plan, { name: profile.fullName, email: user?.email, phone: profile.phone, userId: user?.id });
+            if (result.status === "dismissed") {
+              setError("Payment window closed. Pick a plan again, or continue with Free.");
+              return false;
+            }
+            if (result.status === "failed") {
+              setError(result.message);
+              return false;
+            }
+          }
+          await saveDraft();
+          const ok = await persistAll({ redirectToDashboard: false });
+          if (ok) navigate("/dashboard/jobs");
+          return ok;
+        }}
+      />
+    );
+  }
+
   return (
     <div className="min-h-screen w-full bg-gradient-to-b from-slate-50 via-white to-indigo-50/40 flex flex-col">
       <div className="w-full flex-1 flex flex-col max-w-5xl mx-auto px-4 py-6">
@@ -3178,13 +3244,23 @@ export default function Onboarding() {
                     value={extLocationsRaw}
                     onChange={(e) => {
                       setExtLocationsRaw(e.target.value);
-                      clearFieldError("searchLocations");
+                      if (splitLocationInput(e.target.value).some(isRemoteLikeValue)) {
+                        setFieldErrors((prev) => ({ ...prev, searchLocations: LOCATION_NOT_ALLOWED_MESSAGE }));
+                      } else {
+                        clearFieldError("searchLocations");
+                      }
                     }}
                     onBlur={() => {
-                      const parts = extLocationsRaw.split(",").map((s) => s.trim()).filter(Boolean);
-                      setPreferences((p) => ({ ...p, searchLocations: parts }));
+                      const parts = splitLocationInput(extLocationsRaw);
+                      const valid = stripNonLocations(parts);
+                      if (valid.length !== parts.length) {
+                        // Remove the entries that are not locations; the message stays until the user types again.
+                        setExtLocationsRaw(valid.join(", "));
+                        setFieldErrors((prev) => ({ ...prev, searchLocations: LOCATION_NOT_ALLOWED_MESSAGE }));
+                      }
+                      setPreferences((p) => ({ ...p, searchLocations: valid }));
                     }}
-                    placeholder="e.g. Remote, New York, San Francisco"
+                    placeholder="e.g. New York, San Francisco"
                     className={`w-full rounded-lg border bg-white px-3 py-2.5 text-sm placeholder:text-slate-400 transition-colors ${
                       fieldErrors.searchLocations
                         ? "border-red-500 ring-2 ring-red-100 bg-red-50/10 text-red-900 focus:outline-none focus:ring-2 focus:ring-red-300"
@@ -3450,7 +3526,8 @@ export default function Onboarding() {
                   type="button"
                   disabled={isFinishing}
                   onClick={async () => {
-                    const locParts = extLocationsRaw.split(",").map((s) => s.trim()).filter(Boolean);
+                    const locParts = stripNonLocations(splitLocationInput(extLocationsRaw));
+                    setExtLocationsRaw(locParts.join(", "));
                     setPreferences((p) => ({ ...p, searchLocations: locParts }));
 
                     const validationError = validateBeforeSave();
@@ -3722,6 +3799,7 @@ function TagInput({
   placeholder,
   presets = [],
   required = false,
+  rejectValue,
 }: {
   label: string;
   values: string[];
@@ -3729,12 +3807,21 @@ function TagInput({
   placeholder: string;
   presets?: string[];
   required?: boolean;
+  /** Returns a message when the value must not be added, otherwise null. */
+  rejectValue?: (value: string) => string | null;
 }) {
   const [draft, setDraft] = useState("");
+  const [rejection, setRejection] = useState("");
 
   const addTag = (raw: string) => {
     const value = String(raw || "").trim();
     if (!value) return;
+    const rejected = rejectValue?.(value) ?? null;
+    if (rejected) {
+      setRejection(rejected);
+      return;
+    }
+    setRejection("");
     const exists = values.some((item) => item.toLowerCase() === value.toLowerCase());
     if (exists) return;
     onChange([...values, value]);
@@ -3772,7 +3859,10 @@ function TagInput({
 
           <input
             value={draft}
-            onChange={(e) => setDraft(e.target.value)}
+            onChange={(e) => {
+              setDraft(e.target.value);
+              if (rejection) setRejection("");
+            }}
             onKeyDown={(e) => {
               if (e.key === "Enter" || e.key === ",") {
                 e.preventDefault();
@@ -3794,6 +3884,7 @@ function TagInput({
           />
         </div>
       </div>
+      {rejection ? <p className="mt-1 text-xs font-medium text-red-600">{rejection}</p> : null}
 
       {presets.length ? (
         <div className="mt-2 flex flex-wrap gap-1.5">

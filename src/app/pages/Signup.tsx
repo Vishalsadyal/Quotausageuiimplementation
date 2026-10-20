@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router';
 import { motion } from 'motion/react';
 import { Mail, Lock, User, Phone, Eye, EyeOff, Check } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { trackAuthSucceeded, trackFormFailed } from 'src/lib/posthog-client';
 
 export default function Signup() {
   const [name, setName] = useState('');
@@ -22,8 +23,10 @@ export default function Signup() {
     
     try {
       await signup(name, email, password, phone);
+      trackAuthSucceeded('password', true);
       navigate('/dashboard');
     } catch (error) {
+      trackFormFailed('signup', error);
       setErrorMessage(error instanceof Error ? error.message : 'Signup failed');
     } finally {
       setIsLoading(false);

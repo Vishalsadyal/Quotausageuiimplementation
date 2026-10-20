@@ -8,9 +8,9 @@ export type SeoEntry = {
 import { STATIC_BLOG_POSTS_BY_SLUG } from "src/content/blogPosts";
 
 export const DEFAULT_SEO: SeoEntry = {
-  title: "Free AutoApply CV | LinkedIn Auto Apply Bot & AI Job Search Tool",
+  title: "AutoApply Free | LinkedIn Auto Apply Bot & AI Job Search Tool",
   description:
-    "AutoApply CV is a free AI job search automation platform with a LinkedIn auto apply bot, AI resume builder, and job application tracker.",
+    "AutoApply free with AutoApply CV: an AI job search automation platform with a LinkedIn auto apply bot, AI resume builder, and job application tracker.",
   index: true,
 };
 
@@ -32,9 +32,9 @@ export function normalizeCanonicalBaseUrl(value?: string) {
 
 export const SEO_BY_PATH: Record<string, SeoEntry> = {
   "/": {
-    title: "AutoApply CV - Free AI Auto Apply for LinkedIn & Indeed Jobs",
+    title: "AutoApply Free: AI Auto Apply for LinkedIn & Indeed | AutoApply CV",
     description:
-      "Free AI auto apply Chrome extension for LinkedIn Easy Apply and Indeed. Saved answers, duplicate prevention and live tracking for every application.",
+      "AutoApply free to LinkedIn Easy Apply and Indeed jobs with our AI Chrome extension. Saved answers, duplicate prevention and live tracking for every application.",
     index: true,
     structuredData: [
       {

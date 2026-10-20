@@ -158,9 +158,9 @@ function DashboardLayoutInner({ registerOpenMenu }: { registerOpenMenu: (open: (
   // Top navigation menu items
   const navigation = [
     { name: 'Overview', href: '/dashboard', icon: LayoutDashboard },
-    { name: 'AI Assistant', href: '/dashboard/assistant', icon: Bot, badge: 'NEW' },
+    { name: 'AI Assistant', href: '/dashboard/assistant', icon: Bot },
     { name: 'Auto Apply', href: '/dashboard/jobs/linkedin', icon: Target, matchPrefix: '/dashboard/jobs', extraMatchPrefixes: ['/dashboard/applications'] },
-    { name: 'HR Contacts', href: '/dashboard/hr-contacts', icon: Contact, badge: 'NEW', matchPrefix: '/dashboard/hr-contacts' },
+    { name: 'HR Contacts', href: '/dashboard/hr-contacts', icon: Contact, matchPrefix: '/dashboard/hr-contacts' },
     {
       name: 'Recruitment Agency',
       href: 'https://recruitment.autoapplycv.in/index.html',
@@ -168,7 +168,7 @@ function DashboardLayoutInner({ registerOpenMenu }: { registerOpenMenu: (open: (
       isExternal: true,
     },
     { name: 'Resume', href: '/dashboard/resume', icon: FileText },
-    { name: 'Call Copilot', href: '/dashboard/interview', icon: MessageSquare, badge: 'LIVE' },
+    { name: 'Call Copilot', href: '/dashboard/interview', icon: MessageSquare },
     { name: 'Analytics', href: '/dashboard/analytics', icon: BarChart3 },
     onboardingComplete
       ? { name: 'Billing', href: '/dashboard/billing', icon: CreditCard }
@@ -201,6 +201,12 @@ function DashboardLayoutInner({ registerOpenMenu }: { registerOpenMenu: (open: (
       navigate(primaryTourRoute);
     }
   };
+
+  // The one-question-per-screen onboarding is full screen, without the sidebar and header
+  // (kept for admins impersonating a user, so the "stop impersonating" bar stays reachable).
+  if (location.pathname === '/dashboard/onboarding' && !location.search.includes('classic=1') && !user?.impersonatedBy) {
+    return <Outlet />;
+  }
 
   return (
     <div className="dashboard-theme min-h-screen bg-[#FAFBFC] relative overflow-hidden flex">

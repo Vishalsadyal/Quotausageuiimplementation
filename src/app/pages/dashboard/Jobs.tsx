@@ -1777,9 +1777,8 @@ export default function Jobs() {
           (level) => level.toLowerCase() !== NO_EXPERIENCE_FILTER.toLowerCase(),
         );
       }
-      if (prefIsSet("cp_pref_easy_apply_only")) {
-        filterPayload.easyApplyOnly = prefValue("cp_pref_easy_apply_only").toLowerCase() !== "no";
-      }
+      // Always on (not user-changeable), even if an older saved answer says "No".
+      filterPayload.easyApplyOnly = true;
 
       const settingsPayload = {
         currentCity,
@@ -3933,8 +3932,9 @@ export default function Jobs() {
                 openId={openPrefFilter}
                 setOpenId={setOpenPrefFilter}
                 label="Easy Apply"
-                active={prefDisplay("cp_pref_easy_apply_only") !== "No"}
-                onClick={() => setPref("cp_pref_easy_apply_only", prefDisplay("cp_pref_easy_apply_only") === "No" ? "Yes" : "No")}
+                // Always on and not changeable: the bot only applies through Easy Apply.
+                active
+                onClick={() => {}}
               />
 
               {(() => {

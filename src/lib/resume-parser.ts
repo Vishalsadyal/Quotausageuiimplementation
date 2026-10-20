@@ -40,30 +40,58 @@ function extractEmail(text: string) {
   return m?.[0];
 }
 
+// Any run of digits with phone punctuation, kept only when it has 10-13 digits (so dates and
+// years such as "2019 – 2023" never match, and "+91 98055 59015" is not cut short).
 function extractPhone(text: string) {
-  const m = text.match(/(?:\+?\d{1,3}[-.\s]?)?(?:\(?\d{2,4}\)?[-.\s]?)\d{3}[-.\s]?\d{3,4}/);
-  return m?.[0]?.trim();
+  const candidates = text.match(/\+?\(?\d[\d\s().-]{8,20}\d/g) || [];
+  for (const raw of candidates) {
+    const digits = raw.replace(/\D/g, "");
+    if (digits.length < 10 || digits.length > 13) continue;
+    if (/^(19|20)\d{2}\D+(19|20)\d{2}$/.test(raw.trim())) continue;
+    return raw.trim();
+  }
+  return undefined;
 }
 
+// Accepts "linkedin.com/in/name" without a scheme and returns a full https URL.
 function extractLinkedIn(text: string) {
-  const m = text.match(/https?:\/\/(?:www\.)?linkedin\.com\/[^\s)]+/i);
-  return m?.[0];
+  const m = text.match(/(?:https?:\/\/)?(?:[a-z]{2,3}\.)?linkedin\.com\/(?:in|pub)\/[^\s)|,]+/i);
+  if (!m) return undefined;
+  const url = m[0].replace(/[.;]+$/, "");
+  return /^https?:\/\//i.test(url) ? url : `https://${url.replace(/^www\./i, "www.")}`;
 }
 
+// Contact block: the lines before the first section heading (SUMMARY, EXPERIENCE, SKILLS, ...).
+function headerLines(text: string) {
+  const lines = text.split("\n").map((line) => line.trim()).filter(Boolean);
+  const heading = /^(summary|profile|objective|about( me)?|experience|work experience|employment|education|skills|core skills|technical skills|projects?)\b/i;
+  const end = lines.findIndex((line, i) => i > 0 && heading.test(line) && line.length < 40);
+  return lines.slice(0, end > 0 ? Math.min(end, 12) : 8);
+}
+
+// A personal site from the contact block only: links further down are usually client or project sites.
 function extractUrl(text: string) {
-  const links = text.match(/https?:\/\/[^\s)]+/gi) || [];
-  const nonLinkedIn = links.find((link) => !/linkedin\.com/i.test(link));
-  return nonLinkedIn;
+  const header = headerLines(text).join(" ").replace(/\S+@\S+/g, " "); // emails out: their domain is not a site
+  const links: string[] = header.match(/(?:https?:\/\/)?(?:www\.)?[a-z0-9-]+(?:\.[a-z0-9-]+)*\.[a-z]{2,}(?:\/[^\s|,]*)?/gi) || [];
+  // "Node.js" or "Three.js" in a title line look like domains: accept explicit links or real web endings only.
+  const webTld = /\.(com|in|co|io|dev|me|org|net|app|ai|tech|site|xyz|info|page|design|online|pro|us|uk|ca|au|de|so|link|blog|portfolio)(\/|$)/i;
+  const site = links.find(
+    (link) =>
+      !/linkedin\.com|@|gmail\.|yahoo\.|outlook\.|hotmail\./i.test(link) &&
+      (/^(https?:\/\/|www\.)/i.test(link) || webTld.test(link.replace(/^https?:\/\//i, ""))),
+  );
+  if (!site) return undefined;
+  return /^https?:\/\//i.test(site) ? site : `https://${site}`;
 }
 
+// "Palampur, Himachal Pradesh, India" from a contact line like "City, State | +91 ... | email".
 function extractCity(text: string) {
-  const lines = text
-    .split("\n")
-    .map((line) => line.trim())
-    .filter(Boolean)
-    .slice(0, 12);
-  const cityLine = lines.find((line) => /,/.test(line) && /[A-Za-z]/.test(line));
-  return cityLine;
+  for (const line of headerLines(text).slice(1)) {
+    for (const part of line.split(/[|•·]/).map((p) => p.trim())) {
+      if (/^[A-Za-z][A-Za-z .'-]*(,\s*[A-Za-z][A-Za-z .'-]*){1,2}$/.test(part) && part.length <= 60) return part;
+    }
+  }
+  return undefined;
 }
 
 async function parsePdfBuffer(bytes: Buffer): Promise<string> {

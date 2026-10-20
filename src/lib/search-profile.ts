@@ -31,7 +31,11 @@ function cleanKeywordList(value: unknown, opts: { max: number; words?: 1 | 2; mi
 
 // Generates job titles, 1-word keywords, 2-word phrases, core skills and exclude keywords + 50 single-word keywords and a summary from the user's
 // saved resume, and saves them as screening answers the dashboard and extension read.
-export async function generateSearchProfileForUser(userId: string) {
+/**
+ * Generates the AI search profile and saves it as answers. `saveOnly` limits which answers are
+ * written (e.g. just the skills), so a suggestion doesn't overwrite titles or skip words the user chose.
+ */
+export async function generateSearchProfileForUser(userId: string, opts?: { saveOnly?: string[] }) {
   const apiKey = process.env.GROQ_API_KEY || "";
   if (!apiKey) {
     throw new SearchProfileError("GROQ_API_KEY is not configured", 500);
@@ -248,6 +252,7 @@ Generate the keyword profile JSON for this applicant:`;
   ];
   for (const [questionKey, questionLabel, list] of keywordAnswers) {
     if (!list.length) continue;
+    if (opts?.saveOnly && !opts.saveOnly.includes(questionKey)) continue;
     await writeAuditLog({
       actorUserId: userId,
       action: "user.screening_answer_saved",

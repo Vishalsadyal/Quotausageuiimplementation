@@ -129,11 +129,9 @@ export async function POST(req: NextRequest) {
         passwordHash,
         currentCity: profile.city || null,
         linkedinUrl: profile.linkedinUrl || null,
-        // Skip onboarding only when the resume gave every detail job search needs;
-        // otherwise the visitor answers the missing ones there.
-        onboardingCompleted: Boolean(
-          profile.name && profile.phone && profile.city && profile.yearsOfExperience && profile.jobTitles.length,
-        ),
+        // Everyone goes through onboarding (preferences, keywords, plan): the resume pre-fills it,
+        // so a complete resume only means fewer questions to answer there.
+        onboardingCompleted: false,
       });
     } catch (error) {
       // Another request created this email a moment ago.

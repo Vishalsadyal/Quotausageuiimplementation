@@ -3,6 +3,7 @@ import { useNavigate, Link, useSearchParams } from 'react-router';
 import { motion } from 'motion/react';
 import { Mail, Lock, Eye, EyeOff, Sparkles, Shield, Zap, KeyRound, RefreshCcw } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { trackAuthSucceeded, trackFormFailed, trackFormSucceeded, trackGoogleSignInFailed } from 'src/lib/posthog-client';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -30,6 +31,7 @@ export default function Login() {
 
   useEffect(() => {
     const err = searchParams.get('error');
+    if (err) trackGoogleSignInFailed(err);
     if (err === 'oauth_cancelled') {
       setErrorMessage('Google sign-in was cancelled.');
     } else if (err === 'state_mismatch') {
@@ -46,8 +48,10 @@ export default function Login() {
 
     try {
       await login(email, password, 'user');
+      trackAuthSucceeded('password', false);
       navigate('/dashboard');
     } catch (error) {
+      trackFormFailed('login', error);
       setErrorMessage(error instanceof Error ? error.message : 'Login failed');
     } finally {
       setIsLoading(false);
@@ -72,7 +76,9 @@ export default function Login() {
       if (!res.ok || !data?.success) throw new Error(data?.message || 'Failed to send OTP');
       setOtpSent(true);
       setOtpSuccess('OTP sent to your email. Enter it below to sign in.');
+      trackFormSucceeded('login_otp_request');
     } catch (error) {
+      trackFormFailed('login_otp_request', error);
       setErrorMessage(error instanceof Error ? error.message : 'Failed to send OTP');
     } finally {
       setSendingOtp(false);
@@ -103,8 +109,10 @@ export default function Login() {
       const data = await res.json();
       if (!res.ok || !data?.success) throw new Error(data?.message || 'OTP login failed');
       await refreshUser();
+      trackAuthSucceeded('otp', false);
       navigate('/dashboard');
     } catch (error) {
+      trackFormFailed('login_otp', error);
       setErrorMessage(error instanceof Error ? error.message : 'OTP login failed');
     } finally {
       setIsLoading(false);

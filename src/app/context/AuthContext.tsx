@@ -1,5 +1,6 @@
 import { ReactNode, useEffect } from 'react';
 import { create } from 'zustand';
+import { syncPostHogUser } from 'src/lib/posthog-client';
 
 interface User {
   id: string;
@@ -246,10 +247,18 @@ const useAuthStore = create<AuthStore>((set, get) => ({
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const bootstrap = useAuthStore((state) => state.bootstrap);
+  const userId = useAuthStore((state) => state.user?.id ?? null);
+  const userRole = useAuthStore((state) => state.user?.role ?? null);
+  const impersonated = useAuthStore((state) => Boolean(state.user?.impersonatedBy));
 
   useEffect(() => {
     void bootstrap();
   }, [bootstrap]);
+
+  // Links PostHog recordings to the internal user id (never name/email); no-op without consent.
+  useEffect(() => {
+    syncPostHogUser(userId && userRole ? { id: userId, role: userRole, impersonated } : null);
+  }, [userId, userRole, impersonated]);
 
   return <>{children}</>;
 }

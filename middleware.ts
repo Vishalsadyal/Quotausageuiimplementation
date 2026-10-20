@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { posthogCspOrigins } from "./src/lib/posthog-config";
 
 // POST routes the Chrome extension's service worker calls from its chrome-extension:// origin.
 // Each still requires the signed-in user's session.
@@ -67,6 +68,10 @@ export function middleware(req: NextRequest) {
   const hasAdSense = Boolean(String(process.env.NEXT_PUBLIC_ADSENSE_CLIENT || "ca-pub-5625706421007973").trim());
   const allowAdSense = hasAdSense || !isProd;
 
+  // PostHog (session replay): ingestion host + recorder assets; empty when PostHog is not configured.
+  const posthogOrigins = posthogCspOrigins();
+  const posthogSources = posthogOrigins.length ? ` ${posthogOrigins.join(" ")}` : "";
+
   const res = NextResponse.next();
 
   // Referral links (/?ref=CODE on any page): remember the code for 30 days so signup can credit
@@ -91,10 +96,11 @@ export function middleware(req: NextRequest) {
     "font-src 'self' data: https://fonts.gstatic.com",
     "style-src 'self' 'unsafe-inline'",
     `style-src-elem 'self' 'unsafe-inline' https://fonts.googleapis.com https://www.clarity.ms https://c.clarity.ms https://scripts.clarity.ms https://www.googletagmanager.com${allowGoogleAnalyticsEndpoints ? " https://www.google-analytics.com" : ""}`,
-    `script-src 'self' 'unsafe-inline' 'unsafe-eval' https://checkout.razorpay.com https://www.clarity.ms https://c.clarity.ms https://scripts.clarity.ms https://www.googletagmanager.com${allowGoogleAnalyticsEndpoints ? " https://www.google-analytics.com" : ""}${allowAdSense ? " https://pagead2.googlesyndication.com https://*.google.com https://*.doubleclick.net https://*.googleadservices.com https://*.adtrafficquality.google" : ""}`,
-    `connect-src 'self' https://api.razorpay.com https://*.razorpay.com https://db.prisma.io https://*.upstash.io https://www.clarity.ms https://c.clarity.ms https://l.clarity.ms https://scripts.clarity.ms https://www.googletagmanager.com${allowGoogleAnalyticsEndpoints ? " https://www.google-analytics.com" : ""}${allowAdSense ? " https://pagead2.googlesyndication.com https://*.google.com https://*.doubleclick.net https://*.googleadservices.com https://*.adtrafficquality.google" : ""}`,
+    `script-src 'self' 'unsafe-inline' 'unsafe-eval' https://checkout.razorpay.com https://www.clarity.ms https://c.clarity.ms https://scripts.clarity.ms https://www.googletagmanager.com${allowGoogleAnalyticsEndpoints ? " https://www.google-analytics.com" : ""}${allowAdSense ? " https://pagead2.googlesyndication.com https://*.google.com https://*.doubleclick.net https://*.googleadservices.com https://*.adtrafficquality.google" : ""}${posthogSources}`,
+    `connect-src 'self' https://api.razorpay.com https://*.razorpay.com https://db.prisma.io https://*.upstash.io https://www.clarity.ms https://c.clarity.ms https://l.clarity.ms https://scripts.clarity.ms https://www.googletagmanager.com${allowGoogleAnalyticsEndpoints ? " https://www.google-analytics.com" : ""}${allowAdSense ? " https://pagead2.googlesyndication.com https://*.google.com https://*.doubleclick.net https://*.googleadservices.com https://*.adtrafficquality.google" : ""}${posthogSources}`,
     `frame-src https://api.razorpay.com https://checkout.razorpay.com https://www.googletagmanager.com${allowGoogleAnalyticsEndpoints ? " https://www.google-analytics.com" : ""}${allowAdSense ? " https://googleads.g.doubleclick.net https://*.google.com https://*.adtrafficquality.google" : ""}`,
     "form-action 'self' https://api.razorpay.com https://checkout.razorpay.com",
+    ...(posthogOrigins.length ? ["worker-src 'self' blob:"] : []),
     ...(isProd ? ["upgrade-insecure-requests"] : []),
   ].join("; ");
 
