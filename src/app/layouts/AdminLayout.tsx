@@ -19,7 +19,8 @@ import {
   BookOpen,
   TrendingUp,
   ListChecks,
-  CreditCard
+  CreditCard,
+  Handshake
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
@@ -32,6 +33,7 @@ export default function AdminLayout() {
   const navigation = [
     { name: 'Overview', href: '/admin', icon: LayoutDashboard },
     { name: 'Users', href: '/admin/users', icon: Users },
+    { name: 'Agency', href: '/admin/agency', icon: Handshake },
     { name: 'Analytics', href: '/admin/analytics', icon: BarChart3 },
     { name: 'Jobs', href: '/admin/jobs', icon: Briefcase },
     { name: 'Applications', href: '/admin/applications', icon: FileText },

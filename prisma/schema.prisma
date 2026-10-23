@@ -173,6 +173,7 @@ model User {
   referredBy          User?     @relation("userReferrals", fields: [referredById], references: [id], onDelete: SetNull)
   referrals           User[]    @relation("userReferrals")
   referralRewards     ReferralReward[]
+  agencyClient        AgencyClient?
 
   @@index([referredById])
 }
@@ -685,4 +686,26 @@ model ReferralReward {
 
   @@unique([userId, batch])
   @@index([status])
+}
+
+// Admin > Agency: a candidate the admin added (or attached) and their latest payment link.
+// Paying the link activates the plan through the Razorpay webhook (payment_link.paid).
+model AgencyClient {
+  id              String    @id @default(cuid())
+  userId          String    @unique
+  addedById       String?
+  createdAccount  Boolean   @default(false) // the account was created from Admin > Agency (temporary password)
+  note            String    @default("")
+  linkId          String?   @unique
+  linkUrl         String?
+  linkPlan        UserPlan?
+  linkAmountPaise Int?
+  linkStatus      String    @default("none") // none | created | paid | expired | cancelled
+  linkCreatedAt   DateTime?
+  paidAt          DateTime?
+  paymentId       String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

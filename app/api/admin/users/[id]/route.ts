@@ -15,7 +15,7 @@ const updateUserSchema = z
     email: z.string().trim().email().max(255).optional(),
     phone: z.string().trim().min(6).max(30).optional(),
     role: z.enum(["user", "admin"]).optional(),
-    plan: z.enum(["free", "pro", "coach"]).optional(),
+    plan: z.enum(["free", "pro", "coach", "connect"]).optional(),
     quotaTotal: z.number().int().min(0).max(100000).optional(),
     quotaUsed: z.number().int().min(0).max(100000).optional(),
     hireBalance: z.number().int().min(0).max(1000000).optional(),

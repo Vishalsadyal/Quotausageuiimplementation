@@ -5,6 +5,7 @@ import { prisma } from "src/lib/prisma";
 import { verifyRazorpayWebhook } from "src/lib/billing";
 import { recordSubscriptionCharge } from "src/lib/subscriptions";
 import { isPaidPlan } from "src/lib/plans";
+import { activateAgencyPayment } from "src/lib/agency";
 
 function toPlan(value: string | undefined) {
   return isPaidPlan(value) ? value : "free";
@@ -34,6 +35,23 @@ export async function POST(req: NextRequest) {
         payload,
       },
     });
+
+    // Admin > Agency payment link paid: activate the plan for the candidate named in the link notes.
+    const linkEntity = payload.payload?.payment_link?.entity;
+    if (eventType === "payment_link.paid" && linkEntity?.notes?.source === "agency") {
+      const linkPayment = payload.payload?.payment?.entity;
+      const linkPlan = toPlan(linkEntity.notes.plan as string | undefined);
+      const linkUserId = linkEntity.notes.userId as string | undefined;
+      if (linkUserId && linkPlan !== "free" && linkPayment?.id) {
+        await activateAgencyPayment({
+          userId: linkUserId,
+          plan: linkPlan,
+          paymentId: String(linkPayment.id),
+          amountPaise: Number(linkPayment.amount) || Number(linkEntity.amount_paid) || 0,
+          linkId: String(linkEntity.id),
+        });
+      }
+    }
 
     const subscriptionEntity = payload.payload?.subscription?.entity;
     const providerSubscriptionId = subscriptionEntity?.id as string | undefined;

@@ -9,7 +9,7 @@ type AdminUser = {
   email: string;
   phone?: string | null;
   role: "user" | "admin";
-  plan: "free" | "pro" | "coach";
+  plan: "free" | "pro" | "coach" | "connect";
   quotaUsed: number;
   quotaTotal: number;
   hireBalance: number;
@@ -51,6 +51,7 @@ const planBadgeClass: Record<AdminUser["plan"], string> = {
   free: "bg-gray-100 text-gray-700 border-gray-200",
   pro: "bg-violet-100 text-violet-800 border-violet-200",
   coach: "bg-amber-100 text-amber-800 border-amber-200",
+  connect: "bg-fuchsia-100 text-fuchsia-800 border-fuchsia-200",
 };
 
 export default function Users() {
@@ -245,7 +246,7 @@ export default function Users() {
 
   const adminCount = useMemo(() => users.filter((u) => u.role === "admin").length, [users]);
   const proOrCoachCount = useMemo(
-    () => users.filter((u) => u.plan === "pro" || u.plan === "coach").length,
+    () => users.filter((u) => u.plan !== "free").length,
     [users],
   );
 
@@ -504,6 +505,7 @@ export default function Users() {
                   <option value="free">Free</option>
                   <option value="pro">Pro</option>
                   <option value="coach">Coach</option>
+                  <option value="connect">Pro Connect</option>
                 </select>
               </label>
 
