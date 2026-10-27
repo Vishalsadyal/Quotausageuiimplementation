@@ -89,6 +89,7 @@ const AdminScreeningQuestions = lazy(() => import('./pages/admin/ScreeningQuesti
 const AdminBlogs = lazy(() => import('./pages/admin/Blogs'));
 const AdminBlogEditor = lazy(() => import('./pages/admin/BlogEditor'));
 const AdminAgency = lazy(() => import('./pages/admin/Agency'));
+const AdminRatings = lazy(() => import('./pages/admin/Ratings'));
 
 // SEO (lightweight - keep eager)
 const SeoManager = lazy(() => import('./components/SeoManager').then(m => ({ default: m.SeoManager })));
@@ -246,6 +247,7 @@ const routes = createRoutesFromElements(
       <Route path="settings" element={<Suspense fallback={<PageLoader />}><AdminSettings /></Suspense>} />
       <Route path="growth" element={<Suspense fallback={<PageLoader />}><AdminGrowth /></Suspense>} />
       <Route path="agency" element={<Suspense fallback={<PageLoader />}><AdminAgency /></Suspense>} />
+      <Route path="ratings" element={<Suspense fallback={<PageLoader />}><AdminRatings /></Suspense>} />
       <Route path="screening-questions" element={<Suspense fallback={<PageLoader />}><AdminScreeningQuestions /></Suspense>} />
     </Route>
 

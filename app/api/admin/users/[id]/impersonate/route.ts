@@ -42,7 +42,7 @@ export async function POST(_req: Request, context: RouteParams) {
       id: target.id,
       email: target.email,
       role: target.role,
-    });
+    }, { impersonatorId: admin.id });
     await setAuthCookies(accessToken, refreshToken);
 
     await writeAuditLog({

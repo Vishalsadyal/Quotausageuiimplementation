@@ -88,7 +88,8 @@ export function clearAuthCookies() {
   })();
 }
 
-export async function createSessionAndTokens(user: AuthUser) {
+/** impersonatorId: the admin opening this session with "view as user", so it isn't counted as the user's own activity. */
+export async function createSessionAndTokens(user: AuthUser, options?: { impersonatorId?: string }) {
   const refreshToken = createRefreshToken();
   const family = randomBytes(16).toString("hex");
   const refreshTokenHash = hashToken(refreshToken);
@@ -104,6 +105,7 @@ export async function createSessionAndTokens(user: AuthUser) {
       userAgent: meta.userAgent,
       ipAddress: meta.ipAddress,
       status: "active",
+      impersonatorId: options?.impersonatorId ?? null,
     },
   });
 

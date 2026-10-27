@@ -20,7 +20,8 @@ import {
   TrendingUp,
   ListChecks,
   CreditCard,
-  Handshake
+  Handshake,
+  Star
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
@@ -40,6 +41,7 @@ export default function AdminLayout() {
     { name: 'Revenue', href: '/admin/revenue', icon: DollarSign },
     { name: 'Growth', href: '/admin/growth', icon: TrendingUp },
     { name: 'Support', href: '/admin/support', icon: MessageSquare },
+    { name: 'Ratings', href: '/admin/ratings', icon: Star },
     { name: 'Global Screening Questions Mapping', href: '/admin/screening-questions', icon: ListChecks },
     { name: 'Blogs', href: '/admin/blogs', icon: BookOpen },
     { name: 'System Health', href: '/admin/health', icon: Activity },

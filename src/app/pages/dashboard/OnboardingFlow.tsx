@@ -654,6 +654,13 @@ export default function OnboardingFlow(props: Props) {
       total_steps: TOTAL_STEPS,
       direction: direction === 1 ? "forward" : "back",
     });
+    // Also saved on the account, so Admin > Users shows the step a user stopped at.
+    void fetch("/api/user/onboarding/step", {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ step }),
+    }).catch(() => {});
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [step]);
 

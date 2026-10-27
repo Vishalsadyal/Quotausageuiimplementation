@@ -25,6 +25,7 @@ import {
   Bot,
   Sparkles,
   Loader2,
+  Star,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { hasCompletedRequiredOnboarding } from 'src/lib/onboarding';
@@ -37,6 +38,7 @@ import {
 import { APPLICATIONS_PATH, JOBS_SECTIONS, jobsSectionPath, type JobsProvider } from '../pages/dashboard/jobsSections';
 import { usePendingQuestions } from '../hooks/usePendingQuestions';
 import PendingQuestionsPrompt from '../components/PendingQuestionsPrompt';
+import FeedbackPrompt from '../components/FeedbackPrompt';
 import { GuideLauncher, GuideProvider } from '../components/guide/LiveGuide';
 
 const AssistantPanel = lazy(() =>
@@ -78,6 +80,7 @@ function DashboardLayoutInner({ registerOpenMenu }: { registerOpenMenu: (open: (
   // Questions the extension is waiting on: popup + bell badge (components/PendingQuestionsPrompt.tsx).
   const { questions: pendingQuestions } = usePendingQuestions(Boolean(user));
   const [pendingPromptSignal, setPendingPromptSignal] = useState(0);
+  const [feedbackSignal, setFeedbackSignal] = useState(0);
   const [stoppingImpersonation, setStoppingImpersonation] = useState(false);
 
   const handleStopImpersonation = async () => {
@@ -349,7 +352,19 @@ function DashboardLayoutInner({ registerOpenMenu }: { registerOpenMenu: (open: (
         </nav>
 
         {/* Sidebar Footer Quota Card */}
-        <div className="p-3 border-t border-gray-100/80 bg-gray-50/50">
+        <div className="p-3 border-t border-gray-100/80 bg-gray-50/50 space-y-2">
+          {/* Rate us: opens the feedback popup (components/FeedbackPrompt.tsx) */}
+          <button
+            type="button"
+            onClick={() => {
+              setMobileMenuOpen(false);
+              setFeedbackSignal((n) => n + 1);
+            }}
+            className="w-full flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl text-xs font-bold text-amber-800 bg-amber-50 hover:bg-amber-100 border border-amber-200 transition-colors"
+          >
+            <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-500" />
+            <span>Rate us &amp; help us improve</span>
+          </button>
           <div className="p-3 bg-white border border-purple-100 rounded-xl shadow-2xs space-y-2.5">
             {/* Plan Badge & Balance */}
             <div className="flex items-center justify-between">
@@ -615,6 +630,15 @@ function DashboardLayoutInner({ registerOpenMenu }: { registerOpenMenu: (open: (
         </>
       )}
 
+      {user && (
+        <FeedbackPrompt
+          userId={String(user.id)}
+          page={location.pathname}
+          extensionApplied={extensionStats.loaded ? extensionStats.applied : 0}
+          openSignal={feedbackSignal}
+          autoPrompt={!user.impersonatedBy}
+        />
+      )}
       {user && <PendingQuestionsPrompt userId={String(user.id)} questions={pendingQuestions} openSignal={pendingPromptSignal} />}
     </div>
   );

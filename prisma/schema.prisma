@@ -129,6 +129,8 @@ model User {
   resumeFilePath String?
   resumeText    String?
   onboardingCompleted Boolean @default(false)
+  onboardingStep      Int?      // last onboarding screen opened (1-25, OnboardingFlow.tsx); null = never opened
+  onboardingStepAt    DateTime? // when they reached that screen
   plan          UserPlan @default(free)
   createdAt     DateTime @default(now())
   quotaUsed     Int      @default(0)
@@ -174,6 +176,7 @@ model User {
   referrals           User[]    @relation("userReferrals")
   referralRewards     ReferralReward[]
   agencyClient        AgencyClient?
+  feedbacks           Feedback[]
 
   @@index([referredById])
 }
@@ -227,6 +230,7 @@ model Session {
   status           SessionStatus @default(active)
   expiresAt        DateTime
   lastUsedAt       DateTime      @default(now())
+  impersonatorId   String?       // set when an admin opened this session with "view as user" (not the user's own activity)
   createdAt        DateTime      @default(now())
   updatedAt        DateTime      @updatedAt
 
@@ -234,6 +238,7 @@ model Session {
 
   @@index([userId, status])
   @@index([family, status])
+  @@index([lastUsedAt])
 }
 
 model ConsentLog {
@@ -708,4 +713,23 @@ model AgencyClient {
   updatedAt       DateTime  @updatedAt
 
   user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// "Rate us" popup in the dashboard (components/FeedbackPrompt.tsx), listed in Admin > Ratings.
+model Feedback {
+  id          String   @id @default(cuid())
+  userId      String
+  rating      Int      // 1-5 stars
+  tags        String[] @default([]) // options picked: what they love (4-5 stars) or what to improve (1-3)
+  comment     String   @default("")
+  allowPublic Boolean  @default(false) // ok to show the review on the website
+  page        String   @default("") // dashboard page the popup was opened from
+  trigger     String   @default("manual") // manual | auto (after the 10th application)
+  createdAt   DateTime @default(now())
+
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([createdAt])
+  @@index([rating])
+  @@index([userId])
 }
