@@ -29,6 +29,58 @@ function cleanKeywordList(value: unknown, opts: { max: number; words?: 1 | 2; mi
   return out;
 }
 
+// Exclude words skip any job whose title has them (extension skip rules), so broad words would skip good jobs:
+// "Sales" blocks "Sales Tax Accountant", "Manager" blocks "Accounts Manager".
+const COMMON_JOB_POST_WORDS = new Set([
+  "sales", "marketing", "manager", "management", "director", "lead", "head", "senior", "junior", "executive",
+  "officer", "assistant", "associate", "finance", "operations", "support", "hr", "human resources", "admin",
+  "administration", "business", "team", "president", "vice president", "principal", "specialist", "analyst",
+]);
+
+const wordsForMatch = (value: string) =>
+  value.replace(/([a-z])([A-Z])/g, "$1 $2").toLowerCase().replace(/[^a-z0-9+#]+/g, " ").trim();
+
+/**
+ * Makes the AI's exclude list safe: splits joined words ("VicePresident" -> "Vice President"), drops words
+ * common in job posts, and drops any word found in the user's own job titles ("Junior" while they search
+ * "Junior Accountant").
+ */
+function safeExcludeList(list: string[], titles: string[]): string[] {
+  const titleText = ` ${titles.map(wordsForMatch).join(" | ")} `;
+  const out: string[] = [];
+  for (const raw of list) {
+    const item = raw.replace(/([a-z])([A-Z])/g, "$1 $2").replace(/\s+/g, " ").trim();
+    const key = wordsForMatch(item);
+    if (!key || COMMON_JOB_POST_WORDS.has(key)) continue;
+    if (titleText.includes(` ${key} `)) continue;
+    if (out.some((o) => wordsForMatch(o) === key)) continue;
+    out.push(item);
+    if (out.length >= 8) break;
+  }
+  return out;
+}
+
+// Answers the user picked themselves are kept when the AI runs again (e.g. after a new resume upload).
+const USER_CHOICE_KEYS = ["preferred_job_titles", "cp_pref_search_terms", "bad_words", "exclude_keywords"];
+
+async function keysTheUserChose(userId: string): Promise<Set<string>> {
+  const rows = await prisma.auditLog.findMany({
+    where: { actorUserId: userId, action: "user.screening_answer_saved", targetId: { in: USER_CHOICE_KEYS } },
+    orderBy: { createdAt: "desc" },
+    take: 40,
+    select: { targetId: true, metadataJson: true },
+  });
+  const latest = new Map<string, { source?: unknown; answer?: unknown }>();
+  for (const row of rows) {
+    if (row.targetId && !latest.has(row.targetId)) latest.set(row.targetId, (row.metadataJson || {}) as { source?: unknown; answer?: unknown });
+  }
+  const chosen = new Set<string>();
+  for (const [key, meta] of latest) {
+    if (["manual", "extension_capture"].includes(String(meta.source)) && String(meta.answer || "").trim()) chosen.add(key);
+  }
+  return chosen;
+}
+
 // Generates job titles, 1-word keywords, 2-word phrases, core skills and exclude keywords + 50 single-word keywords and a summary from the user's
 // saved resume, and saves them as screening answers the dashboard and extension read.
 /**
@@ -83,9 +135,14 @@ Return ONLY a JSON object with these keys:
    Each item MUST be EXACTLY two words. Do NOT repeat job titles here.
 4. "coreSkills": 25 core technical skills and stack items the applicant is strongest in, most important first
    (e.g. "React", "Node.js", "PostgreSQL", "AWS", "Apache Spark", "Siemens TIA Portal"). Not job titles.
-5. "excludeKeywords": 12 words or short phrases in job titles that are WRONG for this applicant and should be
-   auto-skipped: wrong seniority (e.g. "Intern" for a senior, "Director" or "Principal" for a junior), unrelated
-   functions (e.g. "Sales", "Telecaller", "Nurse"), unpaid roles. Tailor them to this resume.
+5. "excludeKeywords": up to 8 words that, if they appear in a JOB TITLE, mean the job is clearly WRONG for this
+   applicant: other professions far from theirs (e.g. "Nurse", "Teacher", "Driver", "Telecaller" for an
+   accountant), roles far below their level ("Intern", "Trainee" for someone with 5+ years), and "Unpaid".
+   NEVER include broad words that appear in many good titles for this person: Sales, Marketing, Manager,
+   Director, Lead, Head, Senior, Junior, Executive, Officer, Assistant, Associate, Finance, Operations,
+   Support, HR, Human Resources, Admin, Business.
+   Never include a word that appears in any of the applicant's searchTerms. Write each one as normal words
+   with spaces ("Vice President", never "VicePresident").
 6. "description": a high-impact 3-4 sentence professional ATS summary of their strengths and experience.
 
 JSON shape:
@@ -161,14 +218,17 @@ Generate the keyword profile JSON for this applicant:`;
   let coreSkillsList = cleanKeywordList(parsed.coreSkills || parsed.skills, { max: 30, minLength: 2 }).filter(
     (s) => !titleSet.has(s.toLowerCase())
   );
-  let excludeList = cleanKeywordList(parsed.excludeKeywords || parsed.negativeKeywords, { max: 20, minLength: 2 });
+  let excludeList = safeExcludeList(
+    cleanKeywordList(parsed.excludeKeywords || parsed.negativeKeywords, { max: 20, minLength: 2 }),
+    searchTermsList
+  );
 
   // Fallbacks built from this applicant's own results (never another profession's defaults).
   if (twoWordsList.length < 5) {
     twoWordsList = Array.from(new Set([...twoWordsList, ...searchTermsList.filter((t) => t.split(/\s+/).length === 2)])).slice(0, 40);
   }
   if (coreSkillsList.length < 5) coreSkillsList = Array.from(new Set([...coreSkillsList, ...singleWordList])).slice(0, 25);
-  if (!excludeList.length) excludeList = ["Unpaid", "Internship", "Sales", "Telecaller"];
+  if (!excludeList.length) excludeList = safeExcludeList(["Unpaid", "Internship", "Telecaller"], searchTermsList);
 
   if (!searchTermsList.length && !singleWordList.length) {
     throw new SearchProfileError("AI could not build keywords from your resume. Please try again.", 502);
@@ -250,9 +310,12 @@ Generate the keyword profile JSON for this applicant:`;
     ["bad_words", "Blacklist / Exclude Keywords", excludeList],
     ["exclude_keywords", "Blacklist / Exclude Keywords", excludeList],
   ];
+  const userChosen = await keysTheUserChose(userId);
   for (const [questionKey, questionLabel, list] of keywordAnswers) {
     if (!list.length) continue;
     if (opts?.saveOnly && !opts.saveOnly.includes(questionKey)) continue;
+    // Never replace job titles or exclude words the user set themselves.
+    if (userChosen.has(questionKey)) continue;
     await writeAuditLog({
       actorUserId: userId,
       action: "user.screening_answer_saved",

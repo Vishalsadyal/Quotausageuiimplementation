@@ -288,7 +288,9 @@ function workModeMatches(text, configuredValues) {
       return normalized.includes("hybrid");
     }
     if (value === "on site" || value === "onsite") {
-      return normalized.includes("on site") || normalized.includes("onsite") || normalized.includes("on-site");
+      if (normalized.includes("on site") || normalized.includes("onsite") || normalized.includes("on-site")) return true;
+      // Indeed often shows only the city ("Dubai") for office jobs: not remote or hybrid means on-site.
+      return !normalized.includes("remote") && !normalized.includes("work from home") && !normalized.includes("hybrid");
     }
     if (value === "flexible") {
       return normalized.includes("flexible");
@@ -1477,11 +1479,26 @@ function setCardVisualState(card, statusType, badgeText) {
   }
 }
 
+// Whole-word match for exclude words: "Intern" skips "Marketing Intern" but not "Internal Auditor" or
+// "International". Joined words from the AI ("VicePresident") are split first, to "vice president".
+function splitWordsForMatch(value) {
+  return String(value || "")
+    .replace(/([a-z])([A-Z])/g, "$1 $2")
+    .toLowerCase()
+    .replace(/[^a-z0-9+#]+/g, " ")
+    .trim();
+}
+
+function textHasExcludedWord(text, word) {
+  const w = splitWordsForMatch(word);
+  if (!w) return false;
+  return ` ${splitWordsForMatch(text)} `.includes(` ${w} `);
+}
+
 function shouldSkipByCardRules(detail, settings) {
   const title = normalizeLabel(detail?.title);
   const company = normalizeLabel(detail?.company);
   const blacklistCompanies = uniqueNormalizedValues(settings?.blacklistedCompanies);
-  const badWords = uniqueNormalizedValues(settings?.badWords);
 
   if (company && blacklistCompanies.some((item) => company.includes(item))) {
     return {
@@ -1491,11 +1508,13 @@ function shouldSkipByCardRules(detail, settings) {
     };
   }
 
-  if (title && badWords.some((item) => title.includes(item))) {
+  const titleWord = title ? parseListSetting(settings?.badWords).find((item) => textHasExcludedWord(detail?.title, item)) : "";
+  if (titleWord) {
     return {
       skip: true,
       reasonCode: "BAD_WORD_TITLE",
-      reason: "Blocked by title keyword filter",
+      reason: `"${titleWord}" found in the job title`,
+      matchedWord: titleWord,
     };
   }
 
@@ -1522,14 +1541,8 @@ function shouldSkipByDescription(description, settings) {
   const text = normalizeLabel(description);
   if (!text) return { skip: false, reasonCode: "", reason: "" };
 
-  const badWords = uniqueNormalizedValues(settings?.badWords);
-  if (badWords.some((item) => text.includes(item))) {
-    return {
-      skip: true,
-      reasonCode: "BAD_WORD_DESCRIPTION",
-      reason: "Blocked by description keyword filter",
-    };
-  }
+  // Exclude words are checked on the job title only (shouldSkipByCardRules), not here: descriptions mention
+  // them in normal jobs ("Intern to 7 years", "report to the Finance Director", "sales tax").
 
   const hasClearanceRequirement =
     text.includes("polygraph") ||
@@ -2327,6 +2340,7 @@ async function handleJobCard(card, settings, state) {
       ...snapshot,
       reasonCode: quickRule.reasonCode,
       reason: quickRule.reason,
+      matchedWord: quickRule.matchedWord || "",
     });
     return true;
   }
@@ -2348,6 +2362,7 @@ async function handleJobCard(card, settings, state) {
       ...detail,
       reasonCode: detailRule.reasonCode,
       reason: detailRule.reason,
+      matchedWord: detailRule.matchedWord || "",
     });
     return true;
   }

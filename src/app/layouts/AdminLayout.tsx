@@ -21,7 +21,8 @@ import {
   ListChecks,
   CreditCard,
   Handshake,
-  Star
+  Star,
+  MessageCircle
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
@@ -35,6 +36,7 @@ export default function AdminLayout() {
     { name: 'Overview', href: '/admin', icon: LayoutDashboard },
     { name: 'Users', href: '/admin/users', icon: Users },
     { name: 'Agency', href: '/admin/agency', icon: Handshake },
+    { name: 'WhatsApp Follow-ups', href: '/admin/follow-ups', icon: MessageCircle },
     { name: 'Analytics', href: '/admin/analytics', icon: BarChart3 },
     { name: 'Jobs', href: '/admin/jobs', icon: Briefcase },
     { name: 'Applications', href: '/admin/applications', icon: FileText },

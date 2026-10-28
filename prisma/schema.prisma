@@ -177,6 +177,7 @@ model User {
   referralRewards     ReferralReward[]
   agencyClient        AgencyClient?
   feedbacks           Feedback[]
+  whatsAppFollowUps   WhatsAppFollowUp[]
 
   @@index([referredById])
 }
@@ -725,6 +726,11 @@ model Feedback {
   allowPublic Boolean  @default(false) // ok to show the review on the website
   page        String   @default("") // dashboard page the popup was opened from
   trigger     String   @default("manual") // manual | auto (after the 10th application)
+  // A bad rating (1-3 stars) or a "Bugs / errors" pick opens a ticket the user follows in Settings > My Tickets.
+  ticketStatus String?   // open | closed; null = not a ticket
+  adminReply   String    @default("")
+  repliedAt    DateTime?
+  closedAt     DateTime?
   createdAt   DateTime @default(now())
 
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -732,4 +738,22 @@ model Feedback {
   @@index([createdAt])
   @@index([rating])
   @@index([userId])
+  @@index([ticketStatus])
+}
+
+// Admin > Follow-ups: WhatsApp messages the admin sent by hand (wa.me), so a person isn't messaged
+// twice for the same reason. key = reason plus what it is about, e.g. "plan_ending:2026-11-02".
+model WhatsAppFollowUp {
+  id        String   @id @default(cuid())
+  userId    String
+  reason    String   // plan_ending | plan_expired | never_applied | onboarding_stuck | upgrade
+  key       String
+  message   String   @default("")
+  sentById  String?
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, key])
+  @@index([reason, createdAt])
 }

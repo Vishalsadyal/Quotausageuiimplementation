@@ -6,6 +6,11 @@ import { requireAuth } from "src/lib/guards";
 
 // "Rate us" popup in the dashboard (components/FeedbackPrompt.tsx).
 
+// A bad rating, or "Bugs / errors" picked, opens a ticket the user follows in Settings > My Tickets.
+function isTicket(rating: number, tags: string[]) {
+  return rating <= 3 || tags.includes("Bugs / errors");
+}
+
 const feedbackSchema = z.object({
   rating: z.number().int().min(1).max(5),
   tags: z.array(z.string().trim().min(1).max(60)).max(12).default([]),
@@ -23,16 +28,18 @@ export async function GET() {
     if ("error" in authResult) return authResult.error;
     const userId = authResult.auth.user.id;
 
-    const [last, applications] = await Promise.all([
+    const [last, applications, tickets, openTickets] = await Promise.all([
       prisma.feedback.findFirst({
         where: { userId },
         orderBy: { createdAt: "desc" },
         select: { rating: true, createdAt: true },
       }),
       prisma.application.count({ where: { userId, status: "submitted" } }),
+      prisma.feedback.count({ where: { userId, ticketStatus: { not: null } } }),
+      prisma.feedback.count({ where: { userId, ticketStatus: "open" } }),
     ]);
 
-    return ok("Feedback status fetched", { last, applications });
+    return ok("Feedback status fetched", { last, applications, tickets, openTickets });
   } catch (error) {
     return handleApiError(error, "Failed to fetch feedback status");
   }
@@ -50,8 +57,9 @@ export async function POST(req: NextRequest) {
         ...payload,
         // Only good reviews can be shown on the website.
         allowPublic: payload.allowPublic && payload.rating >= 4,
+        ticketStatus: isTicket(payload.rating, payload.tags) ? "open" : null,
       },
-      select: { id: true, rating: true },
+      select: { id: true, rating: true, ticketStatus: true },
     });
 
     return ok("Thanks for your feedback", { feedback });

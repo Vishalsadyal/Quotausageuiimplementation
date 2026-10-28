@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { Link } from 'react-router';
 import { CheckCircle2, ExternalLink, Loader2, Star, X } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -43,9 +44,11 @@ type Props = {
   openSignal: number;
   /** Off while an admin is viewing as the user. */
   autoPrompt?: boolean;
+  /** The user's tickets (bad ratings and bug reports), for the My Tickets menu item. */
+  onTickets?: (tickets: { total: number; open: number }) => void;
 };
 
-export default function FeedbackPrompt({ userId, page, extensionApplied, openSignal, autoPrompt = true }: Props) {
+export default function FeedbackPrompt({ userId, page, extensionApplied, openSignal, autoPrompt = true, onTickets }: Props) {
   const [open, setOpen] = useState(false);
   const [trigger, setTrigger] = useState<'manual' | 'auto'>('manual');
   const [step, setStep] = useState<Step>('rating');
@@ -56,6 +59,8 @@ export default function FeedbackPrompt({ userId, page, extensionApplied, openSig
   const [allowPublic, setAllowPublic] = useState(true);
   const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState<{ rated: boolean; applications: number } | null>(null);
+  const [openedTicket, setOpenedTicket] = useState(false);
+  const ticketsRef = useRef({ total: 0, open: 0 });
 
   useEffect(() => {
     let cancelled = false;
@@ -64,11 +69,14 @@ export default function FeedbackPrompt({ userId, page, extensionApplied, openSig
       .then((body) => {
         if (cancelled || !body?.success) return;
         setStatus({ rated: Boolean(body.data.last), applications: Number(body.data.applications) || 0 });
+        ticketsRef.current = { total: Number(body.data.tickets) || 0, open: Number(body.data.openTickets) || 0 };
+        onTickets?.(ticketsRef.current);
       })
       .catch(() => {});
     return () => {
       cancelled = true;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId]);
 
   // Ask once, after the 10th application, unless they already rated us or chose "Later".
@@ -109,6 +117,7 @@ export default function FeedbackPrompt({ userId, page, extensionApplied, openSig
     setTags([]);
     setComment('');
     setAllowPublic(true);
+    setOpenedTicket(false);
   }
 
   function close() {
@@ -140,6 +149,11 @@ export default function FeedbackPrompt({ userId, page, extensionApplied, openSig
       const body = await res.json().catch(() => null);
       if (!res.ok || !body?.success) throw new Error(body?.message || 'Could not send your feedback');
       setStatus((prev) => (prev ? { ...prev, rated: true } : prev));
+      if (body.data?.feedback?.ticketStatus === 'open') {
+        ticketsRef.current = { total: ticketsRef.current.total + 1, open: ticketsRef.current.open + 1 };
+        onTickets?.(ticketsRef.current);
+        setOpenedTicket(true);
+      }
       setStep('done');
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Could not send your feedback');
@@ -314,14 +328,28 @@ export default function FeedbackPrompt({ userId, page, extensionApplied, openSig
                 </>
               ) : (
                 <>
-                  <p className="mt-1 text-sm text-gray-500">Sorry it wasn't great. Our team reads every message and will work on this.</p>
-                  <button
-                    type="button"
-                    onClick={() => setOpen(false)}
-                    className="mt-5 px-5 py-2 rounded-xl text-sm font-bold text-purple-700 bg-purple-50 border border-purple-200 hover:bg-purple-100"
-                  >
-                    Close
-                  </button>
+                  <p className="mt-1 text-sm text-gray-500">
+                    Sorry it wasn't great. Our team reads every message and will work on this.
+                    {openedTicket ? ' We opened a ticket for you: follow it and see our reply in Settings > My Tickets.' : ''}
+                  </p>
+                  <div className="mt-5 flex justify-center gap-2">
+                    {openedTicket ? (
+                      <Link
+                        to="/dashboard/tickets"
+                        onClick={() => setOpen(false)}
+                        className="px-5 py-2 rounded-xl text-sm font-bold text-white gradient-primary shadow-xs hover:opacity-95"
+                      >
+                        View my ticket
+                      </Link>
+                    ) : null}
+                    <button
+                      type="button"
+                      onClick={() => setOpen(false)}
+                      className="px-5 py-2 rounded-xl text-sm font-bold text-purple-700 bg-purple-50 border border-purple-200 hover:bg-purple-100"
+                    >
+                      Close
+                    </button>
+                  </div>
                 </>
               )}
             </div>

@@ -4,7 +4,7 @@ import { requireAdmin } from "src/lib/guards";
 import { ok, handleApiError, parsePagination } from "src/lib/api";
 
 // Admin > Ratings: feedback from the dashboard "Rate us" popup, newest first, with a summary.
-// Filters: ?rating=1..5, ?public=1 (ok to show on the website), ?q= (name, email or review text).
+// Filters: ?rating=1..5, ?public=1 (ok to show on the website), ?ticket=open|closed, ?q= (name, email or review text).
 export async function GET(req: Request) {
   try {
     const authResult = await requireAdmin();
@@ -17,6 +17,8 @@ export async function GET(req: Request) {
     const where: Prisma.FeedbackWhereInput = {};
     if (Number.isInteger(rating) && rating >= 1 && rating <= 5) where.rating = rating;
     if (url.searchParams.get("public") === "1") where.allowPublic = true;
+    const ticket = url.searchParams.get("ticket");
+    if (ticket === "open" || ticket === "closed") where.ticketStatus = ticket;
     if (q) {
       where.OR = [
         { comment: { contains: q, mode: "insensitive" } },
@@ -25,7 +27,7 @@ export async function GET(req: Request) {
       ];
     }
 
-    const [items, total, summary, byRating, tagRows] = await Promise.all([
+    const [items, total, summary, byRating, tagRows, openTickets] = await Promise.all([
       prisma.feedback.findMany({
         where,
         include: { user: { select: { id: true, name: true, email: true, plan: true } } },
@@ -39,6 +41,7 @@ export async function GET(req: Request) {
       prisma.$queryRaw<Array<{ tag: string; count: bigint }>>`
         SELECT tag, COUNT(*) AS count FROM "Feedback", unnest("tags") AS tag
         GROUP BY tag ORDER BY count DESC LIMIT 8`,
+      prisma.feedback.count({ where: { ticketStatus: "open" } }),
     ]);
 
     const distribution = [5, 4, 3, 2, 1].map((stars) => ({
@@ -53,6 +56,7 @@ export async function GET(req: Request) {
         average: summary._avg.rating ? Math.round(summary._avg.rating * 10) / 10 : 0,
         distribution,
         topTags: tagRows.map((row) => ({ tag: row.tag, count: Number(row.count) })),
+        openTickets,
       },
       pagination: { page, limit, total, totalPages: Math.max(1, Math.ceil(total / limit)) },
     });

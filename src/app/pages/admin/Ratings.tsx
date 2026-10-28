@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
-import { ChevronLeft, ChevronRight, Globe, Loader2, RefreshCw, Search, Star } from "lucide-react";
+import { CheckCircle2, ChevronLeft, ChevronRight, CircleDot, Globe, Loader2, RefreshCw, Search, Star } from "lucide-react";
 
 // Admin > Ratings: feedback from the dashboard "Rate us" popup (components/FeedbackPrompt.tsx).
+// Bad ratings and bug reports are tickets: reply and close them here; the user sees both in Settings > My Tickets.
 
 type FeedbackItem = {
   id: string;
@@ -12,6 +13,10 @@ type FeedbackItem = {
   allowPublic: boolean;
   page: string;
   trigger: "manual" | "auto";
+  ticketStatus: "open" | "closed" | null;
+  adminReply: string;
+  repliedAt: string | null;
+  closedAt: string | null;
   createdAt: string;
   user: { id: string; name: string; email: string; plan: string };
 };
@@ -20,13 +25,14 @@ type Summary = {
   average: number;
   distribution: Array<{ rating: number; count: number }>;
   topTags: Array<{ tag: string; count: number }>;
+  openTickets: number;
 };
 type Pagination = { page: number; limit: number; total: number; totalPages: number };
 
 const PAGE_SIZE = 20;
 
-async function api<T>(url: string): Promise<T> {
-  const res = await fetch(url, { credentials: "include" });
+async function api<T>(url: string, init?: RequestInit): Promise<T> {
+  const res = await fetch(url, { credentials: "include", headers: { "Content-Type": "application/json" }, ...init });
   const body = await res.json().catch(() => null);
   if (!res.ok || !body?.success) throw new Error(body?.message || "Request failed");
   return body.data as T;
@@ -53,6 +59,9 @@ export default function Ratings() {
   const [page, setPage] = useState(1);
   const [rating, setRating] = useState<number | null>(null);
   const [publicOnly, setPublicOnly] = useState(false);
+  const [ticket, setTicket] = useState<"" | "open" | "closed">("");
+  const [replyDrafts, setReplyDrafts] = useState<Record<string, string>>({});
+  const [busyId, setBusyId] = useState<string | null>(null);
   const [queryInput, setQueryInput] = useState("");
   const [query, setQuery] = useState("");
 
@@ -62,6 +71,7 @@ export default function Ratings() {
       const params = new URLSearchParams({ page: String(page), limit: String(PAGE_SIZE) });
       if (rating) params.set("rating", String(rating));
       if (publicOnly) params.set("public", "1");
+      if (ticket) params.set("ticket", ticket);
       if (query) params.set("q", query);
       const data = await api<{ items: FeedbackItem[]; summary: Summary; pagination: Pagination }>(`/api/admin/feedback?${params}`);
       setItems(data.items);
@@ -72,7 +82,37 @@ export default function Ratings() {
     } finally {
       setLoading(false);
     }
-  }, [page, rating, publicOnly, query]);
+  }, [page, rating, publicOnly, ticket, query]);
+
+  const updateTicket = async (item: FeedbackItem, change: { ticketStatus?: "open" | "closed"; adminReply?: string }) => {
+    setBusyId(item.id);
+    try {
+      const data = await api<{ feedback: Pick<FeedbackItem, "id" | "ticketStatus" | "adminReply" | "repliedAt" | "closedAt"> }>(
+        `/api/admin/feedback/${item.id}`,
+        { method: "PATCH", body: JSON.stringify(change) },
+      );
+      setItems((prev) => prev.map((i) => (i.id === item.id ? { ...i, ...data.feedback } : i)));
+      setReplyDrafts((prev) => {
+        const next = { ...prev };
+        delete next[item.id];
+        return next;
+      });
+      if (change.ticketStatus) {
+        setSummary((prev) => (prev ? { ...prev, openTickets: prev.openTickets + (change.ticketStatus === "open" ? 1 : -1) } : prev));
+      }
+      toast.success(change.ticketStatus === "closed" ? "Ticket closed" : change.ticketStatus === "open" ? "Ticket reopened" : "Reply saved");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to update ticket");
+    } finally {
+      setBusyId(null);
+    }
+  };
+
+  const ticketFilters: Array<{ value: "" | "open" | "closed"; label: string }> = [
+    { value: "", label: "All" },
+    { value: "open", label: summary ? `Open tickets (${summary.openTickets})` : "Open tickets" },
+    { value: "closed", label: "Closed tickets" },
+  ];
 
   useEffect(() => {
     void load();
@@ -194,6 +234,20 @@ export default function Ratings() {
             </button>
           ))}
         </div>
+        <div className="flex gap-1">
+          {ticketFilters.map((f) => (
+            <button
+              key={f.value || "any"}
+              type="button"
+              onClick={() => applyFilter(() => setTicket(f.value))}
+              className={`px-3 py-2 rounded-xl text-xs font-semibold border ${
+                ticket === f.value ? "bg-amber-500 border-amber-500 text-white" : "bg-white border-gray-200 text-gray-700 hover:bg-gray-50"
+              }`}
+            >
+              {f.label}
+            </button>
+          ))}
+        </div>
         <label className="flex items-center gap-2 px-3 py-2 rounded-xl border border-gray-200 bg-white text-xs font-semibold text-gray-700 cursor-pointer">
           <input type="checkbox" checked={publicOnly} onChange={(e) => applyFilter(() => setPublicOnly(e.target.checked))} className="accent-purple-600" />
           OK to show on website
@@ -219,6 +273,16 @@ export default function Ratings() {
                       <span className="font-semibold text-gray-900">{item.user.name || "Unnamed"}</span>
                       <span className="text-sm text-gray-500 truncate">{item.user.email}</span>
                       <span className="px-1.5 py-0.5 rounded-md text-[10px] font-bold uppercase bg-gray-100 text-gray-600">{item.user.plan}</span>
+                      {item.ticketStatus === "open" && (
+                        <span className="flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-bold uppercase bg-amber-50 text-amber-800 border border-amber-200">
+                          <CircleDot className="w-3 h-3" /> Open ticket
+                        </span>
+                      )}
+                      {item.ticketStatus === "closed" && (
+                        <span className="flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-bold uppercase bg-emerald-50 text-emerald-700 border border-emerald-200">
+                          <CheckCircle2 className="w-3 h-3" /> Closed
+                        </span>
+                      )}
                       {item.allowPublic && (
                         <span className="flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-bold uppercase bg-emerald-50 text-emerald-700 border border-emerald-200">
                           <Globe className="w-3 h-3" /> Public OK
@@ -252,6 +316,58 @@ export default function Ratings() {
                   <p className="mt-2 text-sm text-gray-700 whitespace-pre-line">{item.comment}</p>
                 ) : (
                   <p className="mt-2 text-sm italic text-gray-400">No written review</p>
+                )}
+                {item.ticketStatus && (
+                  <div className="mt-3 rounded-xl border border-gray-100 bg-gray-50/70 p-3">
+                    <div className="text-xs font-semibold text-gray-600">
+                      Reply to the user (shown in their Settings &gt; My Tickets)
+                      {item.repliedAt ? <span className="font-normal text-gray-400"> · last saved {formatDate(item.repliedAt)}</span> : null}
+                    </div>
+                    <textarea
+                      value={replyDrafts[item.id] ?? item.adminReply}
+                      onChange={(e) => setReplyDrafts((prev) => ({ ...prev, [item.id]: e.target.value }))}
+                      rows={2}
+                      maxLength={4000}
+                      placeholder="e.g. Thanks! We fixed the salary field, please try again."
+                      className="mt-1.5 w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm outline-none focus:border-purple-300 focus:ring-4 focus:ring-purple-100"
+                    />
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      <button
+                        type="button"
+                        disabled={busyId === item.id || (replyDrafts[item.id] ?? item.adminReply) === item.adminReply}
+                        onClick={() => void updateTicket(item, { adminReply: replyDrafts[item.id] ?? item.adminReply })}
+                        className="px-3 py-1.5 rounded-lg text-xs font-bold text-white bg-purple-600 hover:bg-purple-700 disabled:opacity-40"
+                      >
+                        Save reply
+                      </button>
+                      {item.ticketStatus === "open" ? (
+                        <button
+                          type="button"
+                          disabled={busyId === item.id}
+                          onClick={() => {
+                            // Closing also saves a reply typed but not saved yet.
+                            const draft = replyDrafts[item.id];
+                            void updateTicket(item, {
+                              ticketStatus: "closed",
+                              ...(draft !== undefined && draft !== item.adminReply ? { adminReply: draft } : {}),
+                            });
+                          }}
+                          className="px-3 py-1.5 rounded-lg text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 hover:bg-emerald-100 disabled:opacity-40"
+                        >
+                          Close ticket
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          disabled={busyId === item.id}
+                          onClick={() => void updateTicket(item, { ticketStatus: "open" })}
+                          className="px-3 py-1.5 rounded-lg text-xs font-bold text-amber-800 bg-amber-50 border border-amber-200 hover:bg-amber-100 disabled:opacity-40"
+                        >
+                          Reopen
+                        </button>
+                      )}
+                    </div>
+                  </div>
                 )}
               </li>
             ))}

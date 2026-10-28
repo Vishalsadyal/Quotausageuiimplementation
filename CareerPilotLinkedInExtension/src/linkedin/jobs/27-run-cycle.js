@@ -135,6 +135,7 @@ async function runCycle(settings) {
       await recordOutcome("SKIPPED", {
         reasonCode: viewDescriptionDecision.reasonCode,
         reason: viewDescriptionDecision.reason,
+        matchedWord: viewDescriptionDecision.matchedWord || "",
         ...currentJobContext
       });
       recordJobOutcomeCache(viewJobKey, "SKIPPED", viewDescriptionDecision.reasonCode);
@@ -470,6 +471,7 @@ async function runCycle(settings) {
       await recordOutcome("SKIPPED", {
         reasonCode: ruleDecision.reasonCode,
         reason: ruleDecision.reason,
+        matchedWord: ruleDecision.matchedWord || "",
         jobId: jobKey,
         ...cardMeta
       });
@@ -578,6 +580,7 @@ async function runCycle(settings) {
       await recordOutcome("SKIPPED", {
         reasonCode: descriptionDecision.reasonCode,
         reason: descriptionDecision.reason,
+        matchedWord: descriptionDecision.matchedWord || "",
         ...currentJobContext
       });
       recordOutcomeCacheForAliases("SKIPPED", descriptionDecision.reasonCode);

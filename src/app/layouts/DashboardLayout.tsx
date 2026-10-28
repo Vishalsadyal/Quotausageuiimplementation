@@ -26,6 +26,7 @@ import {
   Sparkles,
   Loader2,
   Star,
+  LifeBuoy,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { hasCompletedRequiredOnboarding } from 'src/lib/onboarding';
@@ -81,6 +82,8 @@ function DashboardLayoutInner({ registerOpenMenu }: { registerOpenMenu: (open: (
   const { questions: pendingQuestions } = usePendingQuestions(Boolean(user));
   const [pendingPromptSignal, setPendingPromptSignal] = useState(0);
   const [feedbackSignal, setFeedbackSignal] = useState(0);
+  // My Tickets shows under Settings only for users who reported a problem (a bad rating or a bug).
+  const [tickets, setTickets] = useState({ total: 0, open: 0 });
   const [stoppingImpersonation, setStoppingImpersonation] = useState(false);
 
   const handleStopImpersonation = async () => {
@@ -178,6 +181,9 @@ function DashboardLayoutInner({ registerOpenMenu }: { registerOpenMenu: (open: (
       : { name: 'Onboarding', href: '/dashboard/onboarding', icon: FileText },
     { name: 'Refer & Earn', href: '/dashboard/referrals', icon: Gift },
     { name: 'Settings', href: '/dashboard/settings', icon: Settings },
+    ...(tickets.total > 0
+      ? [{ name: 'My Tickets', href: '/dashboard/tickets', icon: LifeBuoy, badge: tickets.open > 0 ? `${tickets.open} open` : undefined }]
+      : []),
   ];
 
   // Auto Apply sections open as sub-items under the menu entry, on the provider in use.
@@ -637,6 +643,7 @@ function DashboardLayoutInner({ registerOpenMenu }: { registerOpenMenu: (open: (
           extensionApplied={extensionStats.loaded ? extensionStats.applied : 0}
           openSignal={feedbackSignal}
           autoPrompt={!user.impersonatedBy}
+          onTickets={setTickets}
         />
       )}
       {user && <PendingQuestionsPrompt userId={String(user.id)} questions={pendingQuestions} openSignal={pendingPromptSignal} />}

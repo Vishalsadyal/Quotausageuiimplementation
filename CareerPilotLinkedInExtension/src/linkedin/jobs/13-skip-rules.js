@@ -9,16 +9,32 @@
  * Map of all parts and functions: docs/CODE_MAP.md
  */
 
+// Whole-word match for exclude words: "Intern" skips "Marketing Intern" but not "Internal Auditor" or
+// "International". Joined words from the AI ("VicePresident") are split first, to "vice president".
+function splitWordsForMatch(value) {
+  return String(value || "")
+    .replace(/([a-z])([A-Z])/g, "$1 $2")
+    .toLowerCase()
+    .replace(/[^a-z0-9+#]+/g, " ")
+    .trim();
+}
+
+function textHasExcludedWord(text, word) {
+  const w = splitWordsForMatch(word);
+  if (!w) return false;
+  return ` ${splitWordsForMatch(text)} `.includes(` ${w} `);
+}
+
 function shouldSkipByRules(card, settings) {
   const { title, titleRaw, company } = extractCardMeta(card);
   const blacklistCompanies = parseListSetting(settings.blacklistedCompanies).map((s) => normalizeLabel(s));
-  const badWords = parseListSetting(settings.badWords).map((s) => normalizeLabel(s));
 
   if (company && blacklistCompanies.some((name) => name && company.includes(name))) {
     return { skip: true, reasonCode: "BLACKLISTED_COMPANY", reason: `Company blacklisted: ${company}` };
   }
-  if (title && badWords.some((w) => w && title.includes(w))) {
-    return { skip: true, reasonCode: "BAD_WORD_TITLE", reason: `Title contains excluded word: ${title}` };
+  const titleWord = title ? parseListSetting(settings.badWords).find((w) => textHasExcludedWord(titleRaw || title, w)) : "";
+  if (titleWord) {
+    return { skip: true, reasonCode: "BAD_WORD_TITLE", reason: `"${titleWord}" found in the job title`, matchedWord: titleWord };
   }
 
   const activeKeyword = getCurrentSearchKeyword() || parseListSetting(settings?.searchTerms)[0] || "";
@@ -177,14 +193,8 @@ function shouldSkipByDescription(description, settings) {
   const text = normalizeLabel(description);
   if (!text) return { skip: false, reasonCode: "", reason: "" };
 
-  const badWords = parseListSetting(settings.badWords).map((s) => normalizeLabel(s));
-  if (badWords.some((w) => w && text.includes(w))) {
-    return {
-      skip: true,
-      reasonCode: "BAD_WORD_DESCRIPTION",
-      reason: "Blocked by description bad word rule"
-    };
-  }
+  // Exclude words are checked on the job title only (shouldSkipByRules), not here: descriptions mention
+  // them in normal jobs ("Intern to 7 years", "report to the Finance Director", "sales tax").
 
   const hasClearanceRequirement =
     text.includes("polygraph") ||

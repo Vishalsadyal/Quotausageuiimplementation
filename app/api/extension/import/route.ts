@@ -141,6 +141,9 @@ export async function POST(req: NextRequest) {
       const company = String(data.company || "").trim();
       const workLocation = String(data.workLocation || "").trim();
       const reasonCode = String(data.reasonCode || "").trim();
+      // Why it was skipped, in words, and the exclude word that caused it ("Sales" found in the job description).
+      const reason = entry.outcomeType === "SKIPPED" ? String(data.reason || "").trim().slice(0, 200) : "";
+      const matchedWord = String(data.matchedWord || "").trim().slice(0, 80);
       const runId = String(entry.runId || "").trim();
       const sourceKey = extensionSourceKey(provider);
 
@@ -157,6 +160,8 @@ export async function POST(req: NextRequest) {
         company,
         workLocation,
         reasonCode,
+        reason,
+        matchedWord,
       };
 
       // Upsert a synthetic "job" so existing dashboard pages can reuse /api/auto-apply/jobs.
@@ -204,6 +209,8 @@ export async function POST(req: NextRequest) {
               entryId: effectiveEntryId,
               runId,
               reasonCode,
+              reason,
+              matchedWord,
               jobUrl,
               pageUrl,
               workLocation,
@@ -225,6 +232,8 @@ export async function POST(req: NextRequest) {
               entryId: effectiveEntryId,
               runId,
               reasonCode,
+              reason,
+              matchedWord,
               jobUrl,
               pageUrl,
               workLocation,

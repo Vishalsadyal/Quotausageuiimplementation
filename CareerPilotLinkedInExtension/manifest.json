@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "AutoApply CV - All-in-One Job Copilot & Outreach Suite",
-  "version": "3.3.7",
-  "description": "All-in-one job copilot: LinkedIn Easy Apply, Indeed automation, WhatsApp outreach, and a live client-call copilot for Google Meet.",
+  "version": "3.4.1",
+  "description": "Job copilot: LinkedIn Easy Apply, WhatsApp and email outreach to recruiters, and a live call copilot for Google Meet.",
   "icons": {
     "16": "icons/icon16.png",
     "32": "icons/icon32.png",
@@ -18,8 +18,6 @@
   "host_permissions": [
     "https://www.linkedin.com/*",
     "https://*.linkedin.com/*",
-    "https://www.indeed.com/*",
-    "https://*.indeed.com/*",
     "https://web.whatsapp.com/*",
     "https://api.whatsapp.com/*",
     "https://wa.me/*",
@@ -50,8 +48,6 @@
       "matches": [
         "https://www.linkedin.com/*",
         "https://*.linkedin.com/*",
-        "https://www.indeed.com/*",
-        "https://*.indeed.com/*",
         "https://web.whatsapp.com/*",
         "https://mail.google.com/*"
       ],
@@ -125,19 +121,6 @@
         "src/linkedin/outreach/outreach_email.css",
         "src/linkedin/outreach/outreach_comment.css",
         "src/linkedin/outreach/panel_outreach.css"
-      ],
-      "run_at": "document_idle"
-    },
-    {
-      "matches": [
-        "https://www.indeed.com/*",
-        "https://*.indeed.com/*"
-      ],
-      "js": [
-        "src/indeed/content_indeed.js"
-      ],
-      "css": [
-        "src/indeed/panel_indeed.css"
       ],
       "run_at": "document_idle"
     },

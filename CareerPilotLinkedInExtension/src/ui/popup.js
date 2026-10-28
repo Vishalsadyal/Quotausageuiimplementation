@@ -1,6 +1,6 @@
 /**
  * AutoApply CV Suite - Unified Popup Controller
- * Manages LinkedIn Apply, Indeed Copilot, WhatsApp Outreach, Auto Commenter, HR Finder & Settings.
+ * Manages LinkedIn Apply, WhatsApp Outreach, Auto Commenter, Email Outreach, Call Copilot & Settings.
  */
 
 function sendMessage(message) {
@@ -46,7 +46,6 @@ function setupTabs() {
       if (targetId === "tab-whatsapp") loadWhatsAppStatus();
       if (targetId === "tab-commenter") loadCommenterStatus();
       if (targetId === "tab-emailoutreach" || targetId === "tab-hroutreach") loadEmailOutreachStatus();
-      if (targetId === "tab-indeed") updateIndeedState();
     });
   });
 }
@@ -102,27 +101,56 @@ async function updateLinkedInState() {
   // Only write a number the extension really has. Its short-term quota cache is empty right after it restarts,
   // and showing 0 then made the count flash 0 until the next refresh.
   const spendable = knownSpendable(portalQuota);
+  const plan = String(portalQuota?.data?.plan || "").toLowerCase();
+  const unlimited = isUnlimitedPlan(plan, spendable);
   if (spendable !== null) {
-    document.getElementById("popupHiresCount").textContent = spendable;
-    document.getElementById("popupQuotaDetail").textContent = `Daily Free: ${dailyCap.used || 0}/${dailyCap.cap || 3} \u2022 Spendable: ${spendable}`;
+    document.getElementById("popupHiresCount").textContent = unlimited ? "Unlimited" : spendable;
+    document.getElementById("popupQuotaDetail").textContent = unlimited
+      ? `${PLAN_NAMES[plan] || "Paid"} plan \u2022 no daily limit`
+      : `Daily Free: ${dailyCap.used || 0}/${dailyCap.cap || 3} \u2022 Spendable: ${spendable}`;
+    const topup = document.getElementById("popupTopupLink");
+    if (topup) {
+      topup.href = `${portalBaseUrl}/dashboard/billing`;
+      topup.textContent = unlimited ? "Manage" : "Top Up";
+    }
   }
 
   // Account Card
+  // Signed in when the website answered the quota check (it needs the login), even if the profile
+  // name hasn't synced to the extension yet. The name comes from the synced profile when there is one.
   const accountCard = document.getElementById("accountCard");
   const accountBadge = document.getElementById("accountBadge");
   const accountText = document.getElementById("accountText");
-  const isConnected = Boolean(settings.contactEmail || settings.fullName);
+  const accountAction = document.getElementById("accountAction");
+  const accountActionText = document.getElementById("accountActionText");
+  const who = settings.fullName || settings.contactEmail || "";
+  const isConnected = Boolean(plan) || Boolean(who);
   if (isConnected) {
     accountCard.className = "account-card connected";
     accountBadge.className = "account-badge connected";
     accountBadge.textContent = "Connected";
-    accountText.textContent = `Connected as ${settings.fullName || settings.contactEmail}`;
+    accountText.textContent = who
+      ? `Signed in as ${who}${plan ? ` \u2022 ${PLAN_NAMES[plan] || plan} plan` : ""}`
+      : `Signed in${plan ? ` \u2022 ${PLAN_NAMES[plan] || plan} plan` : ""}`;
+    if (accountActionText) accountActionText.textContent = "Open my dashboard";
+    if (accountAction) accountAction.dataset.target = "dashboard";
   } else {
     accountCard.className = "account-card disconnected";
     accountBadge.className = "account-badge disconnected";
     accountBadge.textContent = "Disconnected";
-    accountText.textContent = "Sign in to connect your profile and sync quota.";
+    accountText.textContent = "Sign in to connect your profile and sync your Hires.";
+    if (accountActionText) accountActionText.textContent = "Sign in to AutoApply CV";
+    if (accountAction) accountAction.dataset.target = "login";
+    document.getElementById("popupHiresCount").textContent = "--";
+    document.getElementById("popupQuotaDetail").textContent = "Sign in to see your Hires.";
   }
+}
+
+const PLAN_NAMES = { free: "Free", pro: "Pro", connect: "Pro Connect", coach: "Career Coach" };
+
+// Paid plans have no Hires limit; the website sends 1000000 for them (src/lib/hires.ts getWalletSummary).
+function isUnlimitedPlan(plan, spendable) {
+  return ["pro", "connect", "coach"].includes(plan) || (spendable !== null && spendable >= 1000000);
 }
 
 function setupLinkedInControls() {
@@ -155,114 +183,10 @@ function setupLinkedInControls() {
     await updateLinkedInState();
   });
 
-  document.getElementById("accountAction")?.addEventListener("click", () => {
-    chrome.tabs.create({ url: `${portalBaseUrl}/auth/login` });
-  });
-}
-
-// ── Module 2: Indeed Copilot ──
-async function updateIndeedState() {
-  const res = await sendMessage({ type: "CP_GET_BOOTSTRAP" });
-  if (!res.ok) return;
-
-  const { state = {}, settings = {}, dailyCap = {}, portalQuota = {} } = res;
-
-  // Live Counts
-  const appliedEl = document.getElementById("indeedApplied");
-  const skippedEl = document.getElementById("indeedSkipped");
-  const failedEl = document.getElementById("indeedFailed");
-  if (appliedEl) appliedEl.textContent = state.applied || 0;
-  if (skippedEl) skippedEl.textContent = state.skipped || 0;
-  if (failedEl) failedEl.textContent = state.failed || 0;
-
-  // Now Running Details
-  const nowTitle = document.getElementById("indeedNowTitle");
-  const nowDetail = document.getElementById("indeedNowDetail");
-  if (nowTitle && nowDetail) {
-    if (state.running) {
-      nowTitle.textContent = "Indeed Copilot Active";
-      nowDetail.textContent = "Scanning Indeed jobs & autofilling applications...";
-    } else if (state.paused) {
-      nowTitle.textContent = "Indeed Copilot Paused";
-      nowDetail.textContent = "Application flow paused. Press Start to resume.";
-    } else {
-      nowTitle.textContent = "Ready on Indeed";
-      nowDetail.textContent = "Open Indeed Jobs to start autonomous job application.";
-    }
-  }
-
-  // Mode Switch
-  const toggle = document.getElementById("indeedLiveModeToggle");
-  const modeBadge = document.getElementById("indeedModeBadge");
-  if (toggle && modeBadge) {
-    const isLive = Boolean(settings.autoSubmit && !settings.dryRun);
-    toggle.checked = isLive;
-    modeBadge.textContent = isLive ? "Live Submit" : "Dry Run";
-    modeBadge.style.background = isLive ? "#d1fae5" : "#fef3c7";
-    modeBadge.style.color = isLive ? "#065f46" : "#92400e";
-  }
-
-  // Quota
-  const spendable = knownSpendable(portalQuota);
-  const hiresEl = document.getElementById("indeedPopupHiresCount");
-  const quotaDetailEl = document.getElementById("indeedPopupQuotaDetail");
-  if (hiresEl && spendable !== null) hiresEl.textContent = spendable;
-  if (quotaDetailEl) {
-    if (spendable !== null) quotaDetailEl.textContent = `Daily Free: ${dailyCap.used || 0}/${dailyCap.cap || 3} \u2022 Spendable: ${spendable}`;
-  }
-
-  // Account Card
-  const accountCard = document.getElementById("indeedAccountCard");
-  const accountBadge = document.getElementById("indeedAccountBadge");
-  const accountText = document.getElementById("indeedAccountText");
-  const isConnected = Boolean(settings.contactEmail || settings.fullName);
-  if (accountCard && accountBadge && accountText) {
-    if (isConnected) {
-      accountCard.className = "account-card connected";
-      accountBadge.className = "account-badge connected";
-      accountBadge.textContent = "Connected";
-      accountText.textContent = `Connected as ${settings.fullName || settings.contactEmail}`;
-    } else {
-      accountCard.className = "account-card disconnected";
-      accountBadge.className = "account-badge disconnected";
-      accountBadge.textContent = "Disconnected";
-      accountText.textContent = "Sign in to connect your profile and sync quota.";
-    }
-  }
-}
-
-function setupIndeedControls() {
-  document.getElementById("indeedStart")?.addEventListener("click", async () => {
-    await sendMessage({ type: "CP_START" });
-    await updateIndeedState();
-  });
-
-  document.getElementById("indeedPause")?.addEventListener("click", async () => {
-    await sendMessage({ type: "CP_PAUSE" });
-    await updateIndeedState();
-  });
-
-  document.getElementById("indeedStop")?.addEventListener("click", async () => {
-    await sendMessage({ type: "CP_STOP" });
-    await updateIndeedState();
-  });
-
-  document.getElementById("indeedLiveModeToggle")?.addEventListener("change", async (e) => {
-    const isLive = e.target.checked;
-    await sendMessage({
-      type: "CP_SAVE_SETTINGS",
-      settings: { autoSubmit: isLive, dryRun: !isLive }
-    });
-    await updateIndeedState();
-  });
-
-  document.getElementById("indeedClearLogs")?.addEventListener("click", async () => {
-    await sendMessage({ type: "CP_CLEAR_LOGS" });
-    await updateIndeedState();
-  });
-
-  document.getElementById("indeedAccountAction")?.addEventListener("click", () => {
-    chrome.tabs.create({ url: `${portalBaseUrl}/auth/login` });
+  // Signed out: the website's login page. Signed in: the dashboard.
+  document.getElementById("accountAction")?.addEventListener("click", (e) => {
+    const target = e.currentTarget?.dataset?.target === "dashboard" ? "/dashboard" : "/login";
+    chrome.tabs.create({ url: `${portalBaseUrl}${target}` });
   });
 }
 
@@ -419,25 +343,25 @@ function knownSpendable(portalQuota) {
 function showHires(balance) {
   if (!balance) return;
   const n = Number(balance.spendable || 0);
-  const text = balance.unlimited ? "Unlimited" : `${n} ${n === 1 ? "Hire" : "Hires"}`;
-  // The counters on the LinkedIn and Indeed tabs fill from the same stored balance, so they show the real
-  // number as soon as the popup opens instead of waiting for the extension to answer.
-  for (const id of ["popupHiresCount", "indeedPopupHiresCount"]) {
-    const el = document.getElementById(id);
-    if (el) el.textContent = balance.unlimited ? "Unlimited" : String(n);
-  }
+  // Paid plans come as 1000000 spendable Hires, which means no limit.
+  const unlimited = Boolean(balance.unlimited) || n >= 1000000;
+  const text = unlimited ? "Unlimited" : `${n} ${n === 1 ? "Hire" : "Hires"}`;
+  // The LinkedIn tab's counter fills from the same stored balance, so it shows the real number as soon as
+  // the popup opens instead of waiting for the extension to answer.
+  const counter = document.getElementById("popupHiresCount");
+  if (counter) counter.textContent = unlimited ? "Unlimited" : String(n);
   document.querySelectorAll("[data-hires-line]").forEach((line) => {
     const before = line.dataset.last === undefined || line.dataset.last === "" ? null : Number(line.dataset.last);
     line.hidden = false;
     line.querySelector("[data-hires-text]").textContent = text;
-    line.classList.toggle("is-low", !balance.unlimited && n > 0 && n <= 3);
-    line.classList.toggle("is-empty", !balance.unlimited && n <= 0);
-    if (!balance.unlimited && before !== null && n < before) {
+    line.classList.toggle("is-low", !unlimited && n > 0 && n <= 3);
+    line.classList.toggle("is-empty", !unlimited && n <= 0);
+    if (!unlimited && before !== null && n < before) {
       line.classList.remove("is-drop");
       void line.offsetWidth; // restart the animation
       line.classList.add("is-drop");
     }
-    line.dataset.last = balance.unlimited ? "" : String(n);
+    line.dataset.last = unlimited ? "" : String(n);
   });
 }
 
@@ -452,9 +376,13 @@ function setupHires() {
 
 // ── Initialize Suite ──
 document.addEventListener("DOMContentLoaded", async () => {
+  // The version in the footer comes from manifest.json, so it can't go out of date.
+  const version = chrome.runtime?.getManifest?.()?.version;
+  const foot = document.getElementById("footVersion");
+  if (foot && version) foot.textContent = `AutoApply CV Suite v${version}`;
+
   setupTabs();
   setupLinkedInControls();
-  setupIndeedControls();
   setupWhatsAppControls();
   setupCommenterControls();
   setupEmailOutreachControls();
@@ -462,9 +390,8 @@ document.addEventListener("DOMContentLoaded", async () => {
   setupSettingsControls();
   setupHires();
 
-  await Promise.all([updateLinkedInState(), updateIndeedState()]);
+  await updateLinkedInState();
   setInterval(() => {
     updateLinkedInState();
-    updateIndeedState();
   }, 3000);
 });

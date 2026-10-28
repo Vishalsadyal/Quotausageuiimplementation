@@ -64,6 +64,7 @@ const Resume = lazy(() => import('./pages/dashboard/Resume'));
 const Interview = lazy(() => import('./pages/dashboard/Interview'));
 const DashboardAnalytics = lazy(() => import('./pages/dashboard/Analytics'));
 const Settings = lazy(() => import('./pages/dashboard/Settings'));
+const Tickets = lazy(() => import('./pages/dashboard/Tickets'));
 const Profile = lazy(() => import('./pages/dashboard/Profile'));
 const Billing = lazy(() => import('./pages/dashboard/Billing'));
 const Onboarding = lazy(() => import('./pages/dashboard/Onboarding'));
@@ -90,6 +91,7 @@ const AdminBlogs = lazy(() => import('./pages/admin/Blogs'));
 const AdminBlogEditor = lazy(() => import('./pages/admin/BlogEditor'));
 const AdminAgency = lazy(() => import('./pages/admin/Agency'));
 const AdminRatings = lazy(() => import('./pages/admin/Ratings'));
+const AdminFollowUps = lazy(() => import('./pages/admin/FollowUps'));
 
 // SEO (lightweight - keep eager)
 const SeoManager = lazy(() => import('./components/SeoManager').then(m => ({ default: m.SeoManager })));
@@ -207,6 +209,7 @@ const routes = createRoutesFromElements(
       <Route path="interview" element={<Suspense fallback={<PageLoader />}><Interview /></Suspense>} />
       <Route path="analytics" element={<Suspense fallback={<PageLoader />}><DashboardAnalytics /></Suspense>} />
       <Route path="settings" element={<Suspense fallback={<PageLoader />}><Settings /></Suspense>} />
+      <Route path="tickets" element={<Suspense fallback={<PageLoader />}><Tickets /></Suspense>} />
       <Route path="profile" element={<Suspense fallback={<PageLoader />}><Profile /></Suspense>} />
       <Route path="billing" element={<Suspense fallback={<PageLoader />}><Billing /></Suspense>} />
       <Route path="marketing" element={<Navigate to="/dashboard/marketing/email" replace />} />
@@ -248,6 +251,7 @@ const routes = createRoutesFromElements(
       <Route path="growth" element={<Suspense fallback={<PageLoader />}><AdminGrowth /></Suspense>} />
       <Route path="agency" element={<Suspense fallback={<PageLoader />}><AdminAgency /></Suspense>} />
       <Route path="ratings" element={<Suspense fallback={<PageLoader />}><AdminRatings /></Suspense>} />
+      <Route path="follow-ups" element={<Suspense fallback={<PageLoader />}><AdminFollowUps /></Suspense>} />
       <Route path="screening-questions" element={<Suspense fallback={<PageLoader />}><AdminScreeningQuestions /></Suspense>} />
     </Route>
 

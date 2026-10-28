@@ -1042,10 +1042,12 @@ export default function Jobs() {
     setDictionaryToast("✨ Groq AI is analyzing your resume to generate 100 high-intent keywords across all categories...");
 
     try {
+      // Keyword lists only: the titles are merged below, and the user's exclude words are left as they are.
       const res = await fetch("/api/user/ai/generate-search-profile", {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ only: "keywords" }),
       });
       const data = await res.json();
 

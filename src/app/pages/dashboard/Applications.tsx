@@ -113,6 +113,13 @@ const REASON_CODE_LABELS: Record<string, string> = {
   MAX_SKIPS_REACHED: "Skipped: max skips reached",
   REQUIRED_CUSTOM_FIELDS: "Pending user input",
   PENDING_USER_INPUT: "Pending user input",
+  BAD_WORD_TITLE: "Excluded word in the job title",
+  BAD_WORD_DESCRIPTION: "Excluded word in the job description",
+  ABOUT_COMPANY_BAD_WORD: "Excluded word in the company description",
+  KEYWORD_MISMATCH: "Title does not match your job titles",
+  WORK_MODE_FILTER_MISMATCH: "Work mode does not match (remote / on-site / hybrid)",
+  BLACKLISTED_COMPANY: "Company is on your blocked list",
+  ALREADY_APPLIED: "Already applied earlier",
 };
 
 function formatReasonCode(value: unknown) {
@@ -142,7 +149,9 @@ function normalizeJobTitle(value: unknown) {
 function getJobReason(job: Job) {
   const code = cleanJobText(job.criteriaJson?.reasonCode);
   const explicit = cleanJobText(job.criteriaJson?.reason || job.errorMessage);
-  if (code) return formatReasonCode(code);
+  // The exclude word that caused the skip, e.g. Excluded word in the job description: "Sales".
+  const word = cleanJobText(job.criteriaJson?.matchedWord);
+  if (code) return word ? `${formatReasonCode(code)}: "${word}"` : formatReasonCode(code);
   if (explicit) return explicit;
   return "";
 }
