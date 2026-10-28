@@ -2,9 +2,16 @@ import { Prisma } from "@prisma/client";
 import { prisma } from "src/lib/prisma";
 import { requireAdmin } from "src/lib/guards";
 import { ok, handleApiError, parsePagination } from "src/lib/api";
+import { ticketMessageSelect } from "src/lib/tickets";
 
 // Admin > Ratings: feedback from the dashboard "Rate us" popup, newest first, with a summary.
-// Filters: ?rating=1..5, ?public=1 (ok to show on the website), ?ticket=open|closed, ?q= (name, email or review text).
+// Filters: ?rating=1..5, ?public=1 (ok to show on the website), ?ticket=open|closed|waiting, ?q= (name, email or review text).
+// "waiting": open tickets where the user wrote last (or nobody has answered yet).
+const WAITING_FOR_REPLY: Prisma.FeedbackWhereInput = {
+  ticketStatus: "open",
+  OR: [{ lastMessageBy: "user" }, { lastMessageBy: null }],
+};
+
 export async function GET(req: Request) {
   try {
     const authResult = await requireAdmin();
@@ -19,6 +26,7 @@ export async function GET(req: Request) {
     if (url.searchParams.get("public") === "1") where.allowPublic = true;
     const ticket = url.searchParams.get("ticket");
     if (ticket === "open" || ticket === "closed") where.ticketStatus = ticket;
+    if (ticket === "waiting") Object.assign(where, WAITING_FOR_REPLY);
     if (q) {
       where.OR = [
         { comment: { contains: q, mode: "insensitive" } },
@@ -27,10 +35,13 @@ export async function GET(req: Request) {
       ];
     }
 
-    const [items, total, summary, byRating, tagRows, openTickets] = await Promise.all([
+    const [items, total, summary, byRating, tagRows, openTickets, waitingTickets] = await Promise.all([
       prisma.feedback.findMany({
         where,
-        include: { user: { select: { id: true, name: true, email: true, plan: true } } },
+        include: {
+          user: { select: { id: true, name: true, email: true, plan: true } },
+          messages: { orderBy: { createdAt: "asc" }, select: ticketMessageSelect },
+        },
         orderBy: { createdAt: "desc" },
         skip,
         take: limit,
@@ -42,6 +53,7 @@ export async function GET(req: Request) {
         SELECT tag, COUNT(*) AS count FROM "Feedback", unnest("tags") AS tag
         GROUP BY tag ORDER BY count DESC LIMIT 8`,
       prisma.feedback.count({ where: { ticketStatus: "open" } }),
+      prisma.feedback.count({ where: WAITING_FOR_REPLY }),
     ]);
 
     const distribution = [5, 4, 3, 2, 1].map((stars) => ({
@@ -57,6 +69,7 @@ export async function GET(req: Request) {
         distribution,
         topTags: tagRows.map((row) => ({ tag: row.tag, count: Number(row.count) })),
         openTickets,
+        waitingTickets,
       },
       pagination: { page, limit, total, totalPages: Math.max(1, Math.ceil(total / limit)) },
     });

@@ -14,19 +14,24 @@ type FeedbackItem = {
   page: string;
   trigger: "manual" | "auto";
   ticketStatus: "open" | "closed" | null;
-  adminReply: string;
-  repliedAt: string | null;
   closedAt: string | null;
+  lastMessageBy: "user" | "admin" | null;
   createdAt: string;
   user: { id: string; name: string; email: string; plan: string };
+  messages: TicketMessage[];
 };
+type TicketMessage = { id: string; author: "user" | "admin"; body: string; createdAt: string };
 type Summary = {
   total: number;
   average: number;
   distribution: Array<{ rating: number; count: number }>;
   topTags: Array<{ tag: string; count: number }>;
   openTickets: number;
+  waitingTickets: number;
 };
+
+// An open ticket where the user wrote last, or nobody from the team has answered yet.
+const isWaiting = (item: FeedbackItem) => item.ticketStatus === "open" && item.lastMessageBy !== "admin";
 type Pagination = { page: number; limit: number; total: number; totalPages: number };
 
 const PAGE_SIZE = 20;
@@ -59,7 +64,7 @@ export default function Ratings() {
   const [page, setPage] = useState(1);
   const [rating, setRating] = useState<number | null>(null);
   const [publicOnly, setPublicOnly] = useState(false);
-  const [ticket, setTicket] = useState<"" | "open" | "closed">("");
+  const [ticket, setTicket] = useState<"" | "waiting" | "open" | "closed">("");
   const [replyDrafts, setReplyDrafts] = useState<Record<string, string>>({});
   const [busyId, setBusyId] = useState<string | null>(null);
   const [queryInput, setQueryInput] = useState("");
@@ -84,23 +89,16 @@ export default function Ratings() {
     }
   }, [page, rating, publicOnly, ticket, query]);
 
-  const updateTicket = async (item: FeedbackItem, change: { ticketStatus?: "open" | "closed"; adminReply?: string }) => {
+  const setStatus = async (item: FeedbackItem, ticketStatus: "open" | "closed") => {
     setBusyId(item.id);
     try {
-      const data = await api<{ feedback: Pick<FeedbackItem, "id" | "ticketStatus" | "adminReply" | "repliedAt" | "closedAt"> }>(
-        `/api/admin/feedback/${item.id}`,
-        { method: "PATCH", body: JSON.stringify(change) },
-      );
-      setItems((prev) => prev.map((i) => (i.id === item.id ? { ...i, ...data.feedback } : i)));
-      setReplyDrafts((prev) => {
-        const next = { ...prev };
-        delete next[item.id];
-        return next;
+      const data = await api<{ feedback: Pick<FeedbackItem, "id" | "ticketStatus" | "closedAt"> }>(`/api/admin/feedback/${item.id}`, {
+        method: "PATCH",
+        body: JSON.stringify({ ticketStatus }),
       });
-      if (change.ticketStatus) {
-        setSummary((prev) => (prev ? { ...prev, openTickets: prev.openTickets + (change.ticketStatus === "open" ? 1 : -1) } : prev));
-      }
-      toast.success(change.ticketStatus === "closed" ? "Ticket closed" : change.ticketStatus === "open" ? "Ticket reopened" : "Reply saved");
+      setItems((prev) => prev.map((i) => (i.id === item.id ? { ...i, ...data.feedback } : i)));
+      setSummary((prev) => (prev ? { ...prev, openTickets: prev.openTickets + (ticketStatus === "open" ? 1 : -1) } : prev));
+      toast.success(ticketStatus === "closed" ? "Ticket closed" : "Ticket reopened");
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Failed to update ticket");
     } finally {
@@ -108,8 +106,32 @@ export default function Ratings() {
     }
   };
 
-  const ticketFilters: Array<{ value: "" | "open" | "closed"; label: string }> = [
+  // Sends the reply; "and close" also closes the ticket (e.g. "Fixed, please try again").
+  const sendReply = async (item: FeedbackItem, andClose = false) => {
+    const body = (replyDrafts[item.id] || "").trim();
+    if (!body) return;
+    setBusyId(item.id);
+    try {
+      const data = await api<{ message: TicketMessage; feedback: Pick<FeedbackItem, "ticketStatus" | "closedAt" | "lastMessageBy"> }>(
+        `/api/admin/feedback/${item.id}/messages`,
+        { method: "POST", body: JSON.stringify({ body }) },
+      );
+      setItems((prev) => prev.map((i) => (i.id === item.id ? { ...i, ...data.feedback, messages: [...i.messages, data.message] } : i)));
+      setReplyDrafts((prev) => ({ ...prev, [item.id]: "" }));
+      if (isWaiting(item)) setSummary((prev) => (prev ? { ...prev, waitingTickets: Math.max(0, prev.waitingTickets - 1) } : prev));
+      toast.success("Reply sent");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to send reply");
+      setBusyId(null);
+      return;
+    }
+    setBusyId(null);
+    if (andClose) await setStatus({ ...item, lastMessageBy: "admin" }, "closed");
+  };
+
+  const ticketFilters: Array<{ value: "" | "waiting" | "open" | "closed"; label: string }> = [
     { value: "", label: "All" },
+    { value: "waiting", label: summary ? `Needs reply (${summary.waitingTickets})` : "Needs reply" },
     { value: "open", label: summary ? `Open tickets (${summary.openTickets})` : "Open tickets" },
     { value: "closed", label: "Closed tickets" },
   ];
@@ -278,6 +300,11 @@ export default function Ratings() {
                           <CircleDot className="w-3 h-3" /> Open ticket
                         </span>
                       )}
+                      {isWaiting(item) && (
+                        <span className="px-1.5 py-0.5 rounded-md text-[10px] font-bold uppercase bg-rose-600 text-white">
+                          {item.lastMessageBy === "user" ? "User replied" : "Needs reply"}
+                        </span>
+                      )}
                       {item.ticketStatus === "closed" && (
                         <span className="flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-bold uppercase bg-emerald-50 text-emerald-700 border border-emerald-200">
                           <CheckCircle2 className="w-3 h-3" /> Closed
@@ -319,48 +346,68 @@ export default function Ratings() {
                 )}
                 {item.ticketStatus && (
                   <div className="mt-3 rounded-xl border border-gray-100 bg-gray-50/70 p-3">
-                    <div className="text-xs font-semibold text-gray-600">
-                      Reply to the user (shown in their Settings &gt; My Tickets)
-                      {item.repliedAt ? <span className="font-normal text-gray-400"> · last saved {formatDate(item.repliedAt)}</span> : null}
-                    </div>
+                    <div className="text-xs font-semibold text-gray-600">Conversation (the user sees it in Settings &gt; My Tickets)</div>
+                    {item.messages.length ? (
+                      <div className="mt-2 space-y-2">
+                        {item.messages.map((m) => (
+                          <div key={m.id} className={`flex ${m.author === "admin" ? "justify-end" : "justify-start"}`}>
+                            <div
+                              className={`max-w-[85%] rounded-2xl px-3 py-2 ${
+                                m.author === "admin" ? "bg-purple-600 text-white rounded-br-md" : "bg-white border border-gray-200 text-gray-900 rounded-bl-md"
+                              }`}
+                            >
+                              <div className={`text-[11px] font-semibold ${m.author === "admin" ? "text-purple-100" : "text-rose-700"}`}>
+                                {m.author === "admin" ? "Team" : item.user.name || "User"} · {formatDate(m.createdAt)}
+                              </div>
+                              <p className="mt-0.5 text-sm whitespace-pre-line break-words">{m.body}</p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="mt-1 text-xs text-gray-400">No replies yet.</p>
+                    )}
                     <textarea
-                      value={replyDrafts[item.id] ?? item.adminReply}
+                      value={replyDrafts[item.id] || ""}
                       onChange={(e) => setReplyDrafts((prev) => ({ ...prev, [item.id]: e.target.value }))}
                       rows={2}
                       maxLength={4000}
-                      placeholder="e.g. Thanks! We fixed the salary field, please try again."
-                      className="mt-1.5 w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm outline-none focus:border-purple-300 focus:ring-4 focus:ring-purple-100"
+                      placeholder="Reply to the user… e.g. Thanks! We fixed the salary field, please try again."
+                      className="mt-2 w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm outline-none focus:border-purple-300 focus:ring-4 focus:ring-purple-100"
                     />
                     <div className="mt-2 flex flex-wrap gap-2">
                       <button
                         type="button"
-                        disabled={busyId === item.id || (replyDrafts[item.id] ?? item.adminReply) === item.adminReply}
-                        onClick={() => void updateTicket(item, { adminReply: replyDrafts[item.id] ?? item.adminReply })}
+                        disabled={busyId === item.id || !(replyDrafts[item.id] || "").trim()}
+                        onClick={() => void sendReply(item)}
                         className="px-3 py-1.5 rounded-lg text-xs font-bold text-white bg-purple-600 hover:bg-purple-700 disabled:opacity-40"
                       >
-                        Save reply
+                        Send reply
                       </button>
                       {item.ticketStatus === "open" ? (
-                        <button
-                          type="button"
-                          disabled={busyId === item.id}
-                          onClick={() => {
-                            // Closing also saves a reply typed but not saved yet.
-                            const draft = replyDrafts[item.id];
-                            void updateTicket(item, {
-                              ticketStatus: "closed",
-                              ...(draft !== undefined && draft !== item.adminReply ? { adminReply: draft } : {}),
-                            });
-                          }}
-                          className="px-3 py-1.5 rounded-lg text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 hover:bg-emerald-100 disabled:opacity-40"
-                        >
-                          Close ticket
-                        </button>
+                        <>
+                          <button
+                            type="button"
+                            disabled={busyId === item.id || !(replyDrafts[item.id] || "").trim()}
+                            onClick={() => void sendReply(item, true)}
+                            className="px-3 py-1.5 rounded-lg text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40"
+                          >
+                            Send &amp; close
+                          </button>
+                          <button
+                            type="button"
+                            disabled={busyId === item.id}
+                            onClick={() => void setStatus(item, "closed")}
+                            className="px-3 py-1.5 rounded-lg text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 hover:bg-emerald-100 disabled:opacity-40"
+                          >
+                            Close ticket
+                          </button>
+                        </>
                       ) : (
                         <button
                           type="button"
                           disabled={busyId === item.id}
-                          onClick={() => void updateTicket(item, { ticketStatus: "open" })}
+                          onClick={() => void setStatus(item, "open")}
                           className="px-3 py-1.5 rounded-lg text-xs font-bold text-amber-800 bg-amber-50 border border-amber-200 hover:bg-amber-100 disabled:opacity-40"
                         >
                           Reopen

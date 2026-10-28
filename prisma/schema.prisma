@@ -728,12 +728,15 @@ model Feedback {
   trigger     String   @default("manual") // manual | auto (after the 10th application)
   // A bad rating (1-3 stars) or a "Bugs / errors" pick opens a ticket the user follows in Settings > My Tickets.
   ticketStatus String?   // open | closed; null = not a ticket
-  adminReply   String    @default("")
+  adminReply   String    @default("") // first team reply, before tickets had messages; now kept in TicketMessage
   repliedAt    DateTime?
   closedAt     DateTime?
+  lastMessageBy String?  // user | admin: who wrote last, so the admin sees tickets waiting for a reply
+  lastMessageAt DateTime?
   createdAt   DateTime @default(now())
 
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messages    TicketMessage[]
 
   @@index([createdAt])
   @@index([rating])
@@ -756,4 +759,18 @@ model WhatsAppFollowUp {
 
   @@unique([userId, key])
   @@index([reason, createdAt])
+}
+
+// The conversation on a ticket (Feedback with a ticketStatus): replies from the user and from the team.
+model TicketMessage {
+  id         String   @id @default(cuid())
+  feedbackId String
+  author     String   // user | admin
+  authorId   String?
+  body       String
+  createdAt  DateTime @default(now())
+
+  feedback   Feedback @relation(fields: [feedbackId], references: [id], onDelete: Cascade)
+
+  @@index([feedbackId, createdAt])
 }
