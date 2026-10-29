@@ -6,6 +6,7 @@ export type SeoEntry = {
 };
 
 import { STATIC_BLOG_POSTS_BY_SLUG } from "src/content/blogPosts";
+import { publishedStoreUrls } from "src/lib/extension-store";
 
 export const DEFAULT_SEO: SeoEntry = {
   title: "AutoApply Free | LinkedIn Auto Apply Bot & AI Job Search Tool",
@@ -13,6 +14,12 @@ export const DEFAULT_SEO: SeoEntry = {
     "AutoApply free with AutoApply CV: an AI job search automation platform with a LinkedIn auto apply bot, AI resume builder, and job application tracker.",
   index: true,
 };
+
+// Google shows about 60 characters of a title. A long title keeps its words instead of the brand suffix.
+export function withBrand(title: string) {
+  const full = `${title} | AutoApply CV`;
+  return full.length <= 60 ? full : title;
+}
 
 export function normalizeCanonicalBaseUrl(value?: string) {
   const fallback = "https://www.autoapplycv.in";
@@ -56,7 +63,7 @@ export const SEO_BY_PATH: Record<string, SeoEntry> = {
         url: "https://www.autoapplycv.in",
         logo: "https://www.autoapplycv.in/apple-touch-icon.png",
         // Official profiles only. Add LinkedIn / X / YouTube company pages here once they exist.
-        sameAs: ["https://chromewebstore.google.com/detail/mcfmniiniaigfhhjlaegpmhecbdoikjd"],
+        sameAs: publishedStoreUrls(),
       },
       {
         "@context": "https://schema.org",
@@ -433,6 +440,17 @@ export const SEO_BY_PATH: Record<string, SeoEntry> = {
     description: "Admin access portal for AutoApply CV platform operations.",
     index: false,
   },
+  "/remove-my-contact": {
+    title: "Remove My Contact Details | AutoApply CV",
+    description:
+      "Recruiters and HR professionals: remove your phone number or email from AutoApply CV's recruiter contacts. Takes under a minute.",
+    index: true,
+  },
+  "/thank-you": {
+    title: "Thank You | AutoApply CV",
+    description: "Thanks for joining AutoApply CV. Next: check your email, complete your profile and start auto applying.",
+    index: false,
+  },
   "/extension-design": {
     title: "Extension Design | AutoApply CV",
     description: "Internal design preview for the AutoApply CV Chrome extension.",
@@ -461,7 +479,7 @@ export function resolveSeo(pathname: string): SeoEntry {
     const post = STATIC_BLOG_POSTS_BY_SLUG[slug];
     if (post) {
       return {
-        title: `${post.title} | AutoApply CV`,
+        title: withBrand(post.title),
         description: post.excerpt,
         index: true,
         structuredData: {

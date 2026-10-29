@@ -1,3 +1,5 @@
+import { CHROME_STORE_URL } from "src/lib/extension-store";
+
 export type ExtensionProvider = "linkedin" | "indeed";
 
 export type ExtensionProviderConfig = {
@@ -20,7 +22,7 @@ const EXTENSION_PROVIDERS: Record<ExtensionProvider, ExtensionProviderConfig> = 
     rootDir: "CareerPilotLinkedInExtension",
     sourceKey: "linkedin_extension",
     zipPrefix: "AutoApplyCVLinkedInExtensionVersion",
-    storeUrl: "https://chromewebstore.google.com/detail/mcfmniiniaigfhhjlaegpmhecbdoikjd",
+    storeUrl: CHROME_STORE_URL,
   },
   indeed: {
     provider: "indeed",

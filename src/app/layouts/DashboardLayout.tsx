@@ -39,7 +39,8 @@ import {
 import { APPLICATIONS_PATH, JOBS_SECTIONS, jobsSectionPath, type JobsProvider } from '../pages/dashboard/jobsSections';
 import { usePendingQuestions } from '../hooks/usePendingQuestions';
 import PendingQuestionsPrompt from '../components/PendingQuestionsPrompt';
-import FeedbackPrompt from '../components/FeedbackPrompt';
+import FeedbackPrompt, { type TicketCounts } from '../components/FeedbackPrompt';
+import { toast } from 'sonner';
 import { GuideLauncher, GuideProvider } from '../components/guide/LiveGuide';
 
 const AssistantPanel = lazy(() =>
@@ -83,7 +84,37 @@ function DashboardLayoutInner({ registerOpenMenu }: { registerOpenMenu: (open: (
   const [pendingPromptSignal, setPendingPromptSignal] = useState(0);
   const [feedbackSignal, setFeedbackSignal] = useState(0);
   // My Tickets shows under Settings only for users who reported a problem (a bad rating or a bug).
-  const [tickets, setTickets] = useState({ total: 0, open: 0 });
+  const [tickets, setTickets] = useState<TicketCounts>({ total: 0, open: 0, newReplies: 0, latestReplyAt: null });
+
+  // My Tickets reports how many team replies still wait for the user's answer (pages/dashboard/Tickets.tsx),
+  // so the bell drops one as soon as they reply.
+  useEffect(() => {
+    const onAttention = (e: Event) => {
+      const count = Number((e as CustomEvent<{ count: number }>).detail?.count) || 0;
+      setTickets((prev) => ({ ...prev, newReplies: count }));
+    };
+    window.addEventListener('cp:ticketsAttention', onAttention);
+    return () => window.removeEventListener('cp:ticketsAttention', onAttention);
+  }, []);
+
+  // A new team reply on a ticket: one popup per reply (remembered for this browser session).
+  useEffect(() => {
+    if (!user || !tickets.newReplies || !tickets.latestReplyAt) return;
+    if (location.pathname === '/dashboard/tickets') return;
+    const key = `cp:ticketReplyNotified:${user.id}`;
+    try {
+      if (window.sessionStorage.getItem(key) === tickets.latestReplyAt) return;
+      window.sessionStorage.setItem(key, tickets.latestReplyAt);
+    } catch {
+      // storage blocked: the popup may show again on the next page load
+    }
+    toast('AutoApply CV team replied to your ticket', {
+      description: tickets.newReplies > 1 ? `${tickets.newReplies} tickets have a new reply.` : 'Open My Tickets to read it and reply.',
+      duration: 12000,
+      action: { label: 'View', onClick: () => navigate('/dashboard/tickets') },
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tickets.newReplies, tickets.latestReplyAt, user?.id]);
   const [stoppingImpersonation, setStoppingImpersonation] = useState(false);
 
   const handleStopImpersonation = async () => {
@@ -182,7 +213,12 @@ function DashboardLayoutInner({ registerOpenMenu }: { registerOpenMenu: (open: (
     { name: 'Refer & Earn', href: '/dashboard/referrals', icon: Gift },
     { name: 'Settings', href: '/dashboard/settings', icon: Settings },
     ...(tickets.total > 0
-      ? [{ name: 'My Tickets', href: '/dashboard/tickets', icon: LifeBuoy, badge: tickets.open > 0 ? `${tickets.open} open` : undefined }]
+      ? [{
+          name: 'My Tickets',
+          href: '/dashboard/tickets',
+          icon: LifeBuoy,
+          badge: tickets.open > 0 ? `${tickets.open} open` : undefined,
+        }]
       : []),
   ];
 
@@ -520,16 +556,27 @@ function DashboardLayoutInner({ registerOpenMenu }: { registerOpenMenu: (open: (
                 )}
 
                 {/* Notifications Bell */}
+                {/* Counts questions the extension is waiting on and new team replies on tickets. Questions
+                    come first (they hold up the run); with none, the bell opens My Tickets. */}
                 <button
                   type="button"
-                  aria-label={pendingQuestions.length ? `${pendingQuestions.length} questions need your answer` : 'Notifications'}
-                  onClick={() => setPendingPromptSignal((n) => n + 1)}
+                  aria-label={
+                    pendingQuestions.length
+                      ? `${pendingQuestions.length} questions need your answer`
+                      : tickets.newReplies
+                      ? `${tickets.newReplies} new replies on your tickets`
+                      : 'Notifications'
+                  }
+                  onClick={() => {
+                    if (!pendingQuestions.length && tickets.newReplies > 0) navigate('/dashboard/tickets');
+                    else setPendingPromptSignal((n) => n + 1);
+                  }}
                   className="relative p-1.5 sm:p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-xl transition-colors shrink-0"
                 >
                   <Bell className="w-4 h-4" />
-                  {pendingQuestions.length > 0 && (
+                  {pendingQuestions.length + tickets.newReplies > 0 && (
                     <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 px-1 rounded-full bg-red-500 text-[10px] font-semibold leading-4 text-white text-center ring-2 ring-white">
-                      {pendingQuestions.length > 9 ? '9+' : pendingQuestions.length}
+                      {pendingQuestions.length + tickets.newReplies > 9 ? '9+' : pendingQuestions.length + tickets.newReplies}
                     </span>
                   )}
                 </button>

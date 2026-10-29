@@ -21,6 +21,7 @@ const STATIC_APP_PATHS = new Set<string>([
   "/help-center",
   "/community",
   "/privacy-policy",
+  "/remove-my-contact",
   "/terms-of-service",
   "/cookie-policy",
   "/extension-design",

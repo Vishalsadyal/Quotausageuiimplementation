@@ -14,12 +14,15 @@ type Ticket = {
   ticketStatus: 'open' | 'closed';
   closedAt: string | null;
   lastMessageBy: 'user' | 'admin' | null;
+  isNew: boolean;
   createdAt: string;
   messages: Message[];
 };
 
 const formatDate = (iso: string) =>
   new Date(iso).toLocaleString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+
+const awaitingReply = (t: Ticket) => t.ticketStatus === 'open' && t.lastMessageBy === 'admin';
 
 function Bubble({ mine, who, at, text }: { mine: boolean; who: string; at: string; text: string }) {
   return (
@@ -53,6 +56,14 @@ export default function Tickets() {
       })
       .catch((e) => setError(e instanceof Error ? e.message : 'Could not load your tickets'));
   }, []);
+
+  // The bell counts open tickets where the team wrote last: one leaves the bell when the user replies.
+  // (Closed ones were marked seen when this page loaded.)
+  useEffect(() => {
+    if (!tickets) return;
+    const waiting = tickets.filter(awaitingReply).length;
+    window.dispatchEvent(new CustomEvent('cp:ticketsAttention', { detail: { count: waiting } }));
+  }, [tickets]);
 
   const sendReply = async (ticket: Ticket) => {
     const text = (drafts[ticket.id] || '').trim();
@@ -111,10 +122,19 @@ export default function Tickets() {
             {tickets.map((t) => (
               <li key={t.id} className="rounded-2xl border border-gray-200 bg-white p-4 sm:p-5">
                 <div className="flex flex-wrap items-start justify-between gap-2">
-                  <div className="flex items-center gap-0.5" aria-label={`${t.rating} out of 5 stars`}>
-                    {[1, 2, 3, 4, 5].map((i) => (
-                      <Star key={i} className={`w-4 h-4 ${i <= t.rating ? 'fill-amber-400 text-amber-400' : 'text-gray-300'}`} />
-                    ))}
+                  <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-0.5" aria-label={`${t.rating} out of 5 stars`}>
+                      {[1, 2, 3, 4, 5].map((i) => (
+                        <Star key={i} className={`w-4 h-4 ${i <= t.rating ? 'fill-amber-400 text-amber-400' : 'text-gray-300'}`} />
+                      ))}
+                    </div>
+                    {awaitingReply(t) ? (
+                      <span className="rounded-full bg-rose-600 px-2 py-0.5 text-[10px] font-bold uppercase text-white">
+                        {t.isNew ? 'New reply' : 'Waiting for your reply'}
+                      </span>
+                    ) : t.isNew ? (
+                      <span className="rounded-full bg-rose-600 px-2 py-0.5 text-[10px] font-bold uppercase text-white">New reply</span>
+                    ) : null}
                   </div>
                   {t.ticketStatus === 'open' ? (
                     <span className="flex items-center gap-1 rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-800">

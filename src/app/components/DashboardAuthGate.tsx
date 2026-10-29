@@ -5,6 +5,8 @@ import { Briefcase, Check, Eye, EyeOff, Lock, Mail, Phone, Quote, Sparkles, User
 import { useAuth } from '../context/AuthContext';
 import { readHeroLead } from 'src/lib/heroLead';
 import { TopRatedBadges } from './marketing/TopRatedBadges';
+import { useExtensionStore } from '../hooks/useExtensionStore';
+import { ExtensionBrowserNote } from './ExtensionBrowserNote';
 
 type Mode = 'signup' | 'login';
 
@@ -28,6 +30,7 @@ const QUOTES = [
 // Left side of the signup popup: animated product advantages and rotating quotes.
 function AuthGateBanner() {
   const [quoteIndex, setQuoteIndex] = useState(0);
+  const extensionStore = useExtensionStore();
   useEffect(() => {
     const id = window.setInterval(() => setQuoteIndex((i) => (i + 1) % QUOTES.length), 4000);
     return () => window.clearInterval(id);
@@ -86,10 +89,10 @@ function AuthGateBanner() {
 
         <TopRatedBadges className="mt-3 pt-3 border-t border-white/10" />
 
-        {/* Verifiable facts only: the real Chrome Web Store listing and supported job platforms. */}
+        {/* Verifiable facts only: the real store listing (Chrome, or Edge Add-ons for Edge users) and supported job platforms. */}
         <div className="mt-3 pt-3 border-t border-white/10 flex flex-wrap items-center gap-2">
           <a
-            href="https://chromewebstore.google.com/detail/mcfmniiniaigfhhjlaegpmhecbdoikjd"
+            href={extensionStore.url}
             target="_blank"
             rel="noreferrer"
             className="inline-flex items-center gap-1.5 rounded-full bg-white/10 border border-white/15 px-2.5 py-1 text-[11px] font-semibold text-[#eae7ff] hover:bg-white/15 transition-colors"
@@ -102,7 +105,7 @@ function AuthGateBanner() {
               <circle cx="24" cy="24" r="10" fill="#ffffff" />
               <circle cx="24" cy="24" r="8" fill="#1a73e8" />
             </svg>
-            Available on Chrome Web Store
+            Available on {extensionStore.name}
           </a>
           <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 border border-white/15 px-2.5 py-1 text-[11px] font-semibold text-[#eae7ff]">
             <svg viewBox="0 0 24 24" className="w-3.5 h-3.5" aria-hidden="true">
@@ -112,9 +115,10 @@ function AuthGateBanner() {
                 d="M7.1 9.6h2.5v8.1H7.1V9.6Zm1.25-4a1.45 1.45 0 1 1 0 2.9 1.45 1.45 0 0 1 0-2.9Zm2.8 4h2.4v1.1h.03c.34-.63 1.15-1.3 2.37-1.3 2.53 0 3 1.67 3 3.83v4.47h-2.5v-3.96c0-.95-.02-2.16-1.32-2.16-1.32 0-1.52 1.03-1.52 2.1v4.02h-2.5V9.6Z"
               />
             </svg>
-            Works with LinkedIn &amp; Indeed
+            Works with LinkedIn
           </span>
         </div>
+        <ExtensionBrowserNote store={extensionStore} tone="dark" className="mt-2" />
       </div>
     </div>
   );

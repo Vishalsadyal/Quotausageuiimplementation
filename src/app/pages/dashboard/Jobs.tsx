@@ -1,3 +1,5 @@
+import { useExtensionStore } from "../../hooks/useExtensionStore";
+import { ExtensionBrowserNote } from "../../components/ExtensionBrowserNote";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "motion/react";
 import {
@@ -725,9 +727,9 @@ export default function Jobs() {
   const extensionZipUrl = String(process.env.NEXT_PUBLIC_EXTENSION_ZIP_URL || "/api/public/extension-download").trim();
   const linkedInExtensionZipUrl = `${extensionZipUrl}?provider=linkedin`;
   const indeedExtensionZipUrl = `${extensionZipUrl}?provider=indeed`;
-  const extensionStoreUrl = String(
-    process.env.NEXT_PUBLIC_EXTENSION_STORE_URL || getExtensionProviderConfig("linkedin").storeUrl || "",
-  ).trim();
+  // Chrome Web Store, or Edge Add-ons for Edge users (an env override wins for testing builds).
+  const visitorStore = useExtensionStore();
+  const extensionStoreUrl = String(process.env.NEXT_PUBLIC_EXTENSION_STORE_URL || visitorStore.url || "").trim();
   const [extensionRelease, setExtensionRelease] = useState<ExtensionReleaseMeta>({
     version: "1.1.3",
     displayName: "AutoApply CV LinkedIn Copilot",
@@ -2670,7 +2672,7 @@ export default function Jobs() {
       installed: linkedInInstalled,
       statusLabel: linkedInInstalled ? "Connected & Ready" : "Not Detected",
       statusColor: linkedInInstalled ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-amber-50 text-amber-700 border-amber-200",
-      storeUrl: "https://chromewebstore.google.com/detail/mcfmniiniaigfhhjlaegpmhecbdoikjd",
+      storeUrl: extensionStoreUrl,
     },
     {
       id: "indeed",
@@ -2834,13 +2836,13 @@ export default function Jobs() {
             {!isCurrentProviderInstalled && (
               <a
                 ref={storeLinkButtonRef}
-                href={currentProviderStoreUrl || "https://chromewebstore.google.com/detail/mcfmniiniaigfhhjlaegpmhecbdoikjd"}
+                href={currentProviderStoreUrl || extensionStoreUrl}
                 target="_blank"
                 rel="noreferrer"
                 className="px-2.5 py-1.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white rounded-lg text-[11px] font-bold inline-flex items-center gap-1"
               >
                 <ExternalLink className="w-3 h-3" />
-                <span>Install from Chrome Store</span>
+                <span>Install from {visitorStore.browser === "edge" ? "Edge Add-ons" : "Chrome Store"}</span>
               </a>
             )}
 
@@ -2913,13 +2915,13 @@ export default function Jobs() {
 
               <div className="flex items-center flex-wrap gap-2 shrink-0">
                 <a
-                  href={currentProviderStoreUrl || "https://chromewebstore.google.com/detail/mcfmniiniaigfhhjlaegpmhecbdoikjd"}
+                  href={currentProviderStoreUrl || extensionStoreUrl}
                   target="_blank"
                   rel="noreferrer"
                   className="px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white rounded-xl text-xs font-bold transition-all shadow-xs hover:shadow-sm inline-flex items-center gap-1.5"
                 >
                   <ExternalLink className="w-3.5 h-3.5" />
-                  <span>Install from Chrome Store</span>
+                  <span>Install from {visitorStore.browser === "edge" ? "Edge Add-ons" : "Chrome Store"}</span>
                 </a>
 
                 <button
@@ -2941,6 +2943,7 @@ export default function Jobs() {
                   <span>{checkingExtension ? "Checking..." : "Check Bridge"}</span>
                 </button>
               </div>
+              <ExtensionBrowserNote store={visitorStore} className="mt-3" />
             </div>
           </motion.div>
         )}

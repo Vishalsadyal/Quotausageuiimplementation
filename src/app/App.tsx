@@ -19,6 +19,7 @@ import { DashboardAuthGate } from './components/DashboardAuthGate';
 // The public site shell stays eager. Everything a home-page visitor does not see (dashboard,
 // admin, auth screens) loads on demand, so it is not downloaded and run on mobile first load.
 import Root from './Root';
+import { Toaster } from './components/ui/sonner';
 const DashboardLayout = lazy(() => import('./layouts/DashboardLayout'));
 const AdminLayout = lazy(() => import('./layouts/AdminLayout'));
 
@@ -276,6 +277,8 @@ export default function App({ initialPathname }: AppProps) {
   return (
     <AuthProvider>
       <RouterProvider router={router} />
+      {/* toast() messages (sonner) across the site: ticket replies, saves, errors */}
+      <Toaster theme="light" position="top-right" closeButton richColors />
     </AuthProvider>
   );
 }

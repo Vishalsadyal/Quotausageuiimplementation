@@ -29,10 +29,12 @@ const PAGES: Array<[path: string, changeFrequency: ChangeFrequency, priority: nu
   ["/help-center", "monthly", 0.7],
   ["/community", "weekly", 0.6],
   ["/careers", "monthly", 0.6],
+  ["/signup", "monthly", 0.6],
   ["/press-kit", "monthly", 0.5],
   ["/privacy-policy", "yearly", 0.4],
   ["/terms-of-service", "yearly", 0.4],
   ["/cookie-policy", "yearly", 0.4],
+  ["/remove-my-contact", "yearly", 0.3],
 ];
 
 // Re-generate hourly so newly published database posts are picked up.

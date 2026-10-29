@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import App from "../../src/app/App";
-import { OG_IMAGE, canonicalForPath, resolveSeo } from "../../src/app/seo/seoConfig";
+import { OG_IMAGE, canonicalForPath, resolveSeo, withBrand } from "../../src/app/seo/seoConfig";
 import { blogSlugFromPath, isKnownAppPath, prerenderedAppPaths } from "../../src/app/seo/routes";
 import { STATIC_BLOG_POSTS, STATIC_BLOG_POSTS_BY_SLUG } from "../../src/content/blogPosts";
 import { prisma } from "../../src/lib/prisma";
@@ -66,7 +66,7 @@ async function databaseBlogSeo(pathname: string): Promise<PageSeo | null> {
       },
     });
     if (!post) return null;
-    const title = `${(post.metaTitle || post.title).trim()} | AutoApply CV`;
+    const title = withBrand((post.metaTitle || post.title).trim());
     const description = (post.metaDescription || post.excerpt || post.title).trim().slice(0, 170);
     const canonical = post.canonicalUrl || canonicalForPath(pathname);
     const image = post.coverImage ? new URL(post.coverImage, "https://www.autoapplycv.in").toString() : undefined;

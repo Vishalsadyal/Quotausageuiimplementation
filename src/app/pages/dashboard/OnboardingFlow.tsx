@@ -5,6 +5,8 @@ import { useAuth } from "../../context/AuthContext";
 import { AlertCircle, ArrowLeftRight, Building2, Check, ChevronLeft, Chrome, ExternalLink, FileText, Home, Lightbulb, Loader2, Lock, MapPin, Plus, Sparkles, UploadCloud, X, type LucideIcon } from "lucide-react";
 import { InsightPanel, MapPanel, ProfileCard, useOnboardingInsights } from "./OnboardingPanels";
 import { captureEvent } from "src/lib/posthog-client";
+import { useExtensionStore } from "../../hooks/useExtensionStore";
+import { ExtensionBrowserNote } from "../../components/ExtensionBrowserNote";
 import type { JobPreferences, MasterProfile, PendingQuestion, ScreeningAnswerType, ScreeningSource } from "./Onboarding";
 
 // One question per screen onboarding (25 screens in 8 sections). It edits the same profile / preferences
@@ -60,7 +62,6 @@ const STEP_NAMES = [
   "experience", "education", "english", "job_titles", "job_types", "work_mode", "cities", "countries", "salary",
   "skills", "skip_keywords", "excluded_companies", "screening_answers", "search_filters", "messages", "extension", "plan",
 ];
-const EXTENSION_STORE_URL = "https://chromewebstore.google.com/search/AutoApply%20Cv";
 const SECTIONS: Array<{ name: string; from: number; to: number }> = [
   { name: "Resume", from: 1, to: 2 },
   { name: "About you", from: 3, to: 6 },
@@ -440,6 +441,8 @@ function CityAutocomplete({ value, onChange, onPick }: { value: string; onChange
 // ───────────────────────────── the flow ─────────────────────────────
 
 export default function OnboardingFlow(props: Props) {
+  // Chrome Web Store, or Edge Add-ons for Edge users; with a note on browsers that can't install it.
+  const extensionStore = useExtensionStore();
   const {
     resumeFileName,
     profile,
@@ -1263,16 +1266,20 @@ export default function OnboardingFlow(props: Props) {
           ) : (
             <>
               <a
-                href={EXTENSION_STORE_URL}
+                href={extensionStore.url}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="mt-5 inline-flex items-center gap-2 rounded-full bg-violet-600 px-6 py-3 text-base font-semibold text-white shadow-md transition hover:bg-violet-700"
               >
-                <Chrome className="h-5 w-5" /> Add to Chrome, it's free <ExternalLink className="h-4 w-4 opacity-80" />
+                <Chrome className="h-5 w-5" /> Add to {extensionStore.browserName}, it's free <ExternalLink className="h-4 w-4 opacity-80" />
               </a>
+              <ExtensionBrowserNote store={extensionStore} className="mt-3" />
               <ol className="mx-auto mt-5 max-w-sm space-y-1.5 text-left text-sm text-slate-600">
-                <li><span className="font-semibold text-slate-900">1.</span> Open the Chrome Web Store (new tab)</li>
-                <li><span className="font-semibold text-slate-900">2.</span> Click "Add to Chrome", then "Add extension"</li>
+                <li><span className="font-semibold text-slate-900">1.</span> Open the {extensionStore.name} (new tab)</li>
+                <li>
+                  <span className="font-semibold text-slate-900">2.</span>{" "}
+                  {extensionStore.browser === "edge" ? 'Click "Get", then "Add extension"' : 'Click "Add to Chrome", then "Add extension"'}
+                </li>
                 <li><span className="font-semibold text-slate-900">3.</span> Come back here: we detect it automatically</li>
               </ol>
               <p className="mt-4 inline-flex items-center gap-1.5 text-xs font-medium text-slate-400">

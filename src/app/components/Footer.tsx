@@ -1,3 +1,4 @@
+import { CHROME_STORE_URL, EDGE_ADDON_PUBLISHED, EDGE_STORE_URL } from 'src/lib/extension-store';
 import type { ReactNode } from 'react';
 import { Link } from 'react-router';
 import { Mail, Lock, CreditCard } from 'lucide-react';
@@ -51,7 +52,7 @@ const trustBadges: { title: string; subtitle: string; href?: string; logo: React
   {
     title: 'Chrome Web Store',
     subtitle: 'Available now',
-    href: 'https://chromewebstore.google.com/detail/mcfmniiniaigfhhjlaegpmhecbdoikjd',
+    href: CHROME_STORE_URL,
     logo: (
       <svg viewBox="0 0 48 48" className="w-full h-full" role="img" aria-label="Chrome Web Store">
         <circle cx="24" cy="24" r="24" fill="#ffffff" />
@@ -63,6 +64,23 @@ const trustBadges: { title: string; subtitle: string; href?: string; logo: React
       </svg>
     ),
   },
+  // Shown once the Edge Add-ons listing is live (src/lib/extension-store.ts).
+  ...(EDGE_ADDON_PUBLISHED
+    ? [
+        {
+          title: 'Edge Add-ons',
+          subtitle: 'Available now',
+          href: EDGE_STORE_URL,
+          logo: (
+            <svg viewBox="0 0 48 48" className="w-full h-full" role="img" aria-label="Microsoft Edge Add-ons">
+              <circle cx="24" cy="24" r="24" fill="#ffffff" />
+              <path d="M24 6a18 18 0 0 0-17.6 14.3C9 13.5 16 10 22.5 11.6c6.2 1.5 9.5 6.6 8.6 11.4H17.4c.3 6.4 6.4 10.6 13.4 9.6 3.3-.5 6.2-2 8.3-4.1A18 18 0 1 0 24 6Z" fill="#0c59a4" />
+              <path d="M17.4 23c.6-4.9 4.4-8.3 9-8.3 4.3 0 7.4 3.1 7.6 8.3Z" fill="#35c1f1" />
+            </svg>
+          ),
+        },
+      ]
+    : []),
   {
     title: 'LinkedIn',
     subtitle: 'Partner',

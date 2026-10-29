@@ -733,6 +733,7 @@ model Feedback {
   closedAt     DateTime?
   lastMessageBy String?  // user | admin: who wrote last, so the admin sees tickets waiting for a reply
   lastMessageAt DateTime?
+  userSeenAt    DateTime? // when the user last opened My Tickets: a team reply after this is a new-reply notification
   createdAt   DateTime @default(now())
 
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)

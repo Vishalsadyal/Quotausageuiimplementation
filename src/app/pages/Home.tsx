@@ -19,9 +19,12 @@ import {
 import { ImageWithFallback } from '../components/figma/ImageWithFallback';
 import { MediaSlot } from '../components/marketing/MediaSlot';
 import { HeroQuickStart } from '../components/HeroQuickStart';
+import { useExtensionStore } from '../hooks/useExtensionStore';
+import { ExtensionBrowserNote } from '../components/ExtensionBrowserNote';
 
 export default function Home() {
   const navigate = useNavigate();
+  const extensionStore = useExtensionStore();
   const mediaAssets = {
     heroVideoSrc: '/uploads/resumes/AutoApplyMax.mp4',
     heroImageSrc: '',
@@ -639,15 +642,16 @@ export default function Home() {
                   <ArrowRight className="w-4 h-4" />
                 </Link>
                 <a
-                  href="https://chromewebstore.google.com/detail/mcfmniiniaigfhhjlaegpmhecbdoikjd"
+                  href={extensionStore.url}
                   target="_blank"
                   rel="noreferrer"
                   className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/25 bg-white/[0.06] px-6 py-3 font-bold text-white hover:bg-white/[0.12] hover:border-white/40 transition-all duration-200"
                 >
                   <Download className="w-4 h-4" />
-                  Install from Web Store
+                  Install from {extensionStore.browser === 'edge' ? 'Edge Add-ons' : 'Web Store'}
                 </a>
               </div>
+              <ExtensionBrowserNote store={extensionStore} tone="dark" className="relative mt-3" />
             </div>
           </div>
         </div>

@@ -3,6 +3,7 @@ import { z } from "zod";
 import { prisma } from "src/lib/prisma";
 import { handleApiError, ok } from "src/lib/api";
 import { requireAuth } from "src/lib/guards";
+import { needsUserAttention } from "src/lib/tickets";
 
 // "Rate us" popup in the dashboard (components/FeedbackPrompt.tsx).
 
@@ -28,7 +29,7 @@ export async function GET() {
     if ("error" in authResult) return authResult.error;
     const userId = authResult.auth.user.id;
 
-    const [last, applications, tickets, openTickets] = await Promise.all([
+    const [last, applications, tickets, openTickets, ticketRows] = await Promise.all([
       prisma.feedback.findFirst({
         where: { userId },
         orderBy: { createdAt: "desc" },
@@ -37,9 +38,18 @@ export async function GET() {
       prisma.application.count({ where: { userId, status: "submitted" } }),
       prisma.feedback.count({ where: { userId, ticketStatus: { not: null } } }),
       prisma.feedback.count({ where: { userId, ticketStatus: "open" } }),
+      prisma.feedback.findMany({
+        where: { userId, ticketStatus: { not: null }, lastMessageBy: "admin" },
+        select: { ticketStatus: true, lastMessageBy: true, lastMessageAt: true, userSeenAt: true },
+      }),
     ]);
 
-    return ok("Feedback status fetched", { last, applications, tickets, openTickets });
+    // Team replies waiting for the user: the dashboard shows them on the bell, the sidebar and a popup.
+    const unseen = ticketRows.filter(needsUserAttention);
+    const newReplies = unseen.length;
+    const latestReplyAt = unseen.reduce<Date | null>((max, t) => (!max || t.lastMessageAt! > max ? t.lastMessageAt : max), null);
+
+    return ok("Feedback status fetched", { last, applications, tickets, openTickets, newReplies, latestReplyAt });
   } catch (error) {
     return handleApiError(error, "Failed to fetch feedback status");
   }

@@ -2,12 +2,12 @@ import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router';
 import { CheckCircle2, ExternalLink, Loader2, Star, X } from 'lucide-react';
 import { toast } from 'sonner';
+import { useExtensionStore } from '../hooks/useExtensionStore';
 
 // "Rate us" popup: stars → pick what they love / what to improve → write a review.
 // Opens from the sidebar button, and by itself once after the 10th application ("Later" waits 14 days).
-// 4-5 stars are then asked to also rate us on the Chrome Web Store; 1-3 stars stay private.
+// 4-5 stars are then asked to also rate us on the Chrome Web Store (Edge Add-ons on Edge); 1-3 stars stay private.
 
-const STORE_REVIEW_URL = 'https://chromewebstore.google.com/detail/mcfmniiniaigfhhjlaegpmhecbdoikjd/reviews';
 const AUTO_AFTER_APPLICATIONS = 10;
 const SNOOZE_DAYS = 14;
 
@@ -35,6 +35,9 @@ function writeSnooze(userId: string) {
   }
 }
 
+/** The user's tickets for the dashboard: My Tickets menu item, bell and new-reply popup. */
+export type TicketCounts = { total: number; open: number; newReplies: number; latestReplyAt: string | null };
+
 type Props = {
   userId: string;
   page: string;
@@ -45,7 +48,7 @@ type Props = {
   /** Off while an admin is viewing as the user. */
   autoPrompt?: boolean;
   /** The user's tickets (bad ratings and bug reports), for the My Tickets menu item. */
-  onTickets?: (tickets: { total: number; open: number }) => void;
+  onTickets?: (tickets: TicketCounts) => void;
 };
 
 export default function FeedbackPrompt({ userId, page, extensionApplied, openSignal, autoPrompt = true, onTickets }: Props) {
@@ -60,7 +63,8 @@ export default function FeedbackPrompt({ userId, page, extensionApplied, openSig
   const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState<{ rated: boolean; applications: number } | null>(null);
   const [openedTicket, setOpenedTicket] = useState(false);
-  const ticketsRef = useRef({ total: 0, open: 0 });
+  const extensionStore = useExtensionStore();
+  const ticketsRef = useRef<TicketCounts>({ total: 0, open: 0, newReplies: 0, latestReplyAt: null });
 
   useEffect(() => {
     let cancelled = false;
@@ -69,7 +73,12 @@ export default function FeedbackPrompt({ userId, page, extensionApplied, openSig
       .then((body) => {
         if (cancelled || !body?.success) return;
         setStatus({ rated: Boolean(body.data.last), applications: Number(body.data.applications) || 0 });
-        ticketsRef.current = { total: Number(body.data.tickets) || 0, open: Number(body.data.openTickets) || 0 };
+        ticketsRef.current = {
+          total: Number(body.data.tickets) || 0,
+          open: Number(body.data.openTickets) || 0,
+          newReplies: Number(body.data.newReplies) || 0,
+          latestReplyAt: body.data.latestReplyAt || null,
+        };
         onTickets?.(ticketsRef.current);
       })
       .catch(() => {});
@@ -150,7 +159,7 @@ export default function FeedbackPrompt({ userId, page, extensionApplied, openSig
       if (!res.ok || !body?.success) throw new Error(body?.message || 'Could not send your feedback');
       setStatus((prev) => (prev ? { ...prev, rated: true } : prev));
       if (body.data?.feedback?.ticketStatus === 'open') {
-        ticketsRef.current = { total: ticketsRef.current.total + 1, open: ticketsRef.current.open + 1 };
+        ticketsRef.current = { ...ticketsRef.current, total: ticketsRef.current.total + 1, open: ticketsRef.current.open + 1 };
         onTickets?.(ticketsRef.current);
         setOpenedTicket(true);
       }
@@ -309,17 +318,17 @@ export default function FeedbackPrompt({ userId, page, extensionApplied, openSig
               {happy ? (
                 <>
                   <p className="mt-1 text-sm text-gray-500">
-                    Glad you like it. Would you also rate us on the Chrome Web Store? It helps other job seekers find us.
+                    Glad you like it. Would you also rate us on the {extensionStore.name}? It helps other job seekers find us.
                   </p>
                   <a
-                    href={STORE_REVIEW_URL}
+                    href={extensionStore.reviewUrl}
                     target="_blank"
                     rel="noopener noreferrer"
                     onClick={() => setOpen(false)}
                     className="mt-5 inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-sm font-bold text-white gradient-primary shadow-xs hover:opacity-95"
                   >
                     <Star className="w-4 h-4 fill-white" />
-                    Rate on Chrome Web Store
+                    Rate on {extensionStore.name}
                     <ExternalLink className="w-3.5 h-3.5" />
                   </a>
                   <button type="button" onClick={() => setOpen(false)} className="mt-2 block w-full py-2 text-xs font-medium text-gray-500 hover:text-gray-800">

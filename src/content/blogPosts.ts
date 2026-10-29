@@ -168,7 +168,232 @@ function generateContentHtml(input: { title: string; slug: string; keywords: str
   `;
 }
 
+// Microsoft Edge posts (Oct 2026). Kept first so they lead the blog list. The Edge Add-ons listing is
+// in review, so they say Edge installs the extension from the Chrome Web Store until it's listed.
+const CHROME_LISTING = "https://chromewebstore.google.com/detail/mcfmniiniaigfhhjlaegpmhecbdoikjd";
+// daysAgo relative to PUBLISH_ANCHOR: 28 Oct 2026, 12:00 UTC (never a date in the future when deployed).
+const EDGE_TODAY = -29;
+
 export const STATIC_BLOG_POSTS: StaticBlogPost[] = [
+  post({
+    daysAgo: EDGE_TODAY,
+    title: "Best LinkedIn Auto Apply Extension for Microsoft Edge (2026)",
+    slug: "best-linkedin-auto-apply-extension-microsoft-edge",
+    excerpt:
+      "Job hunting in Microsoft Edge? The LinkedIn auto apply extension that works in Edge today, what to look for in one, and how to set it up in five minutes.",
+    coverImage: coverFor(3),
+    keywordsJson: ["linkedin auto apply extension edge", "microsoft edge auto apply", "best edge extension for job search"],
+    contentHtml: `
+      <p>Microsoft Edge comes pre-installed on almost every Windows laptop, so a lot of job seekers already do their LinkedIn search in Edge. The good news: you don't need to switch to Chrome to automate LinkedIn Easy Apply. Edge is built on the same engine as Chrome (Chromium), so the <strong>AutoApply CV LinkedIn Copilot</strong> runs in Edge exactly as it does in Chrome.</p>
+      <h2>What a good LinkedIn auto apply extension should do</h2>
+      <ul>
+        <li><strong>Apply only where you fit:</strong> filters for job title, experience level, location and date posted, so it doesn't spray every listing.</li>
+        <li><strong>Fill screening questions from saved answers:</strong> notice period, salary, visa, work authorization and years of experience, answered once and reused.</li>
+        <li><strong>Skip what you don't want:</strong> exclude words in the job title (for example "Intern" or "Unpaid"), and tell you which word caused each skip.</li>
+        <li><strong>Never apply twice:</strong> duplicate detection across runs.</li>
+        <li><strong>Let you watch first:</strong> a dry-run mode that fills forms without submitting, before you turn on live submit.</li>
+        <li><strong>Show results:</strong> applied vs skipped jobs, with reasons, in one dashboard.</li>
+      </ul>
+      <p>AutoApply CV does all six, and it never asks for your LinkedIn password: it works inside the LinkedIn tab you're already signed in to.</p>
+      <h2>How to install it in Microsoft Edge</h2>
+      <ol>
+        <li>In Edge, open the <a href="${CHROME_LISTING}" target="_blank" rel="noreferrer">AutoApply CV listing on the Chrome Web Store</a>.</li>
+        <li>Edge shows a banner: <strong>"You can now add extensions from the Chrome Web Store to Microsoft Edge"</strong>. Click <strong>Allow extensions from other stores</strong>, then <strong>Allow</strong>.</li>
+        <li>Click <strong>Add to Chrome</strong> (it installs into Edge), then <strong>Add extension</strong>.</li>
+        <li>Click the puzzle icon in Edge's toolbar and pin AutoApply CV so it's one click away.</li>
+        <li>Sign in at <a href="/signup">autoapplycv.in</a>, upload your resume, and open LinkedIn Jobs. Press <strong>Start</strong> in the extension.</li>
+      </ol>
+      <p>We've also submitted AutoApply CV to Microsoft's own Edge Add-ons store. Until that listing is live, the Chrome Web Store version above is the one to install, and it is the same extension.</p>
+      <h2>Edge features that help during a job search</h2>
+      <ul>
+        <li><strong>Sleeping tabs:</strong> Edge puts background tabs to sleep, which helps when you keep LinkedIn, your resume and a dozen job posts open.</li>
+        <li><strong>Vertical tabs:</strong> easier to scan many job tabs at once.</li>
+        <li><strong>Copilot in the sidebar:</strong> handy for quick help with a cover letter or a company summary, next to the job post.</li>
+      </ul>
+      <h2>Start free</h2>
+      <p>AutoApply CV gives you 3 free applications every day, and the Pro plan removes the limit. Set your job titles once, and let Edge do the repetitive clicking while you prepare for interviews.</p>
+      <h2>Helpful internal links</h2>
+      <ul>
+        <li><a href="/blog/install-chrome-extensions-on-microsoft-edge">How to install Chrome extensions on Edge</a></li>
+        <li><a href="/blog/top-microsoft-edge-extensions-for-job-seekers">Top Edge extensions for job seekers</a></li>
+        <li><a href="/auto-apply-chrome-extension">AutoApply CV extension</a></li>
+        <li><a href="/auto-apply-linkedin">Auto Apply LinkedIn guide</a></li>
+        <li><a href="/signup">Sign up free</a></li>
+      </ul>
+    `,
+  }),
+  post({
+    daysAgo: EDGE_TODAY,
+    title: "How to Install Chrome Extensions on Microsoft Edge (Step by Step)",
+    slug: "install-chrome-extensions-on-microsoft-edge",
+    excerpt:
+      "Microsoft Edge can install almost any Chrome Web Store extension. The one setting to turn on, the steps to install, and fixes for common problems.",
+    coverImage: coverFor(4),
+    keywordsJson: ["install chrome extensions on edge", "chrome web store edge", "allow extensions from other stores"],
+    contentHtml: `
+      <p>Microsoft Edge and Google Chrome are built on the same open-source engine, Chromium. That's why Edge can run nearly every extension from the Chrome Web Store, including job search tools like the AutoApply CV LinkedIn Copilot. You only need to switch on one setting the first time.</p>
+      <h2>Step 1: allow extensions from other stores</h2>
+      <p>The first time you open a Chrome Web Store page in Edge, Edge shows a banner at the top: <em>"You can now add extensions from the Chrome Web Store to Microsoft Edge"</em>. Click <strong>Allow extensions from other stores</strong> and confirm with <strong>Allow</strong>.</p>
+      <p>Missed the banner? Open <code>edge://extensions</code> and turn on <strong>Allow extensions from other stores</strong> in the left panel.</p>
+      <h2>Step 2: install the extension</h2>
+      <ol>
+        <li>Open the extension's page on the Chrome Web Store. For example, <a href="${CHROME_LISTING}" target="_blank" rel="noreferrer">AutoApply CV LinkedIn Copilot</a>.</li>
+        <li>Click <strong>Add to Chrome</strong>. In Edge this installs the extension into Edge.</li>
+        <li>Review the permissions and click <strong>Add extension</strong>.</li>
+        <li>Click the puzzle icon in the toolbar and click the pin next to the extension, so it stays visible.</li>
+      </ol>
+      <h2>Step 3: check it's working</h2>
+      <p>Click the extension's icon. For AutoApply CV, the popup shows your account as <strong>Connected</strong> once you're signed in at autoapplycv.in, and your Hires balance underneath. Open LinkedIn Jobs and press <strong>Start</strong>.</p>
+      <h2>Common problems and fixes</h2>
+      <ul>
+        <li><strong>The "Add to Chrome" button is greyed out:</strong> the "Allow extensions from other stores" setting is off. Turn it on at <code>edge://extensions</code> and reload the page.</li>
+        <li><strong>The extension doesn't appear in the toolbar:</strong> it's installed but not pinned. Click the puzzle icon and pin it.</li>
+        <li><strong>Your work or school laptop blocks it:</strong> your organisation controls which extensions are allowed. Use a personal profile or ask your IT team.</li>
+        <li><strong>It says it can't run on this page:</strong> most job extensions only run on specific sites. AutoApply CV runs on LinkedIn Jobs, so open linkedin.com/jobs first.</li>
+      </ul>
+      <h2>Are Chrome extensions safe in Edge?</h2>
+      <p>They're the same extensions with the same permissions, reviewed by Google before they're listed. As with any browser, install only what you need, read the permissions, and prefer extensions with a clear privacy policy. AutoApply CV's is at <a href="/privacy-policy">/privacy-policy</a>, and it never asks for your LinkedIn password.</p>
+      <h2>Helpful internal links</h2>
+      <ul>
+        <li><a href="/blog/best-linkedin-auto-apply-extension-microsoft-edge">Best LinkedIn auto apply extension for Edge</a></li>
+        <li><a href="/blog/auto-apply-chrome-extension-setup-troubleshooting">Auto apply extension: setup and troubleshooting</a></li>
+        <li><a href="/auto-apply-chrome-extension">AutoApply CV extension</a></li>
+        <li><a href="/help-center">Help center</a></li>
+      </ul>
+    `,
+  }),
+  post({
+    daysAgo: EDGE_TODAY,
+    title: "Top Microsoft Edge Extensions and Tools for Job Seekers (2026)",
+    slug: "top-microsoft-edge-extensions-for-job-seekers",
+    excerpt:
+      "The Edge extensions and built-in Edge tools that save job seekers the most time in 2026: auto apply, writing, job tracking, and keeping fifty tabs under control.",
+    coverImage: coverFor(0),
+    keywordsJson: ["top edge extensions", "edge extensions for job seekers", "best microsoft edge extensions 2026"],
+    contentHtml: `
+      <p>A job search is mostly repetitive browser work: searching, filling the same forms, writing messages and keeping track of where you applied. Microsoft Edge runs Chrome Web Store extensions, so job seekers using Edge have the full toolbox. Here's what's worth installing, grouped by the job it does.</p>
+      <h2>1. Applying: AutoApply CV LinkedIn Copilot</h2>
+      <p>Fills LinkedIn Easy Apply forms from your saved answers, applies only to the job titles and filters you set, skips titles with words you exclude, and never applies twice. It also helps you message recruiters from LinkedIn hiring posts by WhatsApp or email. Free for 3 applications a day. <a href="/blog/best-linkedin-auto-apply-extension-microsoft-edge">How to set it up in Edge</a>.</p>
+      <h2>2. Writing: a grammar checker</h2>
+      <p>A grammar extension such as Grammarly catches typos in cover letters, LinkedIn messages and application answers, where small mistakes cost the most. Pick one and keep it on for every text box.</p>
+      <h2>3. Tracking: a job application tracker</h2>
+      <p>Tools like Teal or Huntr save a job post to a board with one click, so you can track stages and follow-ups. If you use AutoApply CV, applied and skipped jobs are already tracked in your dashboard, so a tracker is most useful for jobs you apply to outside LinkedIn Easy Apply.</p>
+      <h2>4. Built into Edge: sleeping tabs</h2>
+      <p>Edge puts tabs you haven't used for a while to sleep, freeing memory. Useful when you have LinkedIn, your resume, a tracker and twenty job posts open. Find it in Settings under System and performance.</p>
+      <h2>5. Built into Edge: vertical tabs</h2>
+      <p>Moves tabs to a side list where you can read full job titles instead of tiny tab labels. Turn it on from the tab actions menu at the top left.</p>
+      <h2>6. Built into Edge: Copilot in the sidebar</h2>
+      <p>Open Copilot next to a job post to summarise the company, suggest questions to ask in the interview, or draft a first version of a cover letter you then make your own.</p>
+      <h2>How to choose</h2>
+      <ul>
+        <li><strong>Start with the biggest time sink.</strong> For most people that's filling application forms, so start there.</li>
+        <li><strong>Read the permissions.</strong> An extension should only ask for the sites it needs.</li>
+        <li><strong>Keep it to a few.</strong> Every extension uses memory; four good ones beat fifteen.</li>
+      </ul>
+      <h2>Helpful internal links</h2>
+      <ul>
+        <li><a href="/blog/install-chrome-extensions-on-microsoft-edge">How to install Chrome extensions on Edge</a></li>
+        <li><a href="/blog/chrome-vs-edge-for-job-search-auto-apply">Chrome vs Edge for job hunting</a></li>
+        <li><a href="/auto-apply">Free Auto Apply guide</a></li>
+        <li><a href="/signup">Sign up free</a></li>
+      </ul>
+    `,
+  }),
+  post({
+    daysAgo: EDGE_TODAY,
+    title: "Chrome vs Edge for Job Hunting: Which Browser Is Better for Auto Apply?",
+    slug: "chrome-vs-edge-for-job-search-auto-apply",
+    excerpt:
+      "Chrome or Edge for your job search? Both run the same auto apply extensions. Where they differ (memory, built-in tools, sync) and which to pick.",
+    coverImage: coverFor(1),
+    keywordsJson: ["chrome vs edge", "best browser for job search", "edge or chrome for auto apply"],
+    contentHtml: `
+      <p>Short answer: <strong>use the browser you already use.</strong> Chrome and Microsoft Edge are both built on Chromium, so job search extensions like AutoApply CV work the same in both. The differences are in the extras around them.</p>
+      <h2>What's the same</h2>
+      <ul>
+        <li><strong>Extensions:</strong> Edge installs Chrome Web Store extensions after you turn on "Allow extensions from other stores". <a href="/blog/install-chrome-extensions-on-microsoft-edge">Step-by-step guide</a>.</li>
+        <li><strong>LinkedIn:</strong> LinkedIn works the same in both, and AutoApply CV fills Easy Apply forms the same way in both.</li>
+        <li><strong>Speed of applying:</strong> the automation waits for LinkedIn's pages either way, so neither browser applies faster.</li>
+      </ul>
+      <h2>Where Edge is ahead</h2>
+      <ul>
+        <li><strong>Already installed on Windows:</strong> nothing to download.</li>
+        <li><strong>Sleeping tabs and efficiency mode:</strong> helpful on laptops with 4 to 8 GB of memory when many job tabs are open.</li>
+        <li><strong>Vertical tabs and Copilot in the sidebar:</strong> built in, no extra extensions needed.</li>
+      </ul>
+      <h2>Where Chrome is ahead</h2>
+      <ul>
+        <li><strong>Google account sync:</strong> if you live in Gmail and Google Drive, Chrome keeps passwords, bookmarks and extensions synced across devices.</li>
+        <li><strong>One less setting:</strong> Chrome Web Store extensions install without turning anything on first.</li>
+      </ul>
+      <h2>Which one should you pick?</h2>
+      <table style="width:100%; border-collapse:collapse">
+        <thead>
+          <tr><th style="text-align:left; padding:6px; border-bottom:1px solid #ddd">If you…</th><th style="text-align:left; padding:6px; border-bottom:1px solid #ddd">Use</th></tr>
+        </thead>
+        <tbody>
+          <tr><td style="padding:6px; border-bottom:1px solid #eee">Use a Windows laptop with little memory</td><td style="padding:6px; border-bottom:1px solid #eee">Edge</td></tr>
+          <tr><td style="padding:6px; border-bottom:1px solid #eee">Depend on Gmail and Google sync</td><td style="padding:6px; border-bottom:1px solid #eee">Chrome</td></tr>
+          <tr><td style="padding:6px; border-bottom:1px solid #eee">Already have a favourite</td><td style="padding:6px; border-bottom:1px solid #eee">Keep it: AutoApply CV works in both</td></tr>
+        </tbody>
+      </table>
+      <h2>Not supported: Firefox, Safari and phones</h2>
+      <p>AutoApply CV runs on Chrome and Edge on a computer. Firefox and Safari use a different extension system, and mobile browsers don't run extensions, so open your dashboard on a laptop or desktop to set it up.</p>
+      <h2>Helpful internal links</h2>
+      <ul>
+        <li><a href="/blog/best-linkedin-auto-apply-extension-microsoft-edge">Best LinkedIn auto apply extension for Edge</a></li>
+        <li><a href="/blog/no-1-auto-apply-extension-available-in-chrome">The auto apply extension in Chrome</a></li>
+        <li><a href="/auto-apply-chrome-extension">AutoApply CV extension</a></li>
+        <li><a href="/pricing">Pricing</a></li>
+      </ul>
+    `,
+  }),
+  post({
+    daysAgo: EDGE_TODAY,
+    title: "How to Get Your Portfolio Website Found on Google (Job Seeker Guide)",
+    slug: "get-portfolio-website-found-on-google",
+    excerpt:
+      "Recruiters Google your name before they call. How to make your portfolio site show up: Search Console, a sitemap, a few honest links and the right details.",
+    coverImage: coverFor(2),
+    keywordsJson: ["portfolio website google", "get portfolio indexed", "personal website for job search"],
+    contentHtml: `
+      <p>Many recruiters search your name before they reply to an application. If your portfolio or personal website shows up first, with your projects and contact details, you control that first impression. A new site doesn't appear on Google by itself, though. Here's how to get it found.</p>
+      <h2>1. Put the basics on the page</h2>
+      <ul>
+        <li><strong>Your full name in the page title</strong>, for example "Priya Sharma – Frontend Developer". People search names, not job titles.</li>
+        <li><strong>One clear line about what you do</strong> and the roles you're looking for.</li>
+        <li><strong>Three to five projects</strong> with what you built, the tools, and a link to the live demo or code.</li>
+        <li><strong>Contact details and your LinkedIn profile</strong>, and the same link back from your LinkedIn profile to the site.</li>
+      </ul>
+      <h2>2. Tell Google the site exists</h2>
+      <ol>
+        <li>Add the site to <strong>Google Search Console</strong> (free) and verify it.</li>
+        <li>Submit your <strong>sitemap</strong> (most site builders create one at <code>/sitemap.xml</code>).</li>
+        <li>Use <strong>URL Inspection → Request indexing</strong> on your home page.</li>
+        <li>Do the same in <strong>Bing Webmaster Tools</strong>; it can import your Search Console sites in one click.</li>
+      </ol>
+      <h2>3. Get a few honest links to it</h2>
+      <p>Search engines discover new sites mainly through links from pages they already know. A handful of relevant links goes a long way:</p>
+      <ul>
+        <li>Your LinkedIn profile (Featured section and Contact info).</li>
+        <li>Your GitHub profile and the README of your best projects.</li>
+        <li>Profiles on sites from your field: Behance or Dribbble for designers, Kaggle for data roles, dev.to or Hashnode for developers.</li>
+        <li>An article or answer you wrote that links to a project on your site.</li>
+      </ul>
+      <p>To speed up discovery, a tool like <a href="https://backlinkgenerator.in/" target="_blank" rel="noopener">Backlink Generator</a> submits your URL to public pages that search engines crawl and shows every link it creates in a live log, so you can see exactly where your site was listed. Treat it as a discovery helper for a brand-new site; your best results still come from the real profiles above.</p>
+      <h2>4. Check it worked</h2>
+      <p>After a week or two, search for <code>site:yourdomain.com</code>. If your pages are listed, Google has indexed them. Then search your own name and see where you appear.</p>
+      <h2>Pair it with applications that stand out</h2>
+      <p>Add your portfolio link to your LinkedIn profile and to your saved answers in AutoApply CV, so every LinkedIn Easy Apply that asks for a website or portfolio gets it filled automatically.</p>
+      <h2>Helpful internal links</h2>
+      <ul>
+        <li><a href="/blog/auto-apply-portfolio-what-to-link">Auto apply portfolio: what to link</a></li>
+        <li><a href="/blog/auto-apply-linkedin-headline-templates">LinkedIn headline templates</a></li>
+        <li><a href="/auto-apply-linkedin">Auto Apply LinkedIn guide</a></li>
+        <li><a href="/signup">Sign up free</a></li>
+      </ul>
+    `,
+  }),
   post({
     daysAgo: 1,
     title: "The #1 Auto Apply Extension Available in Chrome (2026)",
