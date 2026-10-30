@@ -187,7 +187,7 @@ export function DashboardPromoBanner() {
               </span>
             </h2>
             <p className="text-xs md:text-sm text-purple-100 mt-1 leading-relaxed">
-              Skip the 3/day free cap. Apply to hundreds of verified jobs on LinkedIn & Indeed automatically and unlock direct recruiter contacts.
+              Skip the 3/day free cap. Apply to hundreds of verified LinkedIn jobs automatically and unlock direct recruiter contacts.
             </p>
           </div>
 

@@ -8,7 +8,7 @@ export default function AutoApply() {
       description="Automate your job search and apply to hundreds of relevant roles with zero friction. AutoApply CV is the premier free auto apply tool combining AI resume tailoring, automated screening question answers, and real-time job application tracking."
       metrics={[
         { label: "Cost", value: "100% Free", note: "Daily auto apply credits included" },
-        { label: "Supported Platforms", value: "LinkedIn & Indeed", note: "Easy Apply & direct jobs" },
+        { label: "Supported Platforms", value: "LinkedIn", note: "Easy Apply jobs" },
         { label: "Form Accuracy", value: "98%", note: "Verified screening answer bank" },
         { label: "Time Saved", value: "15+ hrs/wk", note: "Focus on interviews, not forms" },
       ]}

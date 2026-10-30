@@ -22,7 +22,7 @@ export default function Features() {
     {
       icon: Zap,
       title: 'LinkedIn Auto Apply Bot & Easy Apply Copilot',
-      description: 'Automatically apply to hundreds of LinkedIn and Indeed jobs with intelligent 1-click automation',
+      description: 'Automatically apply to hundreds of LinkedIn Easy Apply jobs with intelligent 1-click automation',
       details: [
         'Automated LinkedIn Easy Apply submission',
         'Custom screening answer bank auto-fill',
@@ -163,7 +163,7 @@ export default function Features() {
           </h1>
           
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Free to start. Automatically apply to LinkedIn and Indeed jobs, optimize resumes with AI ATS keyword matching, and manage your entire application pipeline in one unified platform.
+            Free to start. Automatically apply to LinkedIn Easy Apply jobs, optimize resumes with AI ATS keyword matching, and manage your entire application pipeline in one unified platform.
           </p>
         </div>
       </section>

@@ -63,7 +63,7 @@ export default function Pricing() {
         'Weekly analytics dashboard',
         'Priority support',
         'Cover letter generator',
-        'LinkedIn & Indeed automation'
+        'LinkedIn Easy Apply automation'
       ],
       cta: 'Start Pro (₹99/mo)',
       popular: true,

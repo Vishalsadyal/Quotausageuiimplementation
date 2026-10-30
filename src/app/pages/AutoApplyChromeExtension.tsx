@@ -4,7 +4,7 @@ export default function AutoApplyChromeExtension() {
   return (
     <MarketingInfoPage
       eyebrow="Chrome Extension Copilot"
-      title="Free Auto Apply Chrome Extension for LinkedIn & Indeed"
+      title="Free Auto Apply Chrome Extension for LinkedIn"
       description="Apply to jobs in 1 click with the AutoApply CV Chrome extension. An intelligent Easy Apply bot that sits alongside your browser, auto-fills screening questions from your answer bank, and logs applications directly to your dashboard."
       metrics={[
         { label: "Install Time", value: "< 30 sec", note: "Chrome Web Store verified" },
@@ -22,7 +22,7 @@ export default function AutoApplyChromeExtension() {
               kicker: "Live Assistant",
               title: "In-Browser Copilot Panel",
               description:
-                "The extension opens alongside LinkedIn and Indeed job postings, showing real-time form filling progress and match analysis.",
+                "The extension opens alongside LinkedIn job postings, showing real-time form filling progress and match analysis.",
             },
             {
               kicker: "Answer Bank Sync",
@@ -41,7 +41,7 @@ export default function AutoApplyChromeExtension() {
         {
           title: "Key Features of the Auto Apply Extension",
           bullets: [
-            "1-Click Easy Apply automation for LinkedIn and Indeed job boards.",
+            "1-Click Easy Apply automation for LinkedIn jobs.",
             "Live status feedback showing exact form filling and submission progress.",
             "Automatic duplicate detection that skips jobs you've already applied to.",
             "Full resume and profile synchronization with your AutoApply CV cloud dashboard.",

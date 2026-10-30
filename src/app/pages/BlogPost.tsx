@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router";
 import { ArrowLeft, ArrowRight, CalendarDays, Folder, User } from "lucide-react";
-import { STATIC_BLOG_POSTS_BY_SLUG } from "src/content/blogPosts";
+import { STATIC_BLOG_POSTS, STATIC_BLOG_POSTS_BY_SLUG } from "src/content/blogPosts";
 import { applyPageSeo } from "../components/SeoManager";
 import { canonicalForPath } from "../seo/seoConfig";
 
@@ -34,6 +34,38 @@ type PublicBlogPost = {
 function toKeywordList(value: unknown) {
   if (!Array.isArray(value)) return [];
   return value.map((item) => String(item || "").trim()).filter(Boolean).slice(0, 12);
+}
+
+// Words shared between slugs/keywords decide which posts are related; filler words don't count.
+const STOP_WORDS = new Set(["auto", "apply", "the", "and", "for", "to", "a", "of", "vs", "how", "what", "best", "2026"]);
+
+function topicWords(post: { slug: string; keywordsJson?: unknown }) {
+  const words = [post.slug, ...toKeywordList(post.keywordsJson)].join(" ").toLowerCase().split(/[^a-z0-9]+/);
+  return new Set(words.filter((word) => word.length > 1 && !STOP_WORDS.has(word)));
+}
+
+// How many bundled posts use each topic word: rare words say more about a post than common ones.
+const WORD_POST_COUNT = new Map<string, number>();
+for (const item of STATIC_BLOG_POSTS) {
+  for (const word of topicWords(item)) WORD_POST_COUNT.set(word, (WORD_POST_COUNT.get(word) || 0) + 1);
+}
+
+// Up to 4 bundled posts: the 3 closest topics plus the next post in the list, so every article
+// links to others (and is linked from at least one) in the server HTML.
+function relatedPosts(post: { slug: string; keywordsJson?: unknown }) {
+  const words = topicWords(post);
+  const position = STATIC_BLOG_POSTS.findIndex((item) => item.slug === post.slug);
+  const next = STATIC_BLOG_POSTS[(position + 1) % STATIC_BLOG_POSTS.length];
+  const closest = STATIC_BLOG_POSTS.filter((other) => other.slug !== post.slug && other.slug !== next.slug)
+    .map((other, index) => {
+      let score = 0;
+      for (const word of topicWords(other)) if (words.has(word)) score += 1 / (WORD_POST_COUNT.get(word) || 1);
+      return { other, score, index };
+    })
+    .sort((a, b) => b.score - a.score || a.index - b.index)
+    .slice(0, 3)
+    .map(({ other }) => other);
+  return next.slug === post.slug ? closest : [...closest, next];
 }
 
 export default function BlogPost() {
@@ -71,6 +103,7 @@ export default function BlogPost() {
   }, [slug]);
 
   const keywords = useMemo(() => toKeywordList(post?.keywordsJson), [post?.keywordsJson]);
+  const related = useMemo(() => (post ? relatedPosts(post) : []), [post]);
 
   // Admin-written posts set their own SEO tags (bundled posts are handled by SeoManager).
   useEffect(() => {
@@ -185,6 +218,25 @@ export default function BlogPost() {
               </Link>
             )}
           </aside>
+
+          {related.length ? (
+            <nav aria-label="Related articles" className="mt-12">
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">Related articles</h2>
+              <ul className="grid gap-4 sm:grid-cols-2">
+                {related.map((item) => (
+                  <li key={item.slug}>
+                    <Link
+                      to={`/blog/${item.slug}`}
+                      className="block h-full rounded-2xl border border-gray-200 p-5 hover:border-purple-300 hover:bg-purple-50/40"
+                    >
+                      <span className="block font-semibold text-gray-900">{item.title}</span>
+                      {item.excerpt ? <span className="mt-2 block text-sm text-gray-600 line-clamp-2">{item.excerpt}</span> : null}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </nav>
+          ) : null}
         </div>
       </section>
     </div>

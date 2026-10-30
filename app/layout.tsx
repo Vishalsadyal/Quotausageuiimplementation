@@ -89,14 +89,14 @@ const CONSENT_DEFAULT_SCRIPT = `
 export const metadata: Metadata = {
   metadataBase: new URL("https://www.autoapplycv.in"),
   title: "AutoApply Free | AI-Powered Job Application Automation",
-  description: "AutoApply free to LinkedIn and Indeed jobs. Save hours with AI resume matching, smart application tracking and automated job search.",
+  description: "AutoApply free to LinkedIn Easy Apply jobs. Save hours with AI resume matching, smart application tracking and automated job search.",
   manifest: "/site.webmanifest",
   // AdSense site verification (the ad script itself loads deferred, see DeferredAdSense).
   other: ADSENSE_CLIENT ? { "google-adsense-account": ADSENSE_CLIENT } : {},
-  keywords: ["autoapply free", "auto apply free", "free auto apply cv", "free job application automation", "auto apply jobs free", "automated job applications", "LinkedIn auto apply", "Indeed auto apply", "free AI job search", "resume automation free"],
+  keywords: ["autoapply free", "auto apply free", "free auto apply cv", "free job application automation", "auto apply jobs free", "automated job applications", "LinkedIn auto apply", "LinkedIn Easy Apply automation", "free AI job search", "resume automation free"],
   openGraph: {
     title: "AutoApply Free | Automate Your Job Search",
-    description: "Apply to hundreds of jobs automatically for free! AI-powered job application automation for LinkedIn and Indeed. Smart resume matching and application tracking included.",
+    description: "Apply to hundreds of jobs automatically for free! AI-powered job application automation for LinkedIn Easy Apply. Smart resume matching and application tracking included.",
     type: "website",
     url: "https://www.autoapplycv.in",
     siteName: "AutoApply CV",
@@ -105,7 +105,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "AutoApply Free | AI Job Application Automation",
-    description: "Free tool to auto-apply to jobs on LinkedIn & Indeed. Save time with AI-powered automation. Start now!",
+    description: "Free tool to auto-apply to LinkedIn Easy Apply jobs. Save time with AI-powered automation. Start now!",
     images: [OG_IMAGE.url],
   },
   icons: {

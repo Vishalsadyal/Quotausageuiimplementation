@@ -6,7 +6,7 @@ const BASE_URL = "https://www.autoapplycv.in";
 
 // Bump this when the marketing pages' content changes, so Google sees a real
 // last-modified date instead of a timestamp that changes on every request.
-const PAGES_UPDATED_AT = new Date("2026-10-06T00:00:00Z");
+const PAGES_UPDATED_AT = new Date("2026-10-30T00:00:00Z");
 
 type ChangeFrequency = NonNullable<MetadataRoute.Sitemap[number]["changeFrequency"]>;
 
@@ -61,7 +61,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }));
 
   const blogBySlug = new Map<string, Date>();
-  for (const post of STATIC_BLOG_POSTS) blogBySlug.set(post.slug, new Date(post.publishedAt));
+  for (const post of STATIC_BLOG_POSTS) blogBySlug.set(post.slug, new Date(post.updatedAt ?? post.publishedAt));
   for (const post of await publishedDatabasePosts()) blogBySlug.set(post.slug.toLowerCase(), post.updatedAt);
 
   const posts: MetadataRoute.Sitemap = [...blogBySlug.entries()].map(([slug, lastModified]) => ({

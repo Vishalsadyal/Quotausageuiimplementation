@@ -39,9 +39,9 @@ export function normalizeCanonicalBaseUrl(value?: string) {
 
 export const SEO_BY_PATH: Record<string, SeoEntry> = {
   "/": {
-    title: "AutoApply Free: AI Auto Apply for LinkedIn & Indeed | AutoApply CV",
+    title: "AutoApply Free: AI Auto Apply for LinkedIn Jobs | AutoApply CV",
     description:
-      "AutoApply free to LinkedIn Easy Apply and Indeed jobs with our AI Chrome extension. Saved answers, duplicate prevention and live tracking for every application.",
+      "AutoApply free to LinkedIn Easy Apply jobs with our AI Chrome extension. Saved answers, duplicate prevention and live tracking for every application.",
     index: true,
     structuredData: [
       {
@@ -52,7 +52,7 @@ export const SEO_BY_PATH: Record<string, SeoEntry> = {
         applicationCategory: "BusinessApplication",
         operatingSystem: "Web, Chrome",
         description:
-          "Free AI auto apply tool and Chrome extension for LinkedIn Easy Apply and Indeed, with resume optimization and job application tracking.",
+          "Free AI auto apply tool and Chrome extension for LinkedIn Easy Apply, with resume optimization and job application tracking.",
         offers: { "@type": "Offer", price: "0", priceCurrency: "INR" },
       },
       {
@@ -279,7 +279,7 @@ export const SEO_BY_PATH: Record<string, SeoEntry> = {
   "/auto-apply-jobs": {
     title: "Auto Apply to Jobs Free with AI | AutoApply CV",
     description:
-      "Free auto apply jobs tool for LinkedIn and Indeed. Match resumes, submit applications with verified answers and track every interview.",
+      "Free auto apply jobs tool for LinkedIn Easy Apply. Match resumes, submit applications with verified answers and track every interview.",
     index: true,
     structuredData: {
       "@context": "https://schema.org",
@@ -298,7 +298,7 @@ export const SEO_BY_PATH: Record<string, SeoEntry> = {
           name: "Which platforms does AutoApply CV support for auto applying?",
           acceptedAnswer: {
             "@type": "Answer",
-            text: "AutoApply CV currently supports LinkedIn Easy Apply and Indeed jobs, with intelligent form filling and outcome tracking.",
+            text: "AutoApply CV currently supports LinkedIn Easy Apply jobs, with intelligent form filling and outcome tracking.",
           },
         },
       ],
@@ -427,7 +427,7 @@ export const SEO_BY_PATH: Record<string, SeoEntry> = {
   },
   "/signup": {
     title: "Sign Up Free | AutoApply CV",
-    description: "Create your free AutoApply CV account and start auto applying to LinkedIn and Indeed jobs.",
+    description: "Create your free AutoApply CV account and start auto applying to LinkedIn Easy Apply jobs.",
     index: true,
   },
   "/forgot-password": {
@@ -488,7 +488,7 @@ export function resolveSeo(pathname: string): SeoEntry {
           headline: post.title,
           description: post.excerpt,
           datePublished: post.publishedAt,
-          dateModified: post.publishedAt,
+          dateModified: post.updatedAt ?? post.publishedAt,
           image: `https://www.autoapplycv.in${post.coverImage}`,
           mainEntityOfPage: `https://www.autoapplycv.in/blog/${post.slug}`,
           author: { "@type": "Organization", name: "AutoApply CV" },

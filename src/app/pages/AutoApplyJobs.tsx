@@ -5,7 +5,7 @@ export default function AutoApplyJobs() {
     <MarketingInfoPage
       eyebrow="Auto Apply Jobs & Automation Platform"
       title="Free Auto Apply Jobs Platform | Automate Job Applications in Minutes"
-      description="Apply to hundreds of relevant jobs automatically on LinkedIn and Indeed. AutoApply CV combines AI resume keyword tailoring, screening answer automation, and live application tracking so you get more interviews in less time."
+      description="Apply to hundreds of relevant LinkedIn Easy Apply jobs automatically. AutoApply CV combines AI resume keyword tailoring, screening answer automation, and live application tracking so you get more interviews in less time."
       metrics={[
         { label: "Hours Saved / Week", value: "20+ hrs", note: "Zero repetitive form clicking" },
         { label: "Application Velocity", value: "50+ / day", note: "Targeted auto apply jobs" },
@@ -34,7 +34,7 @@ export default function AutoApplyJobs() {
               kicker: "Unified Pipeline",
               title: "Automated Job Application Tracker",
               description:
-                "Monitor all submitted, skipped, and interviewed roles across LinkedIn, Indeed, and company portals in one organized dashboard.",
+                "Monitor all submitted, skipped, and interviewed roles across LinkedIn and company portals in one organized dashboard.",
             },
           ],
         },
@@ -70,7 +70,7 @@ export default function AutoApplyJobs() {
           bullets: [
             "Can I auto apply to jobs for free? Yes. AutoApply CV provides free daily application credits so you can start landing interviews at zero cost.",
             "How does auto apply improve callback rates? By applying early within minutes of a job being posted and matching resume ATS keywords directly.",
-            "Does it support both LinkedIn and Indeed? Yes. Our automated copilot works smoothly across LinkedIn Easy Apply jobs and major hiring portals.",
+            "Which job sites does it support? LinkedIn Easy Apply. Jobs that need a company website application are logged as skipped so you can apply manually.",
             "Will I apply to duplicate jobs? No. AutoApply CV tracks your complete application history and skips any job you previously applied to.",
           ],
         },

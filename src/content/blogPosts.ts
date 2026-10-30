@@ -1,3 +1,8 @@
+import { PROCESS_ARTICLES } from "./blogArticles/process";
+import { PROFILE_ARTICLES } from "./blogArticles/profile";
+import { ROLES_ARTICLES } from "./blogArticles/roles";
+import { TOOLS_ARTICLES } from "./blogArticles/tools";
+
 export type StaticBlogPost = {
   id: string;
   title: string;
@@ -6,9 +11,20 @@ export type StaticBlogPost = {
   coverImage: string;
   keywordsJson: string[];
   publishedAt: string;
+  // Set when a post's body was rewritten after publishing (sitemap lastmod, Article dateModified).
+  updatedAt?: string;
   createdAt: string;
   author: { name: string };
   contentHtml: string;
+};
+
+// Hand-written bodies for the EXTRA_TITLES posts (rewritten on 30 Oct 2026); generateContentHtml is only the fallback.
+const EXTRA_ARTICLES_UPDATED_AT = "2026-10-30T12:00:00.000Z";
+const EXTRA_ARTICLES: Record<string, string> = {
+  ...TOOLS_ARTICLES,
+  ...ROLES_ARTICLES,
+  ...PROCESS_ARTICLES,
+  ...PROFILE_ARTICLES,
 };
 
 const AUTHOR = { name: "AutoApply CV Team" };
@@ -969,7 +985,8 @@ for (let i = 0; i < EXTRA_TITLES.length; i += 1) {
       excerpt,
       coverImage: coverFor(5 + i),
       keywordsJson: keywords,
-      contentHtml: generateContentHtml({ title, slug, keywords, excerpt }),
+      contentHtml: EXTRA_ARTICLES[slug] ?? generateContentHtml({ title, slug, keywords, excerpt }),
+      ...(EXTRA_ARTICLES[slug] ? { updatedAt: EXTRA_ARTICLES_UPDATED_AT } : {}),
     })
   );
 }
