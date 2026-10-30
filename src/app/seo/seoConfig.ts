@@ -39,7 +39,7 @@ export function normalizeCanonicalBaseUrl(value?: string) {
 
 export const SEO_BY_PATH: Record<string, SeoEntry> = {
   "/": {
-    title: "AutoApply Free: AI Auto Apply for LinkedIn Jobs | AutoApply CV",
+    title: "AutoApply Free: AI Auto Apply Bot for LinkedIn Jobs | AutoApply CV",
     description:
       "AutoApply free to LinkedIn Easy Apply jobs with our AI Chrome extension. Saved answers, duplicate prevention and live tracking for every application.",
     index: true,

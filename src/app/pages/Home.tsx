@@ -301,6 +301,18 @@ export default function Home() {
                 Free AI-powered job search automation to apply to LinkedIn jobs automatically, optimize your ATS resume, and manage everything in one job application tracker.
               </p>
 
+              <p className="text-base text-[#bdb8d4]">
+                New here? See how the{' '}
+                <Link to="/auto-apply-linkedin" className="font-semibold text-[#c8ff62] underline-offset-4 hover:underline">
+                  LinkedIn auto apply bot
+                </Link>{' '}
+                works, or read the{' '}
+                <Link to="/blog" className="font-semibold text-[#c8ff62] underline-offset-4 hover:underline">
+                  auto apply guides
+                </Link>
+                .
+              </p>
+
               <button
                 onClick={() => document.getElementById('demo-video')?.scrollIntoView({ behavior: 'smooth' })}
                 className="text-sm font-semibold text-[#c8ff62] hover:text-white underline-offset-4 hover:underline"
