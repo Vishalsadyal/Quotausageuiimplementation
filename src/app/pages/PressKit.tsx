@@ -48,16 +48,16 @@ export default function PressKit() {
         },
         {
           title: "Boilerplate",
-          description: "AutoApply CV is an AI job search platform that helps software engineers and tech professionals apply to LinkedIn Easy Apply jobs faster without losing control. Its Chrome extension fills repetitive application forms with saved, truthful answers, skips jobs the user already applied to, and pauses when a question needs human input, while the dashboard tailors resumes for applicant tracking systems and tracks every application from submission to interview.",
+          description: "AutoApply CV is an AI job search platform that helps software engineers and tech professionals apply to LinkedIn Easy Apply, Naukri, and Indeed jobs faster without losing control. Its Chrome extension fills repetitive application forms with saved, truthful answers, skips jobs the user already applied to, and pauses when a question needs human input, while the dashboard tailors resumes for applicant tracking systems and tracks every application from submission to interview. The Pro Connect plan adds daily recruiter contacts from public LinkedIn hiring posts and Interview Call AI, which shows short answers from the user's own notes during live calls.",
         },
         {
           title: "Product facts",
           bullets: [
-            "Product: AutoApply CV, a web dashboard plus the AutoApply CV LinkedIn Copilot Chrome extension.",
+            "Product: AutoApply CV, a web dashboard plus the AutoApply CV Chrome extension (works on LinkedIn, Naukri, and Indeed).",
             "Distribution: Chrome Web Store.",
-            "Platforms: LinkedIn Easy Apply, with Indeed applications tracked in the same dashboard.",
-            "Pricing: Free plan with 3 auto-apply actions per day; Pro at ₹99 per month for unlimited auto-apply; pay-as-you-go Hires wallet.",
-            "Core features: Easy Apply automation, answer bank, duplicate prevention, AI resume tailoring, application tracker, interview preparation.",
+            "Platforms: LinkedIn Easy Apply; Naukri (applies with Naukri's own Apply and answers its recruiter chatbot); Indeed (\"Easily apply\" jobs only). All from the same Chrome extension.",
+            "Pricing: Free plan with 3 auto-apply actions per day plus 30 Hires signup bonus; Pro at ₹99 per month for unlimited auto-apply; Pro Connect at ₹500 per month (Pro plus HR Contacts and Interview Call AI); pay-as-you-go Hires wallet.",
+            "Core features: LinkedIn, Naukri, and Indeed auto-apply, answer bank, duplicate prevention, WhatsApp and email recruiter outreach, HR Contacts (20 recruiter contacts a day on Pro Connect), Interview Call AI, LinkedIn auto-commenter, AI resume tailoring, application tracker.",
           ],
         },
         {

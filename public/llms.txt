@@ -1,21 +1,25 @@
 # AutoApply CV
 
-> AutoApply CV is an AI job search platform for software engineers and tech professionals. Its Chrome extension auto-applies to LinkedIn Easy Apply jobs using saved, truthful screening answers, skips jobs already applied to, and pauses when a question needs a human answer. The dashboard tailors resumes for applicant tracking systems (ATS) and tracks every application. The Free plan includes 3 auto-apply actions per day; Pro costs ₹99 per month for unlimited auto-apply.
+> AutoApply CV is an AI job search assistant for software engineers and tech professionals. One Chrome extension auto-applies on LinkedIn (Easy Apply jobs), Naukri (jobs with Naukri's own Apply, answering the recruiter chatbot) and Indeed ("Easily apply" jobs only), using saved screening answers or AI, skipping jobs already applied to, and pausing when a question needs a human answer. It also sends WhatsApp and email outreach to recruiters from LinkedIn hiring posts. The dashboard tailors resumes for applicant tracking systems (ATS) and tracks every application. The Free plan includes 3 auto-apply actions per day plus a 30 Hires signup bonus; Pro costs ₹99 per month for unlimited auto-apply; Pro Connect costs ₹500 per month and adds HR Contacts (20 recruiter contacts a day, emailed every morning) and Interview Call AI (live answers from your own notes during interview calls).
 
 ## Product
 
-- [Home](https://www.autoapplycv.in/): Overview of the free LinkedIn auto apply bot and AI job search tools.
-- [Product overview](https://www.autoapplycv.in/product): The complete platform: LinkedIn automation, AI resume optimization and application tracking.
-- [Features](https://www.autoapplycv.in/features): Auto apply, AI resume builder, job matching, tracker, interview prep and analytics.
+- [Home](https://www.autoapplycv.in/): Overview of free auto apply for LinkedIn, Naukri and Indeed, plus recruiter outreach and AI job search tools.
+- [Product overview](https://www.autoapplycv.in/product): The complete platform: LinkedIn, Naukri and Indeed auto apply, recruiter outreach, HR Contacts, Interview Call AI, AI resume optimization and application tracking.
+- [Features](https://www.autoapplycv.in/features): Auto apply, recruiter outreach, HR Contacts, Interview Call AI, AI resume builder, job matching, tracker and analytics.
 - [How it works](https://www.autoapplycv.in/how-it-works): Setup steps, page-ready submission checks, answer sync and pipeline tracking.
-- [Pricing](https://www.autoapplycv.in/pricing): Free, Pro (₹99/month) and pay-as-you-go Hires credits, and what is and is not charged.
+- [Pricing](https://www.autoapplycv.in/pricing): Free, Pro (₹99/month), Pro Connect (₹500/month) and pay-as-you-go Hires credits, and what is and is not charged.
+- [HR WhatsApp contacts](https://www.autoapplycv.in/hr-whatsapp-contacts): Pro Connect's 20 daily recruiter contacts (WhatsApp-checked numbers and emails from public LinkedIn hiring posts).
+- [Interview Call AI](https://www.autoapplycv.in/interview-call-ai): Live short answers from your own notes during interview or client calls on any call app.
 
 ## Auto apply guides
 
 - [Auto apply for jobs](https://www.autoapplycv.in/auto-apply): How to auto apply with quality controls, reusable answers and tracking.
 - [LinkedIn auto apply bot](https://www.autoapplycv.in/auto-apply-linkedin): LinkedIn Easy Apply automation with answer banks and live tracking.
-- [Auto apply jobs](https://www.autoapplycv.in/auto-apply-jobs): Automated job applications for LinkedIn and Indeed roles.
-- [Chrome extension](https://www.autoapplycv.in/auto-apply-chrome-extension): Installing and using the AutoApply CV LinkedIn Copilot extension.
+- [Naukri auto apply](https://www.autoapplycv.in/naukri-auto-apply): Naukri auto-apply with recruiter chatbot answers and dashboard filters.
+- [Indeed auto apply](https://www.autoapplycv.in/indeed-auto-apply): Indeed "Easily apply" auto-apply, in the same tab.
+- [Auto apply jobs](https://www.autoapplycv.in/auto-apply-jobs): Automated job applications for LinkedIn, Naukri and Indeed roles.
+- [Chrome extension](https://www.autoapplycv.in/auto-apply-chrome-extension): Installing and using the AutoApply CV extension on LinkedIn, Naukri and Indeed.
 
 ## Help
 

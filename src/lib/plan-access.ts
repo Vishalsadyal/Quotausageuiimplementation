@@ -1,6 +1,8 @@
 import type { Prisma, User, UserPlan } from "@prisma/client";
 import { prisma } from "src/lib/prisma";
 import { getPlanQuota } from "src/lib/quota";
+import { fail } from "src/lib/api";
+import { hasInterviewAi } from "src/lib/plans";
 
 /**
  * Timed plans. One-time purchases (from Oct 2026) and referral rewards last PLAN_PERIOD_DAYS.
@@ -135,4 +137,19 @@ export async function expireDuePlans(now = new Date()) {
   });
   for (const user of due) await expirePlanIfDue(user, now);
   return due.length;
+}
+
+/**
+ * Interview Call AI is a Pro Connect feature (admins always, for support and testing). Returns the 403
+ * response to send when the user's current plan doesn't include it, else null.
+ */
+export async function interviewAiBlocked(authUser: { id: string; role: string }) {
+  if (authUser.role === "admin") return null;
+  const user = await prisma.user.findUnique({
+    where: { id: authUser.id },
+    select: { id: true, plan: true, planExpiresAt: true, planAfterExpiry: true },
+  });
+  const current = user ? await expirePlanIfDue(user) : null;
+  if (hasInterviewAi(current?.plan)) return null;
+  return fail("Interview Call AI is part of Pro Connect. Upgrade to use it.", 403, "PLAN_REQUIRED");
 }

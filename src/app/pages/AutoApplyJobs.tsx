@@ -5,7 +5,7 @@ export default function AutoApplyJobs() {
     <MarketingInfoPage
       eyebrow="Auto Apply Jobs & Automation Platform"
       title="Free Auto Apply Jobs Platform | Automate Job Applications in Minutes"
-      description="Apply to hundreds of relevant LinkedIn Easy Apply jobs automatically. AutoApply CV combines AI resume keyword tailoring, screening answer automation, and live application tracking so you get more interviews in less time."
+      description="Apply to relevant LinkedIn Easy Apply, Naukri, and Indeed jobs automatically. AutoApply CV combines AI resume keyword tailoring, screening answer automation, and live application tracking so you get more interviews in less time."
       metrics={[
         { label: "Hours Saved / Week", value: "20+ hrs", note: "Zero repetitive form clicking" },
         { label: "Application Velocity", value: "50+ / day", note: "Targeted auto apply jobs" },
@@ -34,20 +34,20 @@ export default function AutoApplyJobs() {
               kicker: "Unified Pipeline",
               title: "Automated Job Application Tracker",
               description:
-                "Monitor all submitted, skipped, and interviewed roles across LinkedIn and company portals in one organized dashboard.",
+                "Monitor all submitted, skipped, and interviewed roles across LinkedIn, Naukri, and Indeed in one organized dashboard.",
             },
           ],
         },
         {
           title: "3-Step Automated Job Application Strategy",
           description:
-            "How top software engineers and professionals land high-paying roles using our auto apply jobs system.",
+            "How software engineers and professionals run their job search on LinkedIn, Naukri and Indeed with our auto apply jobs system.",
           cards: [
             {
               kicker: "Step 1: Set Search Criteria",
               title: "Define Target Titles & Filters",
               description:
-                "Select primary job titles (e.g., Software Engineer, DevOps, Full Stack) and filter out non-fitting roles using custom keyword exclusions.",
+                "Select primary job titles (e.g., Software Engineer, DevOps, Full Stack), location, experience, and work mode, then filter out non-fitting roles with exclude words and blacklisted companies. The same filters apply on LinkedIn, Naukri and Indeed.",
             },
             {
               kicker: "Step 2: Sync Answer Bank",
@@ -59,7 +59,7 @@ export default function AutoApplyJobs() {
               kicker: "Step 3: Launch Auto Apply",
               title: "Apply to 50+ Jobs Daily",
               description:
-                "Start the copilot to automatically process and submit applications across LinkedIn Easy Apply and partner job boards.",
+                "Start the copilot to automatically process and submit applications on LinkedIn Easy Apply, Naukri, and Indeed \"Easily apply\" jobs.",
             },
           ],
         },
@@ -70,7 +70,7 @@ export default function AutoApplyJobs() {
           bullets: [
             "Can I auto apply to jobs for free? Yes. AutoApply CV provides free daily application credits so you can start landing interviews at zero cost.",
             "How does auto apply improve callback rates? By applying early within minutes of a job being posted and matching resume ATS keywords directly.",
-            "Which job sites does it support? LinkedIn Easy Apply. Jobs that need a company website application are logged as skipped so you can apply manually.",
+            "Which job sites does it support? LinkedIn Easy Apply, Naukri (jobs with Naukri's own Apply), and Indeed (\"Easily apply\" jobs only). Jobs that need a company website application are skipped so you can apply manually.",
             "Will I apply to duplicate jobs? No. AutoApply CV tracks your complete application history and skips any job you previously applied to.",
           ],
         },
@@ -78,7 +78,7 @@ export default function AutoApplyJobs() {
       ctaTitle="Start applying to jobs automatically today"
       ctaDescription="Create your free account, configure your answer bank, and let AI handle your job applications."
       primaryAction={{ label: "Start Free Auto Apply", to: "/signup" }}
-      secondaryAction={{ label: "Explore LinkedIn Bot", to: "/auto-apply-linkedin" }}
+      secondaryAction={{ label: "See Pricing", to: "/pricing" }}
     />
   );
 }

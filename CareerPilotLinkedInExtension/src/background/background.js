@@ -2853,6 +2853,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     }
 
     if (message.type === "CP_GET_PORTAL_QUOTA") {
+      // refresh: true = ask the portal for the current Hires balance first (Naukri checks before each apply).
+      if (message.refresh) await refreshPortalQuota().catch(() => false);
       sendResponse({ ok: true, portalQuota: getPortalQuota() });
       return;
     }
@@ -3116,9 +3118,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
     if (message.type === "CP_RECORD_OUTCOME") {
       const outcomeType = String(message.outcomeType || "SKIPPED").toUpperCase();
+      // The Naukri (src/naukri) and Indeed (src/indeed) modules send their own provider; the rest is LinkedIn.
       const data = {
         ...(message.data && typeof message.data === "object" ? message.data : {}),
-        provider: EXTENSION_PROVIDER,
+        provider: ["naukri", "indeed"].includes(message.data?.provider) ? message.data.provider : EXTENSION_PROVIDER,
       };
       const state = await getState();
       const runStore = await getRunSummariesState();
@@ -3129,7 +3132,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       if (runId) {
         await activateRunSummary(runId, runId);
       }
-      const entry = await appendRunHistory(outcomeType, message.data || {}, { runId });
+      const entry = await appendRunHistory(outcomeType, data, { runId });
       await upsertRunSummary(runId, (existing) => {
         const counts = normalizeRunCounts(existing.counts);
         if (outcomeType === "APPLIED") counts.applied += 1;
@@ -3327,7 +3330,9 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
           ...(questionLabel ? {
             [questionLabel.toLowerCase()]: answer,
             [normalizeLabel(questionLabel)]: answer,
-            ...(questionKeyFromLabel(questionLabel) ? { [questionKeyFromLabel(questionLabel)]: answer } : {}),
+            // Not for Naukri's own-words questions: "Do you have 7+ years of X?" maps to years_of_experience,
+            // and a Yes / No answer must not overwrite the user's real years of experience.
+            ...(message.source !== "naukri" && questionKeyFromLabel(questionLabel) ? { [questionKeyFromLabel(questionLabel)]: answer } : {}),
           } : {})
         }
       };
@@ -3346,7 +3351,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
       const state = await getState();
       let nextState = state;
-      if (nextSettings.autoResumeOnAnswer && nextQuestions.length === 0 && state.paused) {
+      // Naukri answers (src/naukri) must not resume a paused LinkedIn run.
+      if (message.source !== "naukri" && nextSettings.autoResumeOnAnswer && nextQuestions.length === 0 && state.paused) {
         nextState = await setState({
           ...state,
           paused: false,
@@ -3872,12 +3878,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       sendResponse({ ok: true });
       return;
     }
-
-    // ── Client Call Copilot (Google Meet) ──
-    if (message.type === "MC_SUGGEST") {
-      sendResponse(await generateMeetCopilotSuggestion(message));
-      return;
-    }
   })().catch(async (error) => {
     await pushLog(error?.message || String(error), "error");
     sendResponse({ ok: false, error: error?.message || "Internal extension error" });
@@ -3885,63 +3885,3 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
   return true;
 });
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Client Call Copilot (Google Meet)
-// Stateless relay: the transcript and setup arrive with each request, go to the
-// portal's /api/ai/call-copilot (which holds the Groq key server-side) and are
-// never stored by the extension.
-// ─────────────────────────────────────────────────────────────────────────────
-async function generateMeetCopilotSuggestion(message) {
-  const settings = await getSettings();
-  const preferred = getPortalOrigin();
-  const detected = await detectPortalOriginsFromTabs();
-  const targetOrigins = [...new Set([preferred, ...detected, PORTAL_DEFAULT_ORIGIN].filter(Boolean))];
-  const setup = message.setup && typeof message.setup === "object" ? message.setup : {};
-  const payload = JSON.stringify({
-    mode: String(message.mode || "auto"),
-    trigger: String(message.trigger || "").slice(0, 1500),
-    transcript: String(message.transcript || "").slice(-8000),
-    setup: {
-      myRole: String(setup.myRole || "").slice(0, 300),
-      theirRole: String(setup.theirRole || "").slice(0, 300),
-      goal: String(setup.goal || "").slice(0, 600),
-      offer: String(setup.offer || "").slice(0, 3000),
-      tone: String(setup.tone || "consultative"),
-      model: String(setup.model || "openai/gpt-oss-20b")
-    }
-  });
-
-  let lastError = "Could not reach AutoApply CV — open the dashboard and sign in.";
-  for (const origin of targetOrigins) {
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 25000);
-    try {
-      const res = await fetch(`${origin}/api/ai/call-copilot`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...(settings.authToken ? { Authorization: settings.authToken.startsWith("Bearer ") ? settings.authToken : `Bearer ${settings.authToken}` } : {})
-        },
-        credentials: "include",
-        signal: controller.signal,
-        body: payload
-      });
-      const body = await res.json().catch(() => null);
-      if (res.ok && body?.success && body?.data) {
-        return { ok: true, data: body.data };
-      }
-      if (res.status === 401) {
-        lastError = "Sign in to AutoApply CV (open the dashboard) to use Call Copilot.";
-        continue;
-      }
-      lastError = body?.error?.message || body?.error || body?.message || `Call Copilot request failed (${res.status})`;
-      if (res.status === 429) return { ok: false, error: String(lastError) };
-    } catch (error) {
-      if (error?.name === "AbortError") lastError = "AI took too long — try again";
-    } finally {
-      clearTimeout(timer);
-    }
-  }
-  return { ok: false, error: String(lastError) };
-}

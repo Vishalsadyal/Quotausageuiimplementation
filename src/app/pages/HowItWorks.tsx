@@ -19,13 +19,13 @@ export default function HowItWorks() {
       number: '01',
       icon: Download,
       title: 'Install Extension',
-      description: 'Install the AutoApply CV Chrome extension, connect it to your account, and launch your LinkedIn automation flow in minutes.',
+      description: 'Install the AutoApply CV Chrome extension, connect it to your account, and launch your LinkedIn, Naukri or Indeed automation flow in minutes.',
       mediaImageSrc: '/marketing/howitworks-install.png',
       details: [
         'One-click Chrome extension setup',
         'Connect directly with AutoApply CV',
         'Sync screening answers from dashboard',
-        'Start from LinkedIn Jobs instantly',
+        'Start from LinkedIn Jobs, naukri.com or Indeed',
       ],
       gradient: 'from-blue-500 to-cyan-500'
     },
@@ -47,10 +47,10 @@ export default function HowItWorks() {
       number: '03',
       icon: Rocket,
       title: 'Auto Apply & Track',
-      description: 'Apply to LinkedIn jobs automatically, then manage your full pipeline with a built-in job application tracker and analytics.',
+      description: 'Apply to LinkedIn Easy Apply, Naukri and Indeed "Easily apply" jobs automatically, then manage your full pipeline with a built-in job application tracker and analytics.',
       mediaImageSrc: '/marketing/howitworks-track.png',
       details: [
-        'LinkedIn easy apply automation',
+        'LinkedIn Easy Apply, Naukri and Indeed automation',
         'Pipeline management',
         'Interview prep tools',
         'Progress analytics'
@@ -63,17 +63,17 @@ export default function HowItWorks() {
     {
       icon: Clock,
       title: 'Wait-for-ready checks',
-      detail: 'Before every answer/submit action, the extension verifies modal state and required button visibility.',
+      detail: 'Before every answer/submit action, the extension verifies the LinkedIn modal, Naukri chatbot or Indeed form is ready and the required button is visible.',
     },
     {
       icon: Shield,
       title: 'Duplicate + retry cooldown',
-      detail: 'Already-applied jobs and recently-attempted jobs are skipped to prevent refresh loops and repeat actions.',
+      detail: 'Already-applied jobs and recently-attempted jobs are skipped to prevent refresh loops and repeat actions. On Indeed, hidden decoy job cards are ignored.',
     },
     {
       icon: MessageSquare,
       title: 'Validation feedback to dashboard',
-      detail: 'If LinkedIn returns a red field error, the run pauses and requests the exact corrected value.',
+      detail: 'If LinkedIn returns a red field error, the run pauses and requests the exact corrected value. On Naukri and Indeed, questions it can\'t answer are asked in the sidebar.',
     },
   ];
 
@@ -95,12 +95,12 @@ export default function HowItWorks() {
           <h1 className="text-5xl lg:text-6xl font-bold text-gray-900 mb-6">
             From AI resume builder to{' '}
             <span className="bg-[#6047f5] bg-clip-text text-transparent">
-              LinkedIn auto apply
+              auto apply on LinkedIn, Naukri &amp; Indeed
             </span>
           </h1>
           
           <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-8">
-            Free to start. Get started in minutes with job search automation, ATS resume optimization, and application tracking. No technical knowledge required.
+            Free to start. Get started in minutes with auto apply on LinkedIn, Naukri and Indeed, recruiter outreach on WhatsApp and email, ATS resume optimization, and application tracking. No technical knowledge required.
           </p>
 
           <button className="px-8 py-4 bg-gradient-to-r from-purple-100 to-blue-100 text-purple-700 rounded-xl font-semibold hover:shadow-lg transition-all duration-200 inline-flex items-center gap-2">
@@ -235,8 +235,8 @@ export default function HowItWorks() {
               { time: 'Day 1', action: 'Install extension and connect account', result: 'Automation ready in 5 minutes' },
               { time: 'Day 2-3', action: 'Get job matches', result: 'Receive 20-50 compatible jobs' },
               { time: 'Week 1', action: 'Apply to positions', result: 'Send 10-30 tailored applications' },
-              { time: 'Week 2-3', action: 'Interview invitations', result: '3-5 interview callbacks' },
-              { time: 'Week 4-6', action: 'Interview process', result: 'Multiple offer letters' }
+              { time: 'Week 2-3', action: 'Reach recruiters directly', result: 'Message recruiters on WhatsApp or email from the dashboard' },
+              { time: 'Week 4-6', action: 'Interview calls', result: 'Interview Call AI shows short answers from your notes (Pro Connect)' }
             ].map((milestone, index) => (
               <div key={index} className="flex gap-6 items-start">
                 <div className="flex-shrink-0 w-32">

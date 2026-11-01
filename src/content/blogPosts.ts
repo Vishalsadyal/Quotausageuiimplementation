@@ -1,3 +1,4 @@
+import { FEATURE_ARTICLES } from "./blogArticles/features";
 import { PROCESS_ARTICLES } from "./blogArticles/process";
 import { PROFILE_ARTICLES } from "./blogArticles/profile";
 import { ROLES_ARTICLES } from "./blogArticles/roles";
@@ -190,7 +191,58 @@ const CHROME_LISTING = "https://chromewebstore.google.com/detail/mcfmniiniaigfhh
 // daysAgo relative to PUBLISH_ANCHOR: 28 Oct 2026, 12:00 UTC (never a date in the future when deployed).
 const EDGE_TODAY = -29;
 
+// Feature-launch posts (31 Oct 2026): Naukri, Indeed, multi-site, HR contacts, Interview Call AI.
+// Bodies are hand-written in blogArticles/features.ts. Kept first so they lead the blog list.
+const FEATURE_TODAY = -32; // 31 Oct 2026, relative to PUBLISH_ANCHOR
+const FEATURE_POSTS_UPDATED_AT = "2026-10-31T12:00:00.000Z";
+const FEATURE_POSTS: Array<{ title: string; slug: string; excerpt: string; keywordsJson: string[] }> = [
+  {
+    title: "How to Auto Apply on Naukri: Step-by-Step Guide (2026)",
+    slug: "naukri-auto-apply-step-by-step-guide",
+    excerpt:
+      "Naukri auto apply, step by step: set filters, save recruiter chatbot answers, stay within Naukri's daily limit and track every application in one place.",
+    keywordsJson: ["naukri auto apply", "naukri chatbot questions", "naukri daily apply limit"],
+  },
+  {
+    title: "Indeed Auto Apply: Easily Apply Jobs in India (Guide)",
+    slug: "indeed-auto-apply-easily-apply-jobs-india",
+    excerpt:
+      "How to auto apply to Indeed's Easily apply jobs in India: search filters, screening answers, the checks that skip bad fits, and how applies are counted.",
+    keywordsJson: ["indeed auto apply", "indeed easily apply", "indeed india jobs"],
+  },
+  {
+    title: "LinkedIn vs Naukri vs Indeed: Auto Apply Jobs in India",
+    slug: "linkedin-vs-naukri-vs-indeed-auto-apply-jobs-india",
+    excerpt:
+      "LinkedIn, Naukri or Indeed in 2026? What each job site is best for in India, where auto apply helps on each, and how to run all three from one dashboard.",
+    keywordsJson: ["auto apply jobs india", "linkedin vs naukri vs indeed", "job sites india 2026"],
+  },
+  {
+    title: "HR WhatsApp Number for Jobs: How to Message Recruiters",
+    slug: "hr-whatsapp-number-for-job-message-recruiters",
+    excerpt:
+      "Where to find HR WhatsApp numbers for jobs the right way, what to send first, when to send it, and the etiquette that gets recruiters to reply.",
+    keywordsJson: ["hr whatsapp number for job", "message recruiter on whatsapp", "hr contacts india"],
+  },
+  {
+    title: "AI Interview Assistant: Using It in Live Interviews",
+    slug: "ai-interview-assistant-live-interview-guide",
+    excerpt:
+      "How an AI interview assistant works during a live interview, how to prepare notes for it, setup tips, and how to use its prompts honestly, not as a script.",
+    keywordsJson: ["ai interview assistant", "interview call ai", "live interview help"],
+  },
+];
+
 export const STATIC_BLOG_POSTS: StaticBlogPost[] = [
+  ...FEATURE_POSTS.map((meta, i) =>
+    post({
+      daysAgo: FEATURE_TODAY,
+      ...meta,
+      coverImage: coverFor(i),
+      contentHtml: FEATURE_ARTICLES[meta.slug],
+      updatedAt: FEATURE_POSTS_UPDATED_AT,
+    })
+  ),
   post({
     daysAgo: EDGE_TODAY,
     title: "Best LinkedIn Auto Apply Extension for Microsoft Edge (2026)",

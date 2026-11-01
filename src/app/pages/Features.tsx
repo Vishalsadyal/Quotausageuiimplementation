@@ -11,7 +11,10 @@ import {
   Brain,
   Shield,
   ArrowRight,
-  Check
+  Check,
+  Briefcase,
+  Phone,
+  Mic
 } from 'lucide-react';
 import { ImageWithFallback } from '../components/figma/ImageWithFallback';
 
@@ -21,8 +24,8 @@ export default function Features() {
   const mainFeatures = [
     {
       icon: Zap,
-      title: 'LinkedIn Auto Apply Bot & Easy Apply Copilot',
-      description: 'Automatically apply to hundreds of LinkedIn Easy Apply jobs with intelligent 1-click automation',
+      title: 'LinkedIn Easy Apply Auto Apply',
+      description: 'On LinkedIn, the extension applies to Easy Apply jobs with 1-click automation',
       details: [
         'Automated LinkedIn Easy Apply submission',
         'Custom screening answer bank auto-fill',
@@ -32,6 +35,62 @@ export default function Features() {
       ],
       image: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800',
       gradient: 'from-purple-600 to-indigo-600'
+    },
+    {
+      icon: Briefcase,
+      title: 'Naukri & Indeed Auto Apply',
+      description: 'The same Chrome extension opens a sidebar on naukri.com and Indeed and applies using your dashboard filters',
+      details: [
+        'Naukri: applies only with Naukri\'s own Apply and skips "Apply on company site"',
+        'Naukri: answers the recruiter chatbot from your answer bank or AI, and asks you in the sidebar when it can\'t',
+        'Indeed: applies only to "Easily apply" jobs, all in the same tab',
+        'Indeed: skips jobs already applied and jobs where Indeed says you miss a required qualification',
+        'Human pace, stays within Naukri\'s daily limit, pauses for Indeed\'s "verify you\'re human" checks',
+        'Every application logged in your Applications tracker'
+      ],
+      image: 'https://images.unsplash.com/photo-1580894896813-652ff5aa8146?w=800',
+      gradient: 'from-sky-600 to-blue-600'
+    },
+    {
+      icon: MessageSquare,
+      title: 'Recruiter Outreach on WhatsApp & Email',
+      description: 'Reach recruiters who post hiring updates on LinkedIn, directly from the extension',
+      details: [
+        'Finds recruiter phone numbers and emails in LinkedIn hiring posts',
+        'Send WhatsApp messages and emails to them',
+        'LinkedIn auto-commenter for hiring posts',
+        'Outreach logged in your dashboard'
+      ],
+      image: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800',
+      gradient: 'from-teal-500 to-cyan-600'
+    },
+    {
+      icon: Phone,
+      title: 'HR Contacts: Direct Recruiter WhatsApp Numbers',
+      description: 'Part of Pro Connect (₹500/month): 20 new recruiter contacts a day, matched to your target roles',
+      details: [
+        'WhatsApp-checked phone numbers and recruiter emails',
+        'Taken from recruiters\' public LinkedIn hiring posts',
+        'Emailed to you every morning',
+        'Message them free with 1 click from the dashboard',
+        'Includes everything in Pro'
+      ],
+      image: 'https://images.unsplash.com/photo-1739298061766-e2751d92e9db?w=800',
+      gradient: 'from-emerald-600 to-teal-600'
+    },
+    {
+      icon: Mic,
+      title: 'Interview Call AI',
+      description: 'Keep the page open during an interview or client call and see a short answer to each question from your own notes',
+      details: [
+        'Shows an answer as soon as the other person stops talking',
+        'Works with Zoom, Google Meet, Teams, or a phone on speaker',
+        'English, Hindi and Hinglish',
+        'No extension needed, nothing from the call is saved',
+        'Included in Pro Connect'
+      ],
+      image: 'https://images.unsplash.com/photo-1758518730380-04c8e0d57b68?w=800',
+      gradient: 'from-amber-500 to-orange-600'
     },
     {
       icon: FileText,
@@ -156,14 +215,14 @@ export default function Features() {
           </div>
           
           <h1 className="text-5xl lg:text-6xl font-bold text-gray-900 mb-6">
-            Powerful LinkedIn Auto Apply Bot &{' '}
+            Auto Apply on LinkedIn, Naukri &amp; Indeed{' '}
             <span className="bg-[#6047f5] bg-clip-text text-transparent">
-              Job Search Automation
+              + Job Search Automation
             </span>
           </h1>
           
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Free to start. Automatically apply to LinkedIn Easy Apply jobs, optimize resumes with AI ATS keyword matching, and manage your entire application pipeline in one unified platform.
+            Free to start. One job search assistant that auto-applies to LinkedIn Easy Apply, Naukri and Indeed jobs, reaches recruiters on WhatsApp and email, helps you live in interview calls, optimizes resumes with AI ATS keyword matching, and manage your entire application pipeline in one unified platform.
           </p>
         </div>
       </section>

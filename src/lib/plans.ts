@@ -1,5 +1,5 @@
-// Plans in one place. "connect" (Pro Connect, ₹500/month) is Pro plus HR Contacts: 20 matched
-// recruiter contacts a day, emailed daily, with free outreach to them.
+// Plans in one place. "connect" (Pro Connect, ₹500/month) is Pro plus HR Contacts (20 matched
+// recruiter contacts a day, emailed daily, with free outreach to them) and Interview Call AI.
 export type UserPlanName = "free" | "pro" | "coach" | "connect";
 export type PaidPlan = Exclude<UserPlanName, "free">;
 
@@ -40,6 +40,11 @@ export function isUnlimitedPlan(plan: string | null | undefined) {
 /** Access to HR Contacts. */
 export function hasHrContacts(plan: string | null | undefined) {
   return plan === "connect";
+}
+
+/** Access to Interview Call AI (/dashboard/interview): Pro Connect, and Coach above it. */
+export function hasInterviewAi(plan: string | null | undefined) {
+  return plan === "connect" || plan === "coach";
 }
 
 export function isPaidPlan(plan: string | null | undefined): plan is PaidPlan {

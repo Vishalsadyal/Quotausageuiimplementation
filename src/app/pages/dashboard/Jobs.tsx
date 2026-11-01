@@ -23,7 +23,6 @@ import {
   Tag,
   Plus,
   Loader2,
-  Bot,
   Compass,
   Flame,
   Zap,
@@ -45,13 +44,14 @@ import {
   Smartphone,
   Target,
   Coins,
+  Contact,
 } from "lucide-react";
 import { useParams, Link, Navigate } from "react-router";
 import { JOBS_SECTIONS, jobsSectionFromSlug, jobsSectionPath, SHOW_INDEED_SWITCH } from "./jobsSections";
 import OutreachMessages from "./OutreachMessages";
 import { useAuth } from "../../context/AuthContext";
+import { hasHrContacts, hasInterviewAi, PLAN_LABEL, type UserPlanName } from "src/lib/plans";
 import { ExtensionInstallGuide, type ExtensionInstallGuideStep } from "../../components/ExtensionInstallGuide";
-import MagicAiDecisionModal from "../../components/jobs/MagicAiDecisionModal";
 import { getExtensionProviderConfig } from "src/lib/extension-providers";
 import {
   answerTypeFromFormField,
@@ -84,7 +84,19 @@ const OUTREACH_MODULE_CHANNEL: Record<string, OutreachChannel | undefined> = {
 };
 const OUTREACH_UNIT: Record<OutreachChannel, string> = { whatsapp: "messages", email: "emails", comment: "comments" };
 // Copilot cards still in beta: kept in the list but not shown until they are ready.
-const HIDDEN_BETA_MODULES = new Set(["indeed", "interview"]);
+const HIDDEN_BETA_MODULES = new Set<string>([]);
+// Naukri and Indeed auto-apply run inside the main extension from this version on.
+const MULTI_SITE_EXTENSION_VERSION = "3.5.0";
+
+/** "3.10.0" >= "3.5.0" (numeric parts). */
+function versionAtLeast(version: string, minimum: string) {
+  const a = String(version || "").split(".").map((n) => Number.parseInt(n, 10) || 0);
+  const b = minimum.split(".").map((n) => Number.parseInt(n, 10) || 0);
+  for (let i = 0; i < Math.max(a.length, b.length); i += 1) {
+    if ((a[i] || 0) !== (b[i] || 0)) return (a[i] || 0) > (b[i] || 0);
+  }
+  return true;
+}
 
 type JobStatus = "queued" | "running" | "succeeded" | "failed" | "cancelled" | "dead_letter";
 
@@ -213,6 +225,91 @@ const JOB_TYPE_OPTIONS = ["Full-time", "Part-time", "Contract", "Internship", "T
 // Search filters on the Preferences page. They become the LinkedIn search the extension runs.
 // LinkedIn's hiring posts page (post search results, newest first) for the WhatsApp and Email tools.
 // The marker after # tells the extension which tool's panel to show on that page.
+// Naukri's own filtered search URL (same as the extension's Naukri module builds), e.g.
+//   /full-stack-developer-jobs-in-palampur?k=full stack developer&experience=4&wfhType=0&ctcFilter=3to6&jobAge=15
+// City goes in the path; wfhType 0 = office, 2 = remote, 3 = hybrid; ctcFilter = salary range in lakhs;
+// jobAge = posted within N days. Keep it lowercase with no #hash, or Naukri's page fails to load.
+const NAUKRI_CTC_RANGES: Array<[number, number]> = [[0, 3], [3, 6], [6, 10], [10, 15], [15, 25], [25, 50], [50, 75], [75, 100]];
+const NAUKRI_WFH_TYPES: Record<string, string> = { onsite: "0", "on-site": "0", office: "0", remote: "2", hybrid: "3" };
+const NAUKRI_JOB_AGE: Record<string, string> = { "past 24 hours": "1", "past week": "7", "past month": "30" };
+
+/** A salary preference in lakhs: "6", "6 LPA" or rupees per year ("600000"). */
+function salaryInLakhs(value: string) {
+  const amount = Number.parseFloat(String(value || "").replace(/[^0-9.]/g, ""));
+  if (!Number.isFinite(amount) || amount <= 0) return null;
+  return amount >= 1000 ? amount / 100000 : amount;
+}
+
+function naukriSearchUrl(
+  keyword: string,
+  filters: { city?: string; years?: string; workModes?: string[]; datePosted?: string; salaryMin?: string; salaryMax?: string } = {},
+) {
+  const query = (keyword.trim() || "software engineer").toLowerCase().replace(/\s+/g, " ");
+  const slug = query.replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+  const workModes = (filters.workModes || []).map((mode) => mode.trim().toLowerCase());
+  const city = String(filters.city || "").trim().toLowerCase();
+  const citySlug = city && !workModes.includes("remote") && !/remote|anywhere|india/.test(city) ? city.replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") : "";
+  const params = new URLSearchParams({ k: query });
+  const years = Number.parseInt(String(filters.years || ""), 10);
+  if (Number.isFinite(years) && years >= 0) params.set("experience", String(years));
+  for (const type of new Set(workModes.map((mode) => NAUKRI_WFH_TYPES[mode]).filter(Boolean))) params.append("wfhType", type);
+  const low = salaryInLakhs(filters.salaryMin || "");
+  const high = salaryInLakhs(filters.salaryMax || "");
+  if (low !== null || high !== null) {
+    for (const [from, to] of NAUKRI_CTC_RANGES) {
+      if ((low === null || to > low) && (high === null || from < high)) params.append("ctcFilter", `${from}to${to}`);
+    }
+  }
+  const jobAge = NAUKRI_JOB_AGE[String(filters.datePosted || "").trim().toLowerCase()];
+  if (jobAge) params.set("jobAge", jobAge);
+  params.set("nignbevent_src", "jobsearchDeskGNB");
+  return `https://www.naukri.com/${slug}-jobs${citySlug ? `-in-${citySlug}` : ""}?${params.toString()}`;
+}
+
+const INDEED_FROMAGE: Record<string, string> = { "past 24 hours": "1", "past week": "7", "past month": "14" };
+const INDEED_RADIUS_KM = [0, 5, 10, 15, 25, 35, 50, 100];
+
+// Indeed's filter codes for work mode / job type (seen in Indeed's job data): Remote DSQF7, Hybrid PAXZC, Full-time CF3CP.
+// Same rules as indeedFilterCodes in the extension (src/indeed/content_indeed_run.js).
+function indeedFilterCodes(workModes: string[], jobTypes: string[]) {
+  const attrs: string[] = [];
+  if (jobTypes.length === 1 && /full[- ]?time/i.test(jobTypes[0])) attrs.push("attr(CF3CP)");
+  const modes = workModes.map((mode) => mode.toLowerCase());
+  if (modes.length && !modes.some((mode) => /on-?site|office|flex|any/.test(mode))) {
+    const codes = [modes.some((mode) => mode.includes("remote")) && "DSQF7", modes.some((mode) => mode.includes("hybrid")) && "PAXZC"].filter(Boolean);
+    if (codes.length === 1) attrs.push(`attr(${codes[0]})`);
+    if (codes.length === 2) attrs.push(`attr(${codes.join("|")}%2COR)`);
+  }
+  return attrs.length ? `0kf:${attrs.join("")};` : "";
+}
+
+// Indeed search for the first preferred title with the dashboard's search filters (India site, Easily apply only),
+// the same search the extension's Indeed run makes. The # marker tells the extension to show its Indeed panel.
+function indeedSearchUrl(
+  keyword: string,
+  filters: { city?: string; workModes?: string[]; jobTypes?: string[]; datePosted?: string; distance?: string; sortBy?: string } = {},
+) {
+  const params = new URLSearchParams({ q: keyword.trim() || "software engineer" });
+  const workModes = filters.workModes || [];
+  const remoteOnly = workModes.length > 0 && workModes.every((mode) => /remote/i.test(mode));
+  const city = String(filters.city || "").trim();
+  if (city && !remoteOnly && !/^(remote|anywhere|india|worldwide)$/i.test(city)) {
+    params.set("l", city);
+    const miles = Number.parseInt(searchRadiusMiles(filters.distance || ""), 10);
+    if (Number.isFinite(miles)) {
+      const km = miles * 1.609;
+      params.set("radius", String(INDEED_RADIUS_KM.reduce((best, r) => (Math.abs(r - km) < Math.abs(best - km) ? r : best))));
+    }
+  }
+  const fromage = INDEED_FROMAGE[String(filters.datePosted || "").trim().toLowerCase()];
+  if (fromage) params.set("fromage", fromage);
+  if (!/relevan/i.test(String(filters.sortBy || ""))) params.set("sort", "date");
+  params.set("iafilter", "1");
+  const sc = indeedFilterCodes(workModes, filters.jobTypes || []);
+  if (sc) params.set("sc", sc);
+  return `https://in.indeed.com/jobs?${params.toString()}#autoapply-module=indeed`;
+}
+
 function outreachPostsUrl(tool: "whatsapp" | "email", keyword: string) {
   const query = `${keyword.trim()} hiring ${tool}`.trim();
   return `https://www.linkedin.com/search/results/content/?keywords=${encodeURIComponent(query)}&sortBy=%5B%22date_posted%22%5D#autoapply-module=${tool}`;
@@ -804,6 +901,14 @@ export default function Jobs() {
     linkedInProviderStatus?.version || extensionStatus.version || extensionRelease.version;
   const indeedInstalledVersion =
     indeedProviderStatus?.version || indeedExtensionRelease.version;
+  // Naukri / Indeed need the extension version that has them (an older one is installed but can't run them).
+  const detectedExtensionVersion = linkedInProviderStatus?.version || extensionStatus.version || "";
+  const multiSiteReady = linkedInInstalled && versionAtLeast(detectedExtensionVersion, MULTI_SITE_EXTENSION_VERSION);
+  const multiSiteStatus = multiSiteReady
+    ? { label: "Connected & Ready", color: "bg-emerald-50 text-emerald-700 border-emerald-200" }
+    : linkedInInstalled
+      ? { label: `Update to v${MULTI_SITE_EXTENSION_VERSION}`, color: "bg-amber-50 text-amber-700 border-amber-200" }
+      : { label: "Not Detected", color: "bg-amber-50 text-amber-700 border-amber-200" };
   const installedPackageName = linkedInInstalled
     ? formatExtensionPackageName(linkedInInstalledVersion || "")
     : "";
@@ -1116,44 +1221,6 @@ export default function Jobs() {
   const [fieldAiLoading, setFieldAiLoading] = useState<Record<string, boolean>>({});
   const [screeningSearchQuery, setScreeningSearchQuery] = useState("");
   const [screeningActiveTab, setScreeningActiveTab] = useState<string>("all");
-  const [aiDecisionModalOpen, setAiDecisionModalOpen] = useState(false);
-  const [targetModalJob, setTargetModalJob] = useState<{
-    id?: string;
-    title?: string;
-    company?: string;
-    location?: string;
-    reason?: string;
-    status?: string;
-    matchScore?: number;
-  } | null>(null);
-
-  const openAiInterventionForJob = (job?: AutoApplyJob | null) => {
-    if (job) {
-      const title = String(job.criteriaJson?.title || job.criteriaJson?.keywords || "Target Role");
-      const company = String(job.criteriaJson?.company || "LinkedIn Employer");
-      const location = String(job.criteriaJson?.location || job.criteriaJson?.currentCity || "Remote");
-      const reason = getJobReason(job) || "Missing key screening qualifications & Liquid API alignment";
-      setTargetModalJob({
-        id: job.id,
-        title,
-        company,
-        location,
-        reason,
-        status: job.status,
-        matchScore: job.status === "succeeded" ? 98 : job.status === "cancelled" ? 65 : 75,
-      });
-    } else {
-      setTargetModalJob({
-        title: "Shopify Plus Architect",
-        company: "TechCorp Global",
-        location: "Remote",
-        reason: "Shopify Theme (Liquid) & APIs",
-        matchScore: 75,
-      });
-    }
-    setAiDecisionModalOpen(true);
-  };
-
   const autoFillAllWithAI = async () => {
     if (isAutoFillingAI) return;
     setIsAutoFillingAI(true);
@@ -1771,6 +1838,9 @@ export default function Jobs() {
       const prefIsSet = (key: string) => draftHas(key) || Boolean(pickFirstNonEmpty(mergedAnswers, [key]));
       const filterPayload: Record<string, unknown> = {};
       if (prefIsSet("cp_pref_date_posted")) filterPayload.datePosted = prefValue("cp_pref_date_posted");
+      // Salary range for the Naukri search (ctcFilter); LinkedIn keeps using its own "salary" filter.
+      if (prefIsSet("cp_pref_salary_min")) filterPayload.salaryMin = prefValue("cp_pref_salary_min");
+      if (prefIsSet("cp_pref_salary_max")) filterPayload.salaryMax = prefValue("cp_pref_salary_max");
       if (prefIsSet("cp_pref_sort_by")) {
         const sortBy = prefValue("cp_pref_sort_by");
         filterPayload.sortBy = sortBy === "No change" ? "" : sortBy;
@@ -2632,6 +2702,35 @@ export default function Jobs() {
     return displayScreeningSections.filter((s) => tabDef.match(s.category));
   }, [displayScreeningSections, screeningActiveTab, SCREENING_CATEGORY_TABS]);
 
+  // HR Contacts card: today's contacts for Pro Connect, else how many recruiters are waiting (GET /api/user/hr-contacts).
+  const [hrSummary, setHrSummary] = useState<
+    | { unlocked: true; today: number; dailyLimit: number; notMessaged: number }
+    | { unlocked: false; freshThisWeek: number; matchingYourRoles: number }
+    | null
+  >(null);
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      try {
+        const res = await fetch("/api/user/hr-contacts", { credentials: "include" });
+        const body = await res.json().catch(() => null);
+        const data = body?.success ? body.data : null;
+        if (cancelled || !res.ok || !data) return;
+        if (data.unlocked) {
+          const today: Array<{ sentAt: string | null }> = Array.isArray(data.today) ? data.today : [];
+          setHrSummary({ unlocked: true, today: today.length, dailyLimit: Number(data.dailyLimit) || 20, notMessaged: today.filter((d) => !d.sentAt).length });
+        } else {
+          setHrSummary({ unlocked: false, freshThisWeek: Number(data.preview?.freshThisWeek) || 0, matchingYourRoles: Number(data.preview?.matchingYourRoles) || 0 });
+        }
+      } catch {
+        // informational only
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   // Outreach billing: each WhatsApp message, email and LinkedIn comment costs 1 Hire. The cards show
   // what was sent and how many Hires are left, and lock Start when there are none (Pro is unlimited).
   const [outreachStats, setOutreachStats] = useState<OutreachStats | null>(null);
@@ -2663,7 +2762,7 @@ export default function Jobs() {
       tagline: "Flagship Easy Apply Bot",
       description: "Auto-matches roles, fills screening questions, and submits 1-click Easy Apply jobs continuously.",
       icon: Target,
-      badge: "Flagship AI",
+      badge: "Flagship",
       badgeColor: "bg-blue-100 text-blue-800 border-blue-200",
       activeRoute: "/dashboard/jobs/linkedin",
       isCurrent: showLinkedIn,
@@ -2675,29 +2774,60 @@ export default function Jobs() {
       storeUrl: extensionStoreUrl,
     },
     {
-      id: "indeed",
-      name: "Indeed Auto-Apply Copilot",
-      tagline: "Indeed Bot & Cloudflare Shield",
-      description: "Auto-submits Indeed jobs with smart bypass, resume auto-fill, and live status synchronization.",
-      icon: Briefcase,
-      badge: "Beta Active",
-      badgeColor: "bg-indigo-100 text-indigo-800 border-indigo-200",
-      activeRoute: "/dashboard/jobs/indeed",
-      isCurrent: showIndeed,
-      launchUrl: "https://www.indeed.com/jobs?q=engineer#autoapply-module=indeed",
-      launchLabel: "Open Indeed Search",
-      installed: indeedInstalled,
-      statusLabel: indeedInstalled ? "Connected & Ready" : "Not Detected",
-      statusColor: indeedInstalled ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-amber-50 text-amber-700 border-amber-200",
-      storeUrl: null,
-    },
+            id: "naukri",
+            name: "Naukri Auto-Apply Copilot",
+            tagline: "Naukri Apply & Chatbot Answers",
+            description: "Finds matching Naukri jobs, answers the recruiter chatbot from your answer bank, and applies within Naukri's daily limit.",
+            icon: Search,
+            badge: "Live",
+            badgeColor: "bg-cyan-100 text-cyan-800 border-cyan-200",
+            activeRoute: "/dashboard/jobs/linkedin",
+            isCurrent: false,
+            launchUrl: naukriSearchUrl(prefTitles[0] || "", {
+              city: prefList("cp_pref_search_locations")[0] || prefDisplay("cp_pref_search_location"),
+              years: prefDisplay("cp_pref_years_of_experience"),
+              workModes: prefList("cp_pref_work_mode"),
+              datePosted: prefDisplay("cp_pref_date_posted"),
+              salaryMin: prefDisplay("cp_pref_salary_min"),
+              salaryMax: prefDisplay("cp_pref_salary_max"),
+            }),
+            launchLabel: "Open Naukri Jobs",
+            installed: multiSiteReady, // the same extension runs the Naukri module (v3.5.0+)
+            statusLabel: multiSiteStatus.label,
+            statusColor: multiSiteStatus.color,
+            storeUrl: extensionStoreUrl,
+          },
+    {
+            id: "indeed",
+            name: "Indeed Auto-Apply Copilot",
+            tagline: "Indeed Apply & Screening Answers",
+            description: "Finds matching Indeed jobs, fills Indeed Apply forms and screening questions from your answer bank, and logs every application.",
+            icon: Briefcase,
+            badge: "Live",
+            badgeColor: "bg-indigo-100 text-indigo-800 border-indigo-200",
+            activeRoute: "/dashboard/jobs/linkedin",
+            isCurrent: false,
+            launchUrl: indeedSearchUrl(prefTitles[0] || "", {
+              city: prefList("cp_pref_search_locations")[0] || prefDisplay("cp_pref_search_location"),
+              workModes: prefList("cp_pref_work_mode"),
+              jobTypes: prefList("cp_pref_job_types"),
+              datePosted: prefDisplay("cp_pref_date_posted"),
+              distance: prefDisplay("cp_pref_distance"),
+              sortBy: prefDisplay("cp_pref_sort_by"),
+            }),
+            launchLabel: "Open Indeed Jobs",
+            installed: multiSiteReady, // the same extension runs the Indeed module (v3.5.0+)
+            statusLabel: multiSiteStatus.label,
+            statusColor: multiSiteStatus.color,
+            storeUrl: extensionStoreUrl,
+          },
     {
       id: "whatsapp",
       name: "WhatsApp Recruiter Outreach",
       tagline: "LinkedIn Phone Scraper & Multi-Chat",
-      description: "Opens LinkedIn's hiring posts to auto-scrape recruiter phone numbers, then auto-dispatches personalized intro messages directly to WhatsApp Web with duplicate protection.",
+      description: "Finds recruiter phone numbers in LinkedIn hiring posts and sends your intro on WhatsApp Web, never twice.",
       icon: MessageCircle,
-      badge: "Auto-Send Ready",
+      badge: "Automated",
       badgeColor: "bg-emerald-100 text-emerald-800 border-emerald-200",
       activeRoute: "/dashboard/marketing/whatsapp",
       isCurrent: false,
@@ -2714,9 +2844,9 @@ export default function Jobs() {
       id: "email",
       name: "Email Recruiter Outreach",
       tagline: "LinkedIn Email Scraper & Gmail Sender",
-      description: "Opens LinkedIn's hiring posts and scans them for recruiter emails, then sends personalized intro emails with your resume from Gmail, with duplicate protection.",
+      description: "Finds recruiter emails in LinkedIn hiring posts and sends your intro with resume from Gmail, never twice.",
       icon: Mail,
-      badge: "Auto-Send Ready",
+      badge: "Automated",
       badgeColor: "bg-sky-100 text-sky-800 border-sky-200",
       activeRoute: "/dashboard/jobs/linkedin",
       isCurrent: false,
@@ -2730,12 +2860,30 @@ export default function Jobs() {
       storeUrl: null,
     },
     {
+      id: "hr_contacts",
+      name: "Direct HR WhatsApp Numbers",
+      tagline: "Verified Recruiter Contacts Daily",
+      description: "Get 20 new recruiter WhatsApp numbers and emails a day, matched to your roles and ready to message.",
+      icon: Contact,
+      badge: "Premium",
+      badgeColor: "bg-purple-100 text-purple-800 border-purple-200",
+      isCurrent: false,
+      // Without Pro Connect the button sells the plan (the page itself only shows a locked preview).
+      activeRoute: hasHrContacts(user?.plan) ? "/dashboard/hr-contacts" : "/dashboard/billing",
+      launchUrl: hasHrContacts(user?.plan) ? "/dashboard/hr-contacts" : "/dashboard/billing",
+      launchLabel: hasHrContacts(user?.plan) ? "Open HR Contacts" : "Buy Pro Connect",
+      installed: true,
+      statusLabel: "Ready",
+      statusColor: "bg-purple-50 text-purple-700 border-purple-200",
+      storeUrl: null,
+    },
+    {
       id: "commenter",
       name: "LinkedIn Auto-Commenter",
       tagline: "Viral Engagement & Portfolio Pitch",
       description: "Auto-engages on hiring posts with AI, leaving thoughtful comments and pitching your resume & portfolio.",
       icon: Share2,
-      badge: "Engagement AI",
+      badge: "Engagement",
       badgeColor: "bg-amber-100 text-amber-800 border-amber-200",
       activeRoute: "/dashboard/jobs/linkedin",
       isCurrent: false,
@@ -2748,16 +2896,16 @@ export default function Jobs() {
     },
     {
       id: "interview",
-      name: "Client Call Copilot",
-      tagline: "Google Meet Sales Assistant",
-      description: "Live talking points, objection handling and closing prompts on Google Meet calls with Upwork leads.",
+      name: "Interview Call AI",
+      tagline: "Live Interview & Call Assistant",
+      description: "Listens during your interview or client call and shows a quick answer to each question. No extension needed.",
       icon: Mic,
-      badge: "Beta Active",
-      badgeColor: "bg-indigo-100 text-indigo-800 border-indigo-200",
-      activeRoute: "/dashboard/interview",
+      badge: "Premium",
+      badgeColor: "bg-purple-100 text-purple-800 border-purple-200",
       isCurrent: false,
-      launchUrl: "/dashboard/interview",
-      launchLabel: "Prep a Call",
+      activeRoute: hasInterviewAi(user?.plan) || user?.role === "admin" ? "/dashboard/interview" : "/dashboard/billing",
+      launchUrl: hasInterviewAi(user?.plan) || user?.role === "admin" ? "/dashboard/interview" : "/dashboard/billing",
+      launchLabel: hasInterviewAi(user?.plan) || user?.role === "admin" ? "Open Copilot" : "Buy Pro Connect",
       installed: true,
       statusLabel: "Ready",
       statusColor: "bg-amber-50 text-amber-700 border-amber-200",
@@ -2860,28 +3008,21 @@ export default function Jobs() {
             <button
               type="button"
               onClick={() => void syncProfileToExtension()}
-              title="Sync all copilots"
-              className="p-1.5 bg-white hover:bg-purple-50 text-purple-700 border border-purple-200 rounded-lg"
+              title="Send your profile, filters and saved answers to the extension"
+              className="px-2.5 py-1.5 bg-white hover:bg-purple-50 text-purple-700 border border-purple-200 rounded-lg text-[11px] font-bold inline-flex items-center gap-1"
             >
               <Link2 className="w-3.5 h-3.5" />
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setAiDecisionModalOpen(true)}
-              title="AI Agent Fleet"
-              className="p-1.5 bg-gray-50 hover:bg-gray-100 text-gray-600 border border-gray-200 rounded-lg"
-            >
-              <Bot className="w-3.5 h-3.5" />
+              <span>Sync</span>
             </button>
 
             <button
               type="button"
               onClick={() => openInstallGuide()}
               title="Install guide"
-              className="p-1.5 bg-gray-50 hover:bg-gray-100 text-gray-600 border border-gray-200 rounded-lg"
+              className="px-2.5 py-1.5 bg-gray-50 hover:bg-gray-100 text-gray-600 border border-gray-200 rounded-lg text-[11px] font-bold inline-flex items-center gap-1"
             >
               <BookOpen className="w-3.5 h-3.5" />
+              <span>Guide</span>
             </button>
           </div>
         </motion.div>
@@ -2933,9 +3074,14 @@ export default function Jobs() {
                   <span>Setup Guide</span>
                 </button>
 
+                {/* A freshly installed extension only connects to pages loaded after it, so reload
+                    (the page re-checks the extension on load). */}
                 <button
                   type="button"
-                  onClick={() => void checkExtensionStatus()}
+                  onClick={() => {
+                    setCheckingExtension(true);
+                    window.location.reload();
+                  }}
                   disabled={checkingExtension}
                   className="px-3.5 py-2 bg-white hover:bg-gray-50 text-gray-700 border border-gray-200 rounded-xl text-xs font-semibold transition-colors inline-flex items-center gap-1.5 shadow-2xs"
                 >
@@ -2976,6 +3122,7 @@ export default function Jobs() {
         {/* TAB 1: Magic AI Autopilot & Fleet Hub */}
         {activeJobsTab === "autopilot" && (
           <div className="space-y-4 animate-in fade-in duration-150">
+
             {/* Unified Extension Fleet Grid */}
             <div className="space-y-3">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -2985,20 +3132,24 @@ export default function Jobs() {
                   const outreachChannel = OUTREACH_MODULE_CHANNEL[module.id];
                   const outreachSent = outreachChannel && outreachStats ? outreachStats.sent[outreachChannel] : null;
                   const outOfHires = Boolean(outreachChannel && outreachStats && !outreachStats.unlimited && outreachStats.spendable <= 0);
+                  // Pro Connect features: gold card, badge with a sliding shine, gold "Buy Pro Connect" button.
+                  const premium = module.id === "hr_contacts" || module.id === "interview";
                   return (
                     <div
                       key={module.id}
-                      className={`rounded-2xl border bg-white p-4 transition-all duration-150 flex flex-col justify-between shadow-2xs hover:shadow-xs ${
-                        module.isCurrent ? "border-purple-300 ring-2 ring-purple-100/80" : "border-gray-200/80 hover:border-gray-300"
+                      className={`rounded-2xl border p-4 transition-all duration-150 flex flex-col justify-between shadow-2xs hover:shadow-xs ${
+                        premium ? "premium-card" : module.isCurrent ? "bg-white border-purple-300 ring-2 ring-purple-100/80" : "bg-white border-gray-200/80 hover:border-gray-300"
                       }`}
                     >
                       <div className="space-y-2">
                         <div className="flex items-start justify-between gap-2">
                           <div className="flex items-center gap-2.5">
                             <div className={`p-2 rounded-xl text-white shadow-2xs ${
+                              premium ? "premium-icon" :
                               module.id === "linkedin" ? "bg-blue-600" :
                               module.id === "indeed" ? "bg-indigo-600" :
-                              module.id === "hr_outreach" ? "bg-purple-600" :
+                              module.id === "naukri" ? "bg-cyan-600" :
+                              module.id === "hr_outreach" || module.id === "hr_contacts" ? "bg-purple-600" :
                               module.id === "whatsapp" ? "bg-emerald-600" :
                               module.id === "email" ? "bg-sky-600" :
                               module.id === "commenter" ? "bg-amber-600" : "bg-rose-600"
@@ -3010,7 +3161,7 @@ export default function Jobs() {
                               <p className="text-[10px] text-gray-500 font-medium">{module.tagline}</p>
                             </div>
                           </div>
-                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${module.badgeColor}`}>
+                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${premium ? "premium-badge" : module.badgeColor}`}>
                             {module.badge}
                           </span>
                         </div>
@@ -3018,6 +3169,36 @@ export default function Jobs() {
                         <p className="text-[11px] text-gray-600 leading-relaxed min-h-[32px]">
                           {module.description}
                         </p>
+
+                        {module.id === "hr_contacts" && (
+                          <div className="flex flex-wrap items-center gap-x-2 gap-y-1 rounded-lg bg-gray-50 px-2.5 py-1.5 text-[10px] text-gray-600">
+                            {hrSummary?.unlocked ? (
+                              <span>
+                                <b className="text-gray-900">{hrSummary.today}</b>/{hrSummary.dailyLimit} contacts today
+                                {hrSummary.notMessaged > 0 && <> · {hrSummary.notMessaged} not messaged yet</>}
+                              </span>
+                            ) : hrSummary?.unlocked === false ? (
+                              <span>
+                                <b className="text-gray-900">{hrSummary.freshThisWeek}</b> recruiters this week
+                                {hrSummary.matchingYourRoles > 0 && <> · {hrSummary.matchingYourRoles} match your roles</>}
+                              </span>
+                            ) : (
+                              <span>20 new contacts a day</span>
+                            )}
+                            <span className="text-gray-300">|</span>
+                            <span>
+                              Your plan: <b className={hasHrContacts(user?.plan) ? "text-emerald-700" : "text-gray-900"}>{PLAN_LABEL[(user?.plan || "free") as UserPlanName] || "Free"}</b>
+                            </span>
+                          </div>
+                        )}
+
+                        {module.id === "interview" && (
+                          <div className="flex flex-wrap items-center gap-x-2 gap-y-1 rounded-lg bg-gray-50 px-2.5 py-1.5 text-[10px] text-gray-600">
+                            <span>
+                              <b className="text-gray-900">Live call answers</b> · Zoom, Meet, Teams, phone · English, Hindi, Hinglish
+                            </span>
+                          </div>
+                        )}
 
                         {outreachChannel && outreachStats && outreachSent && (
                           <div className="flex flex-wrap items-center gap-x-2 gap-y-1 rounded-lg bg-gray-50 px-2.5 py-1.5 text-[10px] text-gray-600">
@@ -3043,23 +3224,14 @@ export default function Jobs() {
 
                       <div className="pt-3 mt-3 border-t border-gray-100 flex items-center gap-2">
                         {module.installed && outOfHires ? (
-                          <div className="flex-1 flex items-center gap-1.5">
-                            <button
-                              type="button"
-                              disabled
-                              title="Each message costs 1 Hire. You have none left."
-                              className="flex-1 px-3 py-1.5 bg-gray-100 text-gray-400 rounded-xl text-xs font-bold inline-flex items-center justify-center gap-1.5 cursor-not-allowed"
-                            >
-                              <span>Out of Hires</span>
-                            </button>
-                            <Link
-                              to="/dashboard/billing"
-                              className="px-2.5 py-1.5 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-xs font-bold shrink-0 inline-flex items-center gap-1"
-                            >
-                              <Coins className="w-3 h-3" />
-                              Top up
-                            </Link>
-                          </div>
+                          <Link
+                            to="/dashboard/billing"
+                            title="Each message costs 1 Hire. You have none left."
+                            className="flex-1 px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-xs font-bold transition-colors inline-flex items-center justify-center gap-1.5 shadow-2xs"
+                          >
+                            <Coins className="w-3 h-3" />
+                            <span>Top up</span>
+                          </Link>
                         ) : module.installed ? (
                           isExternal ? (
                             <a
@@ -3075,7 +3247,9 @@ export default function Jobs() {
                           ) : (
                             <Link
                               to={module.activeRoute}
-                              className="flex-1 px-3 py-1.5 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-bold transition-colors inline-flex items-center justify-center gap-1.5 shadow-2xs"
+                              className={`flex-1 px-3 py-1.5 text-white rounded-xl text-xs font-bold transition-colors inline-flex items-center justify-center gap-1.5 shadow-2xs ${
+                                premium ? "premium-button" : "bg-purple-600 hover:bg-purple-700"
+                              }`}
                             >
                               <ChevronRight className="w-3.5 h-3.5" />
                               <span>{module.launchLabel}</span>
@@ -3091,7 +3265,12 @@ export default function Jobs() {
                                 className="flex-1 px-3 py-1.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white rounded-xl text-xs font-bold transition-colors inline-flex items-center justify-center gap-1.5 shadow-2xs"
                               >
                                 <ExternalLink className="w-3 h-3" />
-                                <span>Install from Chrome Store</span>
+                                <span>
+                                  {/* Extension installed but older than the Naukri / Indeed version: it needs an update, not an install. */}
+                                  {linkedInInstalled && (module.id === "naukri" || module.id === "indeed")
+                                    ? `Update extension (v${MULTI_SITE_EXTENSION_VERSION})`
+                                    : "Install from Chrome Store"}
+                                </span>
                               </a>
                             ) : null}
                             <button
@@ -4149,74 +4328,6 @@ export default function Jobs() {
         />
       ) : null}
 
-      {/* Magic AI Agent Intervention Decision Modal (Overlay) */}
-      <MagicAiDecisionModal
-        isOpen={aiDecisionModalOpen}
-        onClose={() => setAiDecisionModalOpen(false)}
-        targetJob={targetModalJob}
-        userProfile={{
-          name: (user as any)?.name || "Candidate",
-          email: (user as any)?.email || "candidate@autoapply.app",
-          phone: (user as any)?.phone || "",
-          currentCity: (user as any)?.currentCity || "",
-          linkedinUrl: (user as any)?.linkedinUrl || "",
-          portfolioUrl: (user as any)?.portfolioUrl || "",
-          experienceYears: siteScreeningAnswers["years_of_experience"] || siteScreeningAnswers["total_experience"] || "5+",
-        }}
-        pipelineStats={{
-          total: jobs.length,
-          submitted: jobs.filter((j) => j.status === "succeeded").length,
-          queued: jobs.filter((j) => j.status === "queued" || j.status === "running").length,
-          skipped: jobs.filter((j) => j.status === "cancelled").length,
-          failed: jobs.filter((j) => j.status === "failed" || j.status === "dead_letter").length,
-        }}
-        screeningAnswers={siteScreeningAnswers}
-        pendingQuestions={pendingQuestionsList}
-        onAutoCustomize={async () => {
-          await handleGenerate100Keywords();
-        }}
-        onAutoOptimize={async () => {
-          await handleGenerate100Keywords();
-          await autoFillAllWithAI();
-        }}
-        onLaunchAutoApply={async () => {
-          await submitAutoApply();
-        }}
-        onReQueueJob={async (jobId) => {
-          await submitAutoApply();
-          await loadJobs();
-        }}
-        onSkipJob={async (jobId) => {
-          if (jobId) {
-            try {
-              await fetch(`/api/auto-apply/jobs/${encodeURIComponent(jobId)}/cancel`, { method: "POST" });
-              await loadJobs();
-            } catch (err) {
-              console.error("Cancel failed", err);
-            }
-          }
-        }}
-        onSolveScreening={async () => {
-          await autoFillAllWithAI();
-        }}
-        onSyncExtension={async () => {
-          await syncProfileToExtension();
-          await checkExtensionStatus();
-        }}
-        onSaveCustomTag={async (tag) => {
-          const updated = Array.from(new Set([...currentSearchTerms, tag]));
-          const joined = updated.join(", ");
-          setAnswerDrafts((prev) => ({ ...prev, cp_pref_search_terms: joined, preferred_job_titles: joined }));
-          await saveAnswerToSite("cp_pref_search_terms", "Preferred Job Titles / Search Terms", joined, "multiselect", "manual");
-          await saveAnswerToSite("preferred_job_titles", "Preferred Job Titles / Search Terms", joined, "multiselect", "manual");
-          await syncProfileToExtension();
-        }}
-        searchTerms={currentSearchTerms}
-        pendingQuestionsCount={pendingCount}
-        totalSyncedCount={totalScreeningAnswers}
-        linkedInConnected={linkedInInstalled}
-        extensionVersion={linkedInInstalledVersion || "2.6.0"}
-      />
     </div>
   );
 }

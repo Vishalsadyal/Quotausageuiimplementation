@@ -477,15 +477,99 @@ body.cp-in-dashboard .cp-chat-widget {
   color: #9ca3af;
 }
 
-/* Admin dashboard: every text size shrunk (the layout adds .admin-compact). */
-.admin-compact { font-size: 12px; }
-.admin-compact input, .admin-compact select, .admin-compact textarea, .admin-compact button { font-size: inherit; }
-.admin-compact .text-xs, .admin-compact [class*=":text-xs"] { font-size: 10px; line-height: 14px; }
-.admin-compact .text-sm, .admin-compact [class*=":text-sm"] { font-size: 11px; line-height: 15px; }
-.admin-compact .text-base, .admin-compact [class*=":text-base"] { font-size: 12px; line-height: 17px; }
-.admin-compact .text-lg, .admin-compact [class*=":text-lg"] { font-size: 13px; line-height: 18px; }
-.admin-compact .text-xl, .admin-compact [class*=":text-xl"] { font-size: 14px; line-height: 19px; }
-.admin-compact .text-2xl, .admin-compact [class*=":text-2xl"] { font-size: 16px; line-height: 21px; }
-.admin-compact .text-3xl, .admin-compact [class*=":text-3xl"] { font-size: 18px; line-height: 24px; }
-.admin-compact .text-4xl, .admin-compact [class*=":text-4xl"] { font-size: 20px; line-height: 26px; }
-.admin-compact .text-5xl, .admin-compact [class*=":text-5xl"] { font-size: 24px; line-height: 28px; }
+/* User + admin dashboards: every text size shrunk. Tune with --cp-text-scale (1 = normal size). */
+.dashboard-compact { --cp-text-scale: 0.85; }
+.admin-compact { --cp-text-scale: 0.85; }
+.dashboard-compact, .admin-compact { font-size: max(9px, calc(16px * var(--cp-text-scale))); }
+.dashboard-compact input, .dashboard-compact select, .dashboard-compact textarea, .dashboard-compact button, .admin-compact input, .admin-compact select, .admin-compact textarea, .admin-compact button { font-size: inherit; }
+.dashboard-compact .text-xs, .dashboard-compact [class*=":text-xs"], .admin-compact .text-xs, .admin-compact [class*=":text-xs"] { font-size: max(9px, calc(12px * var(--cp-text-scale))); line-height: calc(16px * var(--cp-text-scale) + 2px); }
+.dashboard-compact .text-sm, .dashboard-compact [class*=":text-sm"], .admin-compact .text-sm, .admin-compact [class*=":text-sm"] { font-size: max(9px, calc(14px * var(--cp-text-scale))); line-height: calc(20px * var(--cp-text-scale) + 2px); }
+.dashboard-compact .text-base, .dashboard-compact [class*=":text-base"], .admin-compact .text-base, .admin-compact [class*=":text-base"] { font-size: max(9px, calc(16px * var(--cp-text-scale))); line-height: calc(24px * var(--cp-text-scale) + 2px); }
+.dashboard-compact .text-lg, .dashboard-compact [class*=":text-lg"], .admin-compact .text-lg, .admin-compact [class*=":text-lg"] { font-size: max(9px, calc(18px * var(--cp-text-scale))); line-height: calc(28px * var(--cp-text-scale) + 2px); }
+.dashboard-compact .text-xl, .dashboard-compact [class*=":text-xl"], .admin-compact .text-xl, .admin-compact [class*=":text-xl"] { font-size: max(9px, calc(20px * var(--cp-text-scale))); line-height: calc(28px * var(--cp-text-scale) + 2px); }
+.dashboard-compact .text-2xl, .dashboard-compact [class*=":text-2xl"], .admin-compact .text-2xl, .admin-compact [class*=":text-2xl"] { font-size: max(9px, calc(24px * var(--cp-text-scale))); line-height: calc(32px * var(--cp-text-scale) + 2px); }
+.dashboard-compact .text-3xl, .dashboard-compact [class*=":text-3xl"], .admin-compact .text-3xl, .admin-compact [class*=":text-3xl"] { font-size: max(9px, calc(30px * var(--cp-text-scale))); line-height: calc(36px * var(--cp-text-scale) + 2px); }
+.dashboard-compact .text-4xl, .dashboard-compact [class*=":text-4xl"], .admin-compact .text-4xl, .admin-compact [class*=":text-4xl"] { font-size: max(9px, calc(36px * var(--cp-text-scale))); line-height: calc(40px * var(--cp-text-scale) + 2px); }
+.dashboard-compact .text-5xl, .dashboard-compact [class*=":text-5xl"], .admin-compact .text-5xl, .admin-compact [class*=":text-5xl"] { font-size: max(9px, calc(48px * var(--cp-text-scale))); line-height: calc(48px * var(--cp-text-scale) + 2px); }
+.dashboard-compact .text-6xl, .dashboard-compact [class*=":text-6xl"], .admin-compact .text-6xl, .admin-compact [class*=":text-6xl"] { font-size: max(9px, calc(60px * var(--cp-text-scale))); line-height: calc(60px * var(--cp-text-scale) + 2px); }
+.dashboard-compact [class*="text-[8px]"], .admin-compact [class*="text-[8px]"] { font-size: max(9px, calc(8px * var(--cp-text-scale))); }
+.dashboard-compact [class*="text-[9px]"], .admin-compact [class*="text-[9px]"] { font-size: max(9px, calc(9px * var(--cp-text-scale))); }
+.dashboard-compact [class*="text-[9.5px]"], .admin-compact [class*="text-[9.5px]"] { font-size: max(9px, calc(9.5px * var(--cp-text-scale))); }
+.dashboard-compact [class*="text-[10px]"], .admin-compact [class*="text-[10px]"] { font-size: max(9px, calc(10px * var(--cp-text-scale))); }
+.dashboard-compact [class*="text-[10.5px]"], .admin-compact [class*="text-[10.5px]"] { font-size: max(9px, calc(10.5px * var(--cp-text-scale))); }
+.dashboard-compact [class*="text-[11px]"], .admin-compact [class*="text-[11px]"] { font-size: max(9px, calc(11px * var(--cp-text-scale))); }
+.dashboard-compact [class*="text-[12px]"], .admin-compact [class*="text-[12px]"] { font-size: max(9px, calc(12px * var(--cp-text-scale))); }
+.dashboard-compact [class*="text-[13px]"], .admin-compact [class*="text-[13px]"] { font-size: max(9px, calc(13px * var(--cp-text-scale))); }
+.dashboard-compact [class*="text-[14px]"], .admin-compact [class*="text-[14px]"] { font-size: max(9px, calc(14px * var(--cp-text-scale))); }
+.dashboard-compact [class*="text-[15px]"], .admin-compact [class*="text-[15px]"] { font-size: max(9px, calc(15px * var(--cp-text-scale))); }
+.dashboard-compact [class*="text-[16px]"], .admin-compact [class*="text-[16px]"] { font-size: max(9px, calc(16px * var(--cp-text-scale))); }
+.dashboard-compact [class*="text-[18px]"], .admin-compact [class*="text-[18px]"] { font-size: max(9px, calc(18px * var(--cp-text-scale))); }
+.dashboard-compact [class*="text-[20px]"], .admin-compact [class*="text-[20px]"] { font-size: max(9px, calc(20px * var(--cp-text-scale))); }
+
+/* Premium (Pro Connect) cards on the Jobs dashboard: gold badge with a sliding shine, gold border and button. */
+.premium-badge {
+  position: relative;
+  overflow: hidden;
+  color: #7a4b00;
+  background: linear-gradient(135deg, #fde68a 0%, #fbbf24 45%, #f59e0b 70%, #fde68a 100%);
+  border-color: #f59e0b;
+  box-shadow: 0 1px 6px rgba(245, 158, 11, 0.35);
+}
+.premium-badge::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -60%;
+  width: 45%;
+  background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.85), transparent);
+  transform: skewX(-20deg);
+  animation: premium-shine 3.2s ease-in-out infinite;
+}
+@keyframes premium-shine {
+  0%,
+  55% {
+    left: -60%;
+  }
+  100% {
+    left: 130%;
+  }
+}
+.premium-card {
+  border-color: #fcd34d !important;
+  background: linear-gradient(180deg, #fffbeb 0%, #ffffff 38%);
+  box-shadow: 0 0 0 1px rgba(251, 191, 36, 0.25), 0 6px 18px -8px rgba(245, 158, 11, 0.45);
+}
+.premium-card:hover {
+  border-color: #f59e0b !important;
+}
+.premium-icon {
+  background: linear-gradient(135deg, #fbbf24, #d97706);
+}
+.premium-button {
+  position: relative;
+  overflow: hidden;
+  color: #ffffff;
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+}
+.premium-button:hover {
+  background: linear-gradient(135deg, #d97706, #b45309);
+}
+.premium-button::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -60%;
+  width: 40%;
+  background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.45), transparent);
+  transform: skewX(-20deg);
+  animation: premium-shine 3.2s ease-in-out infinite 0.6s;
+}
+@media (prefers-reduced-motion: reduce) {
+  .premium-badge::after,
+  .premium-button::after {
+    animation: none;
+    display: none;
+  }
+}

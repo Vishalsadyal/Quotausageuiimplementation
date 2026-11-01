@@ -205,7 +205,7 @@ function DashboardLayoutInner({ registerOpenMenu }: { registerOpenMenu: (open: (
       isExternal: true,
     },
     { name: 'Resume', href: '/dashboard/resume', icon: FileText },
-    { name: 'Call Copilot', href: '/dashboard/interview', icon: MessageSquare },
+    { name: 'Interview Call AI', href: '/dashboard/interview', icon: MessageSquare },
     { name: 'Analytics', href: '/dashboard/analytics', icon: BarChart3 },
     onboardingComplete
       ? { name: 'Billing', href: '/dashboard/billing', icon: CreditCard }
@@ -254,7 +254,7 @@ function DashboardLayoutInner({ registerOpenMenu }: { registerOpenMenu: (open: (
   }
 
   return (
-    <div className="dashboard-theme min-h-screen bg-[#FAFBFC] relative overflow-hidden flex">
+    <div className="dashboard-theme dashboard-compact min-h-screen bg-[#FAFBFC] relative overflow-hidden flex">
       {/* Ambient background */}
       <div
         aria-hidden="true"

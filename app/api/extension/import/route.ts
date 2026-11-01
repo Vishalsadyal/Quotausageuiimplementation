@@ -349,7 +349,7 @@ export async function GET(req: NextRequest) {
         ? statusRaw
         : "";
     const provider =
-      providerRaw === "linkedin" || providerRaw === "indeed"
+      providerRaw === "linkedin" || providerRaw === "indeed" || providerRaw === "naukri"
         ? normalizeExtensionProvider(providerRaw)
         : null;
 

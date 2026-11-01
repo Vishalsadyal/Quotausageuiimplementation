@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
-import { Check, X, Zap, Crown, Users, ArrowRight, Sparkles, Shield, Clock } from 'lucide-react';
+import { Check, X, Zap, Crown, Users, ArrowRight, Sparkles, Shield, Clock, Contact } from 'lucide-react';
 import { MediaSlot } from '../components/marketing/MediaSlot';
 
 type Plan = {
@@ -63,7 +63,7 @@ export default function Pricing() {
         'Weekly analytics dashboard',
         'Priority support',
         'Cover letter generator',
-        'LinkedIn Easy Apply automation'
+        'LinkedIn Easy Apply, Naukri and Indeed auto-apply'
       ],
       cta: 'Start Pro (₹99/mo)',
       popular: true,
@@ -71,16 +71,35 @@ export default function Pricing() {
       badge: 'LIMITED OFFER • 80% OFF'
     },
     {
+      name: 'Pro Connect',
+      icon: Contact,
+      monthlyPrice: 500,
+      yearlyPrice: 0,
+      customPriceLabel: '₹500 / month',
+      description: 'Pro plus fresh recruiter contacts every day',
+      features: [
+        'Everything in Pro',
+        '20 new HR contacts a day, matched to your target roles',
+        'WhatsApp-checked phone numbers and recruiter emails from public LinkedIn hiring posts',
+        'Daily contacts email every morning',
+        'Message them free with 1 click from the dashboard',
+        'Interview Call AI: short answers from your notes during live interview calls'
+      ],
+      cta: 'Start Pro Connect (₹500/mo)',
+      popular: false,
+      gradient: 'from-emerald-600 to-teal-600'
+    },
+    {
       name: 'Custom Hires',
       icon: Users,
       monthlyPrice: 0,
       yearlyPrice: 0,
-      customPriceLabel: '$0.54 min top-up',
+      customPriceLabel: '₹49 min top-up',
       description: 'Pay-as-you-go wallet, no monthly commitment',
       features: [
         'Buy only what you need',
         '1 Hire = 1 Apply',
-        'Minimum top-up $0.54',
+        'Minimum top-up ₹49',
         'Works with daily cap controls',
         'No monthly subscription',
         'Great for flexible usage'
@@ -92,7 +111,7 @@ export default function Pricing() {
   ];
 
   const billingRules = [
-    { event: 'Application submitted successfully', charged: true, note: 'Counts as 1 apply action or 1 Hire credit.' },
+    { event: 'Application submitted successfully (LinkedIn, Naukri or Indeed)', charged: true, note: 'Counts as 1 free daily apply or 1 Hire credit. Unlimited on Pro and Pro Connect.' },
     { event: 'Skipped: External Apply only', charged: false, note: 'Not counted when easy-apply-only is enabled.' },
     { event: 'Skipped: Already applied / cache hit', charged: false, note: 'Duplicate prevention avoids repeat charging.' },
     { event: 'Skipped: Validation error (form blocked)', charged: false, note: 'Run pauses and asks for corrected answer.' },
@@ -104,6 +123,10 @@ export default function Pricing() {
       navigate('/dashboard/billing');
       return;
     }
+    if (planName === 'Pro Connect') {
+      navigate('/signup?plan=connect');
+      return;
+    }
     navigate(`/signup?plan=${planName.toLowerCase().replace(/\s+/g, '-')}`);
   };
 
@@ -113,7 +136,7 @@ export default function Pricing() {
         <div className="max-w-7xl mx-auto px-6 lg:px-8 relative text-center">
           <div className="inline-block px-4 py-2 bg-gradient-to-r from-purple-100 to-blue-100 rounded-full text-purple-700 text-sm font-semibold mb-6">
             <Sparkles className="w-4 h-4 inline mr-2" />
-            3 Simple Plans
+            4 Simple Plans
           </div>
 
           <h1 className="text-5xl lg:text-6xl font-bold text-gray-900 mb-6">
@@ -121,7 +144,7 @@ export default function Pricing() {
           </h1>
 
           <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-10">
-            Free (₹0) with 3/day, Pro at ₹99/month unlimited, or Custom Hires top-up when you need flexibility.
+            Free (₹0) with 3/day, Pro at ₹99/month unlimited, Pro Connect at ₹500/month with daily recruiter contacts and Interview Call AI, or Custom Hires top-up when you need flexibility.
           </p>
 
           <div className="inline-flex items-center gap-3 bg-white rounded-full p-2 shadow-lg border border-gray-200">
@@ -151,7 +174,7 @@ export default function Pricing() {
 
       <section className="py-16 bg-white">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
             {plans.map((plan, index) => (
               <div
                 key={index}
@@ -282,7 +305,7 @@ export default function Pricing() {
 
           <h2 className="text-4xl lg:text-5xl font-bold mb-6">Start your journey today</h2>
 
-          <p className="text-xl text-purple-100 mb-12">Free starts at ₹0 with 3/day. Pro is ₹99/month unlimited.</p>
+          <p className="text-xl text-purple-100 mb-12">Free starts at ₹0 with 3/day. Pro is ₹99/month unlimited. Pro Connect is ₹500/month.</p>
 
           <button
             onClick={() => handleSelectPlan('Free')}

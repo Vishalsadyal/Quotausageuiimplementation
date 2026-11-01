@@ -4,12 +4,12 @@ export default function Product() {
   return (
     <MarketingInfoPage
       eyebrow="AutoApply CV Product Suite"
-      title="Complete AI Job Search Automation & LinkedIn Apply Bot Platform"
-      description="Free to start. AutoApply CV unites powerful LinkedIn Easy Apply automation, intelligent AI resume tailoring, automated recruiter outreach, and centralized application tracking into one seamless workflow."
+      title="Complete AI Job Search Assistant for LinkedIn, Naukri & Indeed"
+      description="Free to start. AutoApply CV unites LinkedIn Easy Apply, Naukri, and Indeed auto-apply, AI resume tailoring, WhatsApp and email recruiter outreach, direct HR contacts, Interview Call AI, and application tracking in one workflow."
       metrics={[
-        { label: "Core Engine", value: "LinkedIn Auto Apply Bot", note: "Client-side Easy Apply copilot" },
+        { label: "Auto Apply", value: "LinkedIn, Naukri, Indeed", note: "One Chrome extension" },
         { label: "Resume Tech", value: "AI ATS Optimization", note: "Real-time keyword tailoring" },
-        { label: "Outreach", value: "HR Email Finder", note: "Verified recruiter contacts" },
+        { label: "Outreach", value: "WhatsApp + Email", note: "Recruiters from LinkedIn hiring posts" },
         { label: "Safety", value: "Human-in-the-Loop", note: "Pause, review & resume anytime" },
       ]}
       sections={[
@@ -18,9 +18,15 @@ export default function Product() {
           cards: [
             {
               kicker: "Automation",
-              title: "LinkedIn Auto Apply Bot",
+              title: "LinkedIn Easy Apply Auto Apply",
               description:
                 "Apply to hundreds of LinkedIn Easy Apply jobs automatically with customizable search filters, human typing pacing, and duplicate prevention.",
+            },
+            {
+              kicker: "Automation",
+              title: "Naukri & Indeed Auto Apply",
+              description:
+                "The same extension applies to Naukri jobs with Naukri's own Apply (answering the recruiter chatbot) and to Indeed \"Easily apply\" jobs, using your dashboard filters and a human pace.",
             },
             {
               kicker: "Resume AI",
@@ -44,13 +50,25 @@ export default function Product() {
               kicker: "Chrome Extension",
               title: "In-Browser Copilot Extension",
               description:
-                "The AutoApply CV extension sits alongside your job search window, providing live feedback, instant autofill, and automatic data synchronization.",
+                "One AutoApply CV extension opens a sidebar on LinkedIn, Naukri, and Indeed, providing live feedback, instant autofill, and automatic data synchronization.",
             },
             {
               kicker: "Outreach",
-              title: "HR & Recruiter Email Finder",
+              title: "WhatsApp & Email Recruiter Outreach",
               description:
-                "Discover decision-makers and hiring managers at target companies and send personalized follow-up emails to boost your response rate.",
+                "Find recruiter phone numbers and emails shared in LinkedIn hiring posts and message them on WhatsApp or email from the extension.",
+            },
+            {
+              kicker: "Pro Connect",
+              title: "HR Contacts: Direct Recruiter WhatsApp Numbers",
+              description:
+                "20 new recruiter contacts a day (WhatsApp-checked phone numbers and emails shared in public LinkedIn hiring posts), matched to your target roles, emailed every morning, with free 1-click messaging from the dashboard. ₹500/month.",
+            },
+            {
+              kicker: "Pro Connect",
+              title: "Interview Call AI",
+              description:
+                "Keep the page open during an interview or client call. It listens and shows a short answer to each question from your own notes. Works with Zoom, Google Meet, Teams, or a phone on speaker. Nothing from the call is saved.",
             },
           ],
         },

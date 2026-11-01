@@ -1,0 +1,128 @@
+CHROME WEB STORE LISTING — AutoApply CV v3.5.0 (LinkedIn + Naukri + Indeed)
+===========================================================================
+Upload: CareerPilotLinkedInExtension/release/AutoApplyCV-extension-v3.5.0.zip
+(Same zip works for Microsoft Edge Add-ons.)
+
+TITLE (from package, manifest "name", 49 chars)
+-----------------------------------------------
+AutoApply CV: Auto Apply LinkedIn, Naukri, Indeed
+
+SUMMARY (from package, manifest "description", 112 chars, max 132)
+------------------------------------------------------------------
+Free auto apply for LinkedIn Easy Apply, Naukri and Indeed jobs, with WhatsApp and email outreach to recruiters.
+
+CATEGORY
+--------
+Productivity  (Tools also fits; keep whatever the listing already uses)
+
+DESCRIPTION (paste into the store "Description" box)
+----------------------------------------------------
+🚀 AutoApply CV is a free auto apply copilot for LinkedIn, Naukri and Indeed. Set your job titles, skills and answers once, and it applies to matching jobs for you on all three sites, from one Chrome extension and one dashboard.
+
+Stop filling in the same application forms again and again. AutoApply CV works inside your own browser: it opens matching jobs, fills each form with your saved screening answers, and logs every application in your AutoApply CV dashboard.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✨ KEY FEATURES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🤖 LinkedIn Easy Apply Automation
+• Opens matching Easy Apply jobs and fills single-step and multi-step forms.
+• Pauses and asks you whenever a question isn't in your answer bank.
+
+🟦 Naukri Auto Apply (NEW)
+• Applies to Naukri jobs that use Naukri's own "Apply" button; jobs that send you to a company site are skipped.
+• Answers Naukri's recruiter chatbot questions from your saved answers. When it isn't sure, it asks you in the sidebar and remembers your answer.
+• Stays within Naukri's daily apply limit.
+
+🟪 Indeed Auto Apply (NEW)
+• Applies to Indeed "Easily apply" jobs, all in the same tab.
+• Fills screening questions and answers experience questions with your years of experience.
+• Skips jobs you already applied to, and jobs where Indeed says you don't meet a required requirement.
+• Pauses when Indeed asks you to verify you're human, so you can solve it and resume.
+
+🎯 One Set of Filters for Every Site
+• Job titles, skills and keywords, exclude words, blacklisted companies, years of experience, location and distance, date posted, remote / hybrid / on-site and job type.
+• Set them once in your dashboard; LinkedIn, Naukri and Indeed all use them.
+
+🧠 Reusable Screening Answer Bank
+• Save answers once for common questions: years of experience, notice period, salary expectations, work authorization, relocation and more.
+• Every new answer you give is saved, so the next application fills it automatically.
+
+🚫 Duplicate Prevention
+• Skips jobs you have already applied to, so your daily applies aren't wasted.
+
+💬 Recruiter Outreach on WhatsApp & Email
+• Finds recruiter phone numbers and emails in LinkedIn hiring posts and sends your intro on WhatsApp Web or from Gmail, never to the same person twice.
+
+📊 Application Tracker
+• Every application, skip and reason syncs to your AutoApply CV dashboard (autoapplycv.in), with the job and company link.
+
+🛡️ Human Pace & Full Control
+• Runs in your own logged-in browser and waits between jobs like a person would.
+• A sidebar on the page shows each step; start, pause or stop at any time.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+💡 HOW IT WORKS (3 SIMPLE STEPS)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1️⃣ Install & Connect: install the extension and sign in to your free AutoApply CV account.
+2️⃣ Set Your Filters & Answers: add your job titles, skills, location, experience and screening answers once.
+3️⃣ Start Applying: open LinkedIn Jobs, Naukri or Indeed from your dashboard and press Start in the sidebar.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+💎 PLANS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+• Free: 3 auto-applies a day + 30 Hires when you sign up. No credit card needed.
+• Hires: pay as you go, 1 Hire = 1 application or 1 outreach message (top-ups from ₹49).
+• Pro, ₹99/month: unlimited applies and outreach.
+• Pro Connect, ₹500/month: everything in Pro, plus 20 new recruiter contacts a day (WhatsApp numbers and emails, matched to your roles) and Interview Call AI, which shows live answers during your interviews.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🔥 WHY AUTOAPPLY CV
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+• Three job sites in one extension: LinkedIn, Naukri and Indeed.
+• Free to start, with simple ₹ pricing for India.
+• You stay in control: every step is visible, and it asks instead of guessing.
+• An alternative to LazyApply, LoopCV, Simplify and Sonara.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🔒 PRIVACY & SECURITY
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+• No password storage: we never ask for or store your LinkedIn, Naukri or Indeed password.
+• Runs in your browser: the extension only reads job listings and application forms on the pages you open.
+• Your data stays yours: application logs sync only to your own AutoApply CV account. We don't sell your data.
+• Privacy Policy: https://autoapplycv.in/privacy-policy
+
+Using automation is your choice; review each job site's terms and keep a sensible daily volume.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📞 SUPPORT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+• Website: https://www.autoapplycv.in
+• Help Center: https://www.autoapplycv.in/help-center
+• Support Email: support@autoapplycv.in
+
+WHAT'S NEW IN 3.5.0  (for release notes / the "What's new" field if shown)
+--------------------------------------------------------------------------
+• New: Naukri auto apply — applies to Naukri "Apply" jobs and answers the recruiter chatbot from your answer bank.
+• New: Indeed auto apply — applies to Indeed "Easily apply" jobs in the same tab and fills screening questions.
+• Your dashboard filters (titles, skills, location, experience, work mode, job type, date posted) now drive LinkedIn, Naukri and Indeed.
+• Experience questions are answered with your years of experience automatically.
+• Already-applied and "you don't meet the requirements" jobs are skipped before applying.
+• Live call copilot for Google Meet removed from the extension; it is now Interview Call AI on the website.
+
+PRIVACY TAB — CHANGES FOR 3.5.0
+-------------------------------
+SINGLE PURPOSE DESCRIPTION (replace the old LinkedIn-only text):
+Helps users apply to jobs on LinkedIn, Naukri and Indeed by providing a copilot sidebar that fills and submits applications with the user's saved answers, and syncs application activity to the user's own AutoApply CV dashboard.
+
+HOST PERMISSION JUSTIFICATION (replace):
+Needed to run the copilot on the job sites the user applies on (www.linkedin.com, www.naukri.com and Indeed sites such as in.indeed.com and smartapply.indeed.com, where Indeed's application form opens), to send recruiter outreach the user starts on WhatsApp Web and Gmail, and to sync application activity with the user's own account at autoapplycv.in.
+
+Permissions are the same as 3.4.1 (storage, tabs, alarms, declarativeNetRequestWithHostAccess); keep their existing justifications.
+Host permissions changed: added https://www.naukri.com/* and https://*.indeed.com/*; removed https://meet.google.com/*.
+Remote code ("No"), data usage and certifications: unchanged from chrome-webstore-privacy-form.txt.

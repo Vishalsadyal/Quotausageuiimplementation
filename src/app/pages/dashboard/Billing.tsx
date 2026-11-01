@@ -935,6 +935,10 @@ export default function Billing() {
                   <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0 mt-0.5" />
                   <span>WhatsApp-checked numbers & recruiter emails</span>
                 </li>
+                <li className="flex items-start gap-2 font-semibold text-gray-900">
+                  <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0 mt-0.5" />
+                  <span>Interview Call AI: live answers during your interviews</span>
+                </li>
                 <li className="flex items-start gap-2">
                   <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0 mt-0.5" />
                   <span>Daily contacts email every morning</span>

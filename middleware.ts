@@ -108,7 +108,7 @@ export function middleware(req: NextRequest) {
   res.headers.set("x-content-type-options", "nosniff");
   res.headers.set("x-frame-options", "DENY");
   res.headers.set("referrer-policy", "strict-origin-when-cross-origin");
-  res.headers.set("permissions-policy", "camera=(), microphone=(), geolocation=()");
+  res.headers.set("permissions-policy", "camera=(), microphone=(self), geolocation=()");
   res.headers.set("x-dns-prefetch-control", "off");
   res.headers.set("cross-origin-opener-policy", "same-origin");
   res.headers.set("cross-origin-resource-policy", "same-origin");

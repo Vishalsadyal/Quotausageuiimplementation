@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { useExtensionPipelineStats } from "../../hooks/useExtensionPipelineStats";
 import { buildJobSourceUrl, cleanJobText, inferJobProvider, jobProviderLabel, parseExternalJobId } from "src/lib/job-source";
+import type { ExtensionProvider } from "src/lib/extension-providers";
 import MagicAiDecisionModal, { MagicAiJobContext } from "../../components/jobs/MagicAiDecisionModal";
 
 type JobStatus = "queued" | "running" | "succeeded" | "failed" | "cancelled" | "dead_letter";
@@ -34,7 +35,7 @@ type PreparedJob = Job & {
   title: string;
   company: string;
   reason: string;
-  provider: "linkedin" | "indeed";
+  provider: ExtensionProvider;
   sourceLabel: string;
   sourceUrl: string;
   externalJobId: string;

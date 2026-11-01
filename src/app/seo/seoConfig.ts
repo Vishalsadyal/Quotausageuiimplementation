@@ -7,11 +7,18 @@ export type SeoEntry = {
 
 import { STATIC_BLOG_POSTS_BY_SLUG } from "src/content/blogPosts";
 import { publishedStoreUrls } from "src/lib/extension-store";
+import {
+  HR_CONTACTS_FAQS,
+  INDEED_FAQS,
+  INTERVIEW_CALL_AI_FAQS,
+  NAUKRI_FAQS,
+  faqPageJsonLd,
+} from "src/app/seo/featureFaqs";
 
 export const DEFAULT_SEO: SeoEntry = {
-  title: "AutoApply Free | LinkedIn Auto Apply Bot & AI Job Search Tool",
+  title: "AutoApply Free | LinkedIn, Naukri & Indeed Auto Apply Bot",
   description:
-    "AutoApply free with AutoApply CV: an AI job search automation platform with a LinkedIn auto apply bot, AI resume builder, and job application tracker.",
+    "AutoApply free with AutoApply CV: AI auto apply for LinkedIn, Naukri and Indeed jobs, plus an AI resume builder and job application tracker.",
   index: true,
 };
 
@@ -39,9 +46,9 @@ export function normalizeCanonicalBaseUrl(value?: string) {
 
 export const SEO_BY_PATH: Record<string, SeoEntry> = {
   "/": {
-    title: "AutoApply Free: AI Auto Apply Bot for LinkedIn Jobs | AutoApply CV",
+    title: "AutoApply Free: AI Auto Apply for LinkedIn, Naukri & Indeed",
     description:
-      "AutoApply free to LinkedIn Easy Apply jobs with our AI Chrome extension. Saved answers, duplicate prevention and live tracking for every application.",
+      "AutoApply free to LinkedIn, Naukri and Indeed jobs with one AI Chrome extension. Saved answers, duplicate checks and live tracking for every application.",
     index: true,
     structuredData: [
       {
@@ -52,7 +59,7 @@ export const SEO_BY_PATH: Record<string, SeoEntry> = {
         applicationCategory: "BusinessApplication",
         operatingSystem: "Web, Chrome",
         description:
-          "Free AI auto apply tool and Chrome extension for LinkedIn Easy Apply, with resume optimization and job application tracking.",
+          "Free AI auto apply tool and Chrome extension for LinkedIn Easy Apply, Naukri and Indeed jobs, with resume optimization and job application tracking.",
         offers: { "@type": "Offer", price: "0", priceCurrency: "INR" },
       },
       {
@@ -77,7 +84,7 @@ export const SEO_BY_PATH: Record<string, SeoEntry> = {
   "/features": {
     title: "Auto Apply, AI Resume & Job Tracker Features | AutoApply CV",
     description:
-      "Explore job search automation features: LinkedIn easy apply bot workflows, AI resume tailoring, interview preparation AI, and application analytics.",
+      "Auto apply on LinkedIn, Naukri and Indeed, AI resume tailoring, Interview Call AI, daily HR WhatsApp contacts and an application tracker.",
     index: true,
   },
   "/product": {
@@ -93,9 +100,9 @@ export const SEO_BY_PATH: Record<string, SeoEntry> = {
     index: true,
   },
   "/pricing": {
-    title: "Pricing: Free & Pro Plans | AutoApply CV",
+    title: "Pricing: Free, Pro & Pro Connect Plans | AutoApply CV",
     description:
-      "Compare transparent AutoApply CV pricing with clear charged vs skipped outcomes, LinkedIn automation limits, and AI resume optimization tools.",
+      "Free: 3 auto-applies a day on LinkedIn, Naukri and Indeed. Pro ₹99/month is unlimited. Pro Connect ₹500/month adds HR contacts and Interview Call AI.",
     index: true,
     // Prices must match src/lib/billing.ts (Pro is charged in INR via Razorpay).
     structuredData: {
@@ -117,12 +124,26 @@ export const SEO_BY_PATH: Record<string, SeoEntry> = {
         {
           "@type": "Offer",
           name: "Pro",
-          description: "Unlimited auto-apply with premium automation, billed monthly.",
+          description: "Unlimited auto-apply on LinkedIn, Naukri and Indeed, billed monthly.",
           price: "99",
           priceCurrency: "INR",
           priceSpecification: {
             "@type": "UnitPriceSpecification",
             price: "99",
+            priceCurrency: "INR",
+            unitText: "MONTH",
+          },
+          url: "https://www.autoapplycv.in/pricing",
+        },
+        {
+          "@type": "Offer",
+          name: "Pro Connect",
+          description: "Everything in Pro, plus 20 matched HR contacts a day and Interview Call AI, billed monthly.",
+          price: "500",
+          priceCurrency: "INR",
+          priceSpecification: {
+            "@type": "UnitPriceSpecification",
+            price: "500",
             priceCurrency: "INR",
             unitText: "MONTH",
           },
@@ -187,7 +208,7 @@ export const SEO_BY_PATH: Record<string, SeoEntry> = {
   "/auto-apply": {
     title: "Auto Apply for Jobs - Free AI Auto Apply Tool | AutoApply CV",
     description:
-      "Free auto apply tool to apply faster with quality controls, reusable answers, and tracking. Learn how to auto apply without wasting applications.",
+      "Free auto apply tool for LinkedIn, Naukri and Indeed jobs, with reusable answers, quality checks and tracking, so no application is wasted.",
     index: true,
     structuredData: [
       {
@@ -196,7 +217,7 @@ export const SEO_BY_PATH: Record<string, SeoEntry> = {
         name: "AutoApply CV",
         applicationCategory: "BusinessApplication",
         operatingSystem: "Web",
-        description: "Free auto apply tool with LinkedIn automation, resume optimization, and application tracking.",
+        description: "Free auto apply tool for LinkedIn, Naukri and Indeed, with resume optimization and application tracking.",
       },
       {
         "@context": "https://schema.org",
@@ -279,7 +300,7 @@ export const SEO_BY_PATH: Record<string, SeoEntry> = {
   "/auto-apply-jobs": {
     title: "Auto Apply to Jobs Free with AI | AutoApply CV",
     description:
-      "Free auto apply jobs tool for LinkedIn Easy Apply. Match resumes, submit applications with verified answers and track every interview.",
+      "Free auto apply jobs tool for LinkedIn Easy Apply, Naukri and Indeed. Submit applications with your saved answers and track every one.",
     index: true,
     structuredData: {
       "@context": "https://schema.org",
@@ -298,16 +319,16 @@ export const SEO_BY_PATH: Record<string, SeoEntry> = {
           name: "Which platforms does AutoApply CV support for auto applying?",
           acceptedAnswer: {
             "@type": "Answer",
-            text: "AutoApply CV currently supports LinkedIn Easy Apply jobs, with intelligent form filling and outcome tracking.",
+            text: "AutoApply CV supports LinkedIn Easy Apply, Naukri and Indeed jobs, with form filling from your answer bank and outcome tracking.",
           },
         },
       ],
     },
   },
   "/auto-apply-chrome-extension": {
-    title: "Auto Apply Chrome Extension for LinkedIn (Free) | AutoApply CV",
+    title: "Free Auto Apply Chrome Extension | AutoApply CV",
     description:
-      "Free auto apply Chrome extension for LinkedIn Easy Apply. Fills repetitive forms, syncs screening answers and prevents duplicate applications.",
+      "Free auto apply Chrome extension for LinkedIn Easy Apply, Naukri and Indeed. Fills screening forms from your answers and skips duplicate applications.",
     index: true,
     structuredData: {
       "@context": "https://schema.org",
@@ -315,12 +336,153 @@ export const SEO_BY_PATH: Record<string, SeoEntry> = {
       name: "AutoApply CV Chrome Extension",
       applicationCategory: "BrowserExtension",
       operatingSystem: "Google Chrome",
+      description: "Auto apply Chrome extension for LinkedIn Easy Apply, Naukri and Indeed jobs.",
       offers: {
         "@type": "Offer",
         price: "0",
         priceCurrency: "INR",
       },
     },
+  },
+  "/naukri-auto-apply": {
+    title: "Naukri Auto Apply Extension (Free) | AutoApply CV",
+    description:
+      "Naukri auto apply with the free AutoApply CV Chrome extension: applies to matching Naukri jobs, answers the recruiter chatbot and tracks every application.",
+    index: true,
+    structuredData: [
+      {
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        name: "AutoApply CV - Naukri Auto Apply",
+        url: "https://www.autoapplycv.in/naukri-auto-apply",
+        applicationCategory: "BrowserExtension",
+        operatingSystem: "Google Chrome",
+        description:
+          "Chrome extension that auto applies to matching Naukri jobs with Naukri's own Apply button and answers recruiter chatbot questions from your answer bank or AI.",
+        offers: { "@type": "Offer", price: "0", priceCurrency: "INR" },
+      },
+      {
+        "@context": "https://schema.org",
+        "@type": "HowTo",
+        name: "How to auto apply to Naukri jobs",
+        step: [
+          { "@type": "HowToStep", name: "Install the extension", text: "Install the AutoApply CV Chrome extension, sign in, and log in to Naukri in the same browser." },
+          { "@type": "HowToStep", name: "Set your filters", text: "Choose job titles, skills, exclude words, blacklisted companies, experience, location, work mode, date posted and salary in the dashboard." },
+          { "@type": "HowToStep", name: "Fill your answer bank", text: "Save answers to common recruiter questions such as notice period and expected CTC." },
+          { "@type": "HowToStep", name: "Start from the sidebar", text: "Open naukri.com and press start in the AutoApply CV sidebar. It applies to matching jobs and answers the recruiter chatbot." },
+          { "@type": "HowToStep", name: "Track applications", text: "Confirmed applications appear in the Applications tracker on your dashboard." },
+        ],
+      },
+      faqPageJsonLd(NAUKRI_FAQS),
+    ],
+  },
+  "/indeed-auto-apply": {
+    title: "Indeed Auto Apply Bot for Easily Apply Jobs | AutoApply CV",
+    description:
+      "Auto apply to Indeed \"Easily apply\" jobs in India. The free AutoApply CV extension fills screening questions, skips poor matches and tracks each one.",
+    index: true,
+    structuredData: [
+      {
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        name: "AutoApply CV - Indeed Auto Apply",
+        url: "https://www.autoapplycv.in/indeed-auto-apply",
+        applicationCategory: "BrowserExtension",
+        operatingSystem: "Google Chrome",
+        description:
+          "Chrome extension that auto applies to Indeed \"Easily apply\" jobs, filling screening questions from your answer bank or AI at a human pace.",
+        offers: { "@type": "Offer", price: "0", priceCurrency: "INR" },
+      },
+      {
+        "@context": "https://schema.org",
+        "@type": "HowTo",
+        name: "How to auto apply to Indeed jobs",
+        step: [
+          { "@type": "HowToStep", name: "Install the extension", text: "Install the AutoApply CV Chrome extension, sign in, and log in to Indeed in the same browser." },
+          { "@type": "HowToStep", name: "Set your Indeed search", text: "Choose job titles, location and radius, date posted, Remote or Hybrid, job type, experience, skills, exclude words and blacklist." },
+          { "@type": "HowToStep", name: "Save screening answers", text: "Add answers to common employer questions in your answer bank." },
+          { "@type": "HowToStep", name: "Start from the sidebar", text: "Open Indeed and press start. The extension applies to \"Easily apply\" jobs in the same tab, 20 to 45 seconds apart." },
+          { "@type": "HowToStep", name: "Track applications", text: "Confirmed applications appear in the Applications tracker on your dashboard." },
+        ],
+      },
+      faqPageJsonLd(INDEED_FAQS),
+    ],
+  },
+  "/interview-call-ai": {
+    title: "Interview Call AI: Live AI Interview Copilot | AutoApply CV",
+    description:
+      "AI interview assistant that listens to your call and shows short answers from your own notes. Works with Zoom, Meet, Teams or phone, in English or Hindi.",
+    index: true,
+    structuredData: [
+      {
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        name: "AutoApply CV - Interview Call AI",
+        url: "https://www.autoapplycv.in/interview-call-ai",
+        applicationCategory: "BusinessApplication",
+        operatingSystem: "Web",
+        description:
+          "Live interview copilot that listens during an interview or client call and shows a short answer to each question from your own notes. English, Hindi and Hinglish.",
+        offers: {
+          "@type": "Offer",
+          name: "Pro Connect",
+          price: "500",
+          priceCurrency: "INR",
+          priceSpecification: { "@type": "UnitPriceSpecification", price: "500", priceCurrency: "INR", unitText: "MONTH" },
+          url: "https://www.autoapplycv.in/pricing",
+        },
+      },
+      {
+        "@context": "https://schema.org",
+        "@type": "HowTo",
+        name: "How to use Interview Call AI during an interview",
+        step: [
+          { "@type": "HowToStep", name: "Add your notes", text: "Open Interview Call AI in your dashboard and add your resume highlights, projects and prepared answers." },
+          { "@type": "HowToStep", name: "Join your call", text: "Join the interview in Zoom, Google Meet, Microsoft Teams, or on your phone with the speaker on." },
+          { "@type": "HowToStep", name: "Start listening", text: "Start listening and keep the Interview Call AI page open next to your call." },
+          { "@type": "HowToStep", name: "Read the answer", text: "When the other person stops talking, read the short answer shown from your notes and reply in your own words." },
+        ],
+      },
+      faqPageJsonLd(INTERVIEW_CALL_AI_FAQS),
+    ],
+  },
+  "/hr-whatsapp-contacts": {
+    title: "HR WhatsApp Numbers & Recruiter Contacts | AutoApply CV",
+    description:
+      "Get 20 recruiter contacts a day in India: WhatsApp-checked HR numbers and emails from LinkedIn hiring posts, matched to your roles. Pro Connect ₹500/month.",
+    index: true,
+    structuredData: [
+      {
+        "@context": "https://schema.org",
+        "@type": "Service",
+        name: "AutoApply CV HR Contacts",
+        url: "https://www.autoapplycv.in/hr-whatsapp-contacts",
+        serviceType: "Recruiter contact list for job seekers",
+        areaServed: { "@type": "Country", name: "India" },
+        provider: { "@type": "Organization", name: "AutoApply CV", url: "https://www.autoapplycv.in" },
+        description:
+          "20 new recruiter contacts a day, with WhatsApp-checked phone numbers and recruiter emails shared publicly in LinkedIn hiring posts, matched to your target roles and emailed every morning.",
+        offers: {
+          "@type": "Offer",
+          name: "Pro Connect",
+          price: "500",
+          priceCurrency: "INR",
+          priceSpecification: { "@type": "UnitPriceSpecification", price: "500", priceCurrency: "INR", unitText: "MONTH" },
+          url: "https://www.autoapplycv.in/pricing",
+        },
+      },
+      {
+        "@context": "https://schema.org",
+        "@type": "HowTo",
+        name: "How to get HR WhatsApp contacts for your job search",
+        step: [
+          { "@type": "HowToStep", name: "Choose Pro Connect", text: "Sign up, choose Pro Connect and add your target job roles to your profile." },
+          { "@type": "HowToStep", name: "Receive daily contacts", text: "Get 20 new matched recruiter contacts every morning by email and in your dashboard." },
+          { "@type": "HowToStep", name: "Message recruiters", text: "Message each recruiter on WhatsApp or email in one click, free." },
+        ],
+      },
+      faqPageJsonLd(HR_CONTACTS_FAQS),
+    ],
   },
   "/about": {
     title: "About | AutoApply CV",
@@ -427,7 +589,7 @@ export const SEO_BY_PATH: Record<string, SeoEntry> = {
   },
   "/signup": {
     title: "Sign Up Free | AutoApply CV",
-    description: "Create your free AutoApply CV account and start auto applying to LinkedIn Easy Apply jobs.",
+    description: "Create your free AutoApply CV account and start auto applying to LinkedIn Easy Apply, Naukri and Indeed jobs.",
     index: true,
   },
   "/forgot-password": {
@@ -516,7 +678,7 @@ export const OG_IMAGE = {
   url: "https://www.autoapplycv.in/og-image.png",
   width: 1200,
   height: 630,
-  alt: "AutoApply CV - Free LinkedIn Auto Apply Bot",
+  alt: "AutoApply CV - Free Auto Apply Bot for LinkedIn, Naukri & Indeed",
 };
 
 export function canonicalForPath(pathname: string, baseUrl = "https://www.autoapplycv.in") {

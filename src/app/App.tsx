@@ -39,6 +39,10 @@ const AutoApply = lazy(() => import('./pages/AutoApply'));
 const AutoApplyLinkedIn = lazy(() => import('./pages/AutoApplyLinkedIn'));
 const AutoApplyJobs = lazy(() => import('./pages/AutoApplyJobs'));
 const AutoApplyChromeExtension = lazy(() => import('./pages/AutoApplyChromeExtension'));
+const NaukriAutoApply = lazy(() => import('./pages/NaukriAutoApply'));
+const IndeedAutoApply = lazy(() => import('./pages/IndeedAutoApply'));
+const InterviewCallAi = lazy(() => import('./pages/InterviewCallAi'));
+const HrWhatsappContacts = lazy(() => import('./pages/HrWhatsappContacts'));
 const About = lazy(() => import('./pages/About'));
 const FAQ = lazy(() => import('./pages/FAQ'));
 const Roadmap = lazy(() => import('./pages/Roadmap'));
@@ -163,6 +167,10 @@ const routes = createRoutesFromElements(
       <Route path="auto-apply-linkedin" element={<Suspense fallback={<PageLoader />}><AutoApplyLinkedIn /></Suspense>} />
       <Route path="auto-apply-jobs" element={<Suspense fallback={<PageLoader />}><AutoApplyJobs /></Suspense>} />
       <Route path="auto-apply-chrome-extension" element={<Suspense fallback={<PageLoader />}><AutoApplyChromeExtension /></Suspense>} />
+      <Route path="naukri-auto-apply" element={<Suspense fallback={<PageLoader />}><NaukriAutoApply /></Suspense>} />
+      <Route path="indeed-auto-apply" element={<Suspense fallback={<PageLoader />}><IndeedAutoApply /></Suspense>} />
+      <Route path="interview-call-ai" element={<Suspense fallback={<PageLoader />}><InterviewCallAi /></Suspense>} />
+      <Route path="hr-whatsapp-contacts" element={<Suspense fallback={<PageLoader />}><HrWhatsappContacts /></Suspense>} />
       <Route path="about" element={<Suspense fallback={<PageLoader />}><About /></Suspense>} />
       <Route path="faq" element={<Suspense fallback={<PageLoader />}><FAQ /></Suspense>} />
       <Route path="roadmap" element={<Suspense fallback={<PageLoader />}><Roadmap /></Suspense>} />

@@ -64,6 +64,26 @@ export default function Roadmap() {
           title: "Recently shipped",
           cards: [
             {
+              kicker: "October 2026",
+              title: "Naukri auto-apply",
+              description: "The extension sidebar on naukri.com applies to jobs with Naukri's own Apply, answers the recruiter chatbot from your answer bank or AI, and stays within Naukri's daily apply limit.",
+            },
+            {
+              kicker: "October 2026",
+              title: "Indeed auto-apply",
+              description: "Applies to Indeed \"Easily apply\" jobs in the same tab, fills screening questions, and skips jobs already applied or where a required qualification isn't met.",
+            },
+            {
+              kicker: "October 2026",
+              title: "Pro Connect with HR Contacts",
+              description: "A ₹500 per month plan: everything in Pro plus 20 recruiter contacts a day from public LinkedIn hiring posts, emailed every morning.",
+            },
+            {
+              kicker: "October 2026",
+              title: "Interview Call AI",
+              description: "Formerly Call Copilot. Listens during an interview or client call and shows short answers from your own notes. Included in Pro Connect.",
+            },
+            {
               kicker: "September 2026",
               title: "Chrome Web Store release (v3.1.x)",
               description: "The LinkedIn Copilot installs directly from the Chrome Web Store, with tighter permissions and no manual package loading.",

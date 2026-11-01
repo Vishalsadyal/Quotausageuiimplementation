@@ -151,7 +151,6 @@ const FOLDERS = {
   "src/indeed": "Indeed auto-apply content script + panel styles.",
   "src/whatsapp": "WhatsApp Web sender.",
   "src/gmail": "Gmail sender.",
-  "src/meet": "Google Meet interview copilot.",
   "src/dashboard": "Bridge between the AutoApply CV web dashboard and the extension.",
   "src/ui": "Toolbar popup and options page.",
   "src/rules": "declarativeNetRequest rules (optional LinkedIn tracker blocking).",

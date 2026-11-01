@@ -6,7 +6,7 @@ const BASE_URL = "https://www.autoapplycv.in";
 
 // Bump this when the marketing pages' content changes, so Google sees a real
 // last-modified date instead of a timestamp that changes on every request.
-const PAGES_UPDATED_AT = new Date("2026-10-30T00:00:00Z");
+const PAGES_UPDATED_AT = new Date("2026-10-31T00:00:00Z");
 
 type ChangeFrequency = NonNullable<MetadataRoute.Sitemap[number]["changeFrequency"]>;
 
@@ -16,6 +16,10 @@ const PAGES: Array<[path: string, changeFrequency: ChangeFrequency, priority: nu
   ["/auto-apply-linkedin", "daily", 0.9],
   ["/auto-apply-jobs", "daily", 0.9],
   ["/auto-apply-chrome-extension", "daily", 0.9],
+  ["/naukri-auto-apply", "weekly", 0.9],
+  ["/indeed-auto-apply", "weekly", 0.9],
+  ["/hr-whatsapp-contacts", "weekly", 0.85],
+  ["/interview-call-ai", "weekly", 0.85],
   ["/auto-apply", "weekly", 0.9],
   ["/pricing", "weekly", 0.9],
   ["/blog", "daily", 0.85],

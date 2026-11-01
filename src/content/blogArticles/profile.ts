@@ -218,7 +218,7 @@ export const PROFILE_ARTICLES: Record<string, string> = {
     <p>LinkedIn, Indeed, and company career sites each have a place in a job search, but they behave differently. LinkedIn Easy Apply is the fastest to apply through and the only one of the three that AutoApply CV automates. Indeed has wide coverage, especially for non-tech and mid-market roles, but you apply there yourself. Company career sites are slower but often give your application a more direct route to the hiring team. A good plan uses LinkedIn automation for volume and spends your manual time on the other two where they matter most.</p>
 
     <h2>What AutoApply CV automates, plainly</h2>
-    <p>Before comparing the boards, here is exactly what the tool does. The AutoApply CV Chrome extension automates <strong>LinkedIn Easy Apply only</strong>. It does not submit applications on Indeed, and it does not fill company career site forms. When a LinkedIn job sends you to an external company site to apply, the extension records that job as skipped in your tracker so you can apply manually later, and skipped jobs are not charged. If you want to understand the flow end to end, see <a href="/how-it-works">how it works</a>.</p>
+    <p>Before comparing the boards, here is exactly what the tool does. The AutoApply CV Chrome extension automates <strong>LinkedIn Easy Apply, Naukri and Indeed Easily apply</strong> jobs only. It does not fill company career site forms or external applications. When a LinkedIn job sends you to an external company site to apply, the extension records that job as skipped in your tracker so you can apply manually later, and skipped jobs are not charged. If you want to understand the flow end to end, see <a href="/how-it-works">how it works</a>.</p>
     <p>We say this up front because some tools claim to apply everywhere. Workday, Greenhouse, Lever, SuccessFactors, and custom portals all differ, often need account creation, and ask questions that should not be guessed. Doing those yourself is the safer choice.</p>
 
     <h2>LinkedIn Easy Apply</h2>
@@ -439,7 +439,7 @@ export const PROFILE_ARTICLES: Record<string, string> = {
   `,
 
   "auto-apply-faq-automation-safety-results": `
-    <p>These are the questions people ask most often before and after they start using auto apply. The short version: AutoApply CV automates LinkedIn Easy Apply only, uses answers you have saved and checked, pauses when it is unsure instead of guessing, and only counts applications that were actually submitted. Below are the details, including the limits.</p>
+    <p>These are the questions people ask most often before and after they start using auto apply. The short version: AutoApply CV automates LinkedIn Easy Apply, Naukri and Indeed Easily apply jobs only, uses answers you have saved and checked, pauses when it is unsure instead of guessing, and only counts applications that were actually submitted. Below are the details, including the limits.</p>
 
     <h2>Getting started</h2>
 

@@ -1,6 +1,6 @@
 import { CHROME_STORE_URL } from "src/lib/extension-store";
 
-export type ExtensionProvider = "linkedin" | "indeed";
+export type ExtensionProvider = "linkedin" | "indeed" | "naukri";
 
 export type ExtensionProviderConfig = {
   provider: ExtensionProvider;
@@ -34,6 +34,17 @@ const EXTENSION_PROVIDERS: Record<ExtensionProvider, ExtensionProviderConfig> = 
     zipPrefix: "AutoApplyCVIndeedExtensionVersion",
     storeUrl: null,
   },
+  // Naukri runs inside the same extension as LinkedIn (CareerPilotLinkedInExtension/src/naukri).
+  naukri: {
+    provider: "naukri",
+    code: "naukri",
+    displayName: "AutoApply CV Naukri Copilot",
+    shortLabel: "Naukri",
+    rootDir: "CareerPilotLinkedInExtension",
+    sourceKey: "naukri_extension",
+    zipPrefix: "AutoApplyCVLinkedInExtensionVersion",
+    storeUrl: CHROME_STORE_URL,
+  },
 };
 
 export const HR_OUTREACH_EXTENSION_STORE_URL =
@@ -49,6 +60,7 @@ export function normalizeExtensionProvider(
 ): ExtensionProvider {
   const raw = String(value || "").trim().toLowerCase();
   if (raw === "indeed" || raw === "id" || raw === "in") return "indeed";
+  if (raw === "naukri" || raw === "nk") return "naukri";
   if (raw === "linkedin" || raw === "li") return "linkedin";
   return fallback;
 }

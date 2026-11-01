@@ -1,138 +1,211 @@
-import { useCallback, useEffect, useMemo, useState, type ChangeEvent, type ReactNode } from "react";
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import {
-  Captions,
+  Briefcase,
   Check,
   CircleDollarSign,
   Copy,
-  ExternalLink,
   Handshake,
-  Keyboard,
-  KeyRound,
   ListChecks,
+  Loader2,
   MessageCircleQuestion,
-  RefreshCw,
+  Mic,
+  MicOff,
+  Send,
   ShieldCheck,
   Sparkles,
+  Trash2,
+  Users,
   Video,
+  Lock,
 } from "lucide-react";
-import { collectExtensionBridgeSnapshot } from "src/lib/extension-bridge-client";
-import { getExtensionStoreUrl } from "src/lib/extension-providers";
+import { Link } from "react-router";
+import { useAuth } from "../../context/AuthContext";
+import { hasInterviewAi } from "src/lib/plans";
 
-// The Meet copilot shipped in extension v3.2.0.
-const MIN_COPILOT_VERSION = "3.2.0";
-const MEET_URL = "https://meet.google.com/";
+// Interview Call AI (formerly Call Copilot) runs entirely in this page: the browser's speech recognition
+// listens through the microphone and /api/ai/call-copilot returns the answer.
+// No extension, and nothing from the call is saved.
 
-type ExtensionCheck =
-  | { status: "checking" }
-  | { status: "missing" }
-  | { status: "outdated"; version: string }
-  | { status: "ready"; version: string };
+const PAUSE_MS = 1500; // the other person is considered "done talking" after this silence
+const MIN_TURN_CHARS = 12;
+const MAX_TRANSCRIPT_CHARS = 8000;
+const MAX_ANSWERS_KEPT = 8;
 
-type CallTemplate = {
-  id: string;
-  label: string;
-  goal: string;
+// Auto-detect (Whisper) voice-activity settings.
+const VAD_TICK_MS = 100;
+const VAD_SILENCE_MS = 1100; // pause that ends a spoken phrase
+const MIN_VOICED_MS = 600; // ignore coughs, clicks and background noise
+const MAX_SEGMENT_MS = 25000;
+const IDLE_SEGMENT_MS = 8000;
+// Whisper sometimes "hears" these in near-silence, or echoes its own prompt.
+const WHISPER_NOISE = /^(\W*|(thank you|thanks for watching|you|bye|okay)[.!]*|.*kya tune khana khaya.*)$/i;
+
+type CallContext = "interview" | "client" | "meeting";
+type Mode = "auto" | "answer" | "objection" | "pricing" | "close" | "recap";
+type Tone = "consultative" | "confident" | "friendly";
+type Model = "openai/gpt-oss-20b" | "openai/gpt-oss-120b";
+type ReplyLanguage = "auto" | "english" | "hinglish" | "hindi";
+
+type AutoDetectSession = {
+  stream: MediaStream;
+  audioCtx: AudioContext;
+  recorder: { stop: (send: boolean) => void } | null;
+  timer: number;
+  queue: Promise<void>;
 };
 
-const CALL_TEMPLATES: CallTemplate[] = [
-  {
-    id: "discovery",
-    label: "Discovery call",
-    goal: "Understand their problem, success criteria, budget and timeline; show I'm the right fit; agree on a clear next step (proposal or Upwork offer).",
-  },
-  {
-    id: "pricing",
-    label: "Pricing / negotiation",
-    goal: "Hold my rate by anchoring on outcomes; offer scope tiers or milestones instead of discounting; agree on a price and payment structure on Upwork.",
-  },
-  {
-    id: "closing",
-    label: "Closing call",
-    goal: "Confirm scope, first milestone and start date; handle final concerns; get them to send the Upwork contract today.",
-  },
-  {
-    id: "upsell",
-    label: "Follow-up / upsell",
-    goal: "Review results so far, uncover the next problem worth solving, and propose a follow-on milestone or ongoing retainer on Upwork.",
-  },
-];
+type Answer = {
+  id: number;
+  mode: Mode;
+  trigger: string;
+  say: string;
+  points: string[];
+  ask: string;
+  signal: string;
+  stage: string;
+};
 
-const COPILOT_MODES = [
-  {
-    icon: Sparkles,
-    title: "Auto reply",
-    body: "When the lead stops talking, the panel shows what to say next, key points and a question to ask.",
-  },
-  {
-    icon: MessageCircleQuestion,
-    title: "Answer this",
-    body: "A direct, convincing answer to their latest question, using only the facts you gave it.",
-  },
-  {
-    icon: ShieldCheck,
-    title: "Handle objection",
-    body: "Acknowledge, reframe and address concerns like \"too expensive\" or \"we need it faster\".",
-  },
-  {
-    icon: CircleDollarSign,
-    title: "Talk price",
-    body: "Anchor on value, state your price confidently and offer options instead of discounts.",
-  },
-  {
-    icon: Handshake,
-    title: "Close the deal",
-    body: "Sum up the fit, propose the first milestone and start date, and ask for the contract.",
-  },
-  {
-    icon: ListChecks,
-    title: "Recap & next steps",
-    body: "What was agreed, what's still open, and who does what by when.",
-  },
-];
+type TranscriptLine = { id: number; text: string };
 
-const SETUP_STEPS = [
-  { icon: KeyRound, text: "Stay signed in to AutoApply CV in this browser — the copilot uses your account, no API key needed." },
-  { icon: Video, text: "Join your Google Meet call and open Call Copilot in the bottom-right corner." },
-  { icon: ListChecks, text: "Paste your role, their role, the goal and your facts from the prep sheet on this page." },
-  { icon: Captions, text: "Turn on Meet captions (press C). Suggestions appear as soon as the lead finishes speaking." },
-];
+// Minimal typing for the Web Speech API (not in every TS DOM lib).
+type RecognitionResultList = ArrayLike<{ isFinal: boolean; 0: { transcript: string } }>;
+type Recognition = {
+  lang: string;
+  continuous: boolean;
+  interimResults: boolean;
+  onresult: ((e: { resultIndex: number; results: RecognitionResultList }) => void) | null;
+  onerror: ((e: { error: string }) => void) | null;
+  onend: (() => void) | null;
+  start: () => void;
+  stop: () => void;
+  abort: () => void;
+};
 
-const CLOSING_TIPS = [
-  "Ask what success looks like for them before you pitch anything.",
-  "Repeat their problem back in their words — it builds trust fast.",
-  "Offer 2–3 scope options instead of lowering your rate.",
-  "Propose a small first milestone to make saying yes easy.",
-  "Keep contracts and payments on Upwork — off-platform payment can get your account suspended.",
-  "Send the proposal or offer right after the call while it's fresh.",
-];
+function getRecognitionCtor(): (new () => Recognition) | null {
+  if (typeof window === "undefined") return null;
+  const w = window as unknown as { SpeechRecognition?: new () => Recognition; webkitSpeechRecognition?: new () => Recognition };
+  return w.SpeechRecognition || w.webkitSpeechRecognition || null;
+}
 
-function compareVersions(a: string, b: string) {
-  const pa = a.split(".").map((n) => Number.parseInt(n, 10) || 0);
-  const pb = b.split(".").map((n) => Number.parseInt(n, 10) || 0);
-  for (let i = 0; i < Math.max(pa.length, pb.length); i++) {
-    const diff = (pa[i] || 0) - (pb[i] || 0);
-    if (diff !== 0) return diff;
+const CONTEXTS: Record<
+  CallContext,
+  {
+    label: string;
+    icon: typeof Briefcase;
+    other: string;
+    theirRoleLabel: string;
+    myRolePlaceholder: string;
+    theirRolePlaceholder: string;
+    goalLabel: string;
+    goalPlaceholder: string;
+    factsLabel: string;
+    factsPlaceholder: string;
+    modes: { mode: Mode; label: string; icon: typeof Sparkles }[];
   }
-  return 0;
+> = {
+  interview: {
+    label: "Job interview",
+    icon: Briefcase,
+    other: "interviewer",
+    theirRoleLabel: "Interviewer / company",
+    myRolePlaceholder: "e.g. Frontend developer, 3 years React",
+    theirRolePlaceholder: "e.g. Tech lead at a fintech startup",
+    goalLabel: "Role I'm interviewing for",
+    goalPlaceholder: "e.g. Senior React Developer, Bangalore (paste key JD points)",
+    factsLabel: "My background",
+    factsPlaceholder:
+      "Paste your resume summary: skills, projects, achievements with numbers, current CTC / expected CTC, notice period…",
+    modes: [
+      { mode: "answer", label: "Answer this", icon: MessageCircleQuestion },
+      { mode: "objection", label: "Handle doubt", icon: ShieldCheck },
+      { mode: "pricing", label: "Salary / notice", icon: CircleDollarSign },
+      { mode: "close", label: "Closing + questions", icon: Handshake },
+      { mode: "recap", label: "Recap", icon: ListChecks },
+    ],
+  },
+  client: {
+    label: "Client call",
+    icon: Users,
+    other: "client",
+    theirRoleLabel: "The client",
+    myRolePlaceholder: "e.g. Freelance full-stack developer (React / Node)",
+    theirRolePlaceholder: "e.g. SaaS founder hiring for an MVP",
+    goalLabel: "Goal of this call",
+    goalPlaceholder: "e.g. Understand their needs, show fit, agree on a next step",
+    factsLabel: "My offer & facts",
+    factsPlaceholder: "Services, rate / pricing, relevant work & results, availability, what their job post asks for…",
+    modes: [
+      { mode: "answer", label: "Answer this", icon: MessageCircleQuestion },
+      { mode: "objection", label: "Handle objection", icon: ShieldCheck },
+      { mode: "pricing", label: "Talk price", icon: CircleDollarSign },
+      { mode: "close", label: "Close the deal", icon: Handshake },
+      { mode: "recap", label: "Recap", icon: ListChecks },
+    ],
+  },
+  meeting: {
+    label: "Team meeting",
+    icon: Video,
+    other: "speaker",
+    theirRoleLabel: "Who's in the meeting",
+    myRolePlaceholder: "e.g. Backend developer on the payments team",
+    theirRolePlaceholder: "e.g. My manager, PM and 4 engineers",
+    goalLabel: "Meeting topic / agenda",
+    goalPlaceholder: "e.g. Sprint planning, weekly status, design review",
+    factsLabel: "My notes",
+    factsPlaceholder: "What you've done, what's next, numbers, blockers, deadlines, points you want to raise…",
+    modes: [
+      { mode: "answer", label: "Answer this", icon: MessageCircleQuestion },
+      { mode: "pricing", label: "Give my update", icon: ListChecks },
+      { mode: "objection", label: "Handle disagreement", icon: ShieldCheck },
+      { mode: "close", label: "Action items", icon: Handshake },
+      { mode: "recap", label: "Meeting notes", icon: Sparkles },
+    ],
+  },
+};
+
+// "auto" uses Whisper (any language, Hinglish, mixed). The rest use the browser's live captions.
+const LANGUAGES = [
+  { id: "auto", label: "Auto-detect (Hinglish, any language)" },
+  { id: "en-IN", label: "English (India)" },
+  { id: "en-US", label: "English (US)" },
+  { id: "en-GB", label: "English (UK)" },
+  { id: "hi-IN", label: "Hindi" },
+  { id: "bn-IN", label: "Bengali" },
+  { id: "mr-IN", label: "Marathi" },
+  { id: "gu-IN", label: "Gujarati" },
+  { id: "pa-IN", label: "Punjabi" },
+  { id: "ta-IN", label: "Tamil" },
+  { id: "te-IN", label: "Telugu" },
+  { id: "kn-IN", label: "Kannada" },
+  { id: "ml-IN", label: "Malayalam" },
+  { id: "ur-PK", label: "Urdu" },
+  { id: "ar-AE", label: "Arabic" },
+  { id: "es-ES", label: "Spanish" },
+  { id: "fr-FR", label: "French" },
+  { id: "de-DE", label: "German" },
+];
+
+const REPLY_LANGUAGES: { id: ReplyLanguage; label: string }[] = [
+  { id: "auto", label: "Same as speaker" },
+  { id: "english", label: "English" },
+  { id: "hinglish", label: "Hinglish (Hindi in English letters)" },
+  { id: "hindi", label: "Hindi (हिंदी script)" },
+];
+
+function micErrorMessage(name: string) {
+  if (name === "NotAllowedError" || name === "not-allowed" || name === "service-not-allowed") {
+    return "Microphone access is blocked. Allow it from the lock icon in the address bar, then try again.";
+  }
+  if (name === "NotFoundError" || name === "audio-capture") return "No microphone found. Connect one and try again.";
+  return "Couldn't start the microphone. Refresh the page and try again.";
 }
 
-function buildOfferText(facts: {
-  services: string;
-  rate: string;
-  proof: string;
-  availability: string;
-  jobPost: string;
-}) {
-  return [
-    facts.services && `Services: ${facts.services}`,
-    facts.rate && `Rate / pricing: ${facts.rate}`,
-    facts.proof && `Relevant work & results: ${facts.proof}`,
-    facts.availability && `Availability & timeline: ${facts.availability}`,
-    facts.jobPost && `What their job post asks for: ${facts.jobPost}`,
-  ]
-    .filter(Boolean)
-    .join("\n");
-}
+const TIPS = [
+  "Use laptop speakers, not headphones, so the mic can hear the other person. Or call from your phone on speaker next to the laptop.",
+  "Auto-detect understands English, Hindi, Hinglish and mixed speech. Pick a fixed language for faster live captions (Chrome / Edge).",
+  "Fill in your background first. Answers only use the facts you give, so nothing is made up.",
+  "Use Answer now if auto-answer misses a question, or type it in the box.",
+];
 
 function CopyButton({ value, label = "Copy" }: { value: string; label?: string }) {
   const [copied, setCopied] = useState(false);
@@ -164,81 +237,470 @@ function CopyButton({ value, label = "Copy" }: { value: string; label?: string }
 const inputClass =
   "w-full px-3 py-2 text-xs text-gray-900 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-200 focus:border-purple-400 placeholder:text-gray-400";
 
-function Field({
-  label,
-  copyValue,
-  children,
-}: {
-  label: string;
-  copyValue?: string;
-  children: ReactNode;
-}) {
+function Field({ label, children }: { label: string; children: ReactNode }) {
   return (
     <label className="block">
-      <span className="flex items-center justify-between mb-1">
-        <span className="text-[11px] font-semibold text-gray-600">{label}</span>
-        {copyValue !== undefined ? <CopyButton value={copyValue} /> : null}
-      </span>
+      <span className="block text-[11px] font-semibold text-gray-600 mb-1">{label}</span>
       {children}
     </label>
   );
 }
 
+// Interview Call AI is part of Pro Connect (the APIs check it too: /api/ai/call-copilot, /api/ai/transcribe).
 export default function Interview() {
-  const [extension, setExtension] = useState<ExtensionCheck>({ status: "checking" });
+  const { user } = useAuth();
+  if (user?.role === "admin" || hasInterviewAi(user?.plan)) return <CallCopilot />;
+  return (
+    <div className="space-y-4">
+      <h1 className="text-xl font-bold text-gray-900 leading-tight">Interview Call AI</h1>
+      <div className="rounded-2xl border border-emerald-200 bg-gradient-to-b from-emerald-50/70 to-white p-5">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div className="max-w-xl">
+            <div className="inline-flex items-center gap-1.5 rounded-full bg-emerald-100 px-2.5 py-0.5 text-[11px] font-bold text-emerald-800">
+              <Lock className="w-3 h-3" /> Pro Connect
+            </div>
+            <h2 className="mt-2 text-base font-bold text-gray-900">A quick answer for every interview question, live</h2>
+            <p className="mt-1 text-xs text-gray-600">
+              Keep this page open during your interview or client call. It listens and shows a short answer, from your own
+              notes, as soon as the other person stops talking. Works with any call app, in English, Hindi or Hinglish.
+              Included in Pro Connect with 20 HR contacts a day and everything in Pro.
+            </p>
+          </div>
+          <Link
+            to="/dashboard/billing"
+            className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-600 px-4 py-2 text-sm font-bold text-white hover:bg-emerald-700"
+          >
+            Upgrade to Pro Connect · ₹500/month
+          </Link>
+        </div>
+      </div>
+    </div>
+  );
+}
 
-  // Call prep lives in component state only — nothing is saved or sent anywhere.
-  const [templateId, setTemplateId] = useState(CALL_TEMPLATES[0].id);
+function CallCopilot() {
+  // Everything lives in component state only — nothing is saved.
+  const [context, setContext] = useState<CallContext>("interview");
   const [myRole, setMyRole] = useState("");
   const [theirRole, setTheirRole] = useState("");
-  const [goal, setGoal] = useState(CALL_TEMPLATES[0].goal);
-  const [facts, setFacts] = useState({ services: "", rate: "", proof: "", availability: "", jobPost: "" });
+  const [goal, setGoal] = useState("");
+  const [facts, setFacts] = useState("");
+  const [tone, setTone] = useState<Tone>("confident");
+  const [model, setModel] = useState<Model>("openai/gpt-oss-20b");
+  const [lang, setLang] = useState("auto");
+  const [replyLanguage, setReplyLanguage] = useState<ReplyLanguage>("auto");
 
-  const offerText = useMemo(() => buildOfferText(facts), [facts]);
-  const storeUrl = getExtensionStoreUrl("linkedin");
+  const [browserSpeech] = useState(() => Boolean(getRecognitionCtor()));
+  const [autoDetectSupported] = useState(
+    () => typeof window !== "undefined" && typeof window.MediaRecorder !== "undefined" && Boolean(navigator.mediaDevices?.getUserMedia),
+  );
+  const supported = lang === "auto" ? autoDetectSupported : browserSpeech;
+  const [listening, setListening] = useState(false);
+  const [hearing, setHearing] = useState(false); // auto-detect: voice currently detected
+  const [detectedLanguage, setDetectedLanguage] = useState("");
+  const [autoAnswer, setAutoAnswer] = useState(true);
+  const [micError, setMicError] = useState("");
+  const [fallbackToAuto, setFallbackToAuto] = useState(""); // reason, when browser captions fail
+  const [lines, setLines] = useState<TranscriptLine[]>([]);
+  const [interim, setInterim] = useState("");
+  const [answers, setAnswers] = useState<Answer[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [apiError, setApiError] = useState("");
+  const [typed, setTyped] = useState("");
 
-  const checkExtension = useCallback(async () => {
-    setExtension({ status: "checking" });
-    const snapshot = await collectExtensionBridgeSnapshot({ timeoutMs: 3000, requestIdPrefix: "cp_call_copilot" });
-    const provider = snapshot.providers?.linkedin;
-    const installed = Boolean(provider?.installed || snapshot.installed);
-    const version = String(provider?.version || snapshot.version || "");
-    if (!installed) {
-      setExtension({ status: "missing" });
-    } else if (version && compareVersions(version, MIN_COPILOT_VERSION) < 0) {
-      setExtension({ status: "outdated", version });
-    } else {
-      setExtension({ status: "ready", version });
+  const recognitionRef = useRef<Recognition | null>(null);
+  const autoRef = useRef<AutoDetectSession | null>(null);
+  const wantListeningRef = useRef(false);
+  const pendingTurnRef = useRef(""); // speech heard since the last answer
+  const turnTimerRef = useRef<number | null>(null);
+  const requestSeqRef = useRef(0);
+  const lineSeqRef = useRef(0);
+  const transcriptBoxRef = useRef<HTMLDivElement | null>(null);
+
+  // Latest values for callbacks fired by the recognizer.
+  const latest = useRef({ context, myRole, theirRole, goal, facts, tone, model, lines, autoAnswer, replyLanguage });
+  latest.current = { context, myRole, theirRole, goal, facts, tone, model, lines, autoAnswer, replyLanguage };
+
+  const ctx = CONTEXTS[context];
+
+  const suggest = useCallback(async (mode: Mode, trigger: string) => {
+    const s = latest.current;
+    const transcript = s.lines.map((l) => l.text).join("\n").slice(-MAX_TRANSCRIPT_CHARS);
+    const seq = ++requestSeqRef.current;
+    setLoading(true);
+    setApiError("");
+    try {
+      const res = await fetch("/api/ai/call-copilot", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          context: s.context,
+          mode,
+          replyLanguage: s.replyLanguage,
+          trigger: trigger.slice(-1500),
+          transcript,
+          setup: {
+            myRole: s.myRole.slice(0, 300),
+            theirRole: s.theirRole.slice(0, 300),
+            goal: s.goal.slice(0, 600),
+            offer: s.facts.slice(0, 3000),
+            tone: s.tone,
+            model: s.model,
+          },
+        }),
+      });
+      const body = await res.json().catch(() => null);
+      if (seq !== requestSeqRef.current) return; // a newer request replaced this one
+      if (!res.ok || !body?.success || !body?.data) {
+        const msg = body?.error?.message || body?.error || body?.message;
+        setApiError(res.status === 401 ? "Your session expired. Sign in again." : String(msg || `Request failed (${res.status})`));
+        return;
+      }
+      const d = body.data;
+      setAnswers((prev) =>
+        [
+          {
+            id: seq,
+            mode,
+            trigger,
+            say: String(d.say || ""),
+            points: Array.isArray(d.points) ? d.points.map(String) : [],
+            ask: String(d.ask || ""),
+            signal: String(d.signal || ""),
+            stage: String(d.stage || ""),
+          },
+          ...prev,
+        ].slice(0, MAX_ANSWERS_KEPT),
+      );
+    } catch {
+      if (seq === requestSeqRef.current) setApiError("Couldn't reach the server. Check your connection.");
+    } finally {
+      if (seq === requestSeqRef.current) setLoading(false);
     }
   }, []);
 
+  const flushTurn = useCallback(
+    (mode: Mode, force: boolean) => {
+      if (turnTimerRef.current) {
+        window.clearTimeout(turnTimerRef.current);
+        turnTimerRef.current = null;
+      }
+      const turn = pendingTurnRef.current.trim();
+      if (!force && turn.length < MIN_TURN_CHARS) return;
+      pendingTurnRef.current = "";
+      void suggest(mode, turn);
+    },
+    [suggest],
+  );
+
+  const addHeard = useCallback((text: string) => {
+    setLines((prev) => [...prev, { id: ++lineSeqRef.current, text }]);
+    pendingTurnRef.current = `${pendingTurnRef.current} ${text}`.trim();
+  }, []);
+
+  // Browser speech recognition: one fixed language, live captions.
+  const startBrowserListening = useCallback(
+    (speechLang: string) => {
+      const Ctor = getRecognitionCtor();
+      if (!Ctor) return;
+      const rec = new Ctor();
+      rec.lang = speechLang;
+      rec.continuous = true;
+      rec.interimResults = true;
+
+      let gotResult = false;
+      let networkErrors = 0;
+      // Chrome reports nothing visible when it can't hear the mic, so warn after a while.
+      const watchdog = window.setTimeout(() => {
+        if (!gotResult && recognitionRef.current === rec) {
+          setMicError("Not hearing anything yet. Check the right mic is selected in Chrome, or switch to Auto-detect.");
+        }
+      }, 12000);
+
+      rec.onresult = (e) => {
+        if (!gotResult) {
+          gotResult = true;
+          setMicError("");
+        }
+        networkErrors = 0;
+        let interimText = "";
+        for (let i = e.resultIndex; i < e.results.length; i++) {
+          const result = e.results[i];
+          const text = result[0].transcript.trim();
+          if (!text) continue;
+          if (result.isFinal) addHeard(text);
+          else interimText += `${text} `;
+        }
+        setInterim(interimText.trim());
+
+        // Restart the silence timer on every bit of speech.
+        if (turnTimerRef.current) window.clearTimeout(turnTimerRef.current);
+        turnTimerRef.current = window.setTimeout(() => {
+          turnTimerRef.current = null;
+          if (latest.current.autoAnswer) flushTurn("auto", false);
+        }, PAUSE_MS);
+      };
+
+      rec.onerror = (e) => {
+        if (e.error === "not-allowed" || e.error === "service-not-allowed" || e.error === "audio-capture") {
+          wantListeningRef.current = false;
+          setMicError(micErrorMessage(e.error));
+        } else if (e.error === "network") {
+          // Chrome's live captions run on Google's servers; if they can't be reached, use Whisper instead.
+          networkErrors++;
+          if (networkErrors >= 2) {
+            wantListeningRef.current = false;
+            setFallbackToAuto("Chrome's live captions couldn't connect, so we switched to Auto-detect.");
+          }
+        } else if (e.error === "language-not-supported") {
+          wantListeningRef.current = false;
+          setFallbackToAuto("Chrome can't caption this language, so we switched to Auto-detect.");
+        }
+        // "no-speech" / "aborted": onend restarts below if still wanted.
+      };
+
+      rec.onend = () => {
+        if (recognitionRef.current !== rec) return; // replaced by a newer recognizer
+        setInterim("");
+        // Chrome stops recognition after silence or ~60s, so keep it going.
+        if (wantListeningRef.current) {
+          try {
+            rec.start();
+            return;
+          } catch {
+            // fall through and stop
+          }
+        }
+        window.clearTimeout(watchdog);
+        wantListeningRef.current = false;
+        recognitionRef.current = null;
+        setListening(false);
+      };
+
+      recognitionRef.current = rec;
+      wantListeningRef.current = true;
+      try {
+        rec.start();
+        setListening(true);
+      } catch {
+        wantListeningRef.current = false;
+        setMicError(micErrorMessage(""));
+      }
+    },
+    [addHeard, flushTurn],
+  );
+
+  // Auto-detect: record each spoken phrase and let Whisper work out the language.
+  const startAutoListening = useCallback(async () => {
+    let stream: MediaStream;
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({
+        // Echo cancellation would erase the other person's voice coming out of the speakers.
+        audio: { echoCancellation: false, noiseSuppression: true, autoGainControl: true },
+      });
+    } catch (error) {
+      setMicError(micErrorMessage((error as { name?: string })?.name || ""));
+      return;
+    }
+
+    const audioCtx = new AudioContext();
+    const analyser = audioCtx.createAnalyser();
+    analyser.fftSize = 1024;
+    audioCtx.createMediaStreamSource(stream).connect(analyser);
+    const samples = new Float32Array(analyser.fftSize);
+    const mimeType = ["audio/webm;codecs=opus", "audio/webm", "audio/mp4", "audio/ogg"].find((t) => MediaRecorder.isTypeSupported(t));
+
+    const session: AutoDetectSession = { stream, audioCtx, recorder: null, timer: 0, queue: Promise.resolve() };
+    let speaking = false;
+    let voicedMs = 0;
+    let lastVoiceAt = 0;
+    let segmentStart = Date.now();
+    let noiseFloor = 0.01;
+
+    const transcribe = (blob: Blob) => {
+      // Keep transcripts in the order they were spoken.
+      session.queue = session.queue.then(async () => {
+        try {
+          const form = new FormData();
+          form.append("audio", blob, "clip");
+          // Hindi speech is shown in English letters unless the user picked Hindi script.
+          form.append("script", latest.current.replyLanguage === "hindi" ? "native" : "roman");
+          const res = await fetch("/api/ai/transcribe", { method: "POST", credentials: "include", body: form });
+          const body = await res.json().catch(() => null);
+          if (!res.ok || !body?.success) {
+            if (res.status === 401) setApiError("Your session expired. Sign in again.");
+            else if (res.status === 429) setApiError("Too many requests. Wait a few seconds.");
+            return;
+          }
+          const text = String(body.data?.text || "").trim();
+          if (!text || WHISPER_NOISE.test(text) || text.replace(/\W/g, "").length < 3) return;
+          const prev = latest.current.lines[latest.current.lines.length - 1]?.text || "";
+          if (prev.toLowerCase() === text.toLowerCase()) return; // repeated hallucination
+          if (body.data?.language) setDetectedLanguage(String(body.data.language));
+          addHeard(text);
+          if (latest.current.autoAnswer && !speaking) flushTurn("auto", false);
+        } catch {
+          // network blip — drop this clip
+        }
+      });
+    };
+
+    const startSegment = () => {
+      const recorder = new MediaRecorder(stream, mimeType ? { mimeType } : undefined);
+      const chunks: Blob[] = [];
+      let keep = false;
+      recorder.ondataavailable = (e) => {
+        if (e.data.size) chunks.push(e.data);
+      };
+      recorder.onstop = () => {
+        if (keep && chunks.length) transcribe(new Blob(chunks, { type: recorder.mimeType || "audio/webm" }));
+      };
+      recorder.start();
+      segmentStart = Date.now();
+      session.recorder = {
+        stop: (send: boolean) => {
+          keep = send;
+          if (recorder.state !== "inactive") recorder.stop();
+        },
+      };
+    };
+
+    const cutSegment = (send: boolean) => {
+      session.recorder?.stop(send);
+      speaking = false;
+      voicedMs = 0;
+      setHearing(false);
+      if (wantListeningRef.current) startSegment();
+    };
+
+    session.timer = window.setInterval(() => {
+      analyser.getFloatTimeDomainData(samples);
+      let sum = 0;
+      for (let i = 0; i < samples.length; i++) sum += samples[i] * samples[i];
+      const rms = Math.sqrt(sum / samples.length);
+      const now = Date.now();
+      const voiced = rms > Math.max(0.015, noiseFloor * 3);
+      if (!voiced) noiseFloor = noiseFloor * 0.95 + rms * 0.05;
+
+      if (voiced) {
+        if (!speaking) {
+          speaking = true;
+          setHearing(true);
+        }
+        voicedMs += VAD_TICK_MS;
+        lastVoiceAt = now;
+      }
+      if (speaking && now - lastVoiceAt > VAD_SILENCE_MS) {
+        cutSegment(voicedMs >= MIN_VOICED_MS);
+      } else if (speaking && now - segmentStart > MAX_SEGMENT_MS) {
+        cutSegment(true);
+      } else if (!speaking && now - segmentStart > IDLE_SEGMENT_MS) {
+        cutSegment(false); // drop silence so clips stay short
+      }
+    }, VAD_TICK_MS);
+
+    autoRef.current = session;
+    wantListeningRef.current = true;
+    startSegment();
+    setListening(true);
+  }, [addHeard, flushTurn]);
+
+  const stopAutoListening = useCallback((sendLast: boolean) => {
+    const session = autoRef.current;
+    if (!session) return;
+    autoRef.current = null;
+    window.clearInterval(session.timer);
+    session.recorder?.stop(sendLast);
+    session.stream.getTracks().forEach((t) => t.stop());
+    void session.audioCtx.close().catch(() => undefined);
+    setHearing(false);
+  }, []);
+
+  const startListening = useCallback(
+    (speechLang: string) => {
+      setMicError("");
+      if (speechLang === "auto") void startAutoListening();
+      else startBrowserListening(speechLang);
+    },
+    [startAutoListening, startBrowserListening],
+  );
+
+  const stopListening = useCallback(() => {
+    wantListeningRef.current = false;
+    recognitionRef.current?.stop();
+    stopAutoListening(true);
+    setListening(false);
+    if (turnTimerRef.current) {
+      window.clearTimeout(turnTimerRef.current);
+      turnTimerRef.current = null;
+    }
+  }, [stopAutoListening]);
+
+  // Stop the mic when leaving the page.
+  useEffect(
+    () => () => {
+      wantListeningRef.current = false;
+      recognitionRef.current?.abort();
+      stopAutoListening(false);
+      if (turnTimerRef.current) window.clearTimeout(turnTimerRef.current);
+    },
+    [stopAutoListening],
+  );
+
   useEffect(() => {
-    void checkExtension();
-  }, [checkExtension]);
+    if (!fallbackToAuto) return;
+    const reason = fallbackToAuto;
+    setFallbackToAuto("");
+    setLang("auto");
+    const old = recognitionRef.current;
+    recognitionRef.current = null; // its onend now ignores itself
+    old?.abort();
+    startListening("auto");
+    setMicError(reason);
+  }, [fallbackToAuto, startListening]);
 
-  const applyTemplate = (template: CallTemplate) => {
-    setTemplateId(template.id);
-    setGoal(template.goal);
+  useEffect(() => {
+    const box = transcriptBoxRef.current;
+    if (box) box.scrollTop = box.scrollHeight;
+  }, [lines, interim]);
+
+  const changeLanguage = (value: string) => {
+    setLang(value);
+    setDetectedLanguage("");
+    if (listening) {
+      // Restart with the new language.
+      wantListeningRef.current = false;
+      recognitionRef.current?.abort();
+      recognitionRef.current = null;
+      stopAutoListening(false);
+      setListening(false);
+      window.setTimeout(() => startListening(value), 300);
+    }
   };
 
-  const updateFact = (key: keyof typeof facts) => (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
-    setFacts((prev) => ({ ...prev, [key]: e.target.value }));
-
-  const clearPrep = () => {
-    setMyRole("");
-    setTheirRole("");
-    setGoal(CALL_TEMPLATES.find((t) => t.id === templateId)?.goal || "");
-    setFacts({ services: "", rate: "", proof: "", availability: "", jobPost: "" });
+  const submitTyped = () => {
+    const q = typed.trim();
+    if (!q) return;
+    setLines((prev) => [...prev, { id: ++lineSeqRef.current, text: q }]);
+    setTyped("");
+    pendingTurnRef.current = "";
+    void suggest("answer", q);
   };
 
-  const allSetupText = [
-    myRole && `My role: ${myRole}`,
-    theirRole && `Their role: ${theirRole}`,
-    goal && `Goal of this call: ${goal}`,
-    offerText && `My offer & facts:\n${offerText}`,
-  ]
-    .filter(Boolean)
-    .join("\n\n");
+  const clearSession = () => {
+    stopListening();
+    requestSeqRef.current++;
+    pendingTurnRef.current = "";
+    setLines([]);
+    setInterim("");
+    setDetectedLanguage("");
+    setAnswers([]);
+    setLoading(false);
+    setApiError("");
+  };
+
+  const latestAnswer = answers[0];
 
   return (
     <div className="space-y-4">
@@ -246,154 +708,268 @@ export default function Interview() {
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h1 className="text-xl font-bold text-gray-900 leading-tight flex items-center gap-2">
-            <span>Client Call Copilot</span>
+            <span>Interview Call AI</span>
             <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300 tracking-wider">
               LIVE
             </span>
           </h1>
           <p className="text-xs text-gray-500 mt-0.5 max-w-xl">
-            Real-time talking points on Google Meet calls with Upwork leads — know what to say, handle objections, and close the deal.
+            Keep this page open during your call. It listens and shows a quick answer when the {ctx.other} stops
+            talking. Works with any call app and needs no extension.
           </p>
         </div>
-        <button
-          onClick={() => void checkExtension()}
-          className="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 rounded-lg text-xs font-semibold transition-colors flex items-center gap-1.5"
-        >
-          <RefreshCw className={`w-3.5 h-3.5 ${extension.status === "checking" ? "animate-spin" : ""}`} />
-          Check extension
-        </button>
-      </div>
-
-      {/* Extension status */}
-      <ExtensionBanner extension={extension} storeUrl={storeUrl} />
-
-      <div className="grid lg:grid-cols-3 gap-4">
-        {/* Call prep */}
-        <div className="lg:col-span-2 bg-white border border-gray-200/80 shadow-xs rounded-xl p-4">
-          <div className="flex flex-wrap items-center justify-between gap-2 mb-1">
-            <h2 className="text-xs font-bold text-gray-900 uppercase tracking-wider flex items-center gap-1.5">
-              <ListChecks className="w-4 h-4 text-purple-600" />
-              Prep your next call
-            </h2>
-            <div className="flex items-center gap-2">
+        <div className="inline-flex rounded-lg border border-gray-200 bg-white p-0.5">
+          {(Object.keys(CONTEXTS) as CallContext[]).map((key) => {
+            const { icon: Icon, label } = CONTEXTS[key];
+            return (
               <button
+                key={key}
                 type="button"
-                onClick={clearPrep}
-                className="text-[11px] font-semibold text-gray-500 hover:text-gray-800"
-              >
-                Clear
-              </button>
-              <CopyButton value={allSetupText} label="Copy all" />
-            </div>
-          </div>
-          <p className="text-[11px] text-gray-500 mb-3">
-            Fill this in before the call, then copy each field into the Call Copilot panel on Meet. Nothing here is saved — it's gone when you leave this page.
-          </p>
-
-          <div className="flex flex-wrap gap-1.5 mb-3">
-            {CALL_TEMPLATES.map((t) => (
-              <button
-                key={t.id}
-                type="button"
-                onClick={() => applyTemplate(t)}
-                className={`px-2.5 py-1 rounded-full text-[11px] font-semibold border transition-colors ${
-                  templateId === t.id
-                    ? "bg-purple-600 text-white border-purple-600"
-                    : "bg-white text-gray-600 border-gray-200 hover:border-purple-300 hover:text-purple-700"
+                onClick={() => setContext(key)}
+                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-colors ${
+                  context === key ? "bg-purple-600 text-white" : "text-gray-600 hover:text-purple-700"
                 }`}
               >
-                {t.label}
+                <Icon className="w-3.5 h-3.5" />
+                {label}
               </button>
-            ))}
-          </div>
+            );
+          })}
+        </div>
+      </div>
 
-          <div className="grid md:grid-cols-2 gap-3">
-            <Field label="My role" copyValue={myRole}>
+      {!supported ? (
+        <div className="bg-amber-50/60 border border-amber-200 rounded-xl px-4 py-3 text-xs text-amber-900">
+          <span className="font-semibold">This browser can't listen in this language mode.</span>{" "}
+          <span className="text-amber-800/80">
+            {lang === "auto" ? "Use a recent Chrome, Edge or Safari." : "Pick Auto-detect, or open this page in Chrome or Edge."} You can still
+            type questions below.
+          </span>
+        </div>
+      ) : null}
+
+      <div className="grid lg:grid-cols-3 gap-4 items-start">
+        {/* Quick answer */}
+        <div className="lg:col-span-2">
+          <div className="bg-white border border-gray-200/80 shadow-xs rounded-xl p-5 min-h-[18rem]">
+            <h2 className="text-sm font-bold text-gray-900 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+              <Sparkles className="w-4 h-4 text-purple-600" />
+              Quick answer
+              {loading ? <Loader2 className="w-3.5 h-3.5 animate-spin text-purple-600" /> : null}
+            </h2>
+            {apiError ? <p className="mb-2 text-[11px] text-red-600">{apiError}</p> : null}
+            {!latestAnswer ? (
+              <p className="text-[11px] text-gray-400">
+                {loading ? "Thinking…" : `Start listening. An answer appears when the ${ctx.other} stops talking.`}
+              </p>
+            ) : (
+              <div className="space-y-3">
+                <AnswerCard answer={latestAnswer} primary />
+                {answers.slice(1).map((a) => (
+                  <AnswerCard key={a.id} answer={a} />
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Live listening panel */}
+        <div>
+          <div className="bg-white border border-gray-200/80 shadow-xs rounded-xl p-4 lg:sticky lg:top-4">
+            <div className="flex flex-wrap items-center gap-2">
+              {listening ? (
+                <button
+                  type="button"
+                  onClick={stopListening}
+                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white text-xs font-semibold transition-colors"
+                >
+                  <MicOff className="w-4 h-4" />
+                  Stop listening
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => startListening(lang)}
+                  disabled={!supported}
+                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-purple-600 hover:bg-purple-700 text-white text-xs font-semibold transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  <Mic className="w-4 h-4" />
+                  Start listening
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() => flushTurn("auto", true)}
+                disabled={loading}
+                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 text-xs font-semibold transition-colors disabled:opacity-40"
+              >
+                <Sparkles className="w-3.5 h-3.5 text-purple-600" />
+                Answer now
+              </button>
+              <label className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-gray-600 ml-1">
+                <input
+                  type="checkbox"
+                  checked={autoAnswer}
+                  onChange={(e) => setAutoAnswer(e.target.checked)}
+                  className="accent-purple-600"
+                />
+                Auto-answer
+              </label>
+              <select
+                value={lang}
+                onChange={(e) => changeLanguage(e.target.value)}
+                className="ml-auto px-2 py-1.5 text-[11px] border border-gray-200 rounded-lg bg-white text-gray-700"
+                aria-label="Speech language"
+              >
+                {LANGUAGES.map((l) => (
+                  <option key={l.id} value={l.id}>
+                    {l.label}
+                  </option>
+                ))}
+              </select>
+              <button
+                type="button"
+                onClick={clearSession}
+                className="inline-flex items-center gap-1 px-2 py-1.5 text-[11px] font-semibold text-gray-500 hover:text-gray-800"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                Clear
+              </button>
+            </div>
+
+            {listening ? (
+              <div className="mt-2 flex items-center gap-2 text-[11px] text-emerald-700">
+                <span className="relative flex w-2 h-2">
+                  <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75 animate-ping" />
+                  <span className="relative inline-flex w-2 h-2 rounded-full bg-emerald-500" />
+                </span>
+                {lang === "auto" ? (hearing ? "Hearing speech…" : "Listening… (auto-detect)") : "Listening…"}
+                {detectedLanguage ? (
+                  <span className="px-1.5 py-0.5 rounded bg-emerald-50 border border-emerald-200 capitalize">{detectedLanguage}</span>
+                ) : null}
+              </div>
+            ) : null}
+            {micError ? <p className="mt-2 text-[11px] text-red-600">{micError}</p> : null}
+
+            {/* Transcript */}
+            <div ref={transcriptBoxRef} className="mt-3 h-56 overflow-y-auto rounded-lg border border-gray-100 bg-gray-50/60 p-3 text-[11px] leading-relaxed text-gray-700">
+              {lines.length === 0 && !interim ? (
+                <span className="text-gray-400">What the mic hears shows up here.</span>
+              ) : (
+                <>
+                  {lines.map((l) => (
+                    <p key={l.id}>{l.text}</p>
+                  ))}
+                  {interim ? <p className="text-gray-400 italic">{interim}</p> : null}
+                </>
+              )}
+            </div>
+
+            {/* Type a question */}
+            <form
+              className="mt-3 flex gap-2"
+              onSubmit={(e) => {
+                e.preventDefault();
+                submitTyped();
+              }}
+            >
               <input
                 className={inputClass}
-                value={myRole}
-                onChange={(e) => setMyRole(e.target.value)}
-                placeholder="e.g. Freelance full-stack developer (React / Node)"
+                value={typed}
+                onChange={(e) => setTyped(e.target.value)}
+                placeholder={`Or type the ${ctx.other}'s question…`}
               />
-            </Field>
-            <Field label="Their role" copyValue={theirRole}>
-              <input
-                className={inputClass}
-                value={theirRole}
-                onChange={(e) => setTheirRole(e.target.value)}
-                placeholder="e.g. SaaS founder hiring for an MVP"
-              />
-            </Field>
-            <div className="md:col-span-2">
-              <Field label="Goal of this call" copyValue={goal}>
-                <textarea className={`${inputClass} resize-y`} rows={2} value={goal} onChange={(e) => setGoal(e.target.value)} />
-              </Field>
+              <button
+                type="submit"
+                disabled={!typed.trim() || loading}
+                className="inline-flex items-center gap-1 px-3 rounded-lg bg-purple-600 hover:bg-purple-700 text-white text-xs font-semibold disabled:opacity-40"
+              >
+                <Send className="w-3.5 h-3.5" />
+              </button>
+            </form>
+
+            <div className="mt-3 flex flex-wrap gap-1.5">
+              {ctx.modes.map(({ mode, label, icon: Icon }) => (
+                <button
+                  key={mode}
+                  type="button"
+                  onClick={() => flushTurn(mode, true)}
+                  disabled={loading}
+                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold border border-gray-200 bg-white text-gray-600 hover:border-purple-300 hover:text-purple-700 disabled:opacity-40 transition-colors"
+                >
+                  <Icon className="w-3 h-3" />
+                  {label}
+                </button>
+              ))}
             </div>
           </div>
+        </div>
+      </div>
 
-          <div className="mt-4 border-t border-gray-100 pt-3">
-            <div className="text-[11px] font-bold text-gray-900 uppercase tracking-wider mb-2">My offer & facts</div>
-            <div className="grid md:grid-cols-2 gap-3">
-              <Field label="Services">
-                <input className={inputClass} value={facts.services} onChange={updateFact("services")} placeholder="e.g. MVP builds, dashboards, API integrations" />
+      <div className="grid lg:grid-cols-3 gap-4 items-start">
+        {/* Prep */}
+        <div className="lg:col-span-2">
+          <div className="bg-white border border-gray-200/80 shadow-xs rounded-xl p-4">
+            <h2 className="text-xs font-bold text-gray-900 uppercase tracking-wider flex items-center gap-1.5">
+              <ListChecks className="w-4 h-4 text-purple-600" />
+              Before the call
+            </h2>
+            <div className="mt-3 grid md:grid-cols-2 gap-3">
+              <Field label="Me">
+                <input className={inputClass} value={myRole} onChange={(e) => setMyRole(e.target.value)} placeholder={ctx.myRolePlaceholder} />
               </Field>
-              <Field label="Rate / pricing">
-                <input className={inputClass} value={facts.rate} onChange={updateFact("rate")} placeholder="e.g. $40/h, or $2,500 fixed for phase 1" />
+              <Field label={ctx.theirRoleLabel}>
+                <input
+                  className={inputClass}
+                  value={theirRole}
+                  onChange={(e) => setTheirRole(e.target.value)}
+                  placeholder={ctx.theirRolePlaceholder}
+                />
               </Field>
-              <Field label="Relevant work & results">
-                <textarea className={`${inputClass} resize-y`} rows={2} value={facts.proof} onChange={updateFact("proof")} placeholder="e.g. Built 3 analytics dashboards; cut load time 60% for a fintech client" />
+              <Field label={ctx.goalLabel}>
+                <textarea className={`${inputClass} resize-y`} rows={2} value={goal} onChange={(e) => setGoal(e.target.value)} placeholder={ctx.goalPlaceholder} />
               </Field>
-              <Field label="Availability & timeline">
-                <textarea className={`${inputClass} resize-y`} rows={2} value={facts.availability} onChange={updateFact("availability")} placeholder="e.g. Can start Monday, 30 h/week, MVP in 4 weeks" />
+              <Field label={ctx.factsLabel}>
+                <textarea className={`${inputClass} resize-y`} rows={5} value={facts} onChange={(e) => setFacts(e.target.value)} placeholder={ctx.factsPlaceholder} />
               </Field>
-              <div className="md:col-span-2">
-                <Field label="What their job post asks for">
-                  <textarea className={`${inputClass} resize-y`} rows={2} value={facts.jobPost} onChange={updateFact("jobPost")} placeholder="Paste the key requirements from the Upwork job post" />
+              <Field label="Answer in">
+                <select className={inputClass} value={replyLanguage} onChange={(e) => setReplyLanguage(e.target.value as ReplyLanguage)}>
+                  {REPLY_LANGUAGES.map((l) => (
+                    <option key={l.id} value={l.id}>
+                      {l.label}
+                    </option>
+                  ))}
+                </select>
+              </Field>
+              <div className="grid grid-cols-2 gap-2">
+                <Field label="Tone">
+                  <select className={inputClass} value={tone} onChange={(e) => setTone(e.target.value as Tone)}>
+                    <option value="confident">Confident</option>
+                    <option value="consultative">Calm</option>
+                    <option value="friendly">Friendly</option>
+                  </select>
+                </Field>
+                <Field label="AI">
+                  <select className={inputClass} value={model} onChange={(e) => setModel(e.target.value as Model)}>
+                    <option value="openai/gpt-oss-20b">Fast</option>
+                    <option value="openai/gpt-oss-120b">Smarter</option>
+                  </select>
                 </Field>
               </div>
             </div>
-
-            <div className="mt-3 rounded-lg border border-purple-100 bg-purple-50/40 p-3">
-              <div className="flex items-center justify-between mb-1.5">
-                <span className="text-[11px] font-semibold text-purple-900">Paste into "My offer & facts"</span>
-                <CopyButton value={offerText} />
-              </div>
-              <pre className="whitespace-pre-wrap text-[11px] leading-relaxed text-gray-700 font-sans min-h-[2.5rem]">
-                {offerText || "Your facts will appear here as you type. The copilot only uses these — it won't invent experience, clients or prices."}
-              </pre>
-            </div>
           </div>
         </div>
-
-        {/* Right column */}
         <div className="space-y-4">
           <div className="bg-white border border-gray-200/80 shadow-xs rounded-xl p-4">
-            <h2 className="text-xs font-bold text-gray-900 uppercase tracking-wider mb-3 flex items-center gap-1.5">
-              <Video className="w-4 h-4 text-purple-600" />
-              How to use it
-            </h2>
-            <ol className="space-y-2.5">
-              {SETUP_STEPS.map((step, i) => (
-                <li key={step.text} className="flex gap-2.5">
-                  <span className="shrink-0 w-5 h-5 rounded-full bg-purple-100 text-purple-700 text-[10px] font-bold flex items-center justify-center">
-                    {i + 1}
-                  </span>
-                  <span className="text-[11px] text-gray-600 leading-relaxed">{step.text}</span>
-                </li>
-              ))}
-            </ol>
-          </div>
-
-          <div className="bg-white border border-gray-200/80 shadow-xs rounded-xl p-4">
             <h2 className="text-xs font-bold text-gray-900 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-              <Keyboard className="w-4 h-4 text-purple-600" />
-              Shortcuts on Meet
+              <Mic className="w-4 h-4 text-purple-600" />
+              Tips
             </h2>
-            <div className="space-y-1.5 text-[11px] text-gray-600">
-              <div className="flex justify-between"><span>Show / hide panel</span><kbd className="px-1.5 rounded bg-gray-100 border border-gray-200 font-mono">Alt+Shift+M</kbd></div>
-              <div className="flex justify-between"><span>Suggest now</span><kbd className="px-1.5 rounded bg-gray-100 border border-gray-200 font-mono">Alt+Shift+S</kbd></div>
-              <div className="flex justify-between"><span>Meet captions</span><kbd className="px-1.5 rounded bg-gray-100 border border-gray-200 font-mono">C</kbd></div>
-            </div>
+            <ul className="space-y-1.5 text-[11px] text-gray-600 leading-relaxed list-disc pl-4">
+              {TIPS.map((tip) => (
+                <li key={tip}>{tip}</li>
+              ))}
+            </ul>
           </div>
 
           <div className="bg-emerald-50/60 border border-emerald-200 rounded-xl p-4">
@@ -402,103 +978,45 @@ export default function Interview() {
               Private by design
             </h2>
             <ul className="space-y-1.5 text-[11px] text-emerald-900/80 leading-relaxed list-disc pl-4">
-              <li>Transcript and setup stay in the Meet tab's memory and vanish when you leave the call.</li>
-              <li>Each suggestion request is processed and discarded — calls are never saved to your account.</li>
-              <li>Only the recent transcript and your prep notes are sent, and only while the copilot is running.</li>
+              <li>The transcript and your notes stay on this page and are gone when you leave or press Clear.</li>
+              <li>Each answer request is processed and discarded. Calls are never saved to your account.</li>
             </ul>
           </div>
-        </div>
-      </div>
-
-      {/* What it helps with */}
-      <div className="bg-white border border-gray-200/80 shadow-xs rounded-xl p-4">
-        <h2 className="text-xs font-bold text-gray-900 uppercase tracking-wider mb-3 flex items-center gap-1.5">
-          <Sparkles className="w-4 h-4 text-purple-600" />
-          What the copilot does during the call
-        </h2>
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-          {COPILOT_MODES.map(({ icon: Icon, title, body }) => (
-            <div key={title} className="border border-gray-100 rounded-lg p-3 bg-gray-50/40">
-              <div className="flex items-center gap-2 font-semibold text-xs text-gray-900">
-                <Icon className="w-3.5 h-3.5 text-purple-600 shrink-0" />
-                {title}
-              </div>
-              <div className="text-[11px] text-gray-500 mt-1 leading-relaxed">{body}</div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Closing tips */}
-      <div className="bg-white border border-gray-200/80 shadow-xs rounded-xl p-4">
-        <h2 className="text-xs font-bold text-gray-900 uppercase tracking-wider mb-3 flex items-center gap-1.5">
-          <Handshake className="w-4 h-4 text-purple-600" />
-          Closing tips for Upwork calls
-        </h2>
-        <div className="grid md:grid-cols-2 gap-x-6 gap-y-2">
-          {CLOSING_TIPS.map((tip) => (
-            <div key={tip} className="flex gap-2 text-[11px] text-gray-600 leading-relaxed">
-              <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0 mt-0.5" />
-              <span>{tip}</span>
-            </div>
-          ))}
         </div>
       </div>
     </div>
   );
 }
 
-function ExtensionBanner({ extension, storeUrl }: { extension: ExtensionCheck; storeUrl: string | null }) {
-  if (extension.status === "checking") {
-    return (
-      <div className="bg-white border border-gray-200/80 rounded-xl px-4 py-3 text-xs text-gray-500">
-        Checking for the AutoApply CV extension…
-      </div>
-    );
-  }
-
-  if (extension.status === "ready") {
-    return (
-      <div className="flex flex-wrap items-center justify-between gap-3 bg-emerald-50/60 border border-emerald-200 rounded-xl px-4 py-3">
-        <div className="flex items-center gap-2 text-xs text-emerald-900">
-          <span className="w-2 h-2 rounded-full bg-emerald-500" />
-          <span className="font-semibold">Extension connected{extension.version ? ` (v${extension.version})` : ""}.</span>
-          <span className="text-emerald-800/80">Call Copilot is ready on Google Meet.</span>
-        </div>
-        <a
-          href={MEET_URL}
-          target="_blank"
-          rel="noreferrer"
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold transition-colors"
-        >
-          <Video className="w-3.5 h-3.5" />
-          Open Google Meet
-        </a>
-      </div>
-    );
-  }
-
-  const outdated = extension.status === "outdated";
+function AnswerCard({ answer, primary = false }: { answer: Answer; primary?: boolean }) {
   return (
-    <div className="flex flex-wrap items-center justify-between gap-3 bg-amber-50/60 border border-amber-200 rounded-xl px-4 py-3">
-      <div className="text-xs text-amber-900">
-        <span className="font-semibold">
-          {outdated ? `Extension v${extension.version} is installed — Call Copilot needs v${MIN_COPILOT_VERSION}+.` : "AutoApply CV extension not detected."}
-        </span>{" "}
-        <span className="text-amber-800/80">
-          {outdated ? "Update it from the Chrome Web Store, then refresh this page." : "Install it to get Call Copilot on Google Meet."}
-        </span>
+    <div className={`rounded-lg border p-3 ${primary ? "border-purple-200 bg-purple-50/40" : "border-gray-100 bg-gray-50/40 opacity-80"}`}>
+      {answer.trigger ? <p className="text-[10px] text-gray-400 mb-1 line-clamp-2">“{answer.trigger}”</p> : null}
+      <div className="flex items-start justify-between gap-2">
+        <p className={`${primary ? "text-sm font-semibold" : "text-xs"} text-gray-900 leading-relaxed`}>{answer.say}</p>
+        <CopyButton value={answer.say} />
       </div>
-      {storeUrl ? (
-        <a
-          href={storeUrl}
-          target="_blank"
-          rel="noreferrer"
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold transition-colors"
-        >
-          <ExternalLink className="w-3.5 h-3.5" />
-          {outdated ? "Update extension" : "Get the extension"}
-        </a>
+      {answer.points.length ? (
+        <ul className="mt-2 space-y-0.5">
+          {answer.points.map((p) => (
+            <li key={p} className="flex gap-1.5 text-[11px] text-gray-700">
+              <Check className="w-3 h-3 text-emerald-600 shrink-0 mt-0.5" />
+              {p}
+            </li>
+          ))}
+        </ul>
+      ) : null}
+      {answer.ask ? (
+        <p className="mt-2 text-[11px] text-purple-800">
+          <span className="font-semibold">Ask: </span>
+          {answer.ask}
+        </p>
+      ) : null}
+      {answer.signal ? (
+        <p className="mt-1 text-[11px] text-amber-800">
+          <span className="font-semibold">Note: </span>
+          {answer.signal}
+        </p>
       ) : null}
     </div>
   );

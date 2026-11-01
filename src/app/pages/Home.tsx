@@ -14,7 +14,9 @@ import {
   Clock,
   Shield,
   Sparkles,
-  Download
+  Download,
+  Phone,
+  Mic
 } from 'lucide-react';
 import { ImageWithFallback } from '../components/figma/ImageWithFallback';
 import { MediaSlot } from '../components/marketing/MediaSlot';
@@ -81,7 +83,7 @@ export default function Home() {
               <span className="text-lg font-extrabold text-gray-900">{extensionDemo.name}</span>
               <span className="text-xs font-semibold text-gray-500">{extensionDemo.version}</span>
             </div>
-            <div className="text-xs text-gray-600">LinkedIn extension</div>
+            <div className="text-xs text-gray-600">LinkedIn · Naukri · Indeed</div>
           </div>
         </div>
 
@@ -169,6 +171,24 @@ export default function Home() {
 
   const features = [
     {
+      icon: Zap,
+      title: 'Auto Apply on LinkedIn, Naukri & Indeed',
+      description: 'One Chrome extension applies to LinkedIn Easy Apply, Naukri (own Apply) and Indeed "Easily apply" jobs using your filters.',
+      gradient: 'from-purple-600 to-indigo-600'
+    },
+    {
+      icon: Phone,
+      title: 'Recruiter Outreach & HR WhatsApp Contacts',
+      description: 'Message recruiters from LinkedIn hiring posts on WhatsApp or email. Pro Connect adds 20 new recruiter contacts a day, emailed every morning.',
+      gradient: 'from-emerald-500 to-teal-500'
+    },
+    {
+      icon: Mic,
+      title: 'Interview Call AI',
+      description: 'Keep it open during an interview call and see short answers from your own notes. Works with Zoom, Meet, Teams or phone. Included in Pro Connect.',
+      gradient: 'from-amber-500 to-orange-500'
+    },
+    {
       icon: FileText,
       title: 'AI Resume Builder & Tailor',
       description: 'Build and customize ATS-friendly resumes for each role with AI optimization',
@@ -234,7 +254,7 @@ export default function Home() {
     {
       icon: Clock,
       title: 'Page-ready submission guard',
-      description: 'AutoApply CV waits for LinkedIn Easy Apply modal readiness before answering and submitting.',
+      description: 'AutoApply CV waits for the LinkedIn Easy Apply modal, the Naukri chatbot, or the Indeed form to be ready before answering and submitting.',
     },
     {
       icon: Shield,
@@ -288,25 +308,32 @@ export default function Home() {
               </div>
               
               <h1 className="text-5xl lg:text-7xl font-bold text-white leading-[1.02]">
-                Free LinkedIn Auto Apply Bot{' '}
+                Free Auto Apply {' '}
                 <br />
-                for Your{' '}
                 <span className="text-[#c8ff62]">
-                  Tech Job
+                  LinkedIn, Naukri
                 </span>{' '}
-                Faster
+                &amp; Indeed
               </h1>
               
               <p className="text-xl text-[#bdb8d4] leading-relaxed">
-                Free AI-powered job search automation to apply to LinkedIn jobs automatically, optimize your ATS resume, and manage everything in one job application tracker.
+                One job search assistant that auto-applies on LinkedIn Easy Apply, Naukri and Indeed, messages recruiters on WhatsApp and email, gives you direct HR contacts and live interview answers, and tracks every application in one dashboard. Free to start with 3 auto-applies a day.
               </p>
 
               <p className="text-base text-[#bdb8d4]">
-                New here? See how the{' '}
+                New here? See how auto apply works on{' '}
                 <Link to="/auto-apply-linkedin" className="font-semibold text-[#c8ff62] underline-offset-4 hover:underline">
-                  LinkedIn auto apply bot
+                  LinkedIn
+                </Link>
+                ,{' '}
+                <Link to="/naukri-auto-apply" className="font-semibold text-[#c8ff62] underline-offset-4 hover:underline">
+                  Naukri
                 </Link>{' '}
-                works, or read the{' '}
+                and{' '}
+                <Link to="/indeed-auto-apply" className="font-semibold text-[#c8ff62] underline-offset-4 hover:underline">
+                  Indeed
+                </Link>
+                , or read the{' '}
                 <Link to="/blog" className="font-semibold text-[#c8ff62] underline-offset-4 hover:underline">
                   auto apply guides
                 </Link>
@@ -355,7 +382,7 @@ export default function Home() {
                   {[
                     { icon: Target, title: 'Matches roles', text: 'Finds jobs that fit your profile' },
                     { icon: FileText, title: 'Tailors resume', text: 'ATS-ready for every job' },
-                    { icon: Zap, title: 'Auto-applies', text: 'Easy Apply on autopilot' },
+                    { icon: Zap, title: 'Auto-applies', text: 'LinkedIn, Naukri & Indeed' },
                   ].map((item) => (
                     <div key={item.title} className="rounded-xl border border-white/10 bg-white/[0.06] backdrop-blur-md p-3 hover:border-[rgba(200,255,98,.3)] transition-colors">
                       <span className="w-8 h-8 mb-2 rounded-lg bg-[#c8ff62] flex items-center justify-center">
@@ -408,7 +435,7 @@ export default function Home() {
         <div className="max-w-5xl mx-auto px-6 lg:px-8">
           <div className="text-center mb-10">
             <h2 className="text-4xl font-bold text-gray-900 mb-3">See AutoApply CV in action</h2>
-            <p className="text-lg text-gray-600">Watch the extension apply to LinkedIn Easy Apply jobs on its own.</p>
+            <p className="text-lg text-gray-600">Watch the extension apply to LinkedIn Easy Apply jobs on its own. The same extension runs on Naukri and Indeed.</p>
           </div>
           <div className="rounded-3xl overflow-hidden shadow-premium-lg border-8 border-white">
             <MediaSlot
@@ -547,7 +574,7 @@ export default function Home() {
                 </span>
               </h2>
               <p className="text-xl text-gray-600 leading-relaxed mb-8">
-                We help software engineers run smarter job search automation with a LinkedIn easy apply workflow, AI resume builder, and interview prep tools.
+                We help software engineers run smarter job search automation across LinkedIn, Naukri and Indeed, reach recruiters directly on WhatsApp and email, and get live help in interview calls.
               </p>
               <div className="space-y-4">
                 {[
@@ -590,7 +617,7 @@ export default function Home() {
               Job search automation tools that convert
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              From LinkedIn auto apply to resume optimization and application tracking, built specifically for software engineers
+              From auto apply on LinkedIn, Naukri and Indeed to recruiter outreach, Interview Call AI, resume optimization and application tracking, built specifically for software engineers
             </p>
           </div>
 
@@ -641,9 +668,9 @@ export default function Home() {
               <div className="relative w-14 h-14 rounded-2xl bg-[#c8ff62] flex items-center justify-center mb-6 shadow-[0_0_24px_rgba(200,255,98,.25)]">
                 <Zap className="w-7 h-7 text-[#17142e]" />
               </div>
-              <h3 className="relative text-2xl font-bold text-white mb-2">AutoApply CV LinkedIn Copilot</h3>
+              <h3 className="relative text-2xl font-bold text-white mb-2">AutoApply CV Chrome Extension</h3>
               <p className="relative text-[#bdb8d4] text-lg leading-relaxed flex-1 mb-8">
-                The #1 LinkedIn auto apply extension in Chrome. Fills Easy Apply forms, reuses your screening answers, and tracks every submission.
+                One extension for LinkedIn Easy Apply, Naukri and Indeed. Opens a sidebar on each site, fills application forms and Naukri's recruiter chatbot from your screening answers, sends WhatsApp and email outreach to recruiters, and tracks every submission.
               </p>
               <div className="relative flex flex-col sm:flex-row gap-3">
                 <Link

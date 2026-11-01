@@ -2,8 +2,9 @@ import { NextRequest } from "next/server";
 import { z } from "zod";
 import { requireAuth } from "src/lib/guards";
 import { ok, fail, handleApiError } from "src/lib/api";
+import { interviewAiBlocked } from "src/lib/plan-access";
 
-// Client Call Copilot (Google Meet, extension v3.2.0+).
+// Call Copilot, used by the /dashboard/interview page (listens in the browser, no extension).
 // Stateless by design: the call setup and transcript arrive with each request,
 // are forwarded to Groq, and are never written to the database or logs.
 
@@ -26,8 +27,42 @@ const TONES = {
   friendly: "warm and friendly",
 } as const;
 
+const INTERVIEW_MODE_INSTRUCTIONS = {
+  auto: "The interviewer just finished speaking. Give the best answer for ME to say now.",
+  answer: "Answer the interviewer's most recent question directly and confidently.",
+  objection: "The interviewer doubted something or pushed back. Address it honestly and positively with my facts.",
+  pricing: "The salary / notice-period / compensation topic came up. Answer professionally using my facts, and give a range rather than a single number.",
+  close: "The interview is wrapping up. Give a strong closing statement and smart questions I can ask them.",
+  recap: "Summarize the key questions asked so far and the strongest points I made, plus what to follow up on.",
+} as const;
+
+const MEETING_MODE_INSTRUCTIONS = {
+  auto: "Someone just finished speaking. Give the best thing for ME to say or contribute now.",
+  answer: "Answer the question just asked to me (or the team) clearly and directly, using my notes.",
+  objection: "Someone disagreed or raised a concern. Respond diplomatically: acknowledge it, give my reasoning, and suggest a way forward.",
+  pricing: "Give a short status update / estimate on my work: what's done, what's next, timeline and any blocker.",
+  close: "The meeting is wrapping up. Propose clear decisions and action items with owners and dates.",
+  recap: "Write quick meeting notes: key decisions, action items (owner + date), and open questions.",
+} as const;
+
+const REPLY_LANGUAGES = {
+  auto: "", // filled per context in languageRule()
+  english: "Always reply in clear English, even if they speak another language.",
+  hinglish: "Always reply in Hinglish: natural Hindi-English mix written in Roman (Latin) letters, never Devanagari.",
+  hindi: "Always reply in simple spoken Hindi written in Devanagari script (हिंदी).",
+} as const;
+
+function languageRule(payload: CopilotRequest, other: string) {
+  if (payload.replyLanguage !== "auto") {
+    return `- The call may be in any language and speech recognition garbles words. Work out what the ${other} most likely meant. ${REPLY_LANGUAGES[payload.replyLanguage]}`;
+  }
+  return `- The call may be in any language (English, Hindi, Hinglish, Tamil, Spanish…) and speech recognition garbles words. Work out what the ${other} most likely meant. Reply in the SAME language the ${other} is using. If they speak Hindi or Hinglish, reply in Hinglish written in Roman (English) letters, like "Haan, maine yeh project 2 saal kiya hai" — never Devanagari. If they speak English, reply in English.`;
+}
+
 const requestSchema = z.object({
+  context: z.enum(["interview", "client", "meeting"]).default("interview"),
   mode: z.enum(["auto", "answer", "objection", "pricing", "close", "recap"]).default("auto"),
+  replyLanguage: z.enum(["auto", "english", "hinglish", "hindi"]).default("auto"),
   trigger: z.string().max(1500).optional().default(""),
   transcript: z.string().max(8000).optional().default(""),
   setup: z
@@ -52,7 +87,89 @@ const requestSchema = z.object({
 
 type CopilotRequest = z.infer<typeof requestSchema>;
 
+function buildInterviewPrompts(payload: CopilotRequest) {
+  const setup = payload.setup;
+  const system = `You are a real-time interview coach helping a job candidate during a live job interview.
+The candidate glances at your answer and says it out loud, so it must be quick to read.
+
+WHO IS ON THE CALL
+- Me (the candidate): ${setup.myRole?.trim() || "Job candidate"}
+- The interviewer / company: ${setup.theirRole?.trim() || "Interviewer"}
+- The role I'm interviewing for: ${setup.goal?.trim() || "Not specified"}
+
+MY BACKGROUND (the only facts you may use about me: resume, skills, projects, salary, notice period)
+${setup.offer?.trim() || "(none provided)"}
+
+RULES
+- Write what I should SAY, in first person, natural spoken English, ${TONES[setup.tone || "consultative"]}. 2-4 short sentences.
+- For technical questions, give the correct, concise answer a strong candidate would give, with one concrete example if useful.
+- For behavioural questions, use a quick STAR shape (situation, action, result) from my background.
+- Never invent employers, degrees, numbers or projects not in my background. If unknown, give an honest, general answer.
+- Always respond to the INTERVIEWER'S LATEST TURN first; earlier transcript is only context.
+${languageRule(payload, "interviewer")}
+
+Return ONLY a JSON object:
+{
+  "say": "the answer I say now",
+  "points": ["up to 3 very short key points / keywords to mention"],
+  "ask": "a good question I could ask back (or empty string)",
+  "signal": "what the interviewer is really testing, very short (or empty string)",
+  "stage": "one of: intro | technical | behavioural | hr | salary | closing"
+}`;
+
+  const user = `TASK: ${INTERVIEW_MODE_INSTRUCTIONS[payload.mode]}
+
+INTERVIEW TRANSCRIPT SO FAR (from speech recognition, may contain errors):
+${payload.transcript.trim() || "(no transcript yet)"}
+${payload.trigger.trim() ? `\nINTERVIEWER'S LATEST TURN:\n${payload.trigger.trim()}\n` : ""}
+Respond with the JSON object only.`;
+
+  return { system, user };
+}
+
+function buildMeetingPrompts(payload: CopilotRequest) {
+  const setup = payload.setup;
+  const system = `You are a real-time meeting assistant helping me during a live team meeting at work.
+I glance at your suggestion and say it out loud, so it must be quick to read.
+
+WHO IS IN THE MEETING
+- Me: ${setup.myRole?.trim() || "Team member"}
+- The others (team / manager / stakeholders): ${setup.theirRole?.trim() || "My team"}
+- Meeting topic / agenda: ${setup.goal?.trim() || "Not specified"}
+
+MY NOTES (the only facts you may use about my work: status, numbers, blockers, deadlines)
+${setup.offer?.trim() || "(none provided)"}
+
+RULES
+- Write what I should SAY, in first person, natural spoken English, ${TONES[setup.tone || "consultative"]}. 1-3 short sentences.
+- Be clear, constructive and professional. Disagree politely with reasons; never blame people.
+- Never invent progress, numbers, dates or commitments not in my notes. If unknown, have me say I'll check and get back by a specific time.
+- When asked for an estimate or deadline, give a realistic one with the main dependency or risk.
+- Always respond to the LATEST THING SAID in the meeting first; earlier transcript is only context.
+${languageRule(payload, "speaker")}
+
+Return ONLY a JSON object:
+{
+  "say": "what I say now",
+  "points": ["up to 3 very short points / facts to mention"],
+  "ask": "a useful clarifying question I could ask (or empty string)",
+  "signal": "decision, action item or risk you noticed, very short (or empty string)",
+  "stage": "one of: update | discussion | decision | planning | wrap-up"
+}`;
+
+  const user = `TASK: ${MEETING_MODE_INSTRUCTIONS[payload.mode]}
+
+MEETING TRANSCRIPT SO FAR (from speech recognition, may contain errors):
+${payload.transcript.trim() || "(no transcript yet)"}
+${payload.trigger.trim() ? `\nLATEST THING SAID:\n${payload.trigger.trim()}\n` : ""}
+Respond with the JSON object only.`;
+
+  return { system, user };
+}
+
 function buildPrompts(payload: CopilotRequest) {
+  if (payload.context === "interview") return buildInterviewPrompts(payload);
+  if (payload.context === "meeting") return buildMeetingPrompts(payload);
   const setup = payload.setup;
   const system = `You are a real-time sales call coach whispering to a freelancer during a live video call with a potential client they met on Upwork.
 Your job: help them understand the client, show fit, handle concerns, and win the contract.
@@ -72,7 +189,7 @@ RULES
 - Keep the contract and payment on Upwork; never suggest moving payment or communication off-platform.
 - Be concise: this is read on screen mid-conversation.
 - Always respond to the LEAD'S LATEST TURN first; earlier transcript is only context.
-- The call may be in English, Hindi or Hinglish (Hindi written in Roman letters), and live captions garble words. Work out what they most likely meant. Reply in the same style the lead is using: Hinglish in Roman script if they speak Hinglish, otherwise English.
+${languageRule(payload, "lead")}
 
 Return ONLY a JSON object:
 {
@@ -85,7 +202,7 @@ Return ONLY a JSON object:
 
   const user = `TASK: ${MODE_INSTRUCTIONS[payload.mode]}
 
-CALL TRANSCRIPT SO FAR (from live captions, may contain recognition errors):
+CALL TRANSCRIPT SO FAR (from speech recognition, may contain errors):
 ${payload.transcript.trim() || "(no transcript yet)"}
 ${payload.trigger.trim() ? `\nLEAD'S LATEST TURN:\n${payload.trigger.trim()}\n` : ""}
 Respond with the JSON object only.`;
@@ -118,6 +235,8 @@ export async function POST(req: NextRequest) {
   try {
     const authResult = await requireAuth();
     if ("error" in authResult) return authResult.error;
+    const blocked = await interviewAiBlocked(authResult.auth.user);
+    if (blocked) return blocked;
 
     let body: unknown;
     try {

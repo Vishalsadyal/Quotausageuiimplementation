@@ -136,7 +136,8 @@ export default function About() {
                 control.
               </p>
               <p className="text-lg text-gray-600 leading-relaxed">
-                Our Chrome extension fills LinkedIn Easy Apply forms with answers you have saved and checked once. It
+                Our Chrome extension fills LinkedIn Easy Apply forms with answers you have saved and checked once, and
+                it also applies on Naukri (answering the recruiter chatbot) and to Indeed "Easily apply" jobs. It
                 skips jobs you have already applied to, and it pauses when a question needs a human answer. The dashboard
                 tailors your resume for applicant tracking systems and tracks every application from submission to
                 interview, so you can see what is actually working.
@@ -150,8 +151,8 @@ export default function About() {
                   applications relevant, because a tailored application beats ten generic ones.
                 </li>
                 <li>
-                  <strong className="text-gray-900">Truthful automation.</strong> The extension only uses answers you
-                  provide. It never invents experience or fills a question it cannot answer honestly.
+                  <strong className="text-gray-900">Truthful automation.</strong> Answers come from your answer bank or
+                  AI, and when the extension cannot answer a question it asks you instead of guessing.
                 </li>
                 <li>
                   <strong className="text-gray-900">Transparent results.</strong> Every job ends as submitted, skipped, or
@@ -159,7 +160,8 @@ export default function About() {
                 </li>
                 <li>
                   <strong className="text-gray-900">Fair pricing.</strong> Start free with 3 applications a day, or go
-                  unlimited with Pro for ₹99 a month.
+                  unlimited with Pro for ₹99 a month. Pro Connect (₹500 a month) adds daily recruiter contacts and
+                  Interview Call AI.
                 </li>
               </ul>
             </div>

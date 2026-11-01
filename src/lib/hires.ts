@@ -94,6 +94,29 @@ export async function getWalletSummary(userId: string) {
   };
 }
 
+/** A unique-key clash on HireTransaction.idempotencyKey: the same credit / charge was written by a parallel request. */
+function isDuplicateTxnKey(error: unknown) {
+  if (!(error instanceof Prisma.PrismaClientKnownRequestError) || error.code !== "P2002") return false;
+  const target = (error.meta as { target?: unknown } | undefined)?.target;
+  return Array.isArray(target) ? target.includes("idempotencyKey") : String(target || "").includes("idempotencyKey");
+}
+
+/**
+ * Run a credit / refund whose ledger row has an idempotency key. Two requests for the same key at the same
+ * moment (top-up verify + Razorpay webhook, a double click) both pass the "already done?" check; the second
+ * then fails on the unique key and its transaction rolls back (balance untouched). Return the first one's row.
+ */
+async function withIdempotentTxn<T>(idempotencyKey: string | undefined, run: () => Promise<T>) {
+  try {
+    return await run();
+  } catch (error) {
+    if (!idempotencyKey || !isDuplicateTxnKey(error)) throw error;
+    const existing = await prisma.hireTransaction.findUnique({ where: { idempotencyKey } });
+    if (!existing) throw error;
+    return existing;
+  }
+}
+
 async function createTxnInTx(
   tx: Prisma.TransactionClient,
   input: {
@@ -131,33 +154,35 @@ export async function creditHires(input: {
 }) {
   if (input.hires <= 0) throw new Error("Hires must be positive");
   const user = await ensureHireWindow(input.userId);
-  return prisma.$transaction(async (tx) => {
-    if (input.idempotencyKey) {
-      const existing = await tx.hireTransaction.findUnique({
-        where: { idempotencyKey: input.idempotencyKey },
+  return withIdempotentTxn(input.idempotencyKey, () =>
+    prisma.$transaction(async (tx) => {
+      if (input.idempotencyKey) {
+        const existing = await tx.hireTransaction.findUnique({
+          where: { idempotencyKey: input.idempotencyKey },
+        });
+        if (existing) return existing;
+      }
+
+      const updated = await tx.user.update({
+        where: { id: user.id },
+        data: {
+          hireBalance: { increment: input.hires },
+          hirePurchased: { increment: input.hires },
+        },
       });
-      if (existing) return existing;
-    }
 
-    const updated = await tx.user.update({
-      where: { id: user.id },
-      data: {
-        hireBalance: { increment: input.hires },
-        hirePurchased: { increment: input.hires },
-      },
-    });
-
-    return createTxnInTx(tx, {
-      userId: updated.id,
-      type: "credit_purchase",
-      amount: input.hires,
-      balanceAfter: updated.hireBalance,
-      referenceType: input.referenceType,
-      referenceId: input.referenceId,
-      metadataJson: input.metadataJson,
-      idempotencyKey: input.idempotencyKey,
-    });
-  });
+      return createTxnInTx(tx, {
+        userId: updated.id,
+        type: "credit_purchase",
+        amount: input.hires,
+        balanceAfter: updated.hireBalance,
+        referenceType: input.referenceType,
+        referenceId: input.referenceId,
+        metadataJson: input.metadataJson,
+        idempotencyKey: input.idempotencyKey,
+      });
+    })
+  );
 }
 
 export async function creditBonusHires(input: {
@@ -170,32 +195,34 @@ export async function creditBonusHires(input: {
 }) {
   if (input.hires <= 0) throw new Error("Hires must be positive");
   const user = await ensureHireWindow(input.userId);
-  return prisma.$transaction(async (tx) => {
-    if (input.idempotencyKey) {
-      const existing = await tx.hireTransaction.findUnique({
-        where: { idempotencyKey: input.idempotencyKey },
+  return withIdempotentTxn(input.idempotencyKey, () =>
+    prisma.$transaction(async (tx) => {
+      if (input.idempotencyKey) {
+        const existing = await tx.hireTransaction.findUnique({
+          where: { idempotencyKey: input.idempotencyKey },
+        });
+        if (existing) return existing;
+      }
+
+      const updated = await tx.user.update({
+        where: { id: user.id },
+        data: {
+          hireBalance: { increment: input.hires },
+        },
       });
-      if (existing) return existing;
-    }
 
-    const updated = await tx.user.update({
-      where: { id: user.id },
-      data: {
-        hireBalance: { increment: input.hires },
-      },
-    });
-
-    return createTxnInTx(tx, {
-      userId: updated.id,
-      type: "credit_bonus",
-      amount: input.hires,
-      balanceAfter: updated.hireBalance,
-      referenceType: input.referenceType,
-      referenceId: input.referenceId,
-      metadataJson: input.metadataJson,
-      idempotencyKey: input.idempotencyKey,
-    });
-  });
+      return createTxnInTx(tx, {
+        userId: updated.id,
+        type: "credit_bonus",
+        amount: input.hires,
+        balanceAfter: updated.hireBalance,
+        referenceType: input.referenceType,
+        referenceId: input.referenceId,
+        metadataJson: input.metadataJson,
+        idempotencyKey: input.idempotencyKey,
+      });
+    })
+  );
 }
 
 export async function adjustHiresByAdmin(input: {
@@ -260,7 +287,13 @@ export async function consumeHiresForApplies(input: {
     return { ok: false as const, reason: "INSUFFICIENT_HIRES" as const };
   }
 
+  // The same charge already written (a repeat, or a parallel request with the same prefix): nothing more to take.
+  const alreadyCharged = { ok: true as const, consumed: 0, sourceBreakdown: { free: 0, paid: 0 } };
+  const debitPrefix = `${input.idempotencyPrefix}:debit:`;
   return prisma.$transaction(async (tx) => {
+    const earlier = await tx.hireTransaction.findFirst({ where: { idempotencyKey: { startsWith: debitPrefix } }, select: { id: true } });
+    if (earlier) return alreadyCharged;
+
     const refreshed = await tx.user.findUnique({ where: { id: user.id } });
     if (!refreshed) throw new Error("User not found");
 
@@ -302,7 +335,7 @@ export async function consumeHiresForApplies(input: {
           freeConsumed,
           paidConsumed: paidNow,
         } as Prisma.InputJsonValue,
-        idempotencyKey: `${input.idempotencyPrefix}:debit:${paidNow}`,
+        idempotencyKey: `${debitPrefix}${paidNow}`,
       });
     }
 
@@ -314,6 +347,10 @@ export async function consumeHiresForApplies(input: {
         paid: paidNow,
       },
     };
+  }).catch((error) => {
+    // A parallel request wrote this charge first; this one rolled back, so nothing was taken twice.
+    if (isDuplicateTxnKey(error)) return alreadyCharged;
+    throw error;
   });
 }
 
@@ -327,29 +364,31 @@ export async function refundHires(input: {
 }) {
   if (input.count <= 0) return null;
   const user = await ensureHireWindow(input.userId);
-  return prisma.$transaction(async (tx) => {
-    const existing = await tx.hireTransaction.findUnique({
-      where: { idempotencyKey: input.idempotencyKey },
-    });
-    if (existing) return existing;
+  return withIdempotentTxn(input.idempotencyKey, () =>
+    prisma.$transaction(async (tx) => {
+      const existing = await tx.hireTransaction.findUnique({
+        where: { idempotencyKey: input.idempotencyKey },
+      });
+      if (existing) return existing;
 
-    const updated = await tx.user.update({
-      where: { id: user.id },
-      data: {
-        hireBalance: { increment: input.count },
-        hireSpent: { decrement: input.count },
-      },
-    });
+      const updated = await tx.user.update({
+        where: { id: user.id },
+        data: {
+          hireBalance: { increment: input.count },
+          hireSpent: { decrement: input.count },
+        },
+      });
 
-    return createTxnInTx(tx, {
-      userId: updated.id,
-      type: "refund_apply",
-      amount: input.count,
-      balanceAfter: updated.hireBalance,
-      referenceType: input.referenceType,
-      referenceId: input.referenceId,
-      metadataJson: input.metadataJson,
-      idempotencyKey: input.idempotencyKey,
-    });
-  });
+      return createTxnInTx(tx, {
+        userId: updated.id,
+        type: "refund_apply",
+        amount: input.count,
+        balanceAfter: updated.hireBalance,
+        referenceType: input.referenceType,
+        referenceId: input.referenceId,
+        metadataJson: input.metadataJson,
+        idempotencyKey: input.idempotencyKey,
+      });
+    })
+  );
 }

@@ -37,11 +37,31 @@ export default function FAQ() {
         },
         {
           q: 'How many applications can I send with the free plan?',
-          a: 'Free (₹0) includes 3 Auto-Apply actions per day, and new accounts get a free 30 Hires coins signup bonus. If you need more volume, you can upgrade to Pro (₹99/month) for unlimited applications or use Custom Hires top-up (1 Hire = 1 Apply, minimum top-up $0.54).'
+          a: 'Free (₹0) includes 3 Auto-Apply actions per day, and new accounts get a free 30 Hires coins signup bonus. If you need more volume, you can upgrade to Pro (₹99/month) for unlimited applications or use Custom Hires top-up (1 Hire = 1 Apply, minimum top-up ₹49).'
         },
         {
           q: 'Is AutoApply CV a LinkedIn auto apply bot?',
           a: 'AutoApply CV includes LinkedIn easy apply automation to help you apply faster, plus safeguards and review controls so you can stay in charge of your job search.'
+        },
+        {
+          q: 'Does AutoApply CV work on Naukri?',
+          a: 'Yes. The same Chrome extension opens a sidebar on naukri.com and applies to matching jobs that use Naukri\'s own Apply button (it skips "Apply on company site" jobs). It answers Naukri\'s recruiter chatbot questions from your answer bank or AI, and asks you in the sidebar when it can\'t. It uses your dashboard filters, keeps a human-like pace, and stays within Naukri\'s daily apply limit.'
+        },
+        {
+          q: 'Does AutoApply CV work on Indeed?',
+          a: 'Yes. On Indeed the extension applies only to "Easily apply" jobs (Indeed\'s own form), all in the same tab. It fills screening questions from your answer bank or AI, skips jobs you already applied to and jobs where Indeed says you don\'t meet a required qualification, waits 20 to 45 seconds between jobs, and pauses if Indeed shows a "verify you\'re human" check. It was built and tested on in.indeed.com.'
+        },
+        {
+          q: 'How are Naukri and Indeed applications counted?',
+          a: 'Each confirmed application costs 1 free daily apply or 1 Hire, the same as LinkedIn. Pro and Pro Connect are unlimited. Every application is logged in the Applications tracker in your dashboard.'
+        },
+        {
+          q: 'What are HR Contacts?',
+          a: 'HR Contacts is part of the Pro Connect plan (₹500/month). You get 20 new recruiter contacts a day, matched to your target roles: WhatsApp-checked phone numbers and recruiter emails that recruiters shared publicly in LinkedIn hiring posts. They are emailed to you every morning and you can message them free with one click from the dashboard. Recruiters can ask to be removed at /remove-my-contact.'
+        },
+        {
+          q: 'What is Interview Call AI?',
+          a: 'Interview Call AI (formerly Call Copilot) is a dashboard page you keep open during an interview or client call. It listens and shows a short answer to each question from your own notes as soon as the other person stops talking. It works with any call app (Zoom, Google Meet, Teams, or a phone on speaker), supports English, Hindi and Hinglish, needs no extension, and nothing from the call is saved. It is included in Pro Connect.'
         },
         {
           q: 'Do you include a job application tracker?',
@@ -52,6 +72,10 @@ export default function FAQ() {
     {
       category: 'Pricing & Plans',
       questions: [
+        {
+          q: 'What does Pro Connect include?',
+          a: 'Pro Connect costs ₹500/month and includes everything in Pro (unlimited auto-apply) plus HR Contacts (20 new recruiter contacts a day, emailed every morning, with free 1-click messaging) and Interview Call AI.'
+        },
         {
           q: 'Can I upgrade or downgrade my plan at any time?',
           a: 'Yes! You can change your plan anytime. Upgrades take effect immediately, and downgrades will apply at the end of your current billing cycle.'
@@ -127,7 +151,7 @@ export default function FAQ() {
           </h1>
           
           <p className="text-xl text-gray-600">
-            Answers about LinkedIn auto apply, AI resume builder tools, pricing, and job search automation
+            Answers about LinkedIn, Naukri and Indeed auto apply, AI resume builder tools, pricing, and job search automation
           </p>
         </div>
       </section>

@@ -36,6 +36,15 @@ export function parseIndeedJobId(value: unknown) {
   return "";
 }
 
+/** Naukri job id: the trailing digits of /job-listings-<slug>-<id>, or a bare 9-15 digit id. */
+export function parseNaukriJobId(value: unknown) {
+  const raw = cleanJobText(value);
+  if (!raw) return "";
+  const listing = raw.match(/\/job-listings-[^?#]*?-(\d{9,15})(?:[/?#]|$)/i);
+  if (listing?.[1]) return String(listing[1]);
+  return /^\d{9,15}$/.test(raw) ? raw : "";
+}
+
 export function inferJobProvider(
   value: Record<string, unknown> | unknown,
   fallback: ExtensionProvider = "linkedin",
@@ -43,6 +52,7 @@ export function inferJobProvider(
   const record = asJobRecord(value);
   const explicit = String(record.provider || record.source || "").trim().toLowerCase();
   if (explicit.includes("indeed")) return "indeed";
+  if (explicit.includes("naukri")) return "naukri";
   if (explicit.includes("linkedin")) return "linkedin";
 
   const urls = [
@@ -53,6 +63,7 @@ export function inferJobProvider(
   ].filter(Boolean);
 
   if (urls.some((item) => item.includes("indeed."))) return "indeed";
+  if (urls.some((item) => item.includes("naukri.com"))) return "naukri";
   if (urls.some((item) => item.includes("linkedin.com"))) return "linkedin";
   if (urls.some((item) => Boolean(parseIndeedJobId(item)))) return "indeed";
   if (urls.some((item) => Boolean(parseLinkedInJobId(item)))) return "linkedin";
@@ -63,6 +74,7 @@ export function inferJobProvider(
 export function parseExternalJobId(value: unknown, provider?: unknown) {
   const normalizedProvider = provider ? normalizeExtensionProvider(provider) : null;
   if (normalizedProvider === "indeed") return parseIndeedJobId(value);
+  if (normalizedProvider === "naukri") return parseNaukriJobId(value);
   if (normalizedProvider === "linkedin") return parseLinkedInJobId(value);
   return parseLinkedInJobId(value) || parseIndeedJobId(value);
 }
@@ -85,11 +97,18 @@ export function buildJobSourceUrl(
     return "";
   }
 
+  if (provider === "naukri") {
+    if (direct && direct.includes("naukri.com/")) return direct;
+    if (externalJobId) return `https://www.naukri.com/job-listings-${externalJobId}`;
+    return "";
+  }
+
   if (direct && direct.includes("linkedin.com/jobs/")) return direct;
   if (externalJobId) return `https://www.linkedin.com/jobs/view/${externalJobId}/`;
   return "";
 }
 
 export function jobProviderLabel(provider: unknown) {
-  return normalizeExtensionProvider(provider) === "indeed" ? "Indeed" : "LinkedIn";
+  const normalized = normalizeExtensionProvider(provider);
+  return normalized === "indeed" ? "Indeed" : normalized === "naukri" ? "Naukri" : "LinkedIn";
 }

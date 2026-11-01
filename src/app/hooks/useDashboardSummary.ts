@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import type { ExtensionProvider } from "src/lib/extension-providers";
 
 export type DashboardRecentItem = {
   id: string;
@@ -7,7 +8,7 @@ export type DashboardRecentItem = {
   status: "Submitted" | "Running" | "Queued" | "Failed" | "Cancelled";
   date: string;
   match: number | null;
-  provider: "linkedin" | "indeed";
+  provider: ExtensionProvider;
   sourceLabel: string;
   sourceUrl: string;
   externalJobId: string;

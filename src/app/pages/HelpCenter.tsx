@@ -18,12 +18,12 @@ export default function HelpCenter() {
             {
               kicker: "Profile",
               title: "Sync answers from dashboard",
-              description: "Save typed answers once and push them to extension settings for reuse in LinkedIn screening fields.",
+              description: "Save typed answers once and push them to extension settings for reuse in LinkedIn screening fields, Naukri recruiter chatbot questions, and Indeed screening questions.",
             },
             {
               kicker: "Preferences",
               title: "Search terms, location, and work mode",
-              description: "Configure remote/on-site behavior, date range, and role keywords before starting automation.",
+              description: "Configure remote/on-site behavior, date range, and role keywords before starting automation. The same dashboard filters are used for LinkedIn, Naukri, and Indeed searches.",
             },
           ],
         },
@@ -41,6 +41,16 @@ export default function HelpCenter() {
               description: "Use latest extension version and reset runs to avoid stale selected-job search state.",
             },
             {
+              kicker: "Indeed",
+              title: "\"Verify you're human\" check",
+              description: "When Indeed shows a human-verification check, the run pauses. Complete the check in the tab and the run continues.",
+            },
+            {
+              kicker: "Naukri",
+              title: "Chatbot question the extension can't answer",
+              description: "If Naukri's recruiter chatbot asks something not in your answer bank, the sidebar asks you. Your answer is saved for next time.",
+            },
+            {
               kicker: "Sync",
               title: "Pending queue not imported",
               description: "Keep dashboard open once and verify site auth so extension import can flush queued outcomes.",
@@ -53,7 +63,7 @@ export default function HelpCenter() {
           bullets: [
             "Create a free account and complete your profile: name, phone, current city, experience, and notice period.",
             "Upload your resume or build one in the resume builder so every application uses an up-to-date, ATS-friendly version.",
-            "Install the AutoApply CV LinkedIn Copilot from the Chrome Web Store and pin it to your toolbar.",
+            "Install the AutoApply CV extension from the Chrome Web Store and pin it to your toolbar. The same extension works on LinkedIn, naukri.com, and Indeed.",
             "Fill the answer bank once (salary range, work authorization, relocation) so screening questions are answered consistently.",
             "Set target job titles, locations, and work mode, then start with a modest daily limit and review the results.",
           ],
@@ -65,12 +75,12 @@ export default function HelpCenter() {
             {
               kicker: "Charged",
               title: "Application submitted",
-              description: "The Easy Apply form was completed and submitted. Counts as one apply action or one Hire credit.",
+              description: "The LinkedIn Easy Apply, Naukri, or Indeed application was completed and submitted. Counts as one free daily apply or one Hire credit (unlimited on Pro and Pro Connect).",
             },
             {
               kicker: "Not charged",
               title: "Skipped: external apply",
-              description: "The job sends you to the company website instead of Easy Apply, so it is skipped when easy-apply-only is enabled.",
+              description: "The job sends you to the company website instead of LinkedIn Easy Apply, Naukri's own Apply, or Indeed's \"Easily apply\" form, so it is skipped.",
             },
             {
               kicker: "Not charged",
@@ -89,6 +99,7 @@ export default function HelpCenter() {
           bullets: [
             "Free plan: 3 auto-apply actions per day plus a 30 Hires coin signup bonus.",
             "Pro plan: unlimited auto-apply for ₹99 per month, with advanced job matching and priority support.",
+            "Pro Connect plan: ₹500 per month, everything in Pro plus 20 new recruiter contacts a day (HR Contacts) and Interview Call AI.",
             "Hires wallet: pay as you go, where 1 Hire equals 1 submitted application, with no monthly subscription.",
             "Skipped, paused, or stopped jobs are never charged.",
           ],
@@ -97,8 +108,10 @@ export default function HelpCenter() {
           title: "Supported job platforms",
           bullets: [
             "LinkedIn Easy Apply, through the AutoApply CV Chrome extension.",
-            "Indeed applications, tracked in the same dashboard.",
-            "Jobs that require applying on a company website are recorded as skipped so you can apply manually.",
+            "Naukri: the same extension opens a sidebar on naukri.com and applies to jobs with Naukri's own Apply button, answering the recruiter chatbot from your answer bank or AI, within Naukri's daily apply limit.",
+            "Indeed: the extension sidebar on Indeed applies only to \"Easily apply\" jobs, in the same tab, with 20 to 45 seconds between jobs. Built and tested on in.indeed.com.",
+            "Every LinkedIn, Naukri, and Indeed application is logged in the dashboard Applications tracker.",
+            "Jobs that require applying on a company website are skipped so you can apply manually.",
           ],
         },
       ]}

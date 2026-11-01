@@ -14,7 +14,7 @@ src/
   linkedin/core/     shared class-free detection: dom.js (cards, ids, applied, pane, apply button), pages.js (pagination)
   linkedin/jobs/     LinkedIn auto-apply, split into 01-config.js … 29-init.js (load in order, one shared scope)
   linkedin/outreach/ WhatsApp / email / commenter / HR lead widgets
-  indeed/ whatsapp/ gmail/ meet/ dashboard/   other content scripts
+  indeed/ whatsapp/ gmail/ dashboard/   other content scripts
   ui/                popup + options page
   rules/ assets/     tracker-blocking rules, fonts, images
 tools/

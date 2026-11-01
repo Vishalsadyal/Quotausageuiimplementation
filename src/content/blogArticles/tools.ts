@@ -66,7 +66,7 @@ export const TOOLS_ARTICLES: Record<string, string> = {
     </ul>
 
     <h2>How AutoApply CV handles these tests</h2>
-    <p>Since you are reading this on our site, here is how our own extension behaves against the same tests, so you can check it rather than take our word for it. The <a href="/auto-apply-chrome-extension">AutoApply CV Chrome extension</a> works on LinkedIn Easy Apply only and runs inside your logged-in browser. It fills forms from screening answers you save once, skips jobs you have already applied to, pauses when a question needs a human answer, and records company-website jobs as skipped so you can apply manually. The free plan gives you 3 auto-apply actions a day, which is exactly the size of batch this test needs. You can read more about the flow on <a href="/how-it-works">how it works</a>.</p>
+    <p>Since you are reading this on our site, here is how our own extension behaves against the same tests, so you can check it rather than take our word for it. The <a href="/auto-apply-chrome-extension">AutoApply CV Chrome extension</a> works on LinkedIn Easy Apply, Naukri and Indeed Easily apply jobs and runs inside your logged-in browser. It fills forms from screening answers you save once, skips jobs you have already applied to, pauses when a question needs a human answer, and records company-website jobs as skipped so you can apply manually. The free plan gives you 3 auto-apply actions a day, which is exactly the size of batch this test needs. You can read more about the flow on <a href="/how-it-works">how it works</a>.</p>
     <p>If you want to compare evaluation results across several tools, our <a href="/blog/auto-apply-tool-checklist-12-features">12-feature checklist</a> turns these tests into a pass/fail list, and <a href="/blog/auto-apply-tracking-what-to-measure">what to measure weekly</a> covers the numbers to keep watching after the trial.</p>
 
     <h2>Your next step</h2>
@@ -84,7 +84,7 @@ export const TOOLS_ARTICLES: Record<string, string> = {
     <p><strong>What it is:</strong> LinkedIn’s own short application flow, using your profile and an uploaded resume. <strong>Pick it if:</strong> you apply to a handful of roles a week and want full control. <strong>Why:</strong> it costs nothing, carries no automation risk, and every answer is typed by you. The limit is time: it is still one form per job. Our piece on <a href="/blog/linkedin-easy-apply-does-it-work">whether Easy Apply works</a> covers when it gets results.</p>
 
     <h3>2. AutoApply CV</h3>
-    <p><strong>What it is:</strong> our own tool. A Chrome extension that automates LinkedIn Easy Apply only, plus a dashboard for ATS resume tailoring, application tracking and recruiter outreach. <strong>Pick it if:</strong> you mainly apply through LinkedIn Easy Apply and want guardrails: it uses your saved truthful screening answers, skips jobs you have already applied to, pauses when a question needs you, and records company-website jobs as skipped. <strong>Why:</strong> it is built around controlled daily volume rather than maximum volume. The free plan includes 3 auto-apply actions per day; see <a href="/pricing">pricing</a> for Pro.</p>
+    <p><strong>What it is:</strong> our own tool. A Chrome extension that automates LinkedIn Easy Apply, Naukri and Indeed Easily apply jobs, plus a dashboard for ATS resume tailoring, application tracking and recruiter outreach. <strong>Pick it if:</strong> you mainly apply through LinkedIn Easy Apply and want guardrails: it uses your saved truthful screening answers, skips jobs you have already applied to, pauses when a question needs you, and records company-website jobs as skipped. <strong>Why:</strong> it is built around controlled daily volume rather than maximum volume. The free plan includes 3 auto-apply actions per day; see <a href="/pricing">pricing</a> for Pro.</p>
 
     <h3>3. LazyApply</h3>
     <p><strong>What it is:</strong> a Chrome extension that automates applications across several boards, including LinkedIn, Indeed and ZipRecruiter. <strong>Pick it if:</strong> you want one tool for multiple job boards and your priority is reach. <strong>Why:</strong> its design leans toward volume, so it rewards careful filter setup. We wrote a fair comparison in <a href="/blog/lazyapply-alternative">LazyApply alternative</a>.</p>
@@ -144,7 +144,7 @@ export const TOOLS_ARTICLES: Record<string, string> = {
     <h2>Category A: LinkedIn Easy Apply automation (entries 1–5)</h2>
     <p>These tools fill and submit LinkedIn Easy Apply forms for you.</p>
     <ol>
-      <li><strong>AutoApply CV</strong> (our product): Chrome extension for LinkedIn Easy Apply only, using saved truthful screening answers, duplicate skipping and pause-on-unknown-question.</li>
+      <li><strong>AutoApply CV</strong> (our product): Chrome extension for LinkedIn Easy Apply, Naukri and Indeed Easily apply jobs, using saved truthful screening answers, duplicate skipping and pause-on-unknown-question.</li>
       <li><strong>LazyApply</strong>: Chrome extension that covers LinkedIn alongside other boards such as Indeed and ZipRecruiter.</li>
       <li><strong>Single-purpose Easy Apply extensions</strong>: many small extensions in the Chrome Web Store do one thing, clicking through Easy Apply. Check update dates and reviews carefully.</li>
       <li><strong>Script-based bots</strong>: open-source scripts that developers run themselves. Flexible, but you maintain them when LinkedIn changes its pages.</li>
@@ -244,7 +244,7 @@ export const TOOLS_ARTICLES: Record<string, string> = {
     <p>Not a tool, but the baseline every tool should beat. Keep a note with your standard answers, keep two or three resume versions uploaded on LinkedIn, and apply by hand. <strong>Best for:</strong> senior candidates, niche roles, or anyone applying to fewer than five jobs a day. You give up speed, and you get complete control. Our post on <a href="/blog/linkedin-easy-apply-does-it-work">whether Easy Apply works</a> explains when this route is enough.</p>
 
     <h3>Option 2: A dedicated Easy Apply extension with guardrails</h3>
-    <p>This is the category AutoApply CV is in. The <a href="/auto-apply-chrome-extension">AutoApply CV Chrome extension</a> automates LinkedIn Easy Apply only. It runs inside your logged-in browser, fills screening questions from answers you saved once, skips jobs you have already applied to, and pauses when a question needs a human answer instead of guessing. If LinkedIn rejects an answer with a red field error, the run pauses so you can correct the saved answer and resume. Jobs that send you to a company website are recorded as skipped, so you can apply there yourself. <strong>Best for:</strong> people whose search runs mainly through Easy Apply and who want a steady daily volume without sending answers they did not approve.</p>
+    <p>This is the category AutoApply CV is in. The <a href="/auto-apply-chrome-extension">AutoApply CV Chrome extension</a> automates LinkedIn Easy Apply, Naukri and Indeed Easily apply jobs. It runs inside your logged-in browser, fills screening questions from answers you saved once, skips jobs you have already applied to, and pauses when a question needs a human answer instead of guessing. If LinkedIn rejects an answer with a red field error, the run pauses so you can correct the saved answer and resume. Jobs that send you to a company website are recorded as skipped, so you can apply there yourself. <strong>Best for:</strong> people whose search runs mainly through Easy Apply and who want a steady daily volume without sending answers they did not approve.</p>
 
     <h3>Option 3: A multi-board automation tool</h3>
     <p>Tools such as LazyApply cover LinkedIn as one of several job boards, alongside sites like Indeed and ZipRecruiter. <strong>Best for:</strong> people who apply widely across boards and want one tool for all of them. The trade-off is that a tool built for breadth may not be tuned as closely to each board’s form logic, so test the Easy Apply part specifically. We cover this comparison in detail in <a href="/blog/lazyapply-alternative">LazyApply alternative</a>.</p>
@@ -375,7 +375,7 @@ export const TOOLS_ARTICLES: Record<string, string> = {
     <p><strong>Fits:</strong> people who want automation but cannot sit at the computer.</p>
 
     <h3>Type 3: In-browser copilots with guardrails</h3>
-    <p>Extensions that automate one platform from your own logged-in browser and stop when unsure. AutoApply CV is this type: it works on LinkedIn Easy Apply only, uses your saved truthful answers, skips jobs already applied to, pauses when a question needs a human, and records company-website jobs as skipped.</p>
+    <p>Extensions that automate one platform from your own logged-in browser and stop when unsure. AutoApply CV is this type: it works on LinkedIn Easy Apply, Naukri and Indeed Easily apply jobs, uses your saved truthful answers, skips jobs already applied to, pauses when a question needs a human, and records company-website jobs as skipped.</p>
     <ul>
       <li><strong>Speed:</strong> medium. Pauses and daily limits slow it down on purpose.</li>
       <li><strong>Safety:</strong> higher, because it runs in your normal browser session at a controlled pace and does not guess.</li>
@@ -458,7 +458,7 @@ export const TOOLS_ARTICLES: Record<string, string> = {
     <p><strong>Why it matters:</strong> if you notice a wrong answer, you need to stop before the next application, not after the next ten. <strong>How to check:</strong> start a run and stop it mid-form. Nothing should be submitted after you stop.</p>
 
     <h3>8. It is clear about which sites it supports</h3>
-    <p><strong>Why it matters:</strong> tools that claim to work everywhere tend to work poorly in many places. A specific list is a sign of honest engineering. <strong>How to check:</strong> look for a named list on the tool’s website or help pages. For example, the <a href="/auto-apply-chrome-extension">AutoApply CV extension</a> states that it supports LinkedIn Easy Apply only.</p>
+    <p><strong>Why it matters:</strong> tools that claim to work everywhere tend to work poorly in many places. A specific list is a sign of honest engineering. <strong>How to check:</strong> look for a named list on the tool’s website or help pages. For example, the <a href="/auto-apply-chrome-extension">AutoApply CV extension</a> states that it supports LinkedIn Easy Apply, Naukri and Indeed Easily apply jobs (not company career sites).</p>
 
     <h2>Records: what you can see later</h2>
 
@@ -560,7 +560,7 @@ export const TOOLS_ARTICLES: Record<string, string> = {
       <li>It makes no guarantee about interviews or offers.</li>
       <li>It lets you start small, free or with a low limit, so you can test before committing.</li>
     </ul>
-    <p>We try to meet that standard on <a href="/features">our features page</a>: the AutoApply CV extension supports LinkedIn Easy Apply only, the free plan gives 3 auto-apply actions per day, and runs pause when a question needs you.</p>
+    <p>We try to meet that standard on <a href="/features">our features page</a>: the AutoApply CV extension supports LinkedIn Easy Apply, Naukri and Indeed Easily apply jobs, the free plan gives 3 auto-apply actions per day, and runs pause when a question needs you.</p>
 
     <h2>Your next step</h2>
     <p>Write down last week’s applications and replies tonight. That single baseline turns every review you read afterwards into something you can check, instead of something you have to believe.</p>
@@ -592,7 +592,7 @@ export const TOOLS_ARTICLES: Record<string, string> = {
 
     <h2>Beginner-friendly options, by situation</h2>
     <ul>
-      <li><strong>You mostly use LinkedIn:</strong> a LinkedIn Easy Apply extension with the guardrails above. The <a href="/auto-apply-chrome-extension">AutoApply CV Chrome extension</a> supports LinkedIn Easy Apply only and starts free with 3 auto-apply actions per day.</li>
+      <li><strong>You mostly use LinkedIn:</strong> a LinkedIn Easy Apply extension with the guardrails above. The <a href="/auto-apply-chrome-extension">AutoApply CV Chrome extension</a> supports LinkedIn Easy Apply, Naukri and Indeed Easily apply jobs and starts free with 3 auto-apply actions per day.</li>
       <li><strong>You mostly apply on company websites:</strong> an autofill extension such as Simplify Copilot, which fills forms and lets you submit. It is a gentle introduction because nothing goes out without your click.</li>
       <li><strong>You are not sure yet:</strong> start with LinkedIn’s own Easy Apply by hand for a week and note which questions repeat. You will understand what any tool needs to automate.</li>
     </ul>
