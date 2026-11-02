@@ -169,7 +169,37 @@ function mergePendingQuestions(providers: ExtensionBridgeProviderSnapshot[]) {
   return merged;
 }
 
+// Several hooks ping at the same moment (Jobs page, pipeline stats, pending questions). Each ping makes the
+// extension do a full round of work, so callers share one ping that is in flight or just finished.
+const SNAPSHOT_REUSE_MS = 1500;
+let inflightSnapshot: Promise<ExtensionBridgeSnapshot> | null = null;
+let lastSnapshot: { at: number; value: ExtensionBridgeSnapshot } | null = null;
+
 export function collectExtensionBridgeSnapshot(opts?: {
+  timeoutMs?: number;
+  settleMs?: number;
+  requestIdPrefix?: string;
+  fresh?: boolean;
+}) {
+  if (typeof window === "undefined") return pingExtensionBridge(opts);
+  if (!opts?.fresh) {
+    if (inflightSnapshot) return inflightSnapshot;
+    if (lastSnapshot && lastSnapshot.value.installed && Date.now() - lastSnapshot.at < SNAPSHOT_REUSE_MS) {
+      return Promise.resolve(lastSnapshot.value);
+    }
+  }
+  const pending = pingExtensionBridge(opts).then((value) => {
+    lastSnapshot = { at: Date.now(), value };
+    return value;
+  });
+  inflightSnapshot = pending;
+  void pending.finally(() => {
+    if (inflightSnapshot === pending) inflightSnapshot = null;
+  });
+  return pending;
+}
+
+function pingExtensionBridge(opts?: {
   timeoutMs?: number;
   settleMs?: number;
   requestIdPrefix?: string;

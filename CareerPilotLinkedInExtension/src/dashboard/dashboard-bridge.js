@@ -327,77 +327,39 @@ window.addEventListener("message", async (event) => {
     response.runtimeBootstrapOk = false;
   }
 
-  try {
-    if (!response.installed) {
-      logBridge("runtime unavailable for CP_WEB_PONG", { requestId, error: response.error || "" });
-    }
-    if (response.installed) {
-      // Best-effort update of portal quota cache inside the extension.
-      await pushQuotaToExtension();
-      const pending = await new Promise((resolve) => {
-        chrome.runtime.sendMessage({ type: "CP_GET_PENDING_QUESTIONS" }, (res) => {
-          if (chrome.runtime.lastError) {
-            resolve({ ok: false });
-            return;
-          }
-          resolve(res || { ok: false });
-        });
-      });
-      if (pending && pending.ok) {
-        response.pendingQuestions = Array.isArray(pending.questions) ? pending.questions : [];
-      }
-
-      const settingsRes = await new Promise((resolve) => {
-        chrome.runtime.sendMessage({ type: "CP_LOAD_SETTINGS" }, (res) => {
-          if (chrome.runtime.lastError) {
-            resolve({ ok: false });
-            return;
-          }
-          resolve(res || { ok: false });
-        });
-      });
-      if (settingsRes && settingsRes.ok) {
-        response.screeningAnswers = settingsRes.settings?.screeningAnswers || {};
-        // Lets the site ignore answers saved for a different account.
-        response.accountEmail = String(settingsRes.settings?.contactEmail || "").trim().toLowerCase();
-      }
-
-      const historyRes = await new Promise((resolve) => {
-        chrome.runtime.sendMessage({ type: "CP_GET_RUN_HISTORY" }, (res) => {
-          if (chrome.runtime.lastError) {
-            resolve({ ok: false });
-            return;
-          }
-          resolve(res || { ok: false });
-        });
-      });
-      if (historyRes && historyRes.ok) {
-        response.history = historyRes.history || response.history;
-      }
-    }
-  } catch {
-    // ignore
+  if (!response.installed) {
+    logBridge("runtime unavailable for CP_WEB_PONG", { requestId, error: response.error || "" });
+    safePost(response);
+    return;
   }
 
+  // The site gives the answer a few seconds. These used to run one after another behind a network fetch of
+  // the quota, so a slow network made a working extension show "Not detected". Now they run together and
+  // the quota update doesn't hold up the answer.
+  void pushQuotaToExtension();
   try {
-    if (!response.installed) {
-      safePost(response);
-      return;
+    const [pending, settingsRes, historyRes, platformStatus] = await Promise.all([
+      callBackground({ type: "CP_GET_PENDING_QUESTIONS" }),
+      callBackground({ type: "CP_LOAD_SETTINGS" }),
+      callBackground({ type: "CP_GET_RUN_HISTORY" }),
+      callBackground({ type: PLATFORM_STATUS_MESSAGE }),
+    ]);
+    if (pending && pending.ok) {
+      response.pendingQuestions = Array.isArray(pending.questions) ? pending.questions : [];
     }
-    const linkedInStatus = await new Promise((resolve) => {
-      chrome.runtime.sendMessage({ type: PLATFORM_STATUS_MESSAGE }, (res) => {
-        if (chrome.runtime.lastError) {
-          resolve({ ok: false });
-          return;
-        }
-        resolve(res || { ok: false });
-      });
-    });
-    if (linkedInStatus && linkedInStatus.ok) {
-      response[PLATFORM_STATUS_KEY] = linkedInStatus.data || response[PLATFORM_STATUS_KEY];
+    if (settingsRes && settingsRes.ok) {
+      response.screeningAnswers = settingsRes.settings?.screeningAnswers || {};
+      // Lets the site ignore answers saved for a different account.
+      response.accountEmail = String(settingsRes.settings?.contactEmail || "").trim().toLowerCase();
+    }
+    if (historyRes && historyRes.ok) {
+      response.history = historyRes.history || response.history;
+    }
+    if (platformStatus && platformStatus.ok) {
+      response[PLATFORM_STATUS_KEY] = platformStatus.data || response[PLATFORM_STATUS_KEY];
     }
   } catch {
-    // Ignore linkedIn tab status failures.
+    // The extension answered the bootstrap, so it is connected even if these extras failed.
   }
 
   logBridge("sending CP_WEB_PONG", {

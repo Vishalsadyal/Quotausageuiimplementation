@@ -16,11 +16,10 @@ import {
   Trash2,
   Users,
   Video,
-  Lock,
 } from "lucide-react";
-import { Link } from "react-router";
 import { useAuth } from "../../context/AuthContext";
 import { hasInterviewAi } from "src/lib/plans";
+import { LockedPreview } from "../../components/LockedPreview";
 
 // Interview Call AI (formerly Call Copilot) runs entirely in this page: the browser's speech recognition
 // listens through the microphone and /api/ai/call-copilot returns the answer.
@@ -251,39 +250,39 @@ export default function Interview() {
   const { user } = useAuth();
   if (user?.role === "admin" || hasInterviewAi(user?.plan)) return <CallCopilot />;
   return (
-    <div className="space-y-4">
-      <h1 className="text-xl font-bold text-gray-900 leading-tight">Interview Call AI</h1>
-      <div className="rounded-2xl border border-emerald-200 bg-gradient-to-b from-emerald-50/70 to-white p-5">
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div className="max-w-xl">
-            <div className="inline-flex items-center gap-1.5 rounded-full bg-emerald-100 px-2.5 py-0.5 text-[11px] font-bold text-emerald-800">
-              <Lock className="w-3 h-3" /> Pro Connect
-            </div>
-            <h2 className="mt-2 text-base font-bold text-gray-900">A quick answer for every interview question, live</h2>
-            <p className="mt-1 text-xs text-gray-600">
-              Keep this page open during your interview or client call. It listens and shows a short answer, from your own
-              notes, as soon as the other person stops talking. Works with any call app, in English, Hindi or Hinglish.
-              Included in Pro Connect with 20 HR contacts a day and everything in Pro.
-            </p>
-          </div>
-          <Link
-            to="/dashboard/billing"
-            className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-600 px-4 py-2 text-sm font-bold text-white hover:bg-emerald-700"
-          >
-            Upgrade to Pro Connect · ₹500/month
-          </Link>
-        </div>
-      </div>
-    </div>
+    <LockedPreview
+      title="A quick answer for every interview question, live"
+      description="Keep this page open during your interview or client call. It listens and shows a short answer, from your own notes, as soon as the other person stops talking. Works with any call app, in English, Hindi or Hinglish. Included in Pro Connect with 20 HR contacts a day and everything in Pro."
+    >
+      <CallCopilot preview />
+    </LockedPreview>
   );
 }
 
-function CallCopilot() {
+// A made-up call shown blurred to people without Pro Connect, so the page looks like it does mid-interview.
+const PREVIEW_LINES: TranscriptLine[] = [
+  { id: 1, text: "Can you walk me through a project you're proud of?" },
+  { id: 2, text: "And how did you handle the deadline pressure on that?" },
+];
+const PREVIEW_ANSWERS: Answer[] = [
+  {
+    id: 1,
+    mode: "answer",
+    trigger: PREVIEW_LINES[1].text,
+    say: "I split the release into two phases, shipped the core checkout first, and kept everyone updated daily so there were no surprises.",
+    points: ["Cut scope to what customers needed first", "Daily 10-minute check-ins with the PM", "Shipped on time, phase two a week later"],
+    ask: "How does your team usually plan releases?",
+    signal: "",
+    stage: "",
+  },
+];
+
+function CallCopilot({ preview = false }: { preview?: boolean }) {
   // Everything lives in component state only — nothing is saved.
   const [context, setContext] = useState<CallContext>("interview");
-  const [myRole, setMyRole] = useState("");
-  const [theirRole, setTheirRole] = useState("");
-  const [goal, setGoal] = useState("");
+  const [myRole, setMyRole] = useState(preview ? "Frontend Developer" : "");
+  const [theirRole, setTheirRole] = useState(preview ? "Engineering Manager" : "");
+  const [goal, setGoal] = useState(preview ? "Get to the final round" : "");
   const [facts, setFacts] = useState("");
   const [tone, setTone] = useState<Tone>("confident");
   const [model, setModel] = useState<Model>("openai/gpt-oss-20b");
@@ -301,9 +300,9 @@ function CallCopilot() {
   const [autoAnswer, setAutoAnswer] = useState(true);
   const [micError, setMicError] = useState("");
   const [fallbackToAuto, setFallbackToAuto] = useState(""); // reason, when browser captions fail
-  const [lines, setLines] = useState<TranscriptLine[]>([]);
+  const [lines, setLines] = useState<TranscriptLine[]>(preview ? PREVIEW_LINES : []);
   const [interim, setInterim] = useState("");
-  const [answers, setAnswers] = useState<Answer[]>([]);
+  const [answers, setAnswers] = useState<Answer[]>(preview ? PREVIEW_ANSWERS : []);
   const [loading, setLoading] = useState(false);
   const [apiError, setApiError] = useState("");
   const [typed, setTyped] = useState("");

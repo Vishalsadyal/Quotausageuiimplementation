@@ -62,6 +62,7 @@ import {
   SHAREABLE_SCREENING_GROUPS,
 } from "src/lib/screening-groups";
 import { collectExtensionBridgeSnapshot } from "src/lib/extension-bridge-client";
+import { ModuleHowItWorks } from "src/app/components/jobs/ModuleHowItWorks";
 import { syncProfileToExtension as syncProfileToExtensionBase } from "src/lib/sync-profile";
 import {
   DASHBOARD_TOUR_EVENT_NAME,
@@ -216,6 +217,8 @@ const JOB_REASON_CODE_LABELS: Record<string, string> = {
   MAX_SKIPS_REACHED: "Skipped: max skip limit reached",
 };
 const EXT_BRIDGE_PING_TIMEOUT_MS = 4500;
+// Missed background checks in a row before a connected extension shows as "Not detected".
+const EXT_MISSES_BEFORE_DISCONNECT = 3;
 const EXT_BRIDGE_ACK_TIMEOUT_MS = 5000;
 const EXTENSION_PACKAGE_PREFIX = "AutoApplyCVExtensionVersion";
 const YES_NO_OPTIONS = ["No", "Yes"];
@@ -885,6 +888,9 @@ export default function Jobs() {
     return () => document.removeEventListener("mousedown", closeOnOutsideClick);
   }, [openPrefFilter]);
   const syncedAnswerRef = useRef<Record<string, string>>({});
+  const extensionCheckInFlightRef = useRef(false);
+  const extensionMissesRef = useRef(0);
+  const lastGoodExtensionAtRef = useRef(0);
   // The 20s poll keeps the first render's closures, so it reads these through refs.
   const siteAnswersLoadedRef = useRef(false);
   const userEmailRef = useRef("");
@@ -1609,22 +1615,37 @@ export default function Jobs() {
     }
   };
 
-  const checkExtensionStatus = async () => {
+  // Background polls are silent (no spinner) and share a recent ping; a click or a check after a sync
+  // asks the extension again.
+  const checkExtensionStatus = async ({ silent = false }: { silent?: boolean } = {}) => {
     if (typeof window === "undefined") return;
-    setCheckingExtension(true);
+    if (silent && extensionCheckInFlightRef.current) return;
+    extensionCheckInFlightRef.current = true;
+    if (!silent) setCheckingExtension(true);
     try {
       let snapshot = await collectExtensionBridgeSnapshot({
         timeoutMs: EXT_BRIDGE_PING_TIMEOUT_MS,
         settleMs: 500,
         requestIdPrefix: "cp_jobs",
+        fresh: !silent,
       });
       if (!snapshot.installed) {
         snapshot = await collectExtensionBridgeSnapshot({
           timeoutMs: EXT_BRIDGE_PING_TIMEOUT_MS,
           settleMs: 500,
           requestIdPrefix: "cp_jobs_retry",
+          fresh: true,
         });
       }
+      // A slow answer (extension worker waking up, busy applying) is not a disconnect. Keep the last good
+      // status until the extension misses several checks in a row, so the badge doesn't flicker.
+      if (!snapshot.installed && lastGoodExtensionAtRef.current) {
+        extensionMissesRef.current += 1;
+        if (extensionMissesRef.current < EXT_MISSES_BEFORE_DISCONNECT) return;
+      }
+      extensionMissesRef.current = 0;
+      if (snapshot.installed) lastGoodExtensionAtRef.current = Date.now();
+      else lastGoodExtensionAtRef.current = 0;
       const result: ExtensionStatus = {
         installed: snapshot.installed,
         runtimeId: snapshot.runtimeId,
@@ -1694,7 +1715,8 @@ export default function Jobs() {
         }
       }
     } finally {
-      setCheckingExtension(false);
+      extensionCheckInFlightRef.current = false;
+      if (!silent) setCheckingExtension(false);
     }
   };
 
@@ -2147,12 +2169,18 @@ export default function Jobs() {
     const pollIntervalId = setInterval(() => {
       if (document.visibilityState === "visible") {
         void loadJobs(true);
-        void checkExtensionStatus();
+        void checkExtensionStatus({ silent: true });
       }
     }, 20000);
+    // Coming back to the tab: check right away instead of waiting up to 20s.
+    const onVisible = () => {
+      if (document.visibilityState === "visible") void checkExtensionStatus({ silent: true });
+    };
+    document.addEventListener("visibilitychange", onVisible);
 
     return () => {
       clearInterval(pollIntervalId);
+      document.removeEventListener("visibilitychange", onVisible);
     };
   }, []);
 
@@ -3126,7 +3154,7 @@ export default function Jobs() {
             {/* Unified Extension Fleet Grid */}
             <div className="space-y-3">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                {extensionSuiteModules.filter((module) => !HIDDEN_BETA_MODULES.has(module.id)).map((module) => {
+                {extensionSuiteModules.filter((module) => !HIDDEN_BETA_MODULES.has(module.id)).map((module, moduleIndex) => {
                   const Icon = module.icon;
                   const isExternal = module.launchUrl.startsWith("http");
                   const outreachChannel = OUTREACH_MODULE_CHANNEL[module.id];
@@ -3166,9 +3194,7 @@ export default function Jobs() {
                           </span>
                         </div>
 
-                        <p className="text-[11px] text-gray-600 leading-relaxed min-h-[32px]">
-                          {module.description}
-                        </p>
+                        <ModuleHowItWorks moduleId={module.id} description={module.description} delayMs={moduleIndex * 350} />
 
                         {module.id === "hr_contacts" && (
                           <div className="flex flex-wrap items-center gap-x-2 gap-y-1 rounded-lg bg-gray-50 px-2.5 py-1.5 text-[10px] text-gray-600">

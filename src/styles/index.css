@@ -535,6 +535,42 @@ body.cp-in-dashboard .cp-chat-widget {
     left: 130%;
   }
 }
+/* Tool card demos (ModuleHowItWorks): transform-only loops so they run on the GPU. */
+.demo-wave {
+  height: 14px;
+  transform: scaleY(0.2);
+  transform-origin: center;
+}
+.demo-wave.is-live {
+  animation: demo-wave 0.9s ease-in-out infinite;
+}
+@keyframes demo-wave {
+  0%,
+  100% {
+    transform: scaleY(0.2);
+  }
+  50% {
+    transform: scaleY(var(--peak, 1));
+  }
+}
+.demo-scan {
+  top: 0;
+  animation: demo-scan 1s linear forwards;
+}
+@keyframes demo-scan {
+  from {
+    transform: translateY(-120%);
+  }
+  to {
+    transform: translateY(560%);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .demo-wave.is-live,
+  .demo-scan {
+    animation: none;
+  }
+}
 .premium-card {
   border-color: #fcd34d !important;
   background: linear-gradient(180deg, #fffbeb 0%, #ffffff 38%);

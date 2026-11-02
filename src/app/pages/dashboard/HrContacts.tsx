@@ -7,7 +7,6 @@ import {
   Copy,
   ExternalLink,
   Loader2,
-  Lock,
   Mail,
   MessageCircle,
   RefreshCw,
@@ -16,6 +15,7 @@ import {
 } from "lucide-react";
 import { Switch } from "../../components/ui/switch";
 import { useAuth } from "../../context/AuthContext";
+import { LockedPreview } from "../../components/LockedPreview";
 
 // HR Contacts: recruiters other AutoApply CV users messaged from public LinkedIn hiring posts.
 // Pro Connect gets 20 new contacts a day matched to their roles; everyone else sees a locked
@@ -409,47 +409,69 @@ function RoleFilter({
   );
 }
 
+const FALLBACK_SAMPLES = [
+  { jobTitle: "React Developer", company: "Fintech startup" },
+  { jobTitle: "Data Analyst", company: "E-commerce company" },
+  { jobTitle: "Java Backend Engineer", company: "SaaS company" },
+  { jobTitle: "UI/UX Designer", company: "Product studio" },
+  { jobTitle: "DevOps Engineer", company: "Cloud services" },
+  { jobTitle: "Business Analyst", company: "Consulting firm" },
+];
+
+// Made-up contacts in the shape of the real list, for the blurred preview. Only job titles and
+// companies come from the server; numbers and emails are never sent to locked accounts.
+function sampleDeliveries(samples: Array<{ jobTitle: string; company: string }>): Delivery[] {
+  return [...samples, ...FALLBACK_SAMPLES].slice(0, 6).map((s, i) => {
+    const isEmail = i % 3 === 2;
+    return {
+      id: `sample-${i}`,
+      day: "",
+      sentAt: null,
+      matchedRoles: [],
+      contact: {
+        id: `sample-${i}`,
+        kind: isEmail ? "email" : "phone",
+        value: isEmail ? "hiring@company.com" : "919800000000",
+        recruiterName: "Recruiter",
+        company: s.company || "Company",
+        jobTitle: s.jobTitle || "Hiring",
+        location: "India",
+        postUrl: "https://www.linkedin.com",
+        postSnippet: "We're hiring! Share your CV on WhatsApp or email. Immediate joiners preferred.",
+        waStatus: "valid",
+        emailStatus: "valid",
+        lastSeenAt: new Date().toISOString(),
+        contributorCount: 1,
+      },
+    };
+  });
+}
+
 function LockedView({ data }: { data: Extract<HrContactsData, { unlocked: false }> }) {
   const { preview } = data;
+  const samples = useMemo(() => sampleDeliveries(preview.samples), [preview.samples]);
+  const noop = () => undefined;
   return (
-    <div className="rounded-2xl border border-emerald-200 bg-gradient-to-b from-emerald-50/70 to-white p-5">
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div className="max-w-xl">
-          <div className="inline-flex items-center gap-1.5 rounded-full bg-emerald-100 px-2.5 py-0.5 text-[11px] font-bold text-emerald-800">
-            <Lock className="w-3 h-3" /> Pro Connect
-          </div>
-          <h2 className="mt-2 text-base font-bold text-gray-900">
-            {preview.matchingYourRoles > 0
-              ? `${preview.matchingYourRoles} recruiters hiring for your roles this week`
-              : `${preview.freshThisWeek} recruiters shared their contact this week`}
-          </h2>
-          <p className="mt-1 text-xs text-gray-600">
-            Get {data.dailyLimit} new HR contacts every day, WhatsApp-checked numbers and recruiter emails from real hiring
-            posts, plus an email with the list every morning. Includes everything in Pro.
-          </p>
+    <LockedPreview
+      title={
+        preview.matchingYourRoles > 0
+          ? `${preview.matchingYourRoles} recruiters hiring for your roles this week`
+          : `${preview.freshThisWeek} recruiters shared their contact this week`
+      }
+      description={`Get ${data.dailyLimit} new HR contacts every day, WhatsApp-checked numbers and recruiter emails from real hiring posts, plus an email with the list every morning. Includes everything in Pro.`}
+    >
+      <div className="space-y-4">
+        <div className="inline-flex rounded-xl border border-gray-200 bg-white p-1 text-xs font-semibold">
+          <span className="rounded-lg bg-emerald-600 px-3 py-1.5 text-white">Today ({data.dailyLimit}/{data.dailyLimit})</span>
+          <span className="rounded-lg px-3 py-1.5 text-gray-600">Earlier</span>
         </div>
-        <Link
-          to="/dashboard/billing"
-          className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-600 px-4 py-2 text-sm font-bold text-white hover:bg-emerald-700"
-        >
-          Upgrade to Pro Connect · ₹500/month
-        </Link>
-      </div>
-
-      {preview.samples.length > 0 && (
-        <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-2">
-          {preview.samples.map((s, i) => (
-            <div key={i} className="rounded-xl border border-gray-200 bg-white px-3 py-2.5">
-              <div className="text-xs font-semibold text-gray-900">{s.jobTitle || "Hiring"}</div>
-              <div className="text-[11px] text-gray-500">{s.company || "Company"}</div>
-              <div className="mt-1 select-none text-xs text-gray-400 blur-[3px]" aria-hidden="true">
-                +91 98•••• ••••• · recruiter@••••.com
-              </div>
-            </div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+          {samples.map((d) => (
+            <ContactCard key={d.id} delivery={d} onWhatsApp={noop} onEmail={noop} onCopy={noop} />
           ))}
         </div>
-      )}
-    </div>
+      </div>
+    </LockedPreview>
   );
 }
 
