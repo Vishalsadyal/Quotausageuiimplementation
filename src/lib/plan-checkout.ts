@@ -2,6 +2,7 @@
 // (used by the end of onboarding). Same server calls as the Billing page: /api/billing/checkout
 // creates the subscription, /api/billing/verify activates the plan after payment.
 import { trackActionFailed, trackCheckoutAbandoned } from "./posthog-client";
+import { trackCheckout } from "./checkout-tracking";
 
 export type PaidPlanId = "pro" | "connect" | "coach";
 export type CheckoutResult = { status: "paid" } | { status: "dismissed" } | { status: "failed"; message: string };
@@ -35,6 +36,7 @@ export async function startPlanSubscription(
   prefill: { name?: string; email?: string; phone?: string },
 ): Promise<CheckoutResult> {
   let stage = "script_load";
+  const tracker = trackCheckout("onboarding", plan, "subscription");
   try {
     const Razorpay = await loadRazorpay();
     if (!Razorpay) throw new Error("Unable to load Razorpay payment gateway");
@@ -77,9 +79,11 @@ export async function startPlanSubscription(
             });
             const verifyData = await verifyRes.json().catch(() => null);
             if (!verifyRes.ok || !verifyData?.success) throw new Error(verifyData?.message || "Payment verification failed");
+            tracker.paid();
             resolve({ status: "paid" });
           } catch (err) {
             trackActionFailed("plan_subscription", "payment_verification", err, { plan, source: "onboarding" });
+            tracker.failed("payment_verification", err);
             resolve({ status: "failed", message: err instanceof Error ? err.message : "Payment verification failed" });
           }
         },
@@ -87,14 +91,17 @@ export async function startPlanSubscription(
           ondismiss: () => {
             if (paymentSubmitted) return;
             trackCheckoutAbandoned("plan_subscription", { plan, source: "onboarding" });
+            tracker.dismissed();
             resolve({ status: "dismissed" });
           },
         },
       });
       rzp.open();
+      tracker.opened();
     });
   } catch (err) {
     trackActionFailed("plan_subscription", stage, err, { plan, source: "onboarding" });
+    tracker.failed(stage, err);
     return { status: "failed", message: err instanceof Error ? err.message : "Failed to start subscription" };
   }
 }
@@ -109,6 +116,7 @@ export async function startPlanPurchase(
   prefill: { name?: string; email?: string; phone?: string; userId?: string },
 ): Promise<CheckoutResult> {
   let stage = "script_load";
+  const tracker = trackCheckout("onboarding", plan, "one_time");
   try {
     const Razorpay = await loadRazorpay();
     if (!Razorpay) throw new Error("Unable to load Razorpay payment gateway");
@@ -152,9 +160,11 @@ export async function startPlanPurchase(
             });
             const verifyData = await verifyRes.json().catch(() => null);
             if (!verifyRes.ok || !verifyData?.success) throw new Error(verifyData?.message || "Payment verification failed");
+            tracker.paid();
             resolve({ status: "paid" });
           } catch (err) {
             trackActionFailed("plan_purchase", "payment_verification", err, { plan, source: "onboarding" });
+            tracker.failed("payment_verification", err);
             resolve({ status: "failed", message: err instanceof Error ? err.message : "Payment verification failed" });
           }
         },
@@ -162,14 +172,17 @@ export async function startPlanPurchase(
           ondismiss: () => {
             if (paymentSubmitted) return;
             trackCheckoutAbandoned("plan_purchase", { plan, source: "onboarding" });
+            tracker.dismissed();
             resolve({ status: "dismissed" });
           },
         },
       });
       rzp.open();
+      tracker.opened(Number(order.amount));
     });
   } catch (err) {
     trackActionFailed("plan_purchase", stage, err, { plan, source: "onboarding" });
+    tracker.failed(stage, err);
     return { status: "failed", message: err instanceof Error ? err.message : "Failed to start checkout" };
   }
 }

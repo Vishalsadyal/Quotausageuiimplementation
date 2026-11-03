@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { trackActionFailed, trackCheckoutAbandoned } from "src/lib/posthog-client";
+import { trackCheckout } from "src/lib/checkout-tracking";
 import {
   Coins,
   Tag,
@@ -268,6 +269,7 @@ export default function Billing() {
 
   const handlePlanPayOnce = async (targetPlan: "pro" | "coach" | "connect") => {
     let stage = "script_load";
+    const tracker = trackCheckout("billing", targetPlan, "one_time");
     try {
       setUpgradingPlan(targetPlan);
       setError("");
@@ -337,12 +339,14 @@ export default function Billing() {
               throw new Error(verifyData?.message || "Payment verification failed");
             }
 
+            tracker.paid();
             toast.success(`🎉 Upgrade successful! You are now on the ${targetPlan.toUpperCase()} plan.`);
             setMessage(`Your account has been upgraded to ${targetPlan.toUpperCase()}.`);
             await loadWallet();
             await refreshUser();
           } catch (err) {
             trackActionFailed("plan_purchase", "payment_verification", err, { plan: targetPlan });
+            tracker.failed("payment_verification", err);
             toast.error(err instanceof Error ? err.message : "Payment verification failed");
             setError(err instanceof Error ? err.message : "Payment verification failed");
           } finally {
@@ -351,7 +355,10 @@ export default function Billing() {
         },
         modal: {
           ondismiss: () => {
-            if (!paymentSubmitted) trackCheckoutAbandoned("plan_purchase", { plan: targetPlan });
+            if (!paymentSubmitted) {
+              trackCheckoutAbandoned("plan_purchase", { plan: targetPlan });
+              tracker.dismissed();
+            }
             setUpgradingPlan(null);
           },
         },
@@ -359,8 +366,10 @@ export default function Billing() {
 
       stage = "checkout_open";
       rzp.open();
+      tracker.opened(Number(order.amount));
     } catch (err) {
       trackActionFailed("plan_purchase", stage, err, { plan: targetPlan });
+      tracker.failed(stage, err);
       toast.error(err instanceof Error ? err.message : "Failed to initiate checkout");
       setError(err instanceof Error ? err.message : "Failed to initiate checkout");
       setUpgradingPlan(null);
@@ -370,6 +379,7 @@ export default function Billing() {
   // Monthly subscription: Razorpay charges the card or UPI mandate every month until the user cancels.
   const handlePlanSubscribe = async (targetPlan: "pro" | "coach" | "connect") => {
     let stage = "script_load";
+    const tracker = trackCheckout("billing", targetPlan, "subscription");
     try {
       setUpgradingPlan(targetPlan);
       setError("");
@@ -414,6 +424,7 @@ export default function Billing() {
             });
             const verifyData = await verifyRes.json();
             if (!verifyRes.ok || !verifyData?.success) throw new Error(verifyData?.message || "Payment verification failed");
+            tracker.paid();
             toast.success(`You are subscribed to ${targetPlan.toUpperCase()}. Cancel anytime from this page.`);
             setMessage(`You are subscribed to ${targetPlan.toUpperCase()}. It renews monthly until you cancel.`);
             await loadWallet();
@@ -421,6 +432,7 @@ export default function Billing() {
             await loadSubscription();
           } catch (err) {
             trackActionFailed("plan_subscription", "payment_verification", err, { plan: targetPlan });
+            tracker.failed("payment_verification", err);
             toast.error(err instanceof Error ? err.message : "Payment verification failed");
             setError(err instanceof Error ? err.message : "Payment verification failed");
           } finally {
@@ -429,15 +441,20 @@ export default function Billing() {
         },
         modal: {
           ondismiss: () => {
-            if (!paymentSubmitted) trackCheckoutAbandoned("plan_subscription", { plan: targetPlan });
+            if (!paymentSubmitted) {
+              trackCheckoutAbandoned("plan_subscription", { plan: targetPlan });
+              tracker.dismissed();
+            }
             setUpgradingPlan(null);
           },
         },
       });
       stage = "checkout_open";
       rzp.open();
+      tracker.opened();
     } catch (err) {
       trackActionFailed("plan_subscription", stage, err, { plan: targetPlan });
+      tracker.failed(stage, err);
       toast.error(err instanceof Error ? err.message : "Failed to start subscription");
       setError(err instanceof Error ? err.message : "Failed to start subscription");
       setUpgradingPlan(null);
@@ -529,6 +546,7 @@ export default function Billing() {
 
   const startTopup = async () => {
     let stage = "validation";
+    let tracker: ReturnType<typeof trackCheckout> | null = null;
     try {
       const cents = Math.round((Number.isFinite(usdAmount) ? usdAmount : 0) * 100);
       if (!Number.isFinite(usdAmount) || cents < minTopupUsdCents) {
@@ -537,6 +555,7 @@ export default function Billing() {
       setProcessingTopup(true);
       setMessage("");
       setError("");
+      tracker = trackCheckout("billing", "hires", "topup");
 
       stage = "order_create";
       const orderRes = await fetch("/api/wallet/topup/order", {
@@ -598,9 +617,11 @@ export default function Billing() {
           const verifyBody = await verifyRes.json();
           if (!verifyRes.ok || !verifyBody?.success) {
             trackActionFailed("wallet_topup", "payment_verification", new Error("verification_rejected"));
+            tracker?.failed("payment_verification", verifyBody?.message || "verification_rejected");
             setError(verifyBody?.message || "Payment verification failed");
             return;
           }
+          tracker?.paid();
           setMessage(`Top-up successful. Credited ${verifyBody?.data?.creditedHires || order.hires} Hires.`);
           toast.success(`Credited ${verifyBody?.data?.creditedHires || order.hires} Hires.`);
           await loadWallet();
@@ -608,16 +629,21 @@ export default function Billing() {
         },
         modal: {
           ondismiss: () => {
-            if (!paymentSubmitted) trackCheckoutAbandoned("wallet_topup");
+            if (!paymentSubmitted) {
+              trackCheckoutAbandoned("wallet_topup");
+              tracker?.dismissed();
+            }
           },
         },
       });
 
       stage = "checkout_open";
       razorpay.open();
+      tracker?.opened(Number(order.amount));
     } catch (e) {
       // A below-minimum amount is a local validation message, not a failed action.
       if (stage !== "validation") trackActionFailed("wallet_topup", stage, e);
+      tracker?.failed(stage, e);
       setError(e instanceof Error ? e.message : "Failed to process top-up");
     } finally {
       setProcessingTopup(false);

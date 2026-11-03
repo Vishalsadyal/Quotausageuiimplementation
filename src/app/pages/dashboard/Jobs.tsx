@@ -61,7 +61,7 @@ import {
   screeningTypeTag,
   SHAREABLE_SCREENING_GROUPS,
 } from "src/lib/screening-groups";
-import { collectExtensionBridgeSnapshot } from "src/lib/extension-bridge-client";
+import { collectExtensionBridgeSnapshot, extensionMissingReason } from "src/lib/extension-bridge-client";
 import { ModuleHowItWorks } from "src/app/components/jobs/ModuleHowItWorks";
 import { syncProfileToExtension as syncProfileToExtensionBase } from "src/lib/sync-profile";
 import {
@@ -217,7 +217,7 @@ const JOB_REASON_CODE_LABELS: Record<string, string> = {
   MAX_SKIPS_REACHED: "Skipped: max skip limit reached",
 };
 const EXT_BRIDGE_PING_TIMEOUT_MS = 4500;
-// Missed background checks in a row before a connected extension shows as "Not detected".
+// Missed background checks in a row before a connected extension shows as not connected.
 const EXT_MISSES_BEFORE_DISCONNECT = 3;
 const EXT_BRIDGE_ACK_TIMEOUT_MS = 5000;
 const EXTENSION_PACKAGE_PREFIX = "AutoApplyCVExtensionVersion";
@@ -2980,6 +2980,7 @@ export default function Jobs() {
 
           {/* Status + stats; clicking the status re-checks the extension bridge */}
           <div className="flex items-center gap-3 text-[11px] text-gray-600">
+            {/* "Not installed" (install it) vs "Not responding" (installed, usually just updated: refresh). */}
             <button
               ref={checkExtensionButtonRef}
               type="button"
@@ -2996,7 +2997,7 @@ export default function Jobs() {
               ) : (
                 <span className={`w-1.5 h-1.5 rounded-full ${isCurrentProviderInstalled ? "bg-emerald-500" : "bg-amber-500"}`} />
               )}
-              {isCurrentProviderInstalled ? "Connected" : "Not detected"}
+              {isCurrentProviderInstalled ? "Connected" : extensionMissingReason() === "unresponsive" ? "Not responding" : "Not installed"}
             </button>
             <span>
               Answers <b className="text-gray-800">{totalScreeningAnswers}</b>
@@ -3009,7 +3010,18 @@ export default function Jobs() {
 
           {/* Actions */}
           <div className="ml-auto flex items-center gap-1.5 shrink-0">
-            {!isCurrentProviderInstalled && (
+            {!isCurrentProviderInstalled && extensionMissingReason() === "unresponsive" ? (
+              <button
+                type="button"
+                onClick={() => window.location.reload()}
+                title="The extension is installed but not answering. Reloading this page reconnects it."
+                className="px-2.5 py-1.5 bg-amber-500 hover:bg-amber-600 text-white rounded-lg text-[11px] font-bold inline-flex items-center gap-1"
+              >
+                <RefreshCw className="w-3 h-3" />
+                <span>Refresh to reconnect</span>
+              </button>
+            ) : null}
+            {!isCurrentProviderInstalled && extensionMissingReason() === "missing" && (
               <a
                 ref={storeLinkButtonRef}
                 href={currentProviderStoreUrl || extensionStoreUrl}

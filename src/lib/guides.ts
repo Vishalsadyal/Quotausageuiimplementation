@@ -161,7 +161,7 @@ export const GUIDES: Guide[] = [
         exact: true,
         target: "extension-status",
         title: "Check the extension is connected",
-        body: "This should say Connected. If it says Not detected, use Guide me → Install the extension first.",
+        body: "This should say Connected. If it says Not installed, use Guide me → Install the extension first. If it says Not responding, refresh the page.",
         advance: "next",
         fallback: "Open the Auto Apply overview page to see the connection status.",
       },

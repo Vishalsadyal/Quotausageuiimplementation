@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "AutoApply CV: Auto Apply LinkedIn, Naukri, Indeed",
-  "version": "3.5.0",
+  "version": "3.5.2",
   "description": "Free auto apply for LinkedIn Easy Apply, Naukri and Indeed jobs, with WhatsApp and email outreach to recruiters.",
   "icons": {
     "16": "icons/icon16.png",

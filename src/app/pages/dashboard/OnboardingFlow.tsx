@@ -5,6 +5,7 @@ import { useAuth } from "../../context/AuthContext";
 import { AlertCircle, ArrowLeftRight, Building2, Check, ChevronLeft, Chrome, ExternalLink, FileText, Home, Lightbulb, Loader2, Lock, MapPin, Plus, Sparkles, UploadCloud, X, type LucideIcon } from "lucide-react";
 import { InsightPanel, MapPanel, ProfileCard, useOnboardingInsights } from "./OnboardingPanels";
 import { captureEvent } from "src/lib/posthog-client";
+import { extensionMissingReason } from "src/lib/extension-bridge-client";
 import { useExtensionStore } from "../../hooks/useExtensionStore";
 import { ExtensionBrowserNote } from "../../components/ExtensionBrowserNote";
 import type { JobPreferences, MasterProfile, PendingQuestion, ScreeningAnswerType, ScreeningSource } from "./Onboarding";
@@ -41,9 +42,12 @@ type Props = {
   setError: (value: string) => void;
   /** Whether the Chrome extension answers on this page, and a way to check again. */
   extensionInstalled: boolean;
-  onCheckExtension: () => Promise<void>;
+  /** Re-checks the extension; resolves true when it answered. */
+  onCheckExtension: () => Promise<boolean | void>;
   /** Saves everything; a paid plan then opens its checkout, otherwise the user goes to Jobs. */
   onFinish: (plan?: PaidPlanChoice) => Promise<boolean>;
+  /** New accounts must buy a plan: the last screen hides "Continue with Free". */
+  requirePayment?: boolean;
 };
 
 type PaidPlanChoice = "pro" | "connect" | "coach";
@@ -53,6 +57,14 @@ const PLAN_CARDS: Array<{ id: PaidPlanChoice; name: string; price: string; tagli
   { id: "pro", name: "Pro", price: "₹99", tagline: "Unlimited auto-apply + recruiter outreach", badge: "Best value" },
   { id: "connect", name: "Pro Connect", price: "₹500", tagline: "Pro + 20 fresh recruiter contacts every day" },
   { id: "coach", name: "Career Coach", price: "₹1,849", tagline: "1-on-1 human guidance + automation" },
+];
+
+// Cheapest auto-apply plan of each competitor, from public reviews (Nov 2026, ₹ at ~₹88/$). Re-check before changing.
+const COMPETITOR_PRICES: Array<{ name: string; price: string; note: string }> = [
+  { name: "LiftmyCV", price: "₹880/mo", note: "$9.99/mo · unlimited ₹6,150/mo" },
+  { name: "LazyApply", price: "₹8,700/yr", note: "$99/yr, paid upfront" },
+  { name: "JobCopilot", price: "₹2,500/mo", note: "from ~$28/mo" },
+  { name: "AIApply", price: "₹4,300/mo", note: "$49/mo for 100 applies" },
 ];
 
 const TOTAL_STEPS = 25;
@@ -464,6 +476,7 @@ export default function OnboardingFlow(props: Props) {
     extensionInstalled,
     onCheckExtension,
     onFinish,
+    requirePayment = false,
   } = props;
 
   const [searchParams, setSearchParams] = useSearchParams();
@@ -644,6 +657,11 @@ export default function OnboardingFlow(props: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [step, extensionInstalled]);
 
+  // The "can't find the extension" message goes away once it connects.
+  useEffect(() => {
+    if (extensionInstalled) setLocalError("");
+  }, [extensionInstalled]);
+
   // One onboarding_step_viewed per screen shown (the ref stops React's dev double-run and re-renders
   // from sending it twice). No answers are sent, only where the user is in the flow.
   const lastTrackedStepRef = useRef(0);
@@ -749,6 +767,20 @@ export default function OnboardingFlow(props: Props) {
       if (screeningIndex < screeningQueue.length - 1) {
         setDirection(1);
         setScreeningIndex((i) => i + 1);
+        return;
+      }
+    }
+    // "I've installed it": check before moving on, and say what to do when it isn't there.
+    if (step === 24 && !extensionInstalled) {
+      setBusy(true);
+      const found = await onCheckExtension().catch(() => false);
+      setBusy(false);
+      if (!found) {
+        setLocalError(
+          extensionMissingReason() === "unresponsive"
+            ? "The extension is installed but not answering. Refresh this page (F5), then click again."
+            : `We can't find the extension in this browser yet. Click "Add to ${extensionStore.browserName}" above, install it, then click again.`,
+        );
         return;
       }
     }
@@ -1297,7 +1329,8 @@ export default function OnboardingFlow(props: Props) {
       continueLabel = `Pay ${plan.price} · ${plan.name} for 30 days`;
       body = (
         <div className="mx-auto grid w-full max-w-xl gap-2.5" role="radiogroup" aria-label="Plan">
-          <p className="-mt-2 text-center text-xs font-medium text-slate-500">One-time payment · no auto-renewal</p>
+          <p className="-mt-2 text-center text-sm font-bold text-violet-700">Get hired faster: hundreds of applications in your first 15 days</p>
+          <p className="-mt-1 text-center text-xs font-medium text-slate-500">One-time payment · no auto-renewal</p>
           {PLAN_CARDS.map((p) => {
             const active = p.id === chosenPlan;
             return (
@@ -1328,6 +1361,22 @@ export default function OnboardingFlow(props: Props) {
               </button>
             );
           })}
+          <div className="mt-1 rounded-2xl border border-slate-200 bg-white/70 px-4 py-3">
+            <p className="text-xs font-bold uppercase tracking-wide text-slate-500">What other auto-apply tools charge</p>
+            <ul className="mt-2 grid grid-cols-2 gap-x-4 gap-y-1.5">
+              {COMPETITOR_PRICES.map((c) => (
+                <li key={c.name} className="min-w-0">
+                  <span className="flex items-baseline justify-between gap-2 text-sm">
+                    <span className="font-semibold text-slate-700">{c.name}</span>
+                    <span className="font-bold text-slate-500 line-through decoration-slate-400">{c.price}</span>
+                  </span>
+                  <span className="block truncate text-[11px] text-slate-400">{c.note}</span>
+                </li>
+              ))}
+            </ul>
+            <p className="mt-2 text-sm font-semibold text-violet-700">AutoApplyCV Pro: ₹99 for 30 days · works on Naukri & Indeed too</p>
+            <p className="mt-0.5 text-[10px] text-slate-400">Approx. starting prices from public reviews, Nov 2026.</p>
+          </div>
         </div>
       );
       break;
@@ -1473,7 +1522,7 @@ export default function OnboardingFlow(props: Props) {
                 {busy ? <Loader2 className="mx-auto h-5 w-5 animate-spin" /> : continueLabel}
               </button>
             ) : null}
-            {step === TOTAL_STEPS ? (
+            {step === TOTAL_STEPS && !requirePayment ? (
               <button type="button" onClick={() => void finish()} disabled={busy} className="text-sm font-semibold text-slate-600 underline-offset-2 hover:text-slate-900 hover:underline">
                 Continue with Free (3 applies a day)
               </button>

@@ -299,15 +299,7 @@ window.addEventListener("message", async (event) => {
   };
 
   try {
-    const bootstrap = await new Promise((resolve) => {
-      chrome.runtime.sendMessage({ type: "CP_GET_BOOTSTRAP" }, (res) => {
-        if (chrome.runtime.lastError) {
-          resolve({ ok: false, error: chrome.runtime.lastError.message });
-          return;
-        }
-        resolve(res || { ok: false });
-      });
-    });
+    const bootstrap = await callBackgroundWithRetry({ type: "CP_GET_BOOTSTRAP" });
     if (bootstrap && bootstrap.ok) {
       response.state = bootstrap.state || null;
       response.dailyCap = bootstrap.dailyCap || null;
@@ -506,6 +498,24 @@ function callBackground(message) {
       resolve(res || { ok: false });
     });
   });
+}
+
+// The background worker sleeps when idle; the first message after a page refresh can fail while it
+// wakes ("Receiving end does not exist"). Ask again shortly instead of telling the site "not installed".
+async function callBackgroundWithRetry(message, attempts = 3) {
+  let res = null;
+  for (let i = 0; i < attempts; i += 1) {
+    try {
+      res = await callBackground(message);
+    } catch (error) {
+      res = { ok: false, error: String(error?.message || error) };
+    }
+    if (res && res.ok) return res;
+    // The extension was reloaded or updated: only a page refresh reconnects this tab.
+    if (!chrome?.runtime?.id) return res;
+    if (i < attempts - 1) await new Promise((r) => setTimeout(r, 400 * (i + 1)));
+  }
+  return res;
 }
 
 window.addEventListener("message", async (event) => {

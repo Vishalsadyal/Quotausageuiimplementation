@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Zap, Clock, Check, ShieldCheck, ArrowRight, Flame, Sparkles, Loader2 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { toast } from "sonner";
+import { trackCheckout } from "src/lib/checkout-tracking";
 
 declare global {
   interface Window {
@@ -70,10 +71,12 @@ export function DashboardPromoBanner() {
   }
 
   const handleQuickCheckout = async () => {
+    const tracker = trackCheckout("promo_banner", "pro", "one_time");
     try {
       setLoading(true);
       const scriptReady = await ensureRazorpayScript();
       if (!scriptReady) {
+        tracker.failed("script_load", "Unable to load payment gateway");
         toast.error("Unable to load payment gateway. Please check your internet connection.");
         setLoading(false);
         return;
@@ -94,6 +97,7 @@ export function DashboardPromoBanner() {
       }
 
       const orderData = data.data;
+      let paymentSubmitted = false;
 
       const rzp = new (window.Razorpay as any)({
         key: orderData.keyId,
@@ -114,6 +118,7 @@ export function DashboardPromoBanner() {
           razorpay_order_id: string;
           razorpay_signature: string;
         }) => {
+          paymentSubmitted = true;
           try {
             setLoading(true);
             const verifyRes = await fetch("/api/billing/order/verify", {
@@ -132,9 +137,11 @@ export function DashboardPromoBanner() {
               throw new Error(verifyData?.message || "Verification failed");
             }
 
+            tracker.paid();
             toast.success("🎉 Upgrade successful! You now have full Pro Auto-Apply access.");
             await refreshUser();
           } catch (err) {
+            tracker.failed("payment_verification", err);
             toast.error(err instanceof Error ? err.message : "Payment verification failed");
           } finally {
             setLoading(false);
@@ -142,13 +149,16 @@ export function DashboardPromoBanner() {
         },
         modal: {
           ondismiss: () => {
+            if (!paymentSubmitted) tracker.dismissed();
             setLoading(false);
           },
         },
       });
 
       rzp.open();
+      tracker.opened(Number(orderData.amount));
     } catch (err) {
+      tracker.failed("order_create", err);
       toast.error(err instanceof Error ? err.message : "Failed to open checkout");
       setLoading(false);
     }

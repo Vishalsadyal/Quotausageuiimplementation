@@ -188,7 +188,7 @@ export function collectExtensionBridgeSnapshot(opts?: {
       return Promise.resolve(lastSnapshot.value);
     }
   }
-  const pending = pingExtensionBridge(opts).then((value) => {
+  const pending = pingWithRetry(opts).then((value) => {
     lastSnapshot = { at: Date.now(), value };
     return value;
   });
@@ -197,6 +197,52 @@ export function collectExtensionBridgeSnapshot(opts?: {
     if (inflightSnapshot === pending) inflightSnapshot = null;
   });
   return pending;
+}
+
+// The extension's page script (dashboard-bridge.js) marks <html data-cp-bridge-ready="1"> once it has loaded.
+function bridgeScriptPresent() {
+  return document.documentElement?.getAttribute("data-cp-bridge-ready") === "1";
+}
+
+/**
+ * Why the extension didn't answer: "missing" = it isn't installed (or is turned off) in this browser;
+ * "unresponsive" = it is installed but didn't reply (usually it was just updated: refresh the page).
+ */
+export function extensionMissingReason(): "missing" | "unresponsive" {
+  if (typeof document === "undefined") return "missing";
+  return bridgeScriptPresent() ? "unresponsive" : "missing";
+}
+
+// Right after a page load the extension's page script may not be injected yet, and a ping sent before
+// then is lost. Wait briefly for its "ready" message (only in the first seconds after load, so pages
+// without the extension aren't slowed down later).
+function waitForBridgeScript(maxMs: number) {
+  return new Promise<boolean>((resolve) => {
+    if (bridgeScriptPresent()) return resolve(true);
+    const done = (value: boolean) => {
+      window.clearTimeout(timer);
+      window.removeEventListener("message", onMessage);
+      resolve(value);
+    };
+    const onMessage = (event: MessageEvent) => {
+      if (event.source === window && (event.data as any)?.type === "CP_WEB_BRIDGE_READY") done(true);
+    };
+    const timer = window.setTimeout(() => done(bridgeScriptPresent()), maxMs);
+    window.addEventListener("message", onMessage);
+  });
+}
+
+// The extension's background worker sleeps when idle, and the first message after a refresh can fail
+// while it wakes up. That used to show "not connected" until the user clicked the extension icon.
+// When the page script is there, ask again a couple of times before giving up.
+async function pingWithRetry(opts?: { timeoutMs?: number; settleMs?: number; requestIdPrefix?: string }) {
+  if (!bridgeScriptPresent() && performance.now() < 8000) await waitForBridgeScript(2000);
+  let snapshot = await pingExtensionBridge(opts);
+  for (let attempt = 1; !snapshot.installed && bridgeScriptPresent() && attempt <= 2; attempt += 1) {
+    await new Promise((r) => window.setTimeout(r, 600 * attempt));
+    snapshot = await pingExtensionBridge(opts);
+  }
+  return snapshot;
 }
 
 function pingExtensionBridge(opts?: {

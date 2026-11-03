@@ -30,6 +30,7 @@ import {
 } from "src/lib/dashboard-tour";
 import OnboardingFlow from "./OnboardingFlow";
 import { startPlanPurchase } from "src/lib/plan-checkout";
+import { mustPayToFinishOnboarding } from "src/lib/onboarding";
 
 type TabKey = "profile" | "preferences" | "screening";
 
@@ -1077,8 +1078,8 @@ export default function Onboarding() {
     [checkingExtension, extensionStoreUrl, installedPackageName],
   );
 
-  const checkExtensionStatus = async (opts?: { silent?: boolean }) => {
-    if (typeof window === "undefined") return;
+  const checkExtensionStatus = async (opts?: { silent?: boolean }): Promise<boolean> => {
+    if (typeof window === "undefined") return false;
     const silent = Boolean(opts?.silent);
     setCheckingExtension(true);
     try {
@@ -1099,6 +1100,7 @@ export default function Onboarding() {
       if (!silent && !result.installed) {
         setMessage("Extension not detected yet. You can still complete onboarding and sync later.");
       }
+      return result.installed;
     } finally {
       setCheckingExtension(false);
     }
@@ -2643,6 +2645,7 @@ export default function Onboarding() {
   // One question per screen flow (default). The classic all-in-one form stays at ?classic=1.
   const classicMode = typeof window !== "undefined" && new URLSearchParams(window.location.search).get("classic") === "1";
   if (!classicMode) {
+    const paymentRequired = mustPayToFinishOnboarding(user);
     return (
       <OnboardingFlow
         resumeFileName={String(user?.resumeFileName || "")}
@@ -2665,13 +2668,15 @@ export default function Onboarding() {
         setError={setError}
         extensionInstalled={extensionStatus.installed}
         onCheckExtension={() => checkExtensionStatus({ silent: true })}
+        requirePayment={paymentRequired}
         onFinish={async (plan) => {
+          if (!plan && paymentRequired) return false;
           // Pay first, right here: finishing onboarding first would redirect away from this screen.
           if (plan && user?.plan !== plan) {
             // One-time 30-day payment: a simple checkout with no auto-renewal mandate.
             const result = await startPlanPurchase(plan, { name: profile.fullName, email: user?.email, phone: profile.phone, userId: user?.id });
             if (result.status === "dismissed") {
-              setError("Payment window closed. Pick a plan again, or continue with Free.");
+              setError(paymentRequired ? "Payment window closed. Pick a plan to continue." : "Payment window closed. Pick a plan again, or continue with Free.");
               return false;
             }
             if (result.status === "failed") {

@@ -178,6 +178,7 @@ model User {
   agencyClient        AgencyClient?
   feedbacks           Feedback[]
   whatsAppFollowUps   WhatsAppFollowUp[]
+  checkoutAttempts    CheckoutAttempt[]
 
   @@index([referredById])
 }
@@ -760,6 +761,26 @@ model WhatsAppFollowUp {
 
   @@unique([userId, key])
   @@index([reason, createdAt])
+}
+
+// One click on a Pay button and what happened next (Admin > Checkouts, src/lib/checkout-tracking.ts).
+model CheckoutAttempt {
+  id          String   @id @default(cuid())
+  userId      String
+  source      String   // onboarding | billing | promo_banner
+  product     String   // pro | connect | coach | hires
+  mode        String   // one_time | subscription | topup
+  status      String   @default("started") // started -> opened (Razorpay shown) -> paid | dismissed | failed
+  amountPaise Int?
+  stage       String?  // where a failure happened: script_load, order_create, payment_verification...
+  error       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([createdAt])
+  @@index([userId, createdAt])
 }
 
 // The conversation on a ticket (Feedback with a ticketStatus): replies from the user and from the team.

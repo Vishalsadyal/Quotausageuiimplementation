@@ -22,7 +22,8 @@ import {
   CreditCard,
   Handshake,
   Star,
-  MessageCircle
+  MessageCircle,
+  ShoppingCart
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
@@ -41,6 +42,7 @@ export default function AdminLayout() {
     { name: 'Jobs', href: '/admin/jobs', icon: Briefcase },
     { name: 'Applications', href: '/admin/applications', icon: FileText },
     { name: 'Revenue', href: '/admin/revenue', icon: DollarSign },
+    { name: 'Checkouts', href: '/admin/checkouts', icon: ShoppingCart },
     { name: 'Growth', href: '/admin/growth', icon: TrendingUp },
     { name: 'Support', href: '/admin/support', icon: MessageSquare },
     { name: 'Ratings', href: '/admin/ratings', icon: Star },
