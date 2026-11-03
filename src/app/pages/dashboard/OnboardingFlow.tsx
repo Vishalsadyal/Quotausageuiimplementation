@@ -2,12 +2,13 @@ import { useEffect, useMemo, useRef, useState, type Dispatch, type ReactNode, ty
 import { useNavigate, useSearchParams } from "react-router";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useAuth } from "../../context/AuthContext";
-import { AlertCircle, ArrowLeftRight, Building2, Check, ChevronLeft, Chrome, ExternalLink, FileText, Home, Lightbulb, Loader2, Lock, MapPin, Plus, Sparkles, UploadCloud, X, type LucideIcon } from "lucide-react";
+import { AlertCircle, ArrowLeftRight, Building2, Check, ChevronLeft, Chrome, ExternalLink, FileText, Home, Lightbulb, Loader2, Lock, MapPin, Plus, RefreshCw, Sparkles, UploadCloud, X, type LucideIcon } from "lucide-react";
 import { InsightPanel, MapPanel, ProfileCard, useOnboardingInsights } from "./OnboardingPanels";
 import { captureEvent } from "src/lib/posthog-client";
 import { extensionMissingReason } from "src/lib/extension-bridge-client";
 import { useExtensionStore } from "../../hooks/useExtensionStore";
 import { ExtensionBrowserNote } from "../../components/ExtensionBrowserNote";
+import { ChromeLogo } from "../../components/ChromeLogo";
 import type { JobPreferences, MasterProfile, PendingQuestion, ScreeningAnswerType, ScreeningSource } from "./Onboarding";
 
 // One question per screen onboarding (25 screens in 8 sections). It edits the same profile / preferences
@@ -44,6 +45,8 @@ type Props = {
   extensionInstalled: boolean;
   /** Re-checks the extension; resolves true when it answered. */
   onCheckExtension: () => Promise<boolean | void>;
+  /** Saves the answers, then reloads the page (on the same step) so a just-installed extension connects. */
+  onReloadPage: () => Promise<void>;
   /** Saves everything; a paid plan then opens its checkout, otherwise the user goes to Jobs. */
   onFinish: (plan?: PaidPlanChoice) => Promise<boolean>;
   /** New accounts must buy a plan: the last screen hides "Continue with Free". */
@@ -475,6 +478,7 @@ export default function OnboardingFlow(props: Props) {
     setError,
     extensionInstalled,
     onCheckExtension,
+    onReloadPage,
     onFinish,
     requirePayment = false,
   } = props;
@@ -504,6 +508,7 @@ export default function OnboardingFlow(props: Props) {
   const [extrasLoaded, setExtrasLoaded] = useState(false);
   const [messageTab, setMessageTab] = useState<"wa" | "email">("wa");
   const [chosenPlan, setChosenPlan] = useState<PaidPlanChoice>("pro");
+  const [reloading, setReloading] = useState(false);
   const insights = useOnboardingInsights();
 
   useEffect(() => {
@@ -779,7 +784,7 @@ export default function OnboardingFlow(props: Props) {
         setLocalError(
           extensionMissingReason() === "unresponsive"
             ? "The extension is installed but not answering. Refresh this page (F5), then click again."
-            : `We can't find the extension in this browser yet. Click "Add to ${extensionStore.browserName}" above, install it, then click again.`,
+            : `We can't find the extension yet. Install it with "Add to ${extensionStore.browserName}" above. Just installed it? Click "Refresh page".`,
         );
         return;
       }
@@ -1290,8 +1295,18 @@ export default function OnboardingFlow(props: Props) {
       continueLabel = extensionInstalled ? "Continue" : "I've installed it";
       body = (
         <div className="mx-auto w-full max-w-xl rounded-3xl bg-white p-6 text-center shadow-sm">
-          <div className={`mx-auto flex h-16 w-16 items-center justify-center rounded-2xl shadow-md ${extensionInstalled ? "bg-emerald-500" : "bg-gradient-to-br from-violet-600 to-indigo-600"}`}>
-            {extensionInstalled ? <Check className="h-8 w-8 text-white" /> : <Chrome className="h-8 w-8 text-white" />}
+          <div
+            className={`mx-auto flex h-16 w-16 items-center justify-center rounded-2xl shadow-md ${
+              extensionInstalled ? "bg-emerald-500" : extensionStore.browser === "chrome" ? "bg-white ring-1 ring-slate-200" : "bg-gradient-to-br from-violet-600 to-indigo-600"
+            }`}
+          >
+            {extensionInstalled ? (
+              <Check className="h-8 w-8 text-white" />
+            ) : extensionStore.browser === "chrome" ? (
+              <ChromeLogo className="h-10 w-10" />
+            ) : (
+              <Chrome className="h-8 w-8 text-white" />
+            )}
           </div>
           {extensionInstalled ? (
             <p className="mt-4 text-sm font-semibold text-emerald-700">Detected and ready.</p>
@@ -1303,7 +1318,14 @@ export default function OnboardingFlow(props: Props) {
                 rel="noopener noreferrer"
                 className="mt-5 inline-flex items-center gap-2 rounded-full bg-violet-600 px-6 py-3 text-base font-semibold text-white shadow-md transition hover:bg-violet-700"
               >
-                <Chrome className="h-5 w-5" /> Add to {extensionStore.browserName}, it's free <ExternalLink className="h-4 w-4 opacity-80" />
+                {extensionStore.browser === "chrome" ? (
+                  <span className="flex h-6 w-6 items-center justify-center rounded-full bg-white">
+                    <ChromeLogo className="h-5 w-5" />
+                  </span>
+                ) : (
+                  <Chrome className="h-5 w-5" />
+                )}{" "}
+                Add to {extensionStore.browserName}, Click here <ExternalLink className="h-4 w-4 opacity-80" />
               </a>
               <ExtensionBrowserNote store={extensionStore} className="mt-3" />
               <ol className="mx-auto mt-5 max-w-sm space-y-1.5 text-left text-sm text-slate-600">
@@ -1312,11 +1334,26 @@ export default function OnboardingFlow(props: Props) {
                   <span className="font-semibold text-slate-900">2.</span>{" "}
                   {extensionStore.browser === "edge" ? 'Click "Get", then "Add extension"' : 'Click "Add to Chrome", then "Add extension"'}
                 </li>
-                <li><span className="font-semibold text-slate-900">3.</span> Come back here: we detect it automatically</li>
+                <li><span className="font-semibold text-slate-900">3.</span> Come back here and click "Refresh page" below</li>
               </ol>
               <p className="mt-4 inline-flex items-center gap-1.5 text-xs font-medium text-slate-400">
                 <Loader2 className="h-3.5 w-3.5 animate-spin" /> Waiting for the extension…
               </p>
+              {/* Chrome doesn't add a newly installed extension to tabs that are already open: a reload connects it. */}
+              <div className="mx-auto mt-4 flex max-w-sm flex-col items-center gap-2 rounded-2xl bg-violet-50 px-4 py-3">
+                <p className="text-sm text-violet-900">Installed it? Refresh this page so we can detect it.</p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setReloading(true);
+                    void onReloadPage().catch(() => setReloading(false));
+                  }}
+                  disabled={reloading}
+                  className="inline-flex items-center gap-1.5 rounded-full border border-violet-300 bg-white px-4 py-2 text-sm font-semibold text-violet-700 shadow-sm transition hover:bg-violet-100 disabled:opacity-60"
+                >
+                  {reloading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />} Refresh page
+                </button>
+              </div>
             </>
           )}
         </div>
@@ -1488,6 +1525,7 @@ export default function OnboardingFlow(props: Props) {
           <aside className="hidden min-h-0 flex-col justify-center py-4 lg:flex">
             <InsightPanel
               step={step}
+              plan={chosenPlan}
               insights={insights}
               city={profile.city}
               years={yearsValue}

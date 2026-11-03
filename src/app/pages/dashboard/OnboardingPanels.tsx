@@ -273,6 +273,40 @@ export function MapPanel({ query }: { query: string }) {
 
 // ───────────────────────── right-hand insight per step ─────────────────────────
 
+// Plan screen: Free next to the plan picked on the left. Same features as the Billing page cards.
+const PLAN_COMPARE: Record<"pro" | "connect" | "coach", { name: string; rows: Array<[string, string, string]> }> = {
+  pro: {
+    name: "Pro",
+    rows: [
+      ["Auto-applies per day", "3", "Unlimited"],
+      ["Recruiter outreach", "Hires", "Unlimited"],
+      ["AI assistant", "No", "Yes"],
+      ["Resume & cover letter tailoring", "No", "Yes"],
+      ["WhatsApp support", "No", "Yes"],
+    ],
+  },
+  connect: {
+    name: "Pro Connect",
+    rows: [
+      ["Auto-applies per day", "3", "Unlimited"],
+      ["Recruiter outreach", "Hires", "Unlimited"],
+      ["New HR contacts a day", "No", "20"],
+      ["Daily contacts email", "No", "Yes"],
+      ["Interview Call AI", "No", "Yes"],
+    ],
+  },
+  coach: {
+    name: "Career Coach",
+    rows: [
+      ["Auto-applies per day", "3", "Unlimited"],
+      ["Resume & LinkedIn review", "No", "1-on-1"],
+      ["Mock interview session", "No", "Yes"],
+      ["Job hunt mentor", "No", "Dedicated"],
+      ["Interview Call AI", "No", "Yes"],
+    ],
+  },
+};
+
 export function InsightPanel({
   step,
   insights,
@@ -280,7 +314,10 @@ export function InsightPanel({
   years,
   search,
   messagePreview,
+  plan = "pro",
 }: {
+  /** The plan selected on the plan screen; the comparison follows it. */
+  plan?: "pro" | "connect" | "coach";
   step: number;
   insights: OnboardingInsights | null;
   city: string;
@@ -468,19 +505,20 @@ export function InsightPanel({
       </Panel>
     );
   }
+  const compare = PLAN_COMPARE[plan] || PLAN_COMPARE.pro;
   return (
-    <Panel title="Free vs Pro" icon={Crown}>
+    <Panel title={`Free vs ${compare.name}`} icon={Crown}>
       <ul className="space-y-2 text-sm">
-        {[
-          ["Auto-applies per day", "3", "Unlimited"],
-          ["Recruiter outreach", "Hires", "Unlimited"],
-          ["AI assistant", "No", "Yes"],
-          ["Priority support", "No", "Yes"],
-        ].map(([label, free, pro]) => (
-          <li key={label} className="grid grid-cols-[1fr_auto_auto] items-center gap-3">
+        <li className="grid grid-cols-[1fr_2.75rem_4.5rem] items-center gap-2 text-[10px] font-bold uppercase tracking-wide text-slate-400">
+          <span />
+          <span className="text-center">Free</span>
+          <span className="text-center leading-tight text-violet-600">{compare.name}</span>
+        </li>
+        {compare.rows.map(([label, free, pro]) => (
+          <li key={label} className="grid grid-cols-[1fr_2.75rem_4.5rem] items-center gap-2">
             <span className="text-slate-600">{label}</span>
-            <span className="text-xs text-slate-400">{free}</span>
-            <span className="text-xs font-bold text-violet-700">{pro}</span>
+            <span className="text-center text-xs text-slate-400">{free}</span>
+            <span className="text-center text-xs font-bold text-violet-700">{pro}</span>
           </li>
         ))}
       </ul>

@@ -29,6 +29,7 @@ import {
   consumeDashboardTourRequest,
 } from "src/lib/dashboard-tour";
 import OnboardingFlow from "./OnboardingFlow";
+import { LoadingQuote } from "../../components/LoadingQuote";
 import { startPlanPurchase } from "src/lib/plan-checkout";
 import { mustPayToFinishOnboarding } from "src/lib/onboarding";
 
@@ -2450,11 +2451,12 @@ export default function Onboarding() {
 
   if (loading) {
     return (
-      <div className="min-h-screen w-full bg-gradient-to-b from-slate-50 via-white to-indigo-50/40 flex items-center justify-center">
+      <div className="min-h-screen w-full bg-gradient-to-b from-slate-50 via-white to-indigo-50/40 flex flex-col items-center justify-center gap-6 px-4">
         <div className="inline-flex items-center gap-3 rounded-xl border border-slate-200 bg-white px-6 py-4 shadow-sm">
           <Loader2 className="h-5 w-5 animate-spin text-indigo-500" />
           <span className="text-sm font-medium text-slate-600">Loading your profile...</span>
         </div>
+        <LoadingQuote />
       </div>
     );
   }
@@ -2668,6 +2670,10 @@ export default function Onboarding() {
         setError={setError}
         extensionInstalled={extensionStatus.installed}
         onCheckExtension={() => checkExtensionStatus({ silent: true })}
+        onReloadPage={async () => {
+          await saveDraft().catch(() => {});
+          window.location.reload();
+        }}
         requirePayment={paymentRequired}
         onFinish={async (plan) => {
           if (!plan && paymentRequired) return false;
