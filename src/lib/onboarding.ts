@@ -18,9 +18,12 @@ export function hasCompletedRequiredOnboarding(user: OnboardingUser | null | und
 
 // Accounts created from this moment on must buy a plan to finish onboarding (no "Continue with Free").
 // Older accounts, and anyone already on a paid plan (agency, referral reward), keep the free option.
+// Turned off on 2026-11-04: everyone can "Continue with Free" again. Set to true to bring the paywall back.
+export const ONBOARDING_PAYWALL_ENABLED = false;
 export const ONBOARDING_PAYWALL_FROM = "2026-11-03T00:00:00+05:30";
 
 export function mustPayToFinishOnboarding(user: { plan?: string | null; createdAt?: string | null } | null | undefined) {
+  if (!ONBOARDING_PAYWALL_ENABLED) return false;
   if (!user || (user.plan && user.plan !== "free")) return false;
   const created = Date.parse(String(user.createdAt || ""));
   return Number.isFinite(created) && created >= Date.parse(ONBOARDING_PAYWALL_FROM);
